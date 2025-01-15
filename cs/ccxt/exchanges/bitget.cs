@@ -1205,6 +1205,7 @@ public partial class bitget : Exchange
                     { "41103", typeof(InvalidOrder) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
+                    { "43001", typeof(OrderNotFound) },
                     { "43012", typeof(InsufficientFunds) },
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },
@@ -1383,13 +1384,88 @@ public partial class bitget : Exchange
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "BEP20", "BSC" },
-                    { "ARB", "ArbitrumOne" },
+                    { "BSC", "BEP20" },
+                    { "ATOM", "ATOM" },
+                    { "ACA", "AcalaToken" },
+                    { "APT", "Aptos" },
+                    { "ARBONE", "ArbitrumOne" },
+                    { "ARBNOVA", "ArbitrumNova" },
+                    { "AVAXC", "C-Chain" },
+                    { "AVAXX", "X-Chain" },
+                    { "AR", "Arweave" },
+                    { "BCH", "BCH" },
+                    { "BCHA", "BCHA" },
+                    { "BITCI", "BITCI" },
+                    { "BTC", "BTC" },
+                    { "CELO", "CELO" },
+                    { "CSPR", "CSPR" },
+                    { "ADA", "Cardano" },
+                    { "CHZ", "ChilizChain" },
+                    { "CRC20", "CronosChain" },
+                    { "DOGE", "DOGE" },
+                    { "DOT", "DOT" },
+                    { "EOS", "EOS" },
+                    { "ETHF", "ETHFAIR" },
+                    { "ETHW", "ETHW" },
+                    { "ETC", "ETC" },
+                    { "EGLD", "Elrond" },
+                    { "FIL", "FIL" },
+                    { "FIO", "FIO" },
+                    { "FTM", "Fantom" },
+                    { "HRC20", "HECO" },
+                    { "ONE", "Harmony" },
+                    { "HNT", "Helium" },
+                    { "ICP", "ICP" },
+                    { "IOTX", "IoTeX" },
+                    { "KARDIA", "KAI" },
+                    { "KAVA", "KAVA" },
+                    { "KDA", "KDA" },
+                    { "KLAY", "Klaytn" },
+                    { "KSM", "Kusama" },
+                    { "LAT", "LAT" },
+                    { "LTC", "LTC" },
+                    { "MINA", "MINA" },
+                    { "MOVR", "MOVR" },
+                    { "METIS", "MetisToken" },
+                    { "GLMR", "Moonbeam" },
+                    { "NEAR", "NEARProtocol" },
+                    { "NULS", "NULS" },
+                    { "OASYS", "OASYS" },
+                    { "OASIS", "ROSE" },
+                    { "OMNI", "OMNI" },
+                    { "ONT", "Ontology" },
+                    { "OPTIMISM", "Optimism" },
+                    { "OSMO", "Osmosis" },
+                    { "POKT", "PocketNetwork" },
+                    { "MATIC", "Polygon" },
+                    { "QTUM", "QTUM" },
+                    { "REEF", "REEF" },
+                    { "SOL", "SOL" },
+                    { "SYS", "SYS" },
+                    { "SXP", "Solar" },
+                    { "XYM", "Symbol" },
+                    { "TON", "TON" },
+                    { "TT", "TT" },
+                    { "TLOS", "Telos" },
+                    { "THETA", "ThetaToken" },
+                    { "VITE", "VITE" },
+                    { "WAVES", "WAVES" },
+                    { "WAX", "WAXP" },
+                    { "WEMIX", "WEMIXMainnet" },
+                    { "XDC", "XDCNetworkXDC" },
+                    { "XRP", "XRP" },
+                    { "FET", "FETCH" },
+                    { "NEM", "NEM" },
+                    { "REI", "REINetwork" },
+                    { "ZIL", "ZIL" },
+                    { "ABBC", "ABBCCoin" },
+                    { "RSK", "RSK" },
+                    { "AZERO", "AZERO" },
+                    { "TRC10", "TRC10" },
+                    { "JUNO", "JUNO" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
-                    { "APT", "Aptos" },
-                    { "MATIC", "Polygon" },
                     { "VIC", "VICTION" },
-                    { "AVAXC", "C-Chain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {
@@ -1417,10 +1493,9 @@ public partial class bitget : Exchange
                                 { "mark", false },
                                 { "index", false },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1455,7 +1530,7 @@ public partial class bitget : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 90 },
                         { "trigger", true },
@@ -1483,10 +1558,9 @@ public partial class bitget : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -2363,15 +2437,17 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        object chain = this.safeString2(parameters, "chain", "network");
-        parameters = this.omit(parameters, "network");
-        if (isTrue(isEqual(chain, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a chain parameter or a network parameter")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a \"network\" parameter")) ;
         }
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networkId = this.networkCodeToId(chain);
+        object networkId = this.networkCodeToId(networkCode);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
@@ -2396,27 +2472,8 @@ public partial class bitget : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = new Dictionary<string, object>() {
-            { "id", this.safeString(data, "orderId") },
-            { "info", response },
-            { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "network", null },
-            { "addressFrom", null },
-            { "address", null },
-            { "addressTo", null },
-            { "amount", null },
-            { "type", "withdrawal" },
-            { "currency", null },
-            { "status", null },
-            { "updated", null },
-            { "tagFrom", null },
-            { "tag", null },
-            { "tagTo", null },
-            { "comment", null },
-            { "fee", null },
-        };
+        object result = this.parseTransaction(data, currency);
+        ((IDictionary<string,object>)result)["type"] = "withdrawal";
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
@@ -2428,7 +2485,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)result)["tag"] = tag;
             ((IDictionary<string,object>)result)["address"] = address;
             ((IDictionary<string,object>)result)["addressTo"] = address;
-            ((IDictionary<string,object>)result)["network"] = chain;
+            ((IDictionary<string,object>)result)["network"] = networkCode;
         }
         return result;
     }
@@ -2618,20 +2675,17 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object networkCode = this.safeString2(parameters, "chain", "network");
-        parameters = this.omit(parameters, "network");
-        object networkId = null;
-        if (isTrue(!isEqual(networkCode, null)))
-        {
-            networkId = this.networkCodeToId(networkCode, code);
-        }
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
-        if (isTrue(!isEqual(networkId, null)))
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = networkId;
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, code);
         }
         object response = await this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters));
         //
@@ -4428,7 +4482,6 @@ public partial class bitget : Exchange
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", reduceOnly },
-            { "stopPrice", this.safeNumber(order, "triggerPrice") },
             { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "takeProfitPrice", this.safeNumber2(order, "presetStopSurplusPrice", "stopSurplusTriggerPrice") },
             { "stopLossPrice", this.safeNumber2(order, "presetStopLossPrice", "stopLossTriggerPrice") },
@@ -4459,8 +4512,10 @@ public partial class bitget : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -6441,7 +6496,7 @@ public partial class bitget : Exchange
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7523,8 +7578,9 @@ public partial class bitget : Exchange
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, market);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

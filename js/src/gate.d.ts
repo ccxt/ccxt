@@ -427,7 +427,7 @@ export default class gate extends Exchange {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -801,6 +801,7 @@ export default class gate extends Exchange {
      */
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
+    nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
@@ -902,7 +903,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

@@ -285,9 +285,15 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>
@@ -337,9 +343,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -383,9 +389,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// </list>
@@ -433,9 +439,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -482,9 +488,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -531,9 +537,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -568,9 +574,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -603,9 +609,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>

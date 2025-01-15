@@ -1,0 +1,128 @@
+name: Js
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Debug files changes
+      run: git diff --name-only HEAD^1 HEAD
+    - name: Determine modified files
+      run: ./utils/init_actions.sh
+    - name: Debug output
+      run: |
+        echo "Important files modified: ${{ env.important_modified }}"
+        echo "REST files: ${{ env.rest_files }}"
+        echo "WS files: ${{ env.ws_files }}"
+        cat shared_env.txt
+    - name: Check ref
+      run: echo $GITHUB_REF
+    - name: Pre-transpile and transpile TS
+      if: env.important_modified == 'true'
+      run: npm run pre-transpile-js
+    - name: Pre-transpile and transpile TS (Simplified)
+      if: env.important_modified == 'false'
+      run: npm run pre-transpile-js-simple
+    - name: Lint Rest (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run eslint "ts/src/$exchange.ts"
+        done
+    - name: Lint Ws (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run eslint "ts/src/pro/$exchange.ts"
+        done
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-js
+    - name: Run Base Ws Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-ws-js
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-js
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-js
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run request-js -- $exchange
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: npm run response-js
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run response-js -- $exchange
+        done
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+
+    - name: Upload Js Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-files
+        path: js/
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: ./run-tests-simul.sh --js
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --js "${{ env.rest_files }}" "${{ env.ws_files }}"

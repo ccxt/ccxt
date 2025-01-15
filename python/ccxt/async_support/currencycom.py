@@ -261,6 +261,78 @@ class currencycom(Exchange, ImplicitAPI):
                 'leverage_markets_suffix': '_LEVERAGE',
                 'collateralCurrencies': ['USD', 'EUR', 'USDT'],
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,  # todo implementation
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': False,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                        'leverage': True,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implementation
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 'broad': {
                     'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
@@ -1198,7 +1270,6 @@ class currencycom(Exchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1296,11 +1367,11 @@ class currencycom(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                if stopPrice is not None:
+                if triggerPrice is not None:
                     request['type'] = 'STOP'
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price'] = self.price_to_precision(symbol, triggerPrice)
         response = await self.privatePostV2Order(self.extend(request, params))
         #
         # limit
@@ -1668,7 +1739,7 @@ class currencycom(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         request: dict = {}

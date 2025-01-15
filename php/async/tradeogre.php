@@ -602,7 +602,7 @@ class tradeogre extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'quantity'),
             'cost' => null,
             'average' => null,

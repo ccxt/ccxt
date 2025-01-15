@@ -189,6 +189,83 @@ public partial class krakenfutures : Exchange
                     { "method", "historyGetMarketSymbolExecutions" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 100 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 5000 },
+                    } },
+                } },
+                { "spot", null },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "1m" },
                 { "5m", "5m" },
@@ -1032,7 +1109,7 @@ public partial class krakenfutures : Exchange
      * @method
      * @name krakenfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
      * @param {string} symbol unified market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -1095,7 +1172,7 @@ public partial class krakenfutures : Exchange
      * @method
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1978,7 +2055,6 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeString(details, "side") },
             { "price", price },
-            { "stopPrice", this.safeString(details, "triggerPrice") },
             { "triggerPrice", this.safeString(details, "triggerPrice") },
             { "amount", amount },
             { "cost", cost },
@@ -2013,6 +2089,7 @@ public partial class krakenfutures : Exchange
         {
             market = this.market(symbol);
         }
+        // todo: lastFillTime: this.iso8601(end)
         object response = await this.privateGetFills(parameters);
         //
         //    {
@@ -2637,23 +2714,27 @@ public partial class krakenfutures : Exchange
         object marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
+        if (isTrue(isEqual(marginLevels, null)))
+        {
+            return tiers;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);
             object initialMargin = this.safeString(tier, "initialMargin");
-            object notionalFloor = this.safeNumber(tier, "contracts");
+            object minNotional = this.safeNumber(tier, "numNonContractUnits");
             if (isTrue(!isEqual(i, 0)))
             {
                 object tiersLength = getArrayLength(tiers);
                 object previousTier = getValue(tiers, subtract(tiersLength, 1));
-                ((IDictionary<string,object>)previousTier)["notionalCap"] = notionalFloor;
+                ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
-                { "notionalFloor", notionalFloor },
-                { "notionalCap", null },
+                { "minNotional", minNotional },
+                { "maxNotional", null },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)) },
                 { "info", tier },

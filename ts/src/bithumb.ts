@@ -132,6 +132,60 @@ export default class bithumb extends Exchange {
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
+            // todo: update to v2 apis
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
@@ -938,7 +992,6 @@ export default class bithumb extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1069,7 +1122,7 @@ export default class bithumb extends Exchange {
             'address': address,
             'currency': currency['id'],
         };
-        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM') {
+        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
             const destination = this.safeString (params, 'destination');
             if ((tag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');

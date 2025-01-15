@@ -493,7 +493,6 @@ class zonda extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -855,7 +854,7 @@ class zonda extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $balanceCurrencies = array();
         if ($code !== null) {
@@ -1421,7 +1420,7 @@ class zonda extends Exchange {
         $response = null;
         if ($isStopOrder) {
             if (!$isStopLossPrice) {
-                throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
+                throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-$market orders');
             }
             $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
             $response = $this->v1_01PrivatePostTradingStopOfferSymbol ($this->extend($request, $params));

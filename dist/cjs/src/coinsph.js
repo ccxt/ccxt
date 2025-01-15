@@ -6,6 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 /**
  * @class coinsph
  * @augments Exchange
@@ -292,6 +293,72 @@ class coinsph extends coinsph$1 {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARB': 'ARBITRUM',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             // https://coins-docs.github.io/errors/
@@ -1173,11 +1240,11 @@ class coinsph extends coinsph$1 {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1245,7 +1312,7 @@ class coinsph extends coinsph$1 {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1415,9 +1482,9 @@ class coinsph extends coinsph$1 {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
         const trades = this.safeValue(order, 'fills', undefined);
-        let stopPrice = this.safeString(order, 'stopPrice');
-        if (Precise["default"].stringEq(stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString(order, 'stopPrice');
+        if (Precise["default"].stringEq(triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder({
             'id': id,
@@ -1431,8 +1498,7 @@ class coinsph extends coinsph$1 {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString(order, 'origQty'),
             'cost': this.safeString(order, 'cummulativeQuoteQty'),

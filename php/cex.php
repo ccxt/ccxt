@@ -107,6 +107,63 @@ class cex extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false, // todo check
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true, // todo check
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(),
@@ -1105,7 +1162,7 @@ class cex extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $requestedBase,
             'cost' => $executedQuote,
             'average' => $this->safe_number($order, 'averagePrice'),
@@ -1284,7 +1341,7 @@ class cex extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $currency = null;

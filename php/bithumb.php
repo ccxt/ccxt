@@ -127,6 +127,60 @@ class bithumb extends Exchange {
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
+            // todo => update to v2 apis
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
@@ -933,7 +987,6 @@ class bithumb extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1064,7 +1117,7 @@ class bithumb extends Exchange {
             'address' => $address,
             'currency' => $currency['id'],
         );
-        if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM') {
+        if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON') {
             $destination = $this->safe_string($params, 'destination');
             if (($tag === null) && ($destination === null)) {
                 throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');

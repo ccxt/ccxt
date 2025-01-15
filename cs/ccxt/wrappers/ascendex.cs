@@ -186,6 +186,12 @@ public partial class ascendex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -279,7 +285,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -325,7 +331,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -377,7 +383,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>

@@ -37,6 +37,7 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
+    nonce(): number;
     /**
      * @method
      * @name okx#fetchMarkets
@@ -121,6 +122,7 @@ export default class okx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -358,7 +360,7 @@ export default class okx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -376,7 +378,7 @@ export default class okx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -446,7 +448,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;

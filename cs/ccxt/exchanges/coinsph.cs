@@ -270,6 +270,72 @@ public partial class coinsph : Exchange
                     { "ARB", "ARBITRUM" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "-1000", typeof(BadRequest) },
@@ -1221,12 +1287,12 @@ public partial class coinsph : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue(isEqual(orderType, "STOP_LOSS")) || isTrue(isEqual(orderType, "STOP_LOSS_LIMIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT_LIMIT"))))
         {
-            object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(isEqual(stopPrice, null)))
+            object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(isEqual(triggerPrice, null)))
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         ((IDictionary<string,object>)request)["newOrderRespType"] = newOrderRespType;
         parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1300,7 +1366,7 @@ public partial class coinsph : Exchange
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1489,10 +1555,10 @@ public partial class coinsph : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills", null);
-        object stopPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(stopPrice, "0")))
+        object triggerPrice = this.safeString(order, "stopPrice");
+        if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
-            stopPrice = null;
+            triggerPrice = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1506,8 +1572,7 @@ public partial class coinsph : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", null },
             { "amount", this.safeString(order, "origQty") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },

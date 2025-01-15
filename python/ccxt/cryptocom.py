@@ -366,6 +366,97 @@ class cryptocom(Exchange, ImplicitAPI):
                 },
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        # todo: implementation fix
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': True,  # todo: implement
+                        'trailing': False,
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': 1,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
@@ -418,6 +509,9 @@ class cryptocom(Exchange, ImplicitAPI):
                     '40801': RequestTimeout,
                     '42901': RateLimitExceeded,
                     '43005': InvalidOrder,  # Rejected POST_ONLY create-order request(normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': InvalidOrder,  # FOK order has not been filled and cancelled
+                    '43004': InvalidOrder,  # IOC order has not been filled and cancelled
+                    '43012': BadRequest,  # Canceled due to Self Trade Prevention
                     '50001': ExchangeError,
                     '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -1147,7 +1241,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-        :param float [params.triggerPrice]: price to trigger a stop order
+        :param float [params.triggerPrice]: price to trigger a trigger order
         :param float [params.stopLossPrice]: price to trigger a stop-loss trigger order
         :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2283,7 +2377,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {}

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.35'
+__version__ = '4.4.48'
 
 # -----------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ from ccxt.async_support.bitbank import bitbank                                  
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
-from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
+from ccxt.async_support.bitfinex1 import bitfinex1                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
@@ -146,6 +146,7 @@ from ccxt.async_support.luno import luno                                        
 from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
+from ccxt.async_support.myokx import myokx                                      # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
@@ -191,7 +192,7 @@ exchanges = [
     'bitbns',
     'bitcoincom',
     'bitfinex',
-    'bitfinex2',
+    'bitfinex1',
     'bitflyer',
     'bitget',
     'bithumb',
@@ -259,6 +260,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mexc',
+    'myokx',
     'ndax',
     'novadax',
     'oceanex',

@@ -1248,8 +1248,7 @@ class lbank(Exchange, ImplicitAPI):
         #     "success": True,
         # }
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def fetch_balance(self, params={}) -> Balances:
         """
@@ -1609,7 +1608,6 @@ class lbank(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': costString,
             'amount': amountString,

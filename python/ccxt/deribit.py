@@ -291,6 +291,88 @@ class deribit(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': True,  # todo
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 # 0 or absent Success, No error.
                 '9999': PermissionDenied,  # 'api_not_enabled' User didn't enable API for the Account.
@@ -1767,7 +1849,6 @@ class deribit(Exchange, ImplicitAPI):
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
         return self.safe_order({
             'info': order,
@@ -1782,8 +1863,7 @@ class deribit(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_value(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,

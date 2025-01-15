@@ -34,6 +34,9 @@ export default class exmo extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -865,39 +868,49 @@ export default class exmo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const until = this.safeIntegerProduct(params, 'until', 0.001);
+        const untilIsDefined = (until !== undefined);
         const request = {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const maxLimit = 3000;
         const duration = this.parseTimeframe(timeframe);
-        const now = this.milliseconds();
+        const now = this.parseToInt(this.milliseconds() / 1000);
         if (since === undefined) {
+            const to = untilIsDefined ? Math.min(until, now) : now;
             if (limit === undefined) {
                 limit = 1000; // cap default at generous amount
             }
             else {
                 limit = Math.min(limit, maxLimit);
             }
-            request['from'] = this.parseToInt(now / 1000) - limit * duration - 1;
-            request['to'] = this.parseToInt(now / 1000);
+            request['from'] = to - (limit * duration) - 1;
+            request['to'] = to;
         }
         else {
             request['from'] = this.parseToInt(since / 1000) - 1;
-            if (limit === undefined) {
-                limit = maxLimit;
+            if (untilIsDefined) {
+                request['to'] = Math.min(until, now);
             }
             else {
-                limit = Math.min(limit, maxLimit);
+                if (limit === undefined) {
+                    limit = maxLimit;
+                }
+                else {
+                    limit = Math.min(limit, maxLimit);
+                }
+                const to = this.sum(since, limit * duration);
+                request['to'] = Math.min(to, now);
             }
-            const to = this.sum(since, limit * duration * 1000);
-            request['to'] = this.parseToInt(to / 1000);
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetCandlesHistory(this.extend(request, params));
         //
         //     {
@@ -1411,6 +1424,52 @@ export default class exmo extends Exchange {
     }
     /**
      * @method
+     * @name exmo#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        await this.loadMarkets();
+        params = this.extend(params, { 'cost': cost });
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    /**
+     * @method
+     * @name exmo#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        params = this.extend(params, { 'cost': cost });
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
+    /**
+     * @method
+     * @name exmo#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        params = this.extend(params, { 'cost': cost });
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+    }
+    /**
+     * @method
      * @name exmo#createOrder
      * @description create a trade order
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -1422,9 +1481,10 @@ export default class exmo extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
      * @param {boolean} [params.postOnly] *spot only* true for post only orders
+     * @param {float} [params.cost] *spot only* *market orders only* the cost of the order in the quote currency for market orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1437,11 +1497,12 @@ export default class exmo extends Exchange {
             throw new BadRequest(this.id + ' only supports isolated margin');
         }
         const isSpot = (marginMode !== 'isolated');
-        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        const cost = this.safeString(params, 'cost');
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
-            'quantity': this.amountToPrecision(market['symbol'], amount),
+            // 'quantity': this.amountToPrecision (market['symbol'], amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
@@ -1450,6 +1511,12 @@ export default class exmo extends Exchange {
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
+        if (cost === undefined) {
+            request['quantity'] = this.amountToPrecision(market['symbol'], amount);
+        }
+        else {
+            request['quantity'] = this.costToPrecision(market['symbol'], cost);
+        }
         let clientOrderId = this.safeValue2(params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2(params, 'client_id', 'clientOrderId');
@@ -1464,7 +1531,7 @@ export default class exmo extends Exchange {
         if (!isSpot && (leverage === undefined)) {
             throw new ArgumentsRequired(this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
         }
-        params = this.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost']);
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
@@ -1490,7 +1557,8 @@ export default class exmo extends Exchange {
                     request['type'] = side;
                 }
                 else if (type === 'market') {
-                    request['type'] = 'market_' + side;
+                    const marketSuffix = (cost !== undefined) ? '_total' : '';
+                    request['type'] = 'market_' + side + marketSuffix;
                 }
                 if (isPostOnly) {
                     request['exec_type'] = 'post_only';
@@ -1543,7 +1611,7 @@ export default class exmo extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const stop = this.safeValue2(params, 'trigger', 'stop');
+        const trigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
@@ -1559,7 +1627,7 @@ export default class exmo extends Exchange {
             //
         }
         else {
-            if (stop) {
+            if (trigger) {
                 request['parent_order_id'] = id;
                 response = await this.privatePostStopMarketOrderCancel(this.extend(request, params));
                 //
@@ -1950,7 +2018,6 @@ export default class exmo extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,

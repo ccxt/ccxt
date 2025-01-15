@@ -1055,7 +1055,6 @@ class latoken(Exchange, ImplicitAPI):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        triggerPrice = self.safe_string(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1070,8 +1069,7 @@ class latoken(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,

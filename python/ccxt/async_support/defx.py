@@ -258,6 +258,87 @@ class defx(Exchange, ImplicitAPI):
             'options': {
                 'sandboxMode': False,
             },
+            'features': {
+                'spot': None,
+                'forDerivatives': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -926,10 +1007,10 @@ class defx(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         oid = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string_lower(trade, 'role')
-        buyerMaker = self.safe_string(trade, 'buyerMaker')
+        buyerMaker = self.safe_bool(trade, 'buyerMaker')
         side = self.safe_string_lower(trade, 'side')
         if buyerMaker is not None:
-            if buyerMaker == 'true':
+            if buyerMaker:
                 side = 'sell'
             else:
                 side = 'buy'
@@ -1157,7 +1238,7 @@ class defx(Exchange, ImplicitAPI):
             'type': orderType,
         }
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         isMarket = orderType == 'MARKET'
         isLimit = orderType == 'LIMIT'
         timeInForce = self.safe_string_upper(params, 'timeInForce')
@@ -1172,7 +1253,7 @@ class defx(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
-        if stopPrice is not None or takeProfitPrice is not None:
+        if triggerPrice is not None or takeProfitPrice is not None:
             request['workingType'] = 'MARK_PRICE'
             if takeProfitPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
@@ -1181,7 +1262,7 @@ class defx(Exchange, ImplicitAPI):
                 else:
                     request['type'] = 'TAKE_PROFIT_LIMIT'
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if isMarket:
                     request['type'] = 'STOP_MARKET'
                 else:
@@ -1268,12 +1349,12 @@ class defx(Exchange, ImplicitAPI):
         average = self.omit_zero(self.safe_string(order, 'avgPrice'))
         timeInForce = self.safe_string_lower(order, 'timeInForce')
         takeProfitPrice: Str = None
-        stopPrice: Str = None
+        triggerPrice: Str = None
         if orderType is not None:
             if orderType.find('take_profit') >= 0:
                 takeProfitPrice = self.safe_string(order, 'stopPrice')
             else:
-                stopPrice = self.safe_string(order, 'stopPrice')
+                triggerPrice = self.safe_string(order, 'stopPrice')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updatedAt'))
         return self.safe_order({
@@ -1291,8 +1372,7 @@ class defx(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': None,
             'average': average,
@@ -1317,7 +1397,6 @@ class defx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1621,8 +1700,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'OPEN'
-        return await self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'OPEN',
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1637,8 +1718,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'FILLED'
-        return await self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'FILLED',
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1653,8 +1736,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'CANCELED'
-        return await self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'CANCELED',
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
@@ -1734,7 +1819,7 @@ class defx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         paginate = False

@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
@@ -716,7 +716,6 @@ class indodax extends indodax$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': cost,
             'average': undefined,

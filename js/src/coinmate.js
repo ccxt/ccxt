@@ -212,6 +212,69 @@ export default class coinmate extends Exchange {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'No order with given ID': OrderNotFound,
@@ -948,7 +1011,6 @@ export default class coinmate extends Exchange {
         const marketId = this.safeString(order, 'currencyPair');
         const symbol = this.safeSymbol(marketId, market, '_');
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -961,8 +1023,7 @@ export default class coinmate extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': amountString,
             'cost': undefined,
             'average': averageString,

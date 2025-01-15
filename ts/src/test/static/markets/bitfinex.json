@@ -1,11 +1,11 @@
 {
     "BTC/USD": {
-        "id": "BTCUSD",
+        "id": "tBTCUSD",
         "symbol": "BTC/USD",
         "base": "BTC",
         "quote": "USD",
-        "baseId": "BTC",
-        "quoteId": "USD",
+        "baseId": "fBTC",
+        "quoteId": "fUSD",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -29,16 +29,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "btcusd",
-            "price_precision": "5",
-            "initial_margin": "10.0",
-            "minimum_margin": "5.0",
-            "maximum_order_size": "2000.0",
-            "minimum_order_size": "0.00006",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.00006",
+            "2000.0",
+            null,
+            null,
+            null,
+            0.1,
+            0.05,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -140,12 +144,12 @@
         }
     },
     "BTC/EUR": {
-        "id": "BTCEUR",
+        "id": "tBTCEUR",
         "symbol": "BTC/EUR",
         "base": "BTC",
         "quote": "EUR",
-        "baseId": "BTC",
-        "quoteId": "EUR",
+        "baseId": "fBTC",
+        "quoteId": "fEUR",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -169,16 +173,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "btceur",
-            "price_precision": "5",
-            "initial_margin": "20.0",
-            "minimum_margin": "10.0",
-            "maximum_order_size": "2000.0",
-            "minimum_order_size": "0.00006",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.00006",
+            "2000.0",
+            null,
+            null,
+            null,
+            0.2,
+            0.1,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -280,12 +288,12 @@
         }
     },
     "LTC/USD": {
-        "id": "LTCUSD",
+        "id": "tLTCUSD",
         "symbol": "LTC/USD",
         "base": "LTC",
         "quote": "USD",
-        "baseId": "LTC",
-        "quoteId": "USD",
+        "baseId": "fLTC",
+        "quoteId": "fUSD",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -309,16 +317,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "ltcusd",
-            "price_precision": "5",
-            "initial_margin": "20.0",
-            "minimum_margin": "10.0",
-            "maximum_order_size": "5000.0",
-            "minimum_order_size": "0.04",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.04",
+            "5000.0",
+            null,
+            null,
+            null,
+            0.2,
+            0.1,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -420,12 +432,12 @@
         }
     },
     "ETH/USD": {
-        "id": "ETHUSD",
+        "id": "tETHUSD",
         "symbol": "ETH/USD",
         "base": "ETH",
         "quote": "USD",
-        "baseId": "ETH",
-        "quoteId": "USD",
+        "baseId": "fETH",
+        "quoteId": "fUSD",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -449,16 +461,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "ethusd",
-            "price_precision": "5",
-            "initial_margin": "20.0",
-            "minimum_margin": "10.0",
-            "maximum_order_size": "5000.0",
-            "minimum_order_size": "0.002",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.002",
+            "5000.0",
+            null,
+            null,
+            null,
+            0.2,
+            0.1,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -560,12 +576,12 @@
         }
     },
     "BTC/USDT": {
-        "id": "BTCUST",
+        "id": "tBTCUST",
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
-        "baseId": "BTC",
-        "quoteId": "UST",
+        "baseId": "fBTC",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -589,16 +605,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "btcust",
-            "price_precision": "5",
-            "initial_margin": "10.0",
-            "minimum_margin": "5.0",
-            "maximum_order_size": "2000.0",
-            "minimum_order_size": "0.00006",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.00006",
+            "2000.0",
+            null,
+            null,
+            null,
+            0.1,
+            0.05,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -700,12 +720,12 @@
         }
     },
     "LTC/USDT": {
-        "id": "LTCUST",
+        "id": "tLTCUST",
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
-        "baseId": "LTC",
-        "quoteId": "UST",
+        "baseId": "fLTC",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -729,16 +749,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "ltcust",
-            "price_precision": "5",
-            "initial_margin": "20.0",
-            "minimum_margin": "10.0",
-            "maximum_order_size": "2000.0",
-            "minimum_order_size": "0.04",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.04",
+            "2000.0",
+            null,
+            null,
+            null,
+            0.2,
+            0.1,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -840,12 +864,12 @@
         }
     },
     "ADA/USDT": {
-        "id": "ADAUST",
+        "id": "tADAUST",
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
-        "baseId": "ADA",
-        "quoteId": "UST",
+        "baseId": "fADA",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -869,16 +893,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "adaust",
-            "price_precision": "5",
-            "initial_margin": "30.0",
-            "minimum_margin": "15.0",
-            "maximum_order_size": "250000.0",
-            "minimum_order_size": "4.0",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "4.0",
+            "250000.0",
+            null,
+            null,
+            null,
+            0.3,
+            0.15,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -980,12 +1008,12 @@
         }
     },
     "XRP/USDT": {
-        "id": "XRPUST",
+        "id": "tXRPUST",
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
-        "baseId": "XRP",
-        "quoteId": "UST",
+        "baseId": "fXRP",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -1009,16 +1037,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "xrpust",
-            "price_precision": "5",
-            "initial_margin": "30.0",
-            "minimum_margin": "15.0",
-            "maximum_order_size": "2000000.0",
-            "minimum_order_size": "6.0",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "6.0",
+            "2000000.0",
+            null,
+            null,
+            null,
+            0.3,
+            0.15,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -1120,12 +1152,12 @@
         }
     },
     "SOL/USDT": {
-        "id": "SOLUST",
+        "id": "tSOLUST",
         "symbol": "SOL/USDT",
         "base": "SOL",
         "quote": "USDT",
-        "baseId": "SOL",
-        "quoteId": "UST",
+        "baseId": "fSOL",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -1149,16 +1181,20 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "solust",
-            "price_precision": "5",
-            "initial_margin": "30.0",
-            "minimum_margin": "15.0",
-            "maximum_order_size": "50000.0",
-            "minimum_order_size": "0.06",
-            "expiration": "NA",
-            "margin": true
-        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.06",
+            "50000.0",
+            null,
+            null,
+            null,
+            0.3,
+            0.15,
+            null,
+            null
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -1260,12 +1296,12 @@
         }
     },
     "TRX/USDT": {
-        "id": "TRXUST",
+        "id": "tTRXUST",
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
-        "baseId": "TRX",
-        "quoteId": "UST",
+        "baseId": "fTRX",
+        "quoteId": "fUST",
         "active": true,
         "type": "spot",
         "spot": true,
@@ -1289,16 +1325,755 @@
             "cost": {},
             "leverage": {}
         },
-        "info": {
-            "pair": "trxust",
-            "price_precision": "5",
-            "initial_margin": "30.0",
-            "minimum_margin": "15.0",
-            "maximum_order_size": "1000000.0",
-            "minimum_order_size": "24.0",
-            "expiration": "NA",
-            "margin": true
+        "info": [
+            null,
+            null,
+            null,
+            "24.0",
+            "1000000.0",
+            null,
+            null,
+            null,
+            0.3,
+            0.15,
+            null,
+            null
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "LTC/USDT:USDT": {
+        "id": "tLTCF0:USTF0",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "fLTCF0",
+        "quoteId": "fUSTF0",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 8,
+            "price": 5
         },
+        "limits": {
+            "amount": {
+                "min": 0.04,
+                "max": 250000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.04",
+            "250000.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "BTC/USDT:USDT": {
+        "id": "tBTCF0:USTF0",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "fBTCF0",
+        "quoteId": "fUSTF0",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00006,
+                "max": 100
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.00006",
+            "100.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "ADA/USDT:USDT": {
+        "id": "tADAF0:USTF0",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "fADAF0",
+        "quoteId": "fUSTF0",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "amount": {
+                "min": 4,
+                "max": 250000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "4.0",
+            "250000.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "XRP/USDT:USDT": {
+        "id": "tXRPF0:USTF0",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "fXRPF0",
+        "quoteId": "fUSTF0",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "amount": {
+                "min": 6,
+                "max": 500000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "6.0",
+            "500000.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "TRX/USDT:USDT": {
+        "id": "tTRXF0:USTF0",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "fTRXF0",
+        "quoteId": "fUSTF0",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "amount": {
+                "min": 24,
+                "max": 1000000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "24.0",
+            "1000000.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
         "tierBased": true,
         "percentage": true,
         "taker": 0.002,
@@ -1400,12 +2175,12 @@
         }
     },
     "ETH/USDT": {
-        "id": "ETHUST",
+        "id": "tETHUST",
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
-        "baseId": "ETH",
-        "quoteId": "UST",
+        "baseId": "fETH",
+        "quoteId": "fUST",
         "type": "spot",
         "spot": true,
         "margin": true,
@@ -1431,16 +2206,168 @@
             },
             "cost": {}
         },
-        "info": {
-            "pair": "ethust",
-            "price_precision": "5",
-            "initial_margin": "20.0",
-            "minimum_margin": "10.0",
-            "maximum_order_size": "2000.0",
-            "minimum_order_size": "0.0008",
-            "expiration": "NA",
-            "margin": true
+        "info": [
+            null,
+            null,
+            null,
+            "0.0008",
+            "2000.0",
+            null,
+            null,
+            null,
+            0.2,
+            0.1,
+            null,
+            null
+        ],
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "tETHF0:USTF0",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "fETHF0",
+        "quoteId": "fUSTF0",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 8,
+            "price": 5
         },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0008,
+                "max": 1000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {}
+        },
+        "info": [
+            null,
+            null,
+            null,
+            "0.0008",
+            "1000.0",
+            null,
+            null,
+            null,
+            0.01,
+            0.005
+        ],
         "tierBased": true,
         "percentage": true,
         "feeSide": "get",

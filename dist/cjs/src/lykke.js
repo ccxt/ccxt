@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lykke
@@ -201,7 +201,7 @@ class lykke extends lykke$1 {
         //     {
         //         "payload":[
         //             {
-        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9075",
         //                 "name":"Monaco Token",
         //                 "symbol":"MCO",
         //                 "accuracy":6,
@@ -772,7 +772,6 @@ class lykke extends lykke$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,

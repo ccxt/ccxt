@@ -25,7 +25,7 @@ export default class hyperliquid extends Exchange {
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
-            'certified': false,
+            'certified': true,
             'pro': true,
             'dex': true,
             'has': {
@@ -88,8 +88,9 @@ export default class hyperliquid extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -216,6 +217,100 @@ export default class hyperliquid extends Exchange {
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         });
     }
@@ -500,7 +595,7 @@ export default class hyperliquid extends Exchange {
             const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString(i + 10000);
+            const baseId = this.numberToString(index + 10000);
             markets.push(this.safeMarketStructure({
                 'id': marketName,
                 'symbol': symbol,
@@ -599,6 +694,11 @@ export default class hyperliquid extends Exchange {
         const price = this.safeNumber(market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         const pricePrecisionStr = this.numberToString(pricePrecision);
+        const isDelisted = this.safeBool(market, 'isDelisted');
+        let active = true;
+        if (isDelisted !== undefined) {
+            active = !isDelisted;
+        }
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -614,7 +714,7 @@ export default class hyperliquid extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': true,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -876,8 +976,7 @@ export default class hyperliquid extends Exchange {
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
             result.push(data);
         }
-        const funding_rates = this.parseFundingRates(result);
-        return this.filterByArray(funding_rates, 'symbol', symbols);
+        return this.parseFundingRates(result, symbols);
     }
     parseFundingRate(info, market = undefined) {
         //
@@ -1204,13 +1303,24 @@ export default class hyperliquid extends Exchange {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildTransferSig(message) {
+    buildUsdSendSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    buildUsdClassSendSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
@@ -1811,6 +1921,9 @@ export default class hyperliquid extends Exchange {
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
@@ -2151,7 +2264,7 @@ export default class hyperliquid extends Exchange {
             market = this.safeMarket(marketId, market);
         }
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2(order, 'timestamp', 'statusTimestamp');
+        const timestamp = this.safeInteger(entry, 'timestamp');
         const status = this.safeString2(order, 'status', 'ccxtStatus');
         order = this.omit(order, ['ccxtStatus']);
         let side = this.safeString(entry, 'side');
@@ -2167,7 +2280,7 @@ export default class hyperliquid extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType(this.safeStringLower(entry, 'orderType')),
             'timeInForce': this.safeStringUpper(entry, 'tif'),
@@ -2687,26 +2800,36 @@ export default class hyperliquid extends Exchange {
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
                 throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
             }
+            let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
             params = this.omit(params, 'vaultAddress');
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action(action, nonce, vaultAddress);
-            const innerRequest = {
-                'action': action,
+            const transferPayload = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig(transferPayload);
+            const transferRequest = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange(innerRequest);
+            const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2723,7 +2846,7 @@ export default class hyperliquid extends Exchange {
             'amount': this.numberToString(amount),
             'time': nonce,
         };
-        const sig = this.buildTransferSig(payload);
+        const sig = this.buildUsdSendSig(payload);
         const request = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],
@@ -2971,7 +3094,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3143,6 +3266,68 @@ export default class hyperliquid extends Exchange {
         const records = this.extractTypeFromDelta(response);
         const withdrawals = this.filterByArray(records, 'type', ['withdraw'], false);
         return this.parseTransactions(withdrawals, undefined, since, limit);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const swapMarkets = await this.fetchSwapMarkets();
+        return this.parseOpenInterests(swapMarkets, symbols);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        symbol = this.symbol(symbol);
+        await this.loadMarkets();
+        const ois = await this.fetchOpenInterests([symbol], params);
+        return ois[symbol];
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //  {
+        //      szDecimals: '2',
+        //      name: 'HYPE',
+        //      maxLeverage: '3',
+        //      funding: '0.00014735',
+        //      openInterest: '14677900.74',
+        //      prevDayPx: '26.145',
+        //      dayNtlVlm: '299643445.12560016',
+        //      premium: '0.00081613',
+        //      oraclePx: '27.569',
+        //      markPx: '27.63',
+        //      midPx: '27.599',
+        //      impactPxs: [ '27.5915', '27.6319' ],
+        //      dayBaseVlm: '10790652.83',
+        //      baseId: 159
+        //  }
+        //
+        interest = this.safeDict(interest, 'info', {});
+        const coin = this.safeString(interest, 'name');
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId(coin);
+        }
+        return this.safeOpenInterest({
+            'symbol': this.safeSymbol(marketId),
+            'openInterestAmount': this.safeNumber(interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
     }
     extractTypeFromDelta(data = []) {
         const records = [];

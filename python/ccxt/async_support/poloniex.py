@@ -286,6 +286,67 @@ class poloniex(Exchange, ImplicitAPI):
                     'futures': 'future',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,  # todo
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo, only for non-trigger orders
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 2000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -1143,7 +1204,6 @@ class poloniex(Exchange, ImplicitAPI):
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        triggerPrice = self.safe_string_2(order, 'triggerPrice', 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1158,8 +1218,7 @@ class poloniex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string_2(order, 'triggerPrice', 'stopPrice'),
             'cost': None,
             'average': self.safe_string(order, 'avgPrice'),
             'amount': amount,
@@ -1201,7 +1260,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set True to fetch trigger orders instead of regular orders
+        :param boolean [params.trigger]: set True to fetch trigger orders instead of regular orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

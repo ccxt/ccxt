@@ -301,6 +301,100 @@ class ascendex extends Exchange {
                     'AKT' => 'Akash',
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo with triggerprice
+                        'takeProfitPrice' => false, // todo with triggerprice
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implementation
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'price' => false,
+                        ),
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     // not documented
@@ -1134,6 +1228,7 @@ class ascendex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1147,6 +1242,7 @@ class ascendex extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $defaultLimit = $this->safe_integer($options, 'limit', 500);
+            $until = $this->safe_integer($params, 'until');
             if ($since !== null) {
                 $request['from'] = $since;
                 if ($limit === null) {
@@ -1154,10 +1250,24 @@ class ascendex extends Exchange {
                 } else {
                     $limit = min ($limit, $defaultLimit);
                 }
-                $request['to'] = $this->sum($since, $limit * $duration * 1000, 1);
+                $toWithLimit = $this->sum($since, $limit * $duration * 1000, 1);
+                if ($until !== null) {
+                    $request['to'] = min ($toWithLimit, $until + 1);
+                } else {
+                    $request['to'] = $toWithLimit;
+                }
+            } elseif ($until !== null) {
+                $request['to'] = $until + 1;
+                if ($limit === null) {
+                    $limit = $defaultLimit;
+                } else {
+                    $limit = min ($limit, $defaultLimit);
+                }
+                $request['from'] = $until - ($limit * $duration * 1000);
             } elseif ($limit !== null) {
                 $request['n'] = $limit; // max 500
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->v1PublicGetBarhist ($this->extend($request, $params)));
             //
             //     {
@@ -1418,7 +1528,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         $reduceOnly = null;
         $execInst = $this->safe_string($order, 'execInst');
         if ($execInst === 'reduceOnly') {
@@ -1442,8 +1552,7 @@ class ascendex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1519,7 +1628,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
-         * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -1551,7 +1660,7 @@ class ascendex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         if ($isLimitOrder) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
@@ -1564,8 +1673,8 @@ class ascendex extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        if ($stopPrice !== null) {
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($triggerPrice !== null) {
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 $request['orderType'] = 'stop_limit';
             } elseif ($isMarketOrder) {
@@ -1608,7 +1717,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
              * @param {bool} [$params->postOnly] true or false
-             * @param {float} [$params->stopPrice] the $price at which a trigger $order is triggered at
+             * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
              * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit $order will be triggered (perpetual swap markets only)
              * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
              * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss $order will be triggered (perpetual swap markets only)
@@ -1706,7 +1815,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
              * @param {bool} [$params->postOnly] true or false
-             * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2873,8 +2982,7 @@ class ascendex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $contracts = $this->safe_list($data, 'contracts', array());
-            $result = $this->parse_funding_rates($contracts);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($contracts, $symbols);
         }) ();
     }
 

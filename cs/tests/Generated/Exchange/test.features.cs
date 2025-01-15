@@ -36,7 +36,11 @@ public partial class testMainClass : BaseTest
                         object subKey = getValue(subKeys, j);
                         testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
                         object subValue = getValue(value, subKey);
-                        testFeaturesInner(exchange, skippedProperties, subValue);
+                        // sometimes it might not be available for exchange, eg. future>inverse)
+                        if (isTrue(!isEqual(subValue, null)))
+                        {
+                            testFeaturesInner(exchange, skippedProperties, subValue);
+                        }
                     }
                 }
             }
@@ -62,7 +66,7 @@ public partial class testMainClass : BaseTest
                         { "mark", false },
                         { "index", false },
                     } },
-                    { "limitPrice", false },
+                    { "price", false },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", false },
@@ -105,7 +109,7 @@ public partial class testMainClass : BaseTest
             { "fetchClosedOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "limit", 0 },
-                { "daysBackClosed", 0 },
+                { "daysBack", 0 },
                 { "daysBackCanceled", 0 },
                 { "untilDays", 0 },
                 { "trigger", false },

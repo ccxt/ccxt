@@ -293,6 +293,72 @@ class coinsph extends Exchange {
                     'ARB' => 'ARBITRUM',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             // https://coins-docs.github.io/errors/
             'exceptions' => array(
                 'exact' => array(
@@ -1173,11 +1239,11 @@ class coinsph extends Exchange {
             }
         }
         if ($orderType === 'STOP_LOSS' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT' || $orderType === 'TAKE_PROFIT_LIMIT') {
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder () requires a triggerPrice or $stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice === null) {
+                throw new InvalidOrder($this->id . ' createOrder () requires a $triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1245,7 +1311,7 @@ class coinsph extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+         * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1417,9 +1483,9 @@ class coinsph extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
         $trades = $this->safe_value($order, 'fills', null);
-        $stopPrice = $this->safe_string($order, 'stopPrice');
-        if (Precise::string_eq($stopPrice, '0')) {
-            $stopPrice = null;
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
+        if (Precise::string_eq($triggerPrice, '0')) {
+            $triggerPrice = null;
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -1433,8 +1499,7 @@ class coinsph extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => null,
             'amount' => $this->safe_string($order, 'origQty'),
             'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),

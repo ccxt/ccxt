@@ -290,6 +290,14 @@
                 ],
                 "output": "{\"asset\":\"USDT\",\"address\":\"0x49a2c0925196e4dcf05945f67f690153190fbaab\",\"amount\":\"20\"}"
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.alpaca.markets/v2/account",
+                "input": []
+            }
         ]
     }
 }

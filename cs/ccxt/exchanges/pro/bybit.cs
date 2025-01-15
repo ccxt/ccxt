@@ -106,6 +106,9 @@ public partial class bybit : ccxt.bybit
                     { "fetchPositionsSnapshot", true },
                     { "awaitPositionsSnapshot", true },
                 } },
+                { "watchMyTrades", new Dictionary<string, object>() {
+                    { "filterExecTypes", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
+                } },
                 { "spot", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
                         { "1m", "1m" },
@@ -325,7 +328,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+     * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1485,6 +1488,7 @@ public partial class bybit : ccxt.bybit
         }
         object trades = this.myTrades;
         object symbols = new Dictionary<string, object>() {};
+        object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(data, i);
@@ -1494,6 +1498,12 @@ public partial class bybit : ccxt.bybit
                 parsed = this.parseWsTrade(rawTrade);
             } else
             {
+                // filter unified trades
+                object execType = this.safeString(rawTrade, "execType", "");
+                if (!isTrue(this.inArray(execType, filterExecTypes)))
+                {
+                    continue;
+                }
                 parsed = this.parseTrade(rawTrade);
             }
             object symbol = getValue(parsed, "symbol");

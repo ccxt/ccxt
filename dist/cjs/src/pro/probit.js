@@ -4,7 +4,7 @@ var probit$1 = require('../probit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class probit extends probit$1 {
     describe() {
@@ -154,6 +154,7 @@ class probit extends probit$1 {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const channel = 'recent_trades';
+        symbol = this.safeSymbol(symbol);
         const trades = await this.subscribePublic('watchTrades', symbol, 'trades', channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);

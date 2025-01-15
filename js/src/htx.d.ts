@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -332,7 +332,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
@@ -369,7 +369,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -478,7 +478,7 @@ export default class htx extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* if the order is a stop trigger order or not
+     * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
      * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -491,7 +491,7 @@ export default class htx extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -503,7 +503,7 @@ export default class htx extends Exchange {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {boolean} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -672,6 +672,7 @@ export default class htx extends Exchange {
      */
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
+    nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
@@ -759,7 +760,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     /**
@@ -789,6 +790,18 @@ export default class htx extends Exchange {
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
+    /**
+     * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
     /**
      * @method
      * @name htx#fetchOpenInterest

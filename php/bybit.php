@@ -236,6 +236,9 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/data' => 5,
                         'v5/spot-cross-margin-trade/pledge-token' => 5,
                         'v5/spot-cross-margin-trade/borrow-token' => 5,
+                        // crypto loan
+                        'v5/crypto-loan/collateral-data' => 5,
+                        'v5/crypto-loan/loanable-data' => 5,
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
@@ -331,6 +334,7 @@ class bybit extends Exchange {
                         'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
+                        'v5/account/withdrawal' => 5,
                         // asset
                         'v5/asset/exchange/query-coin-list' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query' => 0.5, // 100/s => cost = 50 / 100 = 0.5
@@ -363,6 +367,8 @@ class bybit extends Exchange {
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
                         'v5/user/submembers' => 5,
+                        // affilate
+                        'v5/affiliate/aff-user-list' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -372,6 +378,13 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
+                        // crypto loan
+                        'v5/crypto-loan/borrowable-collateralisable-number' => 5,
+                        'v5/crypto-loan/ongoing-orders' => 5,
+                        'v5/crypto-loan/repayment-history' => 5,
+                        'v5/crypto-loan/borrow-history' => 5,
+                        'v5/crypto-loan/max-collateral-amount' => 5,
+                        'v5/crypto-loan/adjustment-history' => 5,
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
@@ -383,7 +396,7 @@ class bybit extends Exchange {
                         'v5/lending/history-order' => 5,
                         'v5/lending/account' => 5,
                         // broker
-                        'v5/broker/earning-record' => 5,
+                        'v5/broker/earning-record' => 5, // deprecated
                         'v5/broker/earnings-info' => 5,
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
@@ -504,6 +517,10 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        // crypto loan
+                        'v5/crypto-loan/borrow' => 5,
+                        'v5/crypto-loan/repay' => 5,
+                        'v5/crypto-loan/adjust-ltv' => 5,
                         // institutional lending
                         'v5/ins-loan/association-uid' => 5,
                         // c2c lending
@@ -514,6 +531,10 @@ class bybit extends Exchange {
                         'v5/account/set-collateral-switch-batch' => 5,
                         // demo trading
                         'v5/account/demo-apply-money' => 5,
+                        // broker
+                        'v5/broker/award/info' => 5,
+                        'v5/broker/award/distribute-award' => 5,
+                        'v5/broker/award/distribution-record' => 5,
                     ),
                 ),
             ),
@@ -635,6 +656,9 @@ class bybit extends Exchange {
                     '110071' => '\\ccxt\\ExchangeError', // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
                     '110072' => '\\ccxt\\InvalidOrder', // OrderLinkedID is duplicate
                     '110073' => '\\ccxt\\ExchangeError', // Set margin mode failed
+                    '110092' => '\\ccxt\\InvalidOrder', // expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
+                    '110093' => '\\ccxt\\InvalidOrder', // expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
+                    '110094' => '\\ccxt\\InvalidOrder', // Order notional value below the lower limit
                     '130006' => '\\ccxt\\InvalidOrder', // array("ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed => too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100)
                     '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100) |  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100) caused issues/9149#issuecomment-1146559498
                     '130074' => '\\ccxt\\InvalidOrder', // array("ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100)
@@ -1028,8 +1052,78 @@ class bybit extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
+                    'SOL' => 'SOL',
+                    'ACA' => 'ACA',
+                    'ADA' => 'ADA',
+                    'ALGO' => 'ALGO',
+                    'APT' => 'APTOS',
+                    'AR' => 'AR',
+                    'ARBONE' => 'ARBI',
+                    'AVAXC' => 'CAVAX',
+                    'AVAXX' => 'XAVAX',
+                    'ATOM' => 'ATOM',
+                    'BCH' => 'BCH',
+                    'BEP2' => 'BNB',
+                    'CHZ' => 'CHZ',
+                    'DCR' => 'DCR',
+                    'DGB' => 'DGB',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EGLD' => 'EGLD',
+                    'EOS' => 'EOS',
+                    'ETC' => 'ETC',
+                    'ETHF' => 'ETHF',
+                    'ETHW' => 'ETHW',
+                    'FIL' => 'FIL',
+                    'STEP' => 'FITFI',
+                    'FLOW' => 'FLOW',
+                    'FTM' => 'FTM',
+                    'GLMR' => 'GLMR',
+                    'HBAR' => 'HBAR',
+                    'HNT' => 'HNT',
+                    'ICP' => 'ICP',
+                    'ICX' => 'ICX',
+                    'KDA' => 'KDA',
+                    'KLAY' => 'KLAY',
+                    'KMA' => 'KMA',
+                    'KSM' => 'KSM',
+                    'LTC' => 'LTC',
+                    // 'TERRA' => 'LUNANEW',
+                    // 'TERRACLASSIC' => 'LUNA',
+                    'MATIC' => 'MATIC',
+                    'MINA' => 'MINA',
+                    'MOVR' => 'MOVR',
+                    'NEAR' => 'NEAR',
+                    'NEM' => 'NEM',
+                    'OASYS' => 'OAS',
+                    'OASIS' => 'ROSE',
                     'OMNI' => 'OMNI',
-                    'SPL' => 'SOL',
+                    'ONE' => 'ONE',
+                    'OPTIMISM' => 'OP',
+                    'POKT' => 'POKT',
+                    'QTUM' => 'QTUM',
+                    'RVN' => 'RVN',
+                    'SC' => 'SC',
+                    'SCRT' => 'SCRT',
+                    'STX' => 'STX',
+                    'THETA' => 'THETA',
+                    'TON' => 'TON',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'WAXP',
+                    'XDC' => 'XDC',
+                    'XEC' => 'XEC',
+                    'XLM' => 'XLM',
+                    'XRP' => 'XRP',
+                    'XTZ' => 'XTZ',
+                    'XYM' => 'XYM',
+                    'ZEN' => 'ZEN',
+                    'ZIL' => 'ZIL',
+                    'ZKSYNC' => 'ZKSYNC',
+                    // todo => uncomment after consensus
+                    // 'CADUCEUS' => 'CMP',
+                    // 'KON' => 'KON', // konpay, "konchain"
+                    // 'AURORA' => 'AURORA',
+                    // 'BITCOINGOLD' => 'BTG',
                 ),
                 'networksById' => array(
                     'ETH' => 'ERC20',
@@ -1071,22 +1165,21 @@ class bybit extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -1112,7 +1205,7 @@ class bybit extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
-                        'daysBackClosed' => 365 * 2, // 2 years
+                        'daysBack' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
                         'trigger' => true,
@@ -1125,30 +1218,13 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        'marginMode' => false,
-                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => true,
-                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
-                        'timeInForce' => array(
-                            'GTC' => true,
-                            'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
-                            'GTD' => false,
-                        ),
-                        'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
-                        'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => false,
-                        'oco' => false,
+                        'marketBuyRequiresPrice' => true,
                     ),
                 ),
                 'swap' => array(
@@ -1234,7 +1310,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID => "Account Transfer"
         // MASTER UID => "Account Transfer", "Subaccount Transfer", "Withdrawal"
         $enableUnifiedMargin = $this->safe_bool($this->options, 'enableUnifiedMargin');
@@ -2073,6 +2149,7 @@ class bybit extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
                     'type' => 'option',
+                    'subType' => 'linear',
                     'spot' => false,
                     'margin' => false,
                     'swap' => false,
@@ -2080,8 +2157,8 @@ class bybit extends Exchange {
                     'option' => true,
                     'active' => $isActive,
                     'contract' => true,
-                    'linear' => null,
-                    'inverse' => null,
+                    'linear' => true,
+                    'inverse' => false,
                     'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                     'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                     'contractSize' => $this->parse_number('1'),
@@ -2691,8 +2768,7 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($tickerList); $i++) {
             $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
         }
-        $result = $this->parse_funding_rates($tickerList);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($tickerList, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3235,7 +3311,17 @@ class bybit extends Exchange {
                             $account['debt'] = Precise::string_add($loan, $interest);
                         }
                         $account['total'] = $this->safe_string($coinEntry, 'walletBalance');
-                        $account['free'] = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        $free = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        if ($free !== null) {
+                            $account['free'] = $free;
+                        } else {
+                            $locked = $this->safe_string($coinEntry, 'locked', '0');
+                            $totalPositionIm = $this->safe_string($coinEntry, 'totalPositionIM', '0');
+                            $totalOrderIm = $this->safe_string($coinEntry, 'totalOrderIM', '0');
+                            $totalUsed = Precise::string_add($locked, $totalPositionIm);
+                            $totalUsed = Precise::string_add($totalUsed, $totalOrderIm);
+                            $account['used'] = $totalUsed;
+                        }
                         // $account['used'] = $this->safe_string($coinEntry, 'locked');
                         $currencyId = $this->safe_string($coinEntry, 'coin');
                         $code = $this->safe_currency_code($currencyId);
@@ -3636,33 +3722,33 @@ class bybit extends Exchange {
         $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
         $reduceOnly = $this->safe_bool($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         $triggerDirection = $this->safe_string($order, 'triggerDirection');
         $isAscending = ($triggerDirection === '1');
-        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        $isStopOrderType2 = ($triggerPrice !== null) && $reduceOnly;
         if (($stopLossPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $stopLossPrice
             if ($isAscending && ($side === 'buy')) {
                 // stopLoss $order against short position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'sell')) {
                 // stopLoss $order against a long position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
         }
         if (($takeProfitPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $takeProfitPrice
             if ($isAscending && ($side === 'sell')) {
                 // takeprofit $order against a long position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'buy')) {
                 // takeprofit $order against a short position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
         }
         return $this->safe_order(array(
@@ -3680,8 +3766,7 @@ class bybit extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
@@ -3756,7 +3841,7 @@ class bybit extends Exchange {
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
          * @param {string} [$params->positionIdx] *contracts only* 0 for one-way mode, 1 buy $side of hedged mode, 2 sell $side of hedged mode
          * @param {bool} [$params->hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-         * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {int} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
          * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
@@ -5320,12 +5405,11 @@ class bybit extends Exchange {
         $address = $this->safe_string($depositAddress, 'addressDeposit');
         $tag = $this->safe_string($depositAddress, 'tagDeposit');
         $code = $this->safe_string($currency, 'code');
-        $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $chain,
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -5346,6 +5430,11 @@ class bybit extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['chainType'] = $this->network_code_to_id($networkCode, $code);
+        }
         $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $params));
         //
         //     {
@@ -5387,41 +5476,11 @@ class bybit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
         $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
-        if ($networkId !== null) {
-            $request['chainType'] = $networkId;
-        }
-        $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $query));
-        //
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "success",
-        //         "result" => {
-        //             "coin" => "USDT",
-        //             "chains" => array(
-        //                 array(
-        //                     "chainType" => "ERC20",
-        //                     "addressDeposit" => "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        //                     "tagDeposit" => "",
-        //                     "chain" => "ETH"
-        //                 }
-        //             )
-        //         ),
-        //         "retExtInfo" => array(),
-        //         "time" => 1672192792860
-        //     }
-        //
-        $result = $this->safe_dict($response, 'result', array());
-        $chains = $this->safe_list($result, 'chains', array());
-        $chainsIndexedById = $this->index_by($chains, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
-        $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
-        return $this->parse_deposit_address($addressObject, $currency);
+        list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+        $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
+        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        return $indexedAddresses[$selectedNetworkCode];
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -5691,7 +5750,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -6697,7 +6756,7 @@ class bybit extends Exchange {
         $data = $this->add_pagination_cursor_to_result($response);
         $id = $this->safe_string($result, 'symbol');
         $market = $this->safe_market($id, $market, null, 'contract');
-        return $this->parse_open_interests($data, $market, $since, $limit);
+        return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -8101,7 +8160,7 @@ class bybit extends Exchange {
             }
             $symbol = $market['symbol'];
         }
-        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 20 ), $params));
+        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }

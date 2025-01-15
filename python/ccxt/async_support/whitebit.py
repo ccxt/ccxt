@@ -310,6 +310,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'broad': {
                     'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Min amount step': InvalidOrder,  # {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
                     'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
@@ -820,9 +821,22 @@ class whitebit(Exchange, ImplicitAPI):
         #         "last": "55913.88",
         #         "period": 86400
         #     }
-        market = self.safe_market(None, market)
+        # v2
+        #   {
+        #       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        #       tradingPairs: 'ARB_USDC',
+        #       lastPrice: '0.7727',
+        #       lowestAsk: '0.7735',
+        #       highestBid: '0.7732',
+        #       baseVolume24h: '1555793.74',
+        #       quoteVolume24h: '1157602.622406',
+        #       tradesEnabled: True
+        #   }
+        #
+        marketId = self.safe_string(ticker, 'tradingPairs')
+        market = self.safe_market(marketId, market)
         # last price is provided as "last" or "last_price"
-        last = self.safe_string_2(ticker, 'last', 'last_price')
+        last = self.safe_string_n(ticker, ['last', 'last_price', 'lastPrice'])
         # if "close" is provided, use it, otherwise use <last>
         close = self.safe_string(ticker, 'close', last)
         return self.safe_ticker({
@@ -831,9 +845,9 @@ class whitebit(Exchange, ImplicitAPI):
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'bid'),
+            'bid': self.safe_string_2(ticker, 'bid', 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'ask'),
+            'ask': self.safe_string_2(ticker, 'ask', 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
@@ -843,8 +857,8 @@ class whitebit(Exchange, ImplicitAPI):
             'change': None,
             'percentage': self.safe_string(ticker, 'change'),
             'average': None,
-            'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
-            'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
+            'baseVolume': self.safe_string_n(ticker, ['base_volume', 'volume', 'baseVolume24h']),
+            'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
             'info': ticker,
         }, market)
 
@@ -854,13 +868,20 @@ class whitebit(Exchange, ImplicitAPI):
 
         https://docs.whitebit.com/public/http-v4/#market-activity
 
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.v4PublicGetTicker(params)
+        method = 'v4PublicGetTicker'
+        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
+        response = None
+        if method == 'v4PublicGetTicker':
+            response = await self.v4PublicGetTicker(params)
+        else:
+            response = await self.v2PublicGetTicker(params)
         #
         #      "BCH_RUB": {
         #          "base_id":1831,
@@ -872,6 +893,9 @@ class whitebit(Exchange, ImplicitAPI):
         #          "change":"2.12"
         #      },
         #
+        resultList = self.safe_list(response, 'result')
+        if resultList is not None:
+            return self.parse_tickers(resultList, symbols)
         marketIds = list(response.keys())
         result: dict = {}
         for i in range(0, len(marketIds)):
@@ -1217,9 +1241,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['cost'] = cost
+        req = {
+            'cost': cost,
+        }
         # only buy side is supported
-        return await self.create_order(symbol, 'market', side, 0, None, params)
+        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
@@ -1275,8 +1301,8 @@ class whitebit(Exchange, ImplicitAPI):
         marketType = self.safe_string(market, 'type')
         isLimitOrder = type == 'limit'
         isMarketOrder = type == 'market'
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
-        isStopOrder = (stopPrice is not None)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (triggerPrice is not None)
         postOnly = self.is_post_only(isMarketOrder, False, params)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
@@ -1287,7 +1313,7 @@ class whitebit(Exchange, ImplicitAPI):
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
         response = None
         if isStopOrder:
-            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+            request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 # stop limit order
                 request['price'] = self.price_to_precision(symbol, price)
@@ -1347,11 +1373,11 @@ class whitebit(Exchange, ImplicitAPI):
             # Update clientOrderId of the order
             request['clientOrderId'] = clientOrderId
         isLimitOrder = type == 'limit'
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
-        isStopOrder = (stopPrice is not None)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (triggerPrice is not None)
         params = self.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice'])
         if isStopOrder:
-            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+            request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 # stop limit order
                 request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1714,7 +1740,7 @@ class whitebit(Exchange, ImplicitAPI):
         if clientOrderId == '':
             clientOrderId = None
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_number(order, 'activation_price')
+        triggerPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         orderType = self.parse_order_type(type)
@@ -1747,8 +1773,7 @@ class whitebit(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
             'type': orderType,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -2352,8 +2377,7 @@ class whitebit(Exchange, ImplicitAPI):
         #    ]
         #
         data = self.safe_list(response, 'result', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

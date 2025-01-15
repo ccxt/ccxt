@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class latoken
@@ -1074,7 +1074,6 @@ class latoken extends latoken$1 {
         }
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'condition'));
-        const triggerPrice = this.safeString(order, 'stopPrice');
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1089,8 +1088,7 @@ class latoken extends latoken$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString(order, 'stopPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,

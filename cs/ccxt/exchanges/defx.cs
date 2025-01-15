@@ -237,6 +237,86 @@ public partial class defx : Exchange
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", null },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", false },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -960,11 +1040,11 @@ public partial class defx : Exchange
         object id = this.safeString(trade, "id");
         object oid = this.safeString(trade, "orderId");
         object takerOrMaker = this.safeStringLower(trade, "role");
-        object buyerMaker = this.safeString(trade, "buyerMaker");
+        object buyerMaker = this.safeBool(trade, "buyerMaker");
         object side = this.safeStringLower(trade, "side");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
-            if (isTrue(isEqual(buyerMaker, "true")))
+            if (isTrue(buyerMaker))
             {
                 side = "sell";
             } else
@@ -1219,7 +1299,7 @@ public partial class defx : Exchange
             { "type", orderType },
         };
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        object stopPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object isMarket = isEqual(orderType, "MARKET");
         object isLimit = isEqual(orderType, "LIMIT");
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
@@ -1243,7 +1323,7 @@ public partial class defx : Exchange
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(takeProfitPrice, null))))
+        if (isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(takeProfitPrice, null))))
         {
             ((IDictionary<string,object>)request)["workingType"] = "MARK_PRICE";
             if (isTrue(!isEqual(takeProfitPrice, null)))
@@ -1258,7 +1338,7 @@ public partial class defx : Exchange
                 }
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 if (isTrue(isMarket))
                 {
                     ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
@@ -1358,7 +1438,7 @@ public partial class defx : Exchange
         object average = this.omitZero(this.safeString(order, "avgPrice"));
         object timeInForce = this.safeStringLower(order, "timeInForce");
         object takeProfitPrice = null;
-        object stopPrice = null;
+        object triggerPrice = null;
         if (isTrue(!isEqual(orderType, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(orderType, "take_profit"), 0)))
@@ -1366,7 +1446,7 @@ public partial class defx : Exchange
                 takeProfitPrice = this.safeString(order, "stopPrice");
             } else
             {
-                stopPrice = this.safeString(order, "stopPrice");
+                triggerPrice = this.safeString(order, "stopPrice");
             }
         }
         object timestamp = this.parse8601(this.safeString(order, "createdAt"));
@@ -1386,8 +1466,7 @@ public partial class defx : Exchange
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", null },
             { "average", average },
@@ -1412,7 +1491,6 @@ public partial class defx : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -1762,8 +1840,10 @@ public partial class defx : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "OPEN";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "OPEN" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**
@@ -1781,8 +1861,10 @@ public partial class defx : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "FILLED";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "FILLED" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**
@@ -1800,8 +1882,10 @@ public partial class defx : Exchange
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "CANCELED";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "CANCELED" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**
@@ -1897,7 +1981,7 @@ public partial class defx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

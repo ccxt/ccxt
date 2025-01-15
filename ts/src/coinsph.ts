@@ -293,6 +293,72 @@ export default class coinsph extends Exchange {
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -1173,11 +1239,11 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1245,7 +1311,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1417,9 +1483,9 @@ export default class coinsph extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const trades = this.safeValue (order, 'fills', undefined);
-        let stopPrice = this.safeString (order, 'stopPrice');
-        if (Precise.stringEq (stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString (order, 'stopPrice');
+        if (Precise.stringEq (triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder ({
             'id': id,
@@ -1433,8 +1499,7 @@ export default class coinsph extends Exchange {
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeString (order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString (order, 'origQty'),
             'cost': this.safeString (order, 'cummulativeQuoteQty'),

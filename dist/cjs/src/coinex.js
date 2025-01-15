@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -498,6 +498,92 @@ class coinex extends coinex$1 {
                     'XRP': 'XRP',
                     'XMR': 'XMR',
                     // CSC, AE, BASE, AIPG, AKASH, POLKADOTASSETHUB ?, ALEO, STX, ALGO, ALPH, BLAST, AR, ARCH, ARDR, ARK, ARRR, MANTA, NTRN, LUNA, AURORA, AVAIL, ASC20, AVA, AYA, AZERO, BAN, BAND, BB, RUNES, BEAM, BELLSCOIN, BITCI, NEAR, AGORIC, BLOCX, BNC, BOBA, BRISE, KRC20, CANTO, CAPS, CCD, CELO, CFX, CHI, CKB, CLORE, CLV, CORE, CSPR, CTXC, DAG, DCR, DERO, DESO, DEFI, DGB, DNX, DOCK, DOGECHAIN, DYDX, DYMENSION, EGLD, ELA, ELF, ENJIN, EOSIO, ERG, ETN_SC, EVMOS, EWC, SGB, FACT, FB, FET, FIO, FIRO, NEO3, FLOW, FLARE, FLUX, LINEA, FREN, FSN, FB_BRC20, GLMR, GRIN, GRS, HACASH, HBAR, HERB, HIVE, MAPO, HMND, HNS, ZKSYNC, HTR, HUAHUA, MERLIN, ICP, ICX, INJ, IOST, IOTA, IOTX, IRIS, IRON, ONE, JOYSTREAM, KAI, KAR, KAS, KAVA, KCN, KDA, KLAY, KLY, KMD, KSM, KUB, KUJIRA, LAT, LBC, LUNC, LUKSO, MARS, METIS, MINA, MANTLE, MOB, MODE, MONA, MOVR, MTL, NEOX, NEXA, NIBI, NIMIQ, NMC, ONOMY, NRG, WAVES, NULS, OAS, OCTA, OLT, ONT, OORT, ORAI, OSMO, P3D, COMPOSABLE, PIVX, RON, POKT, POLYMESH, PRE_MARKET, PYI, QKC, QTUM, QUBIC, RSK, ROSE, ROUTE, RTM, THORCHAIN, RVN, RADIANT, SAGA, SALVIUM, SATOX, SC, SCP, _NULL, SCRT, SDN, RGBPP, SELF, SMH, SPACE, STARGAZE, STC, STEEM, STRATISEVM, STRD, STARKNET, SXP, SYS, TAIKO, TAO, TARA, TENET, THETA, TT, VENOM, VECHAIN, TOMO, VITE, VLX, VSYS, VTC, WAN, WAXP, WEMIX, XCH, XDC, XEC, XELIS, NEM, XHV, XLM, XNA, NANO, XPLA, XPR, XPRT, XRD, XTZ, XVG, XYM, ZANO, ZEC, ZEN, ZEPH, ZETA
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {
@@ -2004,7 +2090,6 @@ class coinex extends coinex$1 {
             'reduceOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'trigger_price'),
             'triggerPrice': this.safeString(order, 'trigger_price'),
             'takeProfitPrice': this.safeNumber(order, 'take_profit_price'),
             'stopLossPrice': this.safeNumber(order, 'stop_loss_price'),
@@ -2045,7 +2130,7 @@ class coinex extends coinex$1 {
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
-        const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const option = this.safeString(params, 'option');
@@ -2104,8 +2189,8 @@ class coinex extends coinex$1 {
             }
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
-                if (stopPrice !== undefined) {
-                    request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+                if (triggerPrice !== undefined) {
+                    request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
                     request['trigger_price_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
             }
@@ -2143,8 +2228,8 @@ class coinex extends coinex$1 {
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
-            if (stopPrice !== undefined) {
-                request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+            if (triggerPrice !== undefined) {
+                request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         params = this.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -2629,21 +2714,21 @@ class coinex extends coinex$1 {
         const request = {
             'market': market['id'],
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         const requestIds = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push(parseInt(ids[i]));
         }
-        if (stop) {
+        if (trigger) {
             request['stop_ids'] = requestIds;
         }
         else {
             request['order_ids'] = requestIds;
         }
         if (market['spot']) {
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -2715,7 +2800,7 @@ class coinex extends coinex$1 {
         }
         else {
             request['market_type'] = 'FUTURES';
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -3411,7 +3496,7 @@ class coinex extends coinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
@@ -3421,7 +3506,7 @@ class coinex extends coinex$1 {
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3485,7 +3570,7 @@ class coinex extends coinex$1 {
                 }
             }
             else if (isOpen) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3564,7 +3649,7 @@ class coinex extends coinex$1 {
                 request['market_type'] = 'SPOT';
             }
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3631,7 +3716,7 @@ class coinex extends coinex$1 {
                 }
             }
             else if (status === 'pending') {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -4697,8 +4782,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method

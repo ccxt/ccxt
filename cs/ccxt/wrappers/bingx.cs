@@ -70,7 +70,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -397,6 +397,46 @@ public partial class bingx
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// fetch all open positions
@@ -1538,7 +1578,7 @@ public partial class bingx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// string : Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
     /// </description>

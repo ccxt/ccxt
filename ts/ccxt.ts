@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OpenInterests } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.35';
+const version = '4.4.48';
 
 (Exchange as any).ccxtVersion = version
 
@@ -61,7 +61,7 @@ import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
-import bitfinex2 from  './src/bitfinex2.js'
+import bitfinex1 from  './src/bitfinex1.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
@@ -129,6 +129,7 @@ import luno from  './src/luno.js'
 import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
+import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
@@ -170,7 +171,7 @@ import binanceusdmPro from  './src/pro/binanceusdm.js'
 import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
-import bitfinex2Pro from  './src/pro/bitfinex2.js'
+import bitfinex1Pro from  './src/pro/bitfinex1.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
@@ -216,6 +217,7 @@ import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
@@ -251,7 +253,7 @@ const exchanges = {
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
-    'bitfinex2':              bitfinex2,
+    'bitfinex1':              bitfinex1,
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
@@ -319,6 +321,7 @@ const exchanges = {
     'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
@@ -360,7 +363,7 @@ const pro = {
     'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
-    'bitfinex2':              bitfinex2Pro,
+    'bitfinex1':              bitfinex1Pro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
@@ -406,6 +409,7 @@ const pro = {
     'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
@@ -544,6 +548,7 @@ export {
     IsolatedBorrowRate,
     FundingRateHistory,
     OpenInterest,
+    OpenInterests,
     Liquidation,
     OrderRequest,
     CancellationRequest,
@@ -580,7 +585,7 @@ export {
     bitbns,
     bitcoincom,
     bitfinex,
-    bitfinex2,
+    bitfinex1,
     bitflyer,
     bitget,
     bithumb,
@@ -648,6 +653,7 @@ export {
     lykke,
     mercado,
     mexc,
+    myokx,
     ndax,
     novadax,
     oceanex,

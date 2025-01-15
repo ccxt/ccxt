@@ -133,7 +133,7 @@ export default class bitvavo extends Exchange {
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -141,7 +141,7 @@ export default class bitvavo extends Exchange {
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
@@ -222,6 +222,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -236,7 +237,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for

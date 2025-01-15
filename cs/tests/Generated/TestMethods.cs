@@ -814,6 +814,10 @@ public partial class testMainClass
             { "fetchBorrowRateHistory", new List<object>() {code} },
             { "fetchLedgerEntry", new List<object>() {code} },
         };
+        if (isTrue(getCliArgValue("--fundedTests")))
+        {
+            ((IDictionary<string,object>)tests)["createOrder"] = new List<object>() {symbol};
+        }
         if (isTrue(this.wsTests))
         {
             tests = new Dictionary<string, object>() {
@@ -1351,6 +1355,7 @@ public partial class testMainClass
             { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
+            { "login", "login" },
             { "accountId", "accountId" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
@@ -1400,6 +1405,11 @@ public partial class testMainClass
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
+        }
+        object accounts = exchange.safeList(exchangeData, "accounts");
+        if (isTrue(accounts))
+        {
+            exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
@@ -1599,7 +1609,7 @@ public partial class testMainClass
             {
                 this.responseTestsFailed = true;
             }
-            object errorMessage = add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))

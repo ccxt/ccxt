@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.35';
+$version = '4.4.48';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.35';
+    const VERSION = '4.4.48';
 
     public $browser;
     public $marketsLoading = null;
@@ -500,6 +500,7 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOHLCV' => null,
                 'fetchOHLCVWs' => null,
                 'fetchOpenInterest' => null,
+                'fetchOpenInterests' => null,
                 'fetchOpenInterestHistory' => null,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => null,
@@ -902,31 +903,25 @@ class Exchange extends \ccxt\Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->value_is_defined($this->wsProxy)) {
+        $isWsProxyDefined = $this->value_is_defined($this->wsProxy);
+        $is_ws_proxy_defined = $this->value_is_defined($this->ws_proxy);
+        if ($isWsProxyDefined || $is_ws_proxy_defined) {
             $usedProxies[] = 'wsProxy';
-            $wsProxy = $this->wsProxy;
-        }
-        if ($this->value_is_defined($this->ws_proxy)) {
-            $usedProxies[] = 'ws_proxy';
-            $wsProxy = $this->ws_proxy;
+            $wsProxy = ($isWsProxyDefined) ? $this->wsProxy : $this->ws_proxy;
         }
         // wss proxy
-        if ($this->value_is_defined($this->wssProxy)) {
+        $isWssProxyDefined = $this->value_is_defined($this->wssProxy);
+        $is_wss_proxy_defined = $this->value_is_defined($this->wss_proxy);
+        if ($isWssProxyDefined || $is_wss_proxy_defined) {
             $usedProxies[] = 'wssProxy';
-            $wssProxy = $this->wssProxy;
-        }
-        if ($this->value_is_defined($this->wss_proxy)) {
-            $usedProxies[] = 'wss_proxy';
-            $wssProxy = $this->wss_proxy;
+            $wssProxy = ($isWssProxyDefined) ? $this->wssProxy : $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->value_is_defined($this->wsSocksProxy)) {
+        $isWsSocksProxyDefined = $this->value_is_defined($this->wsSocksProxy);
+        $is_ws_socks_proxy_defined = $this->value_is_defined($this->ws_socks_proxy);
+        if ($isWsSocksProxyDefined || $is_ws_socks_proxy_defined) {
             $usedProxies[] = 'wsSocksProxy';
-            $wsSocksProxy = $this->wsSocksProxy;
-        }
-        if ($this->value_is_defined($this->ws_socks_proxy)) {
-            $usedProxies[] = 'ws_socks_proxy';
-            $wsSocksProxy = $this->ws_socks_proxy;
+            $wsSocksProxy = ($isWsSocksProxyDefined) ? $this->wsSocksProxy : $this->ws_socks_proxy;
         }
         // check
         $length = count($usedProxies);
@@ -1427,6 +1422,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterests() is not supported yet');
+    }
+
     public function sign_in($params = array ()) {
         throw new NotSupported($this->id . ' signIn() is not supported yet');
     }
@@ -1539,6 +1538,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
+        }
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');
@@ -1554,9 +1557,14 @@ class Exchange extends \ccxt\Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
                 $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return $featuresObj;
@@ -3712,10 +3720,15 @@ class Exchange extends \ccxt\Exchange {
 
     public function handle_option_and_params_2(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
         $value = null;
-        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1, $defaultValue);
+        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1);
+        if ($value !== null) {
+            // omit $optionName2 too from $params
+            $params = $this->omit($params, $optionName2);
+            return array( $value, $params );
+        }
         // if still null, try $optionName2
         $value2 = null;
-        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $value);
+        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $defaultValue);
         return array( $value2, $params );
     }
 
@@ -4921,68 +4934,68 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopOrder']) {
                 throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
             }
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopOrderWs']) {
                 throw new NotSupported($this->id . ' createStopOrderWs() is not supported yet');
             }
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a $stopPrice argument');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a stopPrice argument');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopLimitOrder']) {
                 throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, 'limit', $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopLimitOrderWs']) {
                 throw new NotSupported($this->id . ' createStopLimitOrderWs() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'limit', $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_market_order(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
+    public function create_stop_market_order(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
             if (!$this->has['createStopMarketOrder']) {
                 throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, 'market', $side, $amount, null, $query));
         }) ();
     }
 
-    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
+    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
             if (!$this->has['createStopMarketOrderWs']) {
                 throw new NotSupported($this->id . ' createStopMarketOrderWs() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
     }
@@ -5156,13 +5169,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates($response, ?array $market = null) {
-        $result = array();
+    public function parse_funding_rates($response, ?array $symbols = null) {
+        $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_funding_rate($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
+            $entry = $response[$i];
+            $parsed = $this->parse_funding_rate($entry);
+            $fundingRates[$parsed['symbol']] = $parsed;
         }
-        return $result;
+        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null) {
@@ -5281,7 +5295,17 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests($response, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_open_interests($response, ?array $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parse_open_interest($entry);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -5640,8 +5664,8 @@ class Exchange extends \ccxt\Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
-        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest, $removeRepeated) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
             $maxRetries = null;
@@ -5649,6 +5673,8 @@ class Exchange extends \ccxt\Exchange {
             $paginationDirection = null;
             list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
             $paginationTimestamp = null;
+            $removeRepeatedOption = $removeRepeated;
+            list($removeRepeatedOption, $params) = $this->handle_option_and_params($params, $method, 'removeRepeated', $removeRepeated);
             $calls = 0;
             $result = array();
             $errors = 0;
@@ -5717,7 +5743,10 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $result;
+            if ($removeRepeatedOption) {
+                $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
             return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
@@ -6263,38 +6292,55 @@ class Exchange extends \ccxt\Exchange {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
+                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                        unset($this->ohlcvs[$symbol][$timeframe]);
+                    }
                 }
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trades') {
-                    unset($this->trades[$symbol]);
+                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                        unset($this->trades[$symbol]);
+                    }
                 } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
+                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                        unset($this->orderbooks[$symbol]);
+                    }
                 } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
+                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                        unset($this->tickers[$symbol]);
+                    }
                 }
             }
         } else {
             if ($topic === 'myTrades') {
                 // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
+                // because in c# we need to use a different object (thread-safe dict)
                 $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
                 for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
+                    $key = $keys[$i];
+                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
+                        unset($this->myTrades[$key]);
+                    }
                 }
             } elseif ($topic === 'orders') {
                 $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
                 for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
+                    $orderSymbol = $orderSymbols[$i];
+                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
+                        unset($this->orders[$orderSymbol]);
+                    }
                 }
             } elseif ($topic === 'ticker') {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
-                    unset($this->tickers[$tickerSymbols[$i]]);
+                    $tickerSymbol = $tickerSymbols[$i];
+                    if (is_array($this->tickers) && array_key_exists($tickerSymbol, $this->tickers)) {
+                        unset($this->tickers[$tickerSymbol]);
+                    }
                 }
             }
         }

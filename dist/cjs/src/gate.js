@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -22,7 +22,7 @@ class gate extends gate$1 {
             'certified': true,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
                 'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {
@@ -221,6 +221,7 @@ class gate extends gate$1 {
                             '{settle}/contract_stats': 1,
                             '{settle}/index_constituents/{index}': 1,
                             '{settle}/liq_orders': 1,
+                            '{settle}/risk_limit_tiers': 1,
                         },
                     },
                     'delivery': {
@@ -261,7 +262,8 @@ class gate extends gate$1 {
                     // private endpoints default is 150r/10s per endpoint
                     'withdrawals': {
                         'post': {
-                            'withdrawals': 20, // 1r/s cost = 20 / 1 = 20
+                            'withdrawals': 20,
+                            'push': 1,
                         },
                         'delete': {
                             'withdrawals/{withdrawal_id}': 1,
@@ -273,6 +275,7 @@ class gate extends gate$1 {
                             'withdrawals': 1,
                             'deposits': 1,
                             'sub_account_transfers': 1,
+                            'order_status': 1,
                             'withdraw_status': 1,
                             'sub_account_balances': 2.5,
                             'sub_account_margin_balances': 2.5,
@@ -283,6 +286,7 @@ class gate extends gate$1 {
                             'total_balance': 2.5,
                             'small_balance': 1,
                             'small_balance_history': 1,
+                            'push': 1,
                         },
                         'post': {
                             'transfers': 2.5,
@@ -325,11 +329,14 @@ class gate extends gate$1 {
                             'risk_units': 20 / 15,
                             'unified_mode': 20 / 15,
                             'loan_margin_tiers': 20 / 15,
+                            'leverage/user_currency_config': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15,
                             'portfolio_calculator': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'put': {
                             'unified_mode': 20 / 15,
@@ -509,9 +516,13 @@ class gate extends gate$1 {
                             'orders': 20 / 15,
                             'orders/{order_id}': 20 / 15,
                             'my_trades': 20 / 15,
+                            'mmp': 20 / 15,
                         },
                         'post': {
                             'orders': 20 / 15,
+                            'countdown_cancel_all': 20 / 15,
+                            'mmp': 20 / 15,
+                            'mmp/reset': 20 / 15,
                         },
                         'delete': {
                             'orders': 20 / 15,
@@ -555,6 +566,7 @@ class gate extends gate$1 {
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
                             'multi_collateral/fixed_rate': 20 / 15,
+                            'multi_collateral/current_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -568,8 +580,10 @@ class gate extends gate$1 {
                     'account': {
                         'get': {
                             'detail': 20 / 15,
+                            'rate_limit': 20 / 15,
                             'stp_groups': 20 / 15,
                             'stp_groups/{stp_id}/users': 20 / 15,
+                            'stp_groups/debit_fee': 20 / 15,
                         },
                         'post': {
                             'stp_groups': 20 / 15,
@@ -633,6 +647,8 @@ class gate extends gate$1 {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'unifiedAccount': undefined,
                 'createOrder': {
@@ -691,7 +707,7 @@ class gate extends gate$1 {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
@@ -702,7 +718,6 @@ class gate extends gate$1 {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -710,9 +725,11 @@ class gate extends gate$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
                         'iceberg': true,
                         'selfTradePrevention': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 40, // NOTE! max 10 per symbol
@@ -741,12 +758,15 @@ class gate extends gate$1 {
                         'trailing': false,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',
@@ -1142,6 +1162,9 @@ class gate extends gate$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let rawPromises = [
             this.fetchContractMarkets(params),
@@ -1976,8 +1999,7 @@ class gate extends gate$1 {
         //        }
         //    ]
         //
-        const result = this.parseFundingRates(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(response, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -2408,7 +2430,8 @@ class gate extends gate$1 {
             const chainKeys = Object.keys(withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                result['networks'][chainKey] = {
+                const networkCode = this.networkIdToCode(chainKey, this.safeString(fee, 'currency'));
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
                         'percentage': false,
@@ -4068,7 +4091,7 @@ class gate extends gate$1 {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -4908,7 +4931,6 @@ class gate extends gate$1 {
             'reduceOnly': this.safeValue(order, 'is_reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'average': average,
             'amount': Precise["default"].stringAbs(amount),
@@ -6647,6 +6669,9 @@ class gate extends gate$1 {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
@@ -6720,7 +6745,8 @@ class gate extends gate$1 {
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
-            const timestamp = this.seconds();
+            const nonce = this.nonce();
+            const timestamp = this.parseToInt(nonce / 1000);
             const timestampString = timestamp.toString();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [method.toUpperCase(), signaturePath, queryString, bodySignature, timestampString];
@@ -6882,7 +6908,7 @@ class gate extends gate$1 {
         //        ...
         //    ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -7108,7 +7134,7 @@ class gate extends gate$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

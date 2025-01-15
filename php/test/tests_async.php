@@ -702,6 +702,9 @@ class testMainClass {
                 'fetchBorrowRateHistory' => [$code],
                 'fetchLedgerEntry' => [$code],
             );
+            if (get_cli_arg_value('--fundedTests')) {
+                $tests['createOrder'] = [$symbol];
+            }
             if ($this->ws_tests) {
                 $tests = array(
                     'watchBalance' => [$code],
@@ -1148,6 +1151,7 @@ class testMainClass {
             'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
+            'login' => 'login',
             'accountId' => 'accountId',
             'accounts' => [array(
     'id' => 'myAccount',
@@ -1189,6 +1193,10 @@ class testMainClass {
             $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
             if ($wallet_address) {
                 $exchange->walletAddress = ((string) $wallet_address);
+            }
+            $accounts = $exchange->safe_list($exchange_data, 'accounts');
+            if ($accounts) {
+                $exchange->accounts = $accounts;
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             $exchange->extend_exchange_options($global_options);
@@ -1357,7 +1365,7 @@ class testMainClass {
                 } else {
                     $this->response_tests_failed = true;
                 }
-                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . ((string) $e);
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . ((string) $e);
                 dump('[TEST_FAILURE]' . $error_message);
             }
             if ($this->request_tests_failed || $this->response_tests_failed) {

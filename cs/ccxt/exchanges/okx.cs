@@ -247,6 +247,7 @@ public partial class okx : Exchange
                         { "tradingBot/public/rsi-back-testing", 1 },
                         { "asset/exchange-list", divide(5, 3) },
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
+                        { "finance/staking-defi/sol/apy-history", divide(5, 3) },
                         { "finance/savings/lending-rate-summary", divide(5, 3) },
                         { "finance/savings/lending-rate-history", divide(5, 3) },
                         { "finance/fixed-loan/lending-offers", divide(10, 3) },
@@ -374,6 +375,8 @@ public partial class okx : Exchange
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
                         { "finance/staking-defi/eth/product-info", 3 },
+                        { "finance/staking-defi/sol/balance", divide(5, 3) },
+                        { "finance/staking-defi/sol/purchase-redeem-history", divide(5, 3) },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
@@ -496,6 +499,8 @@ public partial class okx : Exchange
                         { "finance/staking-defi/cancel", 3 },
                         { "finance/staking-defi/eth/purchase", 5 },
                         { "finance/staking-defi/eth/redeem", 5 },
+                        { "finance/staking-defi/sol/purchase", 5 },
+                        { "finance/staking-defi/sol/redeem", 5 },
                         { "copytrading/algo-order", 1 },
                         { "copytrading/close-subposition", 1 },
                         { "copytrading/set-instruments", 4 },
@@ -941,7 +946,7 @@ public partial class okx : Exchange
                     { "BHP", "BHP" },
                     { "APT", "Aptos" },
                     { "ARBONE", "Arbitrum One" },
-                    { "AVAXC", "Avalanche C" },
+                    { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "ARK", "ARK" },
                     { "AR", "Arweave" },
@@ -1037,6 +1042,8 @@ public partial class okx : Exchange
                 { "createOrder", "privatePostTradeBatchOrders" },
                 { "createMarketBuyOrderRequiresPrice", false },
                 { "fetchMarkets", new List<object>() {"spot", "future", "swap", "option"} },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "defaultType", "spot" },
                 { "fetchLedger", new Dictionary<string, object>() {
                     { "method", "privateGetAccountBills" },
@@ -1117,21 +1124,21 @@ public partial class okx : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", true },
-                        { "selfTradePrevention", true },
                         { "trailing", true },
-                        { "twap", true },
                         { "iceberg", true },
-                        { "oco", true },
+                        { "leverage", false },
+                        { "selfTradePrevention", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 20 },
@@ -1157,7 +1164,7 @@ public partial class okx : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                         { "untilDays", null },
                         { "trigger", true },
@@ -1429,6 +1436,11 @@ public partial class okx : Exchange
         return result;
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1440,6 +1452,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
         object promises = new List<object>() {};
         object result = new List<object>() {};
@@ -1578,7 +1594,7 @@ public partial class okx : Exchange
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strikePrice },
+            { "strike", this.parseNumber(strikePrice) },
             { "optionType", optionType },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
@@ -1768,8 +1784,8 @@ public partial class okx : Exchange
                 object networkId = this.safeString(chain, "chain");
                 if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
                 {
-                    object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object chainPart = this.safeString(parts, 1, networkId);
+                    object parts = slice(((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 1, null);
+                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
                     object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))
@@ -1799,7 +1815,7 @@ public partial class okx : Exchange
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", null },
+                { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
@@ -2259,6 +2275,7 @@ public partial class okx : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -2855,9 +2872,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2879,9 +2898,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -3531,9 +3552,9 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        if (isTrue(isTrue(stop) || isTrue(trailing)))
+        if (isTrue(isTrue(trigger) || isTrue(trailing)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             return this.safeValue(orderInner, 0);
@@ -3606,9 +3627,9 @@ public partial class okx : Exchange
         object method = this.safeString(parameters, "method", defaultMethod);
         object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
         object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        if (isTrue(isTrue(stop) || isTrue(trailing)))
+        if (isTrue(isTrue(trigger) || isTrue(trailing)))
         {
             method = "privatePostTradeCancelAlgos";
         }
@@ -3627,7 +3648,7 @@ public partial class okx : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(isTrue(trailing) || isTrue(stop)))
+                if (isTrue(isTrue(trailing) || isTrue(trigger)))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
@@ -3712,9 +3733,9 @@ public partial class okx : Exchange
         object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         object method = this.safeString(parameters, "method", defaultMethod);
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        object isStopOrTrailing = isTrue(stop) || isTrue(trailing);
+        object isStopOrTrailing = isTrue(trigger) || isTrue(trailing);
         if (isTrue(isStopOrTrailing))
         {
             method = "privatePostTradeCancelAlgos";
@@ -4006,7 +4027,6 @@ public partial class okx : Exchange
         }
         object stopLossPrice = this.safeNumber2(order, "slTriggerPx", "slOrdPx");
         object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
-        object stopPrice = this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"});
         object reduceOnlyRaw = this.safeString(order, "reduceOnly");
         object reduceOnly = false;
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -4029,8 +4049,7 @@ public partial class okx : Exchange
             { "price", price },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"}) },
             { "average", average },
             { "cost", cost },
             { "amount", amount },
@@ -4071,8 +4090,8 @@ public partial class okx : Exchange
         object options = this.safeValue(this.options, "fetchOrder", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
         object method = this.safeString(parameters, "method", defaultMethod);
-        object stop = this.safeValue2(parameters, "stop", "trigger");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        if (isTrue(trigger))
         {
             method = "privateGetTradeOrderAlgo";
             if (isTrue(!isEqual(clientOrderId, null)))
@@ -4212,7 +4231,7 @@ public partial class okx : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4247,16 +4266,16 @@ public partial class okx : Exchange
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
         object method = this.safeString(parameters, "method", defaultMethod);
         object ordType = this.safeString(parameters, "ordType");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        if (isTrue(isTrue(isTrue(trailing) || isTrue(stop)) || isTrue((inOp(algoOrderTypes, ordType)))))
+        if (isTrue(isTrue(isTrue(trailing) || isTrue(trigger)) || isTrue((inOp(algoOrderTypes, ordType)))))
         {
             method = "privateGetTradeOrdersAlgoPending";
         }
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        } else if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger";
         }
@@ -4378,7 +4397,7 @@ public partial class okx : Exchange
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4412,13 +4431,13 @@ public partial class okx : Exchange
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         object method = this.safeString(parameters, "method", defaultMethod);
         object ordType = this.safeString(parameters, "ordType");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
         if (isTrue(trailing))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) || isTrue((inOp(algoOrderTypes, ordType)))))
+        } else if (isTrue(isTrue(trigger) || isTrue((inOp(algoOrderTypes, ordType)))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             object algoId = this.safeString(parameters, "algoId");
@@ -4427,7 +4446,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["algoId"] = algoId;
                 parameters = this.omit(parameters, "algoId");
             }
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 if (isTrue(isEqual(ordType, null)))
                 {
@@ -4613,9 +4632,9 @@ public partial class okx : Exchange
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         object method = this.safeString(parameters, "method", defaultMethod);
         object ordType = this.safeString(parameters, "ordType");
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        if (isTrue(isTrue(isTrue(trailing) || isTrue(stop)) || isTrue((inOp(algoOrderTypes, ordType)))))
+        if (isTrue(isTrue(isTrue(trailing) || isTrue(trigger)) || isTrue((inOp(algoOrderTypes, ordType)))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             ((IDictionary<string,object>)request)["state"] = "effective";
@@ -4623,7 +4642,7 @@ public partial class okx : Exchange
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(stop))
+        } else if (isTrue(trigger))
         {
             if (isTrue(isEqual(ordType, null)))
             {
@@ -4866,7 +4885,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6479,7 +6498,7 @@ public partial class okx : Exchange
                     }
                 }
             }
-            object timestamp = this.iso8601(this.milliseconds());
+            object timestamp = this.iso8601(this.nonce());
             headers = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },
@@ -7759,7 +7778,7 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOpenInterests(data, null, since, limit);
+        return this.parseOpenInterestsHistory(data, null, since, limit);
     }
 
     public override object parseOpenInterest(object interest, object market = null)

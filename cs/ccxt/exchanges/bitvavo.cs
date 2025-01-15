@@ -173,6 +173,71 @@ public partial class bitvavo : Exchange
                 { "apiKey", true },
                 { "secret", true },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "101", typeof(ExchangeError) },
@@ -1175,7 +1240,7 @@ public partial class bitvavo : Exchange
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1183,7 +1248,7 @@ public partial class bitvavo : Exchange
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
@@ -1543,6 +1608,7 @@ public partial class bitvavo : Exchange
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1702,7 +1768,6 @@ public partial class bitvavo : Exchange
         object timeInForce = this.safeString(order, "timeInForce");
         object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
-        object stopPrice = this.safeNumber(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1716,8 +1781,7 @@ public partial class bitvavo : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "amount", amount },
             { "cost", cost },
             { "average", null },
@@ -1753,7 +1817,7 @@ public partial class bitvavo : Exchange
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for

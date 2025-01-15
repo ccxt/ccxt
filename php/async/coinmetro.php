@@ -214,6 +214,74 @@ class coinmetro extends Exchange {
                 'currenciesByIdForParseMarket' => null,
                 'currencyIdsListForParseMarket' => null,
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true, // todo implement
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => false,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact' => array(
@@ -1026,7 +1094,7 @@ class coinmetro extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1272,10 +1340,10 @@ class coinmetro extends Exchange {
                 $params = $this->omit($params, 'timeInForce');
                 $request['timeInForce'] = $this->encode_order_time_in_force($timeInForce);
             }
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice !== null) {
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice' ));
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $userData = $this->safe_value($params, 'userData', array());
             $comment = $this->safe_string_2($params, 'clientOrderId', 'comment');
@@ -1816,7 +1884,6 @@ class coinmetro extends Exchange {
         }
         $trades = $this->safe_value($order, 'fills', array());
         $userData = $this->safe_value($order, 'userData', array());
-        $triggerPrice = $this->safe_string($order, 'stopPrice');
         $clientOrderId = $this->safe_string($userData, 'comment');
         $takeProfitPrice = $this->safe_string($userData, 'takeProfit');
         $stopLossPrice = $this->safe_string($userData, 'stopLoss');
@@ -1832,7 +1899,7 @@ class coinmetro extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_integer($order, 'timeInForce')),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => null,

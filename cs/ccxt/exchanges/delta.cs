@@ -142,6 +142,86 @@ public partial class delta : Exchange
                     { "BEP20", "BEP20(BSC)" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 2000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", true },
@@ -697,7 +777,7 @@ public partial class delta : Exchange
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber("1");
             }
-            object linear = (isEqual(settle, bs));
+            object linear = (isEqual(settle, quote));
             object optionType = null;
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(isTrue(isTrue(swap) || isTrue(future)) || isTrue(option)))
@@ -1446,12 +1526,13 @@ public partial class delta : Exchange
      * @method
      * @name delta#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.delta.exchange/#get-ohlc-candles
+     * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1465,16 +1546,22 @@ public partial class delta : Exchange
         };
         object duration = this.parseTimeframe(timeframe);
         limit = ((bool) isTrue(limit)) ? limit : 2000; // max 2000
+        object until = this.safeIntegerProduct(parameters, "until", 0.001);
+        object untilIsDefined = (!isEqual(until, null));
+        if (isTrue(untilIsDefined))
+        {
+            until = this.parseToInt(until);
+        }
         if (isTrue(isEqual(since, null)))
         {
-            object end = this.seconds();
+            object end = ((bool) isTrue(untilIsDefined)) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
             ((IDictionary<string,object>)request)["start"] = subtract(end, multiply(limit, duration));
         } else
         {
             object start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start"] = start;
-            ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(limit, duration));
+            ((IDictionary<string,object>)request)["end"] = ((bool) isTrue(untilIsDefined)) ? until : this.sum(start, multiply(limit, duration));
         }
         object price = this.safeString(parameters, "price");
         if (isTrue(isEqual(price, "mark")))
@@ -1487,7 +1574,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        parameters = this.omit(parameters, "price");
+        parameters = this.omit(parameters, new List<object>() {"price", "until"});
         object response = await this.publicGetHistoryCandles(this.extend(request, parameters));
         //
         //     {
@@ -2217,7 +2304,7 @@ public partial class delta : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2545,8 +2632,7 @@ public partial class delta : Exchange
         //     }
         //
         object rates = this.safeList(response, "result", new List<object>() {});
-        object result = this.parseFundingRates(rates);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rates, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -3578,7 +3664,7 @@ public partial class delta : Exchange
                 { "timestamp", timestamp },
             };
             object auth = add(add(method, timestamp), requestPath);
-            if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
+            if (isTrue(isEqual(method, "GET")))
             {
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
                 {

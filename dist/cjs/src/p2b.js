@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class p2b
@@ -1192,7 +1192,7 @@ class p2b extends p2b$1 {
             'postOnly': undefined,
             'side': this.safeString(order, 'side'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString(order, 'amount'),
             'cost': undefined,
             'average': undefined,

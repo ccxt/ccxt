@@ -279,7 +279,7 @@ public partial class bitvavo
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/#tag/Orders/paths/~1order/post"/>  <br/>
+    /// See <see href="https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -296,7 +296,7 @@ public partial class bitvavo
     /// <item>
     /// <term>params.stopPrice</term>
     /// <description>
-    /// float : The price at which a trigger order is triggered at
+    /// float : Alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>
@@ -524,6 +524,7 @@ public partial class bitvavo
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -564,7 +565,7 @@ public partial class bitvavo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get"/>  <br/>
+    /// See <see href="https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

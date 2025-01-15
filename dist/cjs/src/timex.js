@@ -5,6 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
+// ----------------------------------------------------------------------------
 /**
  * @class timex
  * @augments Exchange
@@ -1562,7 +1563,6 @@ class timex extends timex$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,

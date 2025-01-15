@@ -197,6 +197,83 @@ public partial class coinlist : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 300 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
                     { "feeSide", "get" },
@@ -1612,7 +1689,7 @@ public partial class coinlist : Exchange
             }
         } else if (isTrue(isTrue(isTrue(isTrue((isEqual(type, "stop_market"))) || isTrue((isEqual(type, "stop_limit")))) || isTrue((isEqual(type, "take_market")))) || isTrue((isEqual(type, "take_limit")))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a stopPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -1765,7 +1842,7 @@ public partial class coinlist : Exchange
         object type = this.parseOrderType(this.safeString(order, "type"));
         object side = this.safeString(order, "side");
         object price = this.safeString(order, "price");
-        object stopPrice = this.safeString(order, "stop_price");
+        object triggerPrice = this.safeString(order, "stop_price");
         object average = this.safeString(order, "average_fill_price"); // from documentation
         object amount = this.safeString(order, "size");
         object filled = this.safeString(order, "size_filled");
@@ -1792,8 +1869,7 @@ public partial class coinlist : Exchange
             { "timeInForce", "GTC" },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", average },
             { "amount", amount },
             { "cost", null },
@@ -2222,7 +2298,7 @@ public partial class coinlist : Exchange
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

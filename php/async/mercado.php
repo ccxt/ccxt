@@ -605,7 +605,6 @@ class mercado extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'average' => $average,

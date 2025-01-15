@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class defx
@@ -249,6 +249,87 @@ class defx extends defx$1 {
             },
             'options': {
                 'sandboxMode': false,
+            },
+            'features': {
+                'spot': undefined,
+                'forDerivatives': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -934,10 +1015,10 @@ class defx extends defx$1 {
         const id = this.safeString(trade, 'id');
         const oid = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeStringLower(trade, 'role');
-        const buyerMaker = this.safeString(trade, 'buyerMaker');
+        const buyerMaker = this.safeBool(trade, 'buyerMaker');
         let side = this.safeStringLower(trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             }
             else {
@@ -1170,7 +1251,7 @@ class defx extends defx$1 {
             'type': orderType,
         };
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const isMarket = orderType === 'MARKET';
         const isLimit = orderType === 'LIMIT';
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
@@ -1190,7 +1271,7 @@ class defx extends defx$1 {
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
-        if (stopPrice !== undefined || takeProfitPrice !== undefined) {
+        if (triggerPrice !== undefined || takeProfitPrice !== undefined) {
             request['workingType'] = 'MARK_PRICE';
             if (takeProfitPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
@@ -1202,7 +1283,7 @@ class defx extends defx$1 {
                 }
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
                 if (isMarket) {
                     request['type'] = 'STOP_MARKET';
                 }
@@ -1295,13 +1376,13 @@ class defx extends defx$1 {
         const average = this.omitZero(this.safeString(order, 'avgPrice'));
         const timeInForce = this.safeStringLower(order, 'timeInForce');
         let takeProfitPrice = undefined;
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         if (orderType !== undefined) {
             if (orderType.indexOf('take_profit') >= 0) {
                 takeProfitPrice = this.safeString(order, 'stopPrice');
             }
             else {
-                stopPrice = this.safeString(order, 'stopPrice');
+                triggerPrice = this.safeString(order, 'stopPrice');
             }
         }
         const timestamp = this.parse8601(this.safeString(order, 'createdAt'));
@@ -1321,8 +1402,7 @@ class defx extends defx$1 {
             'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': undefined,
             'average': average,
@@ -1346,7 +1426,6 @@ class defx extends defx$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1662,8 +1741,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1678,8 +1759,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1694,8 +1777,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1779,7 +1864,7 @@ class defx extends defx$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

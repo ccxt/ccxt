@@ -1309,8 +1309,7 @@ public partial class lbank : Exchange
         //     "success": True,
         // }
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -1737,7 +1736,6 @@ public partial class lbank : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", costString },
             { "amount", amountString },

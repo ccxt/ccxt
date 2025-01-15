@@ -7,7 +7,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class kuna
@@ -1103,7 +1103,6 @@ class kuna extends kuna$1 {
         //
         const marketId = this.safeString(order, 'pair');
         const datetime = this.safeString(order, 'createdAt');
-        const triggerPrice = this.safeString(order, 'stopPrice');
         let side = this.safeString(order, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -1126,8 +1125,7 @@ class kuna extends kuna$1 {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString(order, 'stopPrice'),
             'amount': this.safeString(order, 'quantity'),
             'filled': this.safeString(order, 'executedQuantity'),
             'remaining': undefined,

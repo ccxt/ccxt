@@ -315,6 +315,90 @@ public partial class kucoinfutures : kucoin
                     { "TRC20", "trx" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", null },
+                { "forDerivs", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                } },
+            } },
         });
     }
 
@@ -1464,8 +1548,8 @@ public partial class kucoinfutures : kucoin
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1477,8 +1561,9 @@ public partial class kucoinfutures : kucoin
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
-     * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
-     * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to MP: Mark Price
+     * @param {string} [params.stop] 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+     * @param {string} [params.triggerPriceType] "last", "mark", "index" - defaults to "mark"
+     * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
      * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -1626,13 +1711,15 @@ public partial class kucoinfutures : kucoin
             {
                 object slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["triggerStopDownPrice"] = this.priceToPrecision(symbol, slPrice);
-                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+                priceType = this.safeString(stopLoss, "triggerPriceType", "mark");
+                priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
             if (isTrue(!isEqual(takeProfit, null)))
             {
                 object tpPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
                 ((IDictionary<string,object>)request)["triggerStopUpPrice"] = this.priceToPrecision(symbol, tpPrice);
-                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+                priceType = this.safeString(takeProfit, "triggerPriceType", "mark");
+                priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
             ((IDictionary<string,object>)request)["stopPriceType"] = priceType;
         } else if (isTrue(isTrue(stopLossPrice) || isTrue(takeProfitPrice)))
@@ -1826,10 +1913,10 @@ public partial class kucoinfutures : kucoin
         {
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, parameters));
         } else
@@ -2025,7 +2112,7 @@ public partial class kucoinfutures : kucoin
         {
             return await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters);
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
         if (isTrue(isEqual(status, "closed")))
@@ -2036,7 +2123,7 @@ public partial class kucoinfutures : kucoin
             status = "active";
         }
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["status"] = status;
         } else if (isTrue(!isEqual(status, "active")))
@@ -2058,7 +2145,7 @@ public partial class kucoinfutures : kucoin
             ((IDictionary<string,object>)request)["endAt"] = until;
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.futuresPrivateGetStopOrders(this.extend(request, parameters));
         } else
@@ -2372,7 +2459,6 @@ public partial class kucoinfutures : kucoin
         }
         object clientOrderId = this.safeString(order, "clientOid");
         object timeInForce = this.safeString(order, "timeInForce");
-        object stopPrice = this.safeNumber(order, "stopPrice");
         object postOnly = this.safeValue(order, "postOnly");
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
@@ -2387,8 +2473,7 @@ public partial class kucoinfutures : kucoin
             { "side", side },
             { "amount", amount },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "cost", cost },
             { "filled", filled },
             { "remaining", null },
@@ -2700,6 +2785,10 @@ public partial class kucoinfutures : kucoin
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = mathMin(1000, limit);
         }
         var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];

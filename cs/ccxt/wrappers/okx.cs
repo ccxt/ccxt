@@ -235,6 +235,12 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
@@ -803,7 +809,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -868,7 +874,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -1117,7 +1123,7 @@ public partial class okx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

@@ -236,6 +236,78 @@ public partial class currencycom : Exchange
                 { "leverage_markets_suffix", "_LEVERAGE" },
                 { "collateralCurrencies", new List<object>() {"USD", "EUR", "USDT"} },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", false },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "broad", new Dictionary<string, object>() {
                     { "FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order", typeof(InvalidOrder) },
@@ -1253,7 +1325,6 @@ public partial class currencycom : Exchange
             { "timeInForce", timeInForce },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1359,12 +1430,12 @@ public partial class currencycom : Exchange
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             } else if (isTrue(isEqual(type, "market")))
             {
-                object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+                object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-                if (isTrue(!isEqual(stopPrice, null)))
+                if (isTrue(!isEqual(triggerPrice, null)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "STOP";
-                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, stopPrice);
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, triggerPrice);
                 }
             }
         }
@@ -1790,7 +1861,7 @@ public partial class currencycom : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

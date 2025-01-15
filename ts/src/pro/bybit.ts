@@ -109,6 +109,12 @@ export default class bybit extends bybitRest {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'watchMyTrades': {
+                    // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -310,7 +316,7 @@ export default class bybit extends bybitRest {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+     * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1377,12 +1383,18 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
+        const filterExecTypes = this.handleOption ('watchMyTrades', 'filterExecTypes', []);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
             if (spot) {
                 parsed = this.parseWsTrade (rawTrade);
             } else {
+                // filter unified trades
+                const execType = this.safeString (rawTrade, 'execType', '');
+                if (!this.inArray (execType, filterExecTypes)) {
+                    continue;
+                }
                 parsed = this.parseTrade (rawTrade);
             }
             const symbol = parsed['symbol'];

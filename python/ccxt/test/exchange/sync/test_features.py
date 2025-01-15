@@ -35,7 +35,9 @@ def test_features(exchange, skipped_properties):
                     sub_key = sub_keys[j]
                     test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', sub_keys, j, sub_types)
                     sub_value = value[sub_key]
-                    test_features_inner(exchange, skipped_properties, sub_value)
+                    # sometimes it might not be available for exchange, eg. future>inverse)
+                    if sub_value is not None:
+                        test_features_inner(exchange, skipped_properties, sub_value)
 
 
 def test_features_inner(exchange, skipped_properties, feature_obj):
@@ -57,7 +59,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                     'mark': False,
                     'index': False,
                 },
-                'limitPrice': False,
+                'price': False,
             },
             'timeInForce': {
                 'GTC': False,
@@ -100,7 +102,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
         'fetchClosedOrders': {
             'marginMode': False,
             'limit': 0,
-            'daysBackClosed': 0,
+            'daysBack': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
             'trigger': False,

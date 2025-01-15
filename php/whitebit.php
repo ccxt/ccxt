@@ -294,6 +294,7 @@ class whitebit extends Exchange {
                 'broad' => array(
                     'This action is unauthorized' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
                     'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
+                    'Min amount step' => '\\ccxt\\InvalidOrder', // array("code":32,"errors":array("amount":["Min amount step = 0.01"]),"message":"Validation failed")
                     'Total is less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
                     'fee must be no less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Total amount . fee must be no less than 5.05505"]))
                     'Enable your key in API settings' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
@@ -821,9 +822,22 @@ class whitebit extends Exchange {
         //         "last" => "55913.88",
         //         "period" => 86400
         //     }
-        $market = $this->safe_market(null, $market);
+        // v2
+        //   {
+        //       lastUpdateTimestamp => '2025-01-02T09:16:36.000Z',
+        //       tradingPairs => 'ARB_USDC',
+        //       lastPrice => '0.7727',
+        //       lowestAsk => '0.7735',
+        //       highestBid => '0.7732',
+        //       baseVolume24h => '1555793.74',
+        //       quoteVolume24h => '1157602.622406',
+        //       tradesEnabled => true
+        //   }
+        //
+        $marketId = $this->safe_string($ticker, 'tradingPairs');
+        $market = $this->safe_market($marketId, $market);
         // $last price is provided as "last" or "last_price"
-        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
         // if "close" is provided, use it, otherwise use <$last>
         $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
@@ -832,9 +846,9 @@ class whitebit extends Exchange {
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'bid'),
+            'bid' => $this->safe_string_2($ticker, 'bid', 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'ask'),
+            'ask' => $this->safe_string_2($ticker, 'ask', 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
@@ -844,8 +858,8 @@ class whitebit extends Exchange {
             'change' => null,
             'percentage' => $this->safe_string($ticker, 'change'),
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
-            'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
+            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h' )),
+            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h' )),
             'info' => $ticker,
         ), $market);
     }
@@ -856,13 +870,21 @@ class whitebit extends Exchange {
          *
          * @see https://docs.whitebit.com/public/http-v4/#$market-activity
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->v4PublicGetTicker ($params);
+        $method = 'v4PublicGetTicker';
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+        $response = null;
+        if ($method === 'v4PublicGetTicker') {
+            $response = $this->v4PublicGetTicker ($params);
+        } else {
+            $response = $this->v2PublicGetTicker ($params);
+        }
         //
         //      "BCH_RUB" => array(
         //          "base_id":1831,
@@ -874,6 +896,10 @@ class whitebit extends Exchange {
         //          "change":"2.12"
         //      ),
         //
+        $resultList = $this->safe_list($response, 'result');
+        if ($resultList !== null) {
+            return $this->parse_tickers($resultList, $symbols);
+        }
         $marketIds = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1238,9 +1264,11 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        $params['cost'] = $cost;
+        $req = array(
+            'cost' => $cost,
+        );
         // only buy $side is supported
-        return $this->create_order($symbol, 'market', $side, 0, null, $params);
+        return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): array {
@@ -1302,8 +1330,8 @@ class whitebit extends Exchange {
         $marketType = $this->safe_string($market, 'type');
         $isLimitOrder = $type === 'limit';
         $isMarketOrder = $type === 'market';
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($triggerPrice !== null);
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
@@ -1316,7 +1344,7 @@ class whitebit extends Exchange {
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
         $response = null;
         if ($isStopOrder) {
-            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1387,11 +1415,11 @@ class whitebit extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         }
         $isLimitOrder = $type === 'limit';
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($triggerPrice !== null);
         $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice' ));
         if ($isStopOrder) {
-            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1784,7 +1812,7 @@ class whitebit extends Exchange {
             $clientOrderId = null;
         }
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_number($order, 'activation_price');
+        $triggerPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
         $orderType = $this->parse_order_type($type);
@@ -1820,8 +1848,7 @@ class whitebit extends Exchange {
             'side' => $side,
             'price' => $price,
             'type' => $orderType,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -2455,8 +2482,7 @@ class whitebit extends Exchange {
         //    )
         //
         $data = $this->safe_list($response, 'result', array());
-        $result = $this->parse_funding_rates($data);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

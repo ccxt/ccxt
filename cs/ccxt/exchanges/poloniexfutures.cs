@@ -170,6 +170,79 @@ public partial class poloniexfutures : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 200 },
+                    } },
+                } },
+                { "spot", null },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "400", typeof(BadRequest) },
@@ -914,13 +987,13 @@ public partial class poloniexfutures : Exchange
             { "size", preciseAmount },
             { "leverage", 1 },
         };
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(stopPrice))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             object stopPriceType = this.safeString(parameters, "stopPriceType", "TP");
             ((IDictionary<string,object>)request)["stopPriceType"] = stopPriceType;
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(type, "limit")))
@@ -983,7 +1056,7 @@ public partial class poloniexfutures : Exchange
             { "trades", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "info", response },
         }, market);
     }
@@ -1278,7 +1351,7 @@ public partial class poloniexfutures : Exchange
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1290,10 +1363,10 @@ public partial class poloniexfutures : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrders(this.extend(request, parameters));
         } else
@@ -1337,7 +1410,7 @@ public partial class poloniexfutures : Exchange
                 { "trades", null },
                 { "timeInForce", null },
                 { "postOnly", null },
-                { "stopPrice", null },
+                { "triggerPrice", null },
                 { "info", response },
             }));
         }
@@ -1365,7 +1438,7 @@ public partial class poloniexfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
@@ -1373,7 +1446,7 @@ public partial class poloniexfutures : Exchange
             status = "done";
         }
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["status"] = ((bool) isTrue((isEqual(status, "open")))) ? "active" : "done";
         } else if (isTrue(!isEqual(status, "open")))
@@ -1395,7 +1468,7 @@ public partial class poloniexfutures : Exchange
             ((IDictionary<string,object>)request)["endAt"] = until;
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrders(this.extend(request, parameters));
         } else
@@ -1701,7 +1774,7 @@ public partial class poloniexfutures : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stopPrice") },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "cost", this.safeString(order, "dealValue") },
             { "filled", filled },
             { "remaining", null },

@@ -896,7 +896,7 @@ export default class coinex extends coinexRest {
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const stop = this.safeBool2(params, 'trigger', 'stop');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let messageHash = 'orders';
         let market = undefined;
@@ -922,7 +922,7 @@ export default class coinex extends coinexRest {
             }
         }
         let method = undefined;
-        if (stop) {
+        if (trigger) {
             method = 'stop.subscribe';
         }
         else {
@@ -1289,7 +1289,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString(this.options, 'defaultType');
         const marketId = this.safeString(ticker, 'market');
         market = this.safeMarket(marketId, market, undefined, defaultType);
-        const timestamp = this.safeTimestamp(ticker, 'updated_at');
+        const timestamp = this.safeInteger(ticker, 'updated_at');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, undefined, defaultType),
             'timestamp': timestamp,

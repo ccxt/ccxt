@@ -1037,15 +1037,12 @@ export default class bitget extends bitgetRest {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (!(instType in this.positions)) {
+        const action = this.safeString (message, 'action');
+        if (!(instType in this.positions) || (action === 'snapshot')) {
             this.positions[instType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[instType];
         const rawPositions = this.safeValue (message, 'data', []);
-        const dataLength = rawPositions.length;
-        if (dataLength === 0) {
-            return;
-        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1150,7 +1147,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
+     * @param {boolean} [params.trigger] *contract only* set to true for watching trigger orders
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'

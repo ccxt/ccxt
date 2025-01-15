@@ -247,6 +247,87 @@ class defx extends Exchange {
             'options' => array(
                 'sandboxMode' => false,
             ),
+            'features' => array(
+                'spot' => null,
+                'forDerivatives' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -941,10 +1022,10 @@ class defx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $oid = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
-        $buyerMaker = $this->safe_string($trade, 'buyerMaker');
+        $buyerMaker = $this->safe_bool($trade, 'buyerMaker');
         $side = $this->safe_string_lower($trade, 'side');
         if ($buyerMaker !== null) {
-            if ($buyerMaker === 'true') {
+            if ($buyerMaker) {
                 $side = 'sell';
             } else {
                 $side = 'buy';
@@ -1183,7 +1264,7 @@ class defx extends Exchange {
             'type' => $orderType,
         );
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $isMarket = $orderType === 'MARKET';
         $isLimit = $orderType === 'LIMIT';
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -1202,7 +1283,7 @@ class defx extends Exchange {
         if ($clientOrderId !== null) {
             $request['newClientOrderId'] = $clientOrderId;
         }
-        if ($stopPrice !== null || $takeProfitPrice !== null) {
+        if ($triggerPrice !== null || $takeProfitPrice !== null) {
             $request['workingType'] = 'MARK_PRICE';
             if ($takeProfitPrice !== null) {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
@@ -1212,7 +1293,7 @@ class defx extends Exchange {
                     $request['type'] = 'TAKE_PROFIT_LIMIT';
                 }
             } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($isMarket) {
                     $request['type'] = 'STOP_MARKET';
                 } else {
@@ -1306,12 +1387,12 @@ class defx extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $timeInForce = $this->safe_string_lower($order, 'timeInForce');
         $takeProfitPrice = null;
-        $stopPrice = null;
+        $triggerPrice = null;
         if ($orderType !== null) {
             if (mb_strpos($orderType, 'take_profit') !== false) {
                 $takeProfitPrice = $this->safe_string($order, 'stopPrice');
             } else {
-                $stopPrice = $this->safe_string($order, 'stopPrice');
+                $triggerPrice = $this->safe_string($order, 'stopPrice');
             }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
@@ -1331,8 +1412,7 @@ class defx extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => null,
             'average' => $average,
@@ -1358,7 +1438,6 @@ class defx extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1679,8 +1758,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'OPEN';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'OPEN',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1696,8 +1777,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'FILLED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'FILLED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1713,8 +1796,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'CANCELED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'CANCELED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
@@ -1802,7 +1887,7 @@ class defx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;

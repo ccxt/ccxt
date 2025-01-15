@@ -216,6 +216,70 @@ export default class blockchaincom extends Exchange {
                     // 'DIGITALGOLD': 'DGLD',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true, // todo implementation
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implementation
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': undefined, // todo webapi
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -571,14 +635,14 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision(symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const stopPrice = this.safeValue2(params, 'stopPx', 'stopPrice');
-        params = this.omit(params, ['stopPx', 'stopPrice']);
+        const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
+            if (triggerPrice === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
             }
         }
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (uppercaseOrderType === 'MARKET') {
                 request['ordType'] = 'STOP';
             }
@@ -598,7 +662,7 @@ export default class blockchaincom extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if (stopPriceRequired) {
-            request['stopPx'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPx'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
         return this.parseOrder(response, market);

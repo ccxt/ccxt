@@ -984,13 +984,11 @@ class bitget(ccxt.async_support.bitget):
         instType = self.safe_string(arg, 'instType', '')
         if self.positions is None:
             self.positions = {}
-        if not (instType in self.positions):
+        action = self.safe_string(message, 'action')
+        if not (instType in self.positions) or (action == 'snapshot'):
             self.positions[instType] = ArrayCacheBySymbolBySide()
         cache = self.positions[instType]
         rawPositions = self.safe_value(message, 'data', [])
-        dataLength = len(rawPositions)
-        if dataLength == 0:
-            return
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
@@ -1090,7 +1088,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *contract only* set to True for watching trigger orders
+        :param boolean [params.trigger]: *contract only* set to True for watching trigger orders
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'

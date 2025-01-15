@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class whitebit
@@ -297,6 +297,7 @@ class whitebit extends whitebit$1 {
                 'broad': {
                     'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
+                    'Min amount step': errors.InvalidOrder,
                     'Total is less than': errors.InvalidOrder,
                     'fee must be no less than': errors.InvalidOrder,
                     'Enable your key in API settings': errors.PermissionDenied,
@@ -818,9 +819,22 @@ class whitebit extends whitebit$1 {
         //         "last": "55913.88",
         //         "period": 86400
         //     }
-        market = this.safeMarket(undefined, market);
+        // v2
+        //   {
+        //       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        //       tradingPairs: 'ARB_USDC',
+        //       lastPrice: '0.7727',
+        //       lowestAsk: '0.7735',
+        //       highestBid: '0.7732',
+        //       baseVolume24h: '1555793.74',
+        //       quoteVolume24h: '1157602.622406',
+        //       tradesEnabled: true
+        //   }
+        //
+        const marketId = this.safeString(ticker, 'tradingPairs');
+        market = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
-        const last = this.safeString2(ticker, 'last', 'last_price');
+        const last = this.safeStringN(ticker, ['last', 'last_price', 'lastPrice']);
         // if "close" is provided, use it, otherwise use <last>
         const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
@@ -829,9 +843,9 @@ class whitebit extends whitebit$1 {
             'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
-            'bid': this.safeString(ticker, 'bid'),
+            'bid': this.safeString2(ticker, 'bid', 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'ask'),
+            'ask': this.safeString2(ticker, 'ask', 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
@@ -841,8 +855,8 @@ class whitebit extends whitebit$1 {
             'change': undefined,
             'percentage': this.safeString(ticker, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'base_volume', 'volume'),
-            'quoteVolume': this.safeString2(ticker, 'quote_volume', 'deal'),
+            'baseVolume': this.safeStringN(ticker, ['base_volume', 'volume', 'baseVolume24h']),
+            'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
             'info': ticker,
         }, market);
     }
@@ -851,14 +865,23 @@ class whitebit extends whitebit$1 {
      * @name whitebit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.v4PublicGetTicker(params);
+        let method = 'v4PublicGetTicker';
+        [method, params] = this.handleOptionAndParams(params, 'fetchTickers', 'method', method);
+        let response = undefined;
+        if (method === 'v4PublicGetTicker') {
+            response = await this.v4PublicGetTicker(params);
+        }
+        else {
+            response = await this.v2PublicGetTicker(params);
+        }
         //
         //      "BCH_RUB": {
         //          "base_id":1831,
@@ -870,6 +893,10 @@ class whitebit extends whitebit$1 {
         //          "change":"2.12"
         //      },
         //
+        const resultList = this.safeList(response, 'result');
+        if (resultList !== undefined) {
+            return this.parseTickers(resultList, symbols);
+        }
         const marketIds = Object.keys(response);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -1228,9 +1255,11 @@ class whitebit extends whitebit$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        params['cost'] = cost;
+        const req = {
+            'cost': cost,
+        };
         // only buy side is supported
-        return await this.createOrder(symbol, 'market', side, 0, undefined, params);
+        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -1294,8 +1323,8 @@ class whitebit extends whitebit$1 {
         const marketType = this.safeString(market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        const isStopOrder = (triggerPrice !== undefined);
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (postOnly) {
@@ -1308,7 +1337,7 @@ class whitebit extends whitebit$1 {
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         let response = undefined;
         if (isStopOrder) {
-            request['activation_price'] = this.priceToPrecision(symbol, stopPrice);
+            request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (isLimitOrder) {
                 // stop limit order
                 request['price'] = this.priceToPrecision(symbol, price);
@@ -1385,11 +1414,11 @@ class whitebit extends whitebit$1 {
             request['clientOrderId'] = clientOrderId;
         }
         const isLimitOrder = type === 'limit';
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        const isStopOrder = (triggerPrice !== undefined);
         params = this.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice']);
         if (isStopOrder) {
-            request['activation_price'] = this.priceToPrecision(symbol, stopPrice);
+            request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (isLimitOrder) {
                 // stop limit order
                 request['amount'] = this.amountToPrecision(symbol, amount);
@@ -1783,7 +1812,7 @@ class whitebit extends whitebit$1 {
             clientOrderId = undefined;
         }
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeNumber(order, 'activation_price');
+        const triggerPrice = this.safeNumber(order, 'activation_price');
         const orderId = this.safeString2(order, 'orderId', 'id');
         const type = this.safeString(order, 'type');
         const orderType = this.parseOrderType(type);
@@ -1819,8 +1848,7 @@ class whitebit extends whitebit$1 {
             'side': side,
             'price': price,
             'type': orderType,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -2441,8 +2469,7 @@ class whitebit extends whitebit$1 {
         //    ]
         //
         const data = this.safeList(response, 'result', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

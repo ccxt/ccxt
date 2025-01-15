@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
@@ -198,6 +198,80 @@ class bitopro extends bitopro$1 {
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    // todo: implement through fetchOrders
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -981,7 +1055,6 @@ class bitopro extends bitopro$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1024,13 +1097,13 @@ class bitopro extends bitopro$1 {
         }
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
-            if (stopPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
+            if (triggerPrice === undefined) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             const condition = this.safeString(params, 'condition');
             if (condition === undefined) {

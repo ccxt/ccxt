@@ -61,6 +61,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot_private_get_mytrades($params = array()) {
         return $this->request('myTrades', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
+    public function spot_private_get_tradefee($params = array()) {
+        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
     public function spot_private_get_sub_account_list($params = array()) {
         return $this->request('sub-account/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -585,6 +588,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivateGetMyTrades($params = array()) {
         return $this->request('myTrades', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function spotPrivateGetTradeFee($params = array()) {
+        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPrivateGetSubAccountList($params = array()) {
         return $this->request('sub-account/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));

@@ -6,7 +6,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class cryptocom
  * @augments Exchange
@@ -348,6 +348,97 @@ class cryptocom extends cryptocom$1 {
                 },
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        // todo: implementation fix
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': true,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
@@ -400,6 +491,9 @@ class cryptocom extends cryptocom$1 {
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
                     '43005': errors.InvalidOrder,
+                    '43003': errors.InvalidOrder,
+                    '43004': errors.InvalidOrder,
+                    '43012': errors.BadRequest,
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -1187,7 +1281,7 @@ class cryptocom extends cryptocom$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a trigger order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2403,7 +2497,7 @@ class cryptocom extends cryptocom$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

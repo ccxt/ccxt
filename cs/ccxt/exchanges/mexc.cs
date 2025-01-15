@@ -111,8 +111,8 @@ public partial class mexc : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
-                { "fetchTradingFee", null },
-                { "fetchTradingFees", true },
+                { "fetchTradingFee", true },
+                { "fetchTradingFees", false },
                 { "fetchTradingLimits", null },
                 { "fetchTransactionFee", "emulated" },
                 { "fetchTransactionFees", true },
@@ -181,6 +181,7 @@ public partial class mexc : Exchange
                             { "allOrders", 10 },
                             { "account", 10 },
                             { "myTrades", 10 },
+                            { "tradeFee", 10 },
                             { "sub-account/list", 1 },
                             { "sub-account/apiKey", 1 },
                             { "capital/config/getall", 10 },
@@ -431,6 +432,7 @@ public partial class mexc : Exchange
                         { "1h", "60m" },
                         { "4h", "4h" },
                         { "1d", "1d" },
+                        { "1w", "1W" },
                         { "1M", "1M" },
                     } },
                     { "swap", new Dictionary<string, object>() {
@@ -481,6 +483,145 @@ public partial class mexc : Exchange
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
                 { "broker", "CCXT" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", false },
+                            { "mark", false },
+                            { "index", false },
+                        } },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 30 },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 7 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 7 },
+                        { "daysBackCanceled", 7 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivs", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "hedged", true },
+                        { "leverage", true },
+                        { "marketBuyByCost", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 90 },
+                        { "untilDays", 90 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 90 },
+                        { "untilDays", 90 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 90 },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 90 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 2000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BEYONDPROTOCOL", "BEYOND" },
@@ -1949,8 +2090,10 @@ public partial class mexc : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", "buy", 0, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters));
     }
 
     /**
@@ -1972,8 +2115,10 @@ public partial class mexc : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", "sell", 0, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "sell", 0, null, this.extend(req, parameters));
     }
 
     /**
@@ -2097,7 +2242,6 @@ public partial class mexc : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {string} [marginMode] only 'isolated' is supported for spot-margin trading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2152,7 +2296,7 @@ public partial class mexc : Exchange
     /**
      * @ignore
      * @method
-     * @name mexc#createOrder
+     * @name mexc#createSwapOrder
      * @description create a trade order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
@@ -2268,12 +2412,12 @@ public partial class mexc : Exchange
         {
             ((IDictionary<string,object>)request)["externalOid"] = clientOrderId;
         }
-        object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
-        if (isTrue(stopPrice))
+        if (isTrue(triggerPrice))
         {
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = this.safeInteger(parameters, "triggerType", 1);
             ((IDictionary<string,object>)request)["executeCycle"] = this.safeInteger(parameters, "executeCycle", 1);
             ((IDictionary<string,object>)request)["trend"] = this.safeInteger(parameters, "trend", 1);
@@ -3361,7 +3505,6 @@ public partial class mexc : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
             { "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
             { "average", this.safeNumber(order, "dealAvgPrice") },
             { "amount", this.safeNumber2(order, "origQty", "vol") },
@@ -3488,36 +3631,46 @@ public partial class mexc : Exchange
 
     /**
      * @method
-     * @name mexc#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @name mexc#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.fetchAccountHelper("spot", parameters);
-        object makerFee = this.safeString(response, "makerCommission");
-        object takerFee = this.safeString(response, "takerCommission");
-        makerFee = Precise.stringDiv(makerFee, "1000");
-        takerFee = Precise.stringDiv(takerFee, "1000");
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
         {
-            object symbol = getValue(this.symbols, i);
-            ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
-                { "symbol", symbol },
-                { "maker", this.parseNumber(makerFee) },
-                { "taker", this.parseNumber(takerFee) },
-                { "percentage", true },
-                { "tierBased", false },
-                { "info", response },
-            };
+            throw new BadRequest ((string)add(this.id, " fetchTradingFee() supports spot markets only")) ;
         }
-        return result;
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.spotPrivateGetTradeFee(this.extend(request, parameters));
+        //
+        //  {
+        //      "data":{
+        //        "makerCommission":0.003000000000000000,
+        //        "takerCommission":0.003000000000000000
+        //      },
+        //      "code":0,
+        //      "msg":"success",
+        //      "timestamp":1669109672717
+        //  }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", symbol },
+            { "maker", this.safeNumber(data, "makerCommission") },
+            { "taker", this.safeNumber(data, "takerCommission") },
+            { "percentage", null },
+            { "tierBased", null },
+        };
     }
 
     public virtual object customParseBalance(object response, object marketType)

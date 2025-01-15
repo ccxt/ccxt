@@ -1250,6 +1250,7 @@ class bitget extends Exchange {
                     '41103' => '\\ccxt\\InvalidOrder', // array("code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null)
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
+                    '43001' => '\\ccxt\\OrderNotFound',
                     '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
                     '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
@@ -1429,16 +1430,102 @@ class bitget extends Exchange {
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
+                    // 'TRX' => 'TRX', // different code for mainnet
                     'TRC20' => 'TRC20',
+                    // 'ETH' => 'ETH', // different code for mainnet
                     'ERC20' => 'ERC20',
                     'BEP20' => 'BSC',
-                    'ARB' => 'ArbitrumOne',
+                    // 'BEP20' => 'BEP20', // different for BEP20
+                    'BSC' => 'BEP20',
+                    'ATOM' => 'ATOM',
+                    'ACA' => 'AcalaToken',
+                    'APT' => 'Aptos',
+                    'ARBONE' => 'ArbitrumOne',
+                    'ARBNOVA' => 'ArbitrumNova',
+                    'AVAXC' => 'C-Chain',
+                    'AVAXX' => 'X-Chain',
+                    'AR' => 'Arweave',
+                    'BCH' => 'BCH',
+                    'BCHA' => 'BCHA',
+                    'BITCI' => 'BITCI',
+                    'BTC' => 'BTC',
+                    'CELO' => 'CELO',
+                    'CSPR' => 'CSPR',
+                    'ADA' => 'Cardano',
+                    'CHZ' => 'ChilizChain',
+                    'CRC20' => 'CronosChain',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EOS' => 'EOS',
+                    'ETHF' => 'ETHFAIR',
+                    'ETHW' => 'ETHW',
+                    'ETC' => 'ETC',
+                    'EGLD' => 'Elrond',
+                    'FIL' => 'FIL',
+                    'FIO' => 'FIO',
+                    'FTM' => 'Fantom',
+                    'HRC20' => 'HECO',
+                    'ONE' => 'Harmony',
+                    'HNT' => 'Helium',
+                    'ICP' => 'ICP',
+                    'IOTX' => 'IoTeX',
+                    'KARDIA' => 'KAI',
+                    'KAVA' => 'KAVA',
+                    'KDA' => 'KDA',
+                    'KLAY' => 'Klaytn',
+                    'KSM' => 'Kusama',
+                    'LAT' => 'LAT',
+                    'LTC' => 'LTC',
+                    'MINA' => 'MINA',
+                    'MOVR' => 'MOVR',
+                    'METIS' => 'MetisToken',
+                    'GLMR' => 'Moonbeam',
+                    'NEAR' => 'NEARProtocol',
+                    'NULS' => 'NULS',
+                    'OASYS' => 'OASYS',
+                    'OASIS' => 'ROSE',
+                    'OMNI' => 'OMNI',
+                    'ONT' => 'Ontology',
+                    'OPTIMISM' => 'Optimism',
+                    'OSMO' => 'Osmosis',
+                    'POKT' => 'PocketNetwork',
+                    'MATIC' => 'Polygon',
+                    'QTUM' => 'QTUM',
+                    'REEF' => 'REEF',
+                    'SOL' => 'SOL',
+                    'SYS' => 'SYS', // SyscoinNEVM is different
+                    'SXP' => 'Solar',
+                    'XYM' => 'Symbol',
+                    'TON' => 'TON',
+                    'TT' => 'TT',
+                    'TLOS' => 'Telos',
+                    'THETA' => 'ThetaToken',
+                    'VITE' => 'VITE',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'WAXP',
+                    'WEMIX' => 'WEMIXMainnet',
+                    'XDC' => 'XDCNetworkXDC',
+                    'XRP' => 'XRP',
+                    'FET' => 'FETCH',
+                    'NEM' => 'NEM',
+                    'REI' => 'REINetwork',
+                    'ZIL' => 'ZIL',
+                    'ABBC' => 'ABBCCoin',
+                    'RSK' => 'RSK',
+                    'AZERO' => 'AZERO',
+                    'TRC10' => 'TRC10',
+                    'JUNO' => 'JUNO',
+                    // undetected => USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                    // todo => uncomment below after unification
+                    // 'TERRACLASSIC' => 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    // 'CUBENETWORK' => 'CUBE',
+                    // 'CADUCEUS' => 'CMP',
+                    // 'CONFLUX' => 'CFX', // CFXeSpace is different
+                    // 'CERE' => 'CERE',
+                    // 'CANTO' => 'CANTO',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
-                    'APT' => 'Aptos',
-                    'MATIC' => 'Polygon',
                     'VIC' => 'VICTION',
-                    'AVAXC' => 'C-Chain',
                 ),
                 'networksById' => array(
                 ),
@@ -1459,18 +1546,17 @@ class bitget extends Exchange {
                             'index' => false, // not on spot
                         ),
                         'triggerDirection' => false,
-                        'stopLossPrice' => true, // but not yet implemented in spot
-                        'takeProfitPrice' => true, // but not yet implemented in spot
+                        'stopLossPrice' => true, // todo =>  not yet implemented in spot
+                        'takeProfitPrice' => true, // todo => not yet implemented in spot
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => array(
                                 'last' => false,
                                 'mark' => false,
                                 'index' => false,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -1510,7 +1596,7 @@ class bitget extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 90,
                         'trigger' => true,
@@ -1538,10 +1624,9 @@ class bitget extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -2350,14 +2435,14 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
-            $chain = $this->safe_string_2($params, 'chain', 'network');
-            $params = $this->omit($params, 'network');
-            if ($chain === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter or a network parameter');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a "network" parameter');
             }
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $networkId = $this->network_code_to_id($chain);
+            $networkId = $this->network_code_to_id($networkCode);
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
@@ -2381,27 +2466,8 @@ class bitget extends Exchange {
             //      }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = array(
-                'id' => $this->safe_string($data, 'orderId'),
-                'info' => $response,
-                'txid' => null,
-                'timestamp' => null,
-                'datetime' => null,
-                'network' => null,
-                'addressFrom' => null,
-                'address' => null,
-                'addressTo' => null,
-                'amount' => null,
-                'type' => 'withdrawal',
-                'currency' => null,
-                'status' => null,
-                'updated' => null,
-                'tagFrom' => null,
-                'tag' => null,
-                'tagTo' => null,
-                'comment' => null,
-                'fee' => null,
-            );
+            $result = $this->parse_transaction($data, $currency);
+            $result['type'] = 'withdrawal';
             $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
             $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
@@ -2412,7 +2478,7 @@ class bitget extends Exchange {
                 $result['tag'] = $tag;
                 $result['address'] = $address;
                 $result['addressTo'] = $address;
-                $result['network'] = $chain;
+                $result['network'] = $networkCode;
             }
             return $result;
         }) ();
@@ -2588,18 +2654,14 @@ class bitget extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
-            $networkCode = $this->safe_string_2($params, 'chain', 'network');
-            $params = $this->omit($params, 'network');
-            $networkId = null;
-            if ($networkCode !== null) {
-                $networkId = $this->network_code_to_id($networkCode, $code);
-            }
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
             );
-            if ($networkId !== null) {
-                $request['chain'] = $networkId;
+            if ($networkCode !== null) {
+                $request['chain'] = $this->network_code_to_id($networkCode, $code);
             }
             $response = Async\await($this->privateSpotGetV2SpotWalletDepositAddress ($this->extend($request, $params)));
             //
@@ -4261,7 +4323,6 @@ class bitget extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
-            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
             'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'takeProfitPrice' => $this->safe_number_2($order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice' => $this->safe_number_2($order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -4290,8 +4351,10 @@ class bitget extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -6044,7 +6107,7 @@ class bitget extends Exchange {
              * @param {string} [$params->symbol] *contract only* unified $market $symbol
              * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $symbol = $this->safe_string($params, 'symbol');
@@ -7016,8 +7079,9 @@ class bitget extends Exchange {
             //         ),
             //     )
             // }
+            $symbols = $this->market_symbols($symbols);
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_funding_rates($data, $market);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 

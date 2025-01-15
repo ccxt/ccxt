@@ -20,7 +20,7 @@ class gate extends Exchange {
             'certified' => true,
             'pro' => true,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
                 'doc' => 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www' => 'https://gate.io/',
                 'api' => array(
@@ -219,6 +219,7 @@ class gate extends Exchange {
                             '{settle}/contract_stats' => 1,
                             '{settle}/index_constituents/{index}' => 1,
                             '{settle}/liq_orders' => 1,
+                            '{settle}/risk_limit_tiers' => 1,
                         ),
                     ),
                     'delivery' => array(
@@ -260,6 +261,7 @@ class gate extends Exchange {
                     'withdrawals' => array(
                         'post' => array(
                             'withdrawals' => 20, // 1r/s cost = 20 / 1 = 20
+                            'push' => 1,
                         ),
                         'delete' => array(
                             'withdrawals/{withdrawal_id}' => 1,
@@ -271,6 +273,7 @@ class gate extends Exchange {
                             'withdrawals' => 1,
                             'deposits' => 1,
                             'sub_account_transfers' => 1,
+                            'order_status' => 1,
                             'withdraw_status' => 1,
                             'sub_account_balances' => 2.5,
                             'sub_account_margin_balances' => 2.5,
@@ -281,6 +284,7 @@ class gate extends Exchange {
                             'total_balance' => 2.5,
                             'small_balance' => 1,
                             'small_balance_history' => 1,
+                            'push' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
@@ -323,11 +327,14 @@ class gate extends Exchange {
                             'risk_units' => 20 / 15,
                             'unified_mode' => 20 / 15,
                             'loan_margin_tiers' => 20 / 15,
+                            'leverage/user_currency_config' => 20 / 15,
+                            'leverage/user_currency_setting' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator' => 20 / 15,
+                            'leverage/user_currency_setting' => 20 / 15,
                         ),
                         'put' => array(
                             'unified_mode' => 20 / 15,
@@ -507,9 +514,13 @@ class gate extends Exchange {
                             'orders' => 20 / 15,
                             'orders/{order_id}' => 20 / 15,
                             'my_trades' => 20 / 15,
+                            'mmp' => 20 / 15,
                         ),
                         'post' => array(
                             'orders' => 20 / 15,
+                            'countdown_cancel_all' => 20 / 15,
+                            'mmp' => 20 / 15,
+                            'mmp/reset' => 20 / 15,
                         ),
                         'delete' => array(
                             'orders' => 20 / 15,
@@ -553,6 +564,7 @@ class gate extends Exchange {
                             'multi_collateral/currencies' => 20 / 15,
                             'multi_collateral/ltv' => 20 / 15,
                             'multi_collateral/fixed_rate' => 20 / 15,
+                            'multi_collateral/current_rate' => 20 / 15,
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
@@ -566,8 +578,10 @@ class gate extends Exchange {
                     'account' => array(
                         'get' => array(
                             'detail' => 20 / 15,
+                            'rate_limit' => 20 / 15,
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
+                            'stp_groups/debit_fee' => 20 / 15,
                         ),
                         'post' => array(
                             'stp_groups' => 20 / 15,
@@ -631,6 +645,8 @@ class gate extends Exchange {
                 'X-Gate-Channel-Id' => 'ccxt',
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'unifiedAccount' => null,
                 'createOrder' => array(
@@ -689,7 +705,7 @@ class gate extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -700,7 +716,6 @@ class gate extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -708,9 +723,11 @@ class gate extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
-                        'iceberg' => true,
-                        'selfTradePrevention' => true,
+                        'iceberg' => true, // todo implement
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 40, // NOTE! max 10 per symbol
@@ -739,12 +756,15 @@ class gate extends Exchange {
                         'trailing' => false,
                         'limit' => 100,
                         'untilDays' => 30,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
                     ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
                 ),
                 'forDerivatives' => array(
                     'extends' => 'spot',
@@ -1145,6 +1165,9 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $rawPromises = array(
             $this->fetch_contract_markets($params),
@@ -1978,8 +2001,7 @@ class gate extends Exchange {
         //        }
         //    )
         //
-        $result = $this->parse_funding_rates($response);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -2418,7 +2440,8 @@ class gate extends Exchange {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
                 $chainKey = $chainKeys[$i];
-                $result['networks'][$chainKey] = array(
+                $networkCode = $this->network_id_to_code($chainKey, $this->safe_string($fee, 'currency'));
+                $result['networks'][$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                         'percentage' => false,
@@ -4060,7 +4083,7 @@ class gate extends Exchange {
          * @param {float} $amount the $amount of currency to trade
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
+         * @param {float} [$params->triggerPrice] The $price at which a $trigger order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
@@ -4883,7 +4906,6 @@ class gate extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => Precise::string_abs($amount),
@@ -6603,6 +6625,10 @@ class gate extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
@@ -6672,7 +6698,8 @@ class gate extends Exchange {
             }
             $bodyPayload = ($body === null) ? '' : $body;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
-            $timestamp = $this->seconds();
+            $nonce = $this->nonce();
+            $timestamp = $this->parse_to_int($nonce / 1000);
             $timestampString = (string) $timestamp;
             $signaturePath = '/api/' . $this->version . $entirePath;
             $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestampString );
@@ -6837,7 +6864,7 @@ class gate extends Exchange {
         //        ...
         //    )
         //
-        return $this->parse_open_interests($response, $market, $since, $limit);
+        return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -7070,7 +7097,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;

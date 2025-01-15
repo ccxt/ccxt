@@ -1067,15 +1067,12 @@ class bitget extends \ccxt\async\bitget {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions))) {
+        $action = $this->safe_string($message, 'action');
+        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions)) || ($action === 'snapshot')) {
             $this->positions[$instType] = new ArrayCacheBySymbolBySide ();
         }
         $cache = $this->positions[$instType];
         $rawPositions = $this->safe_value($message, 'data', array());
-        $dataLength = count($rawPositions);
-        if ($dataLength === 0) {
-            return;
-        }
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
@@ -1182,7 +1179,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] *contract only* set to true for watching trigger $orders
+             * @param {boolean} [$params->trigger] *contract only* set to true for watching trigger $orders
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
              * @param {string} [$params->type] 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'

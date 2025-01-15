@@ -581,7 +581,7 @@ export default class tradeogre extends Exchange {
             'postOnly': undefined,
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString(order, 'quantity'),
             'cost': undefined,
             'average': undefined,

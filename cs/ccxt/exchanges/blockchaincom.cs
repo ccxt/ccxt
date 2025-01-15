@@ -173,6 +173,70 @@ public partial class blockchaincom : Exchange
                     { "ZIL", "ZIL" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", null },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -556,16 +620,16 @@ public partial class blockchaincom : Exchange
             { "orderQty", this.amountToPrecision(symbol, amount) },
             { "clOrdId", clientOrderId },
         };
-        object stopPrice = this.safeValue2(parameters, "stopPx", "stopPrice");
-        parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice"});
+        object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (isTrue(isTrue(isEqual(uppercaseOrderType, "STOP")) || isTrue(isEqual(uppercaseOrderType, "STOPLIMIT"))))
         {
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPx or stopPrice param for a "), uppercaseOrderType), " order")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
             }
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(uppercaseOrderType, "MARKET")))
             {
@@ -591,7 +655,7 @@ public partial class blockchaincom : Exchange
         }
         if (isTrue(stopPriceRequired))
         {
-            ((IDictionary<string,object>)request)["stopPx"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPx"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object response = await this.privatePostOrders(this.extend(request, parameters));
         return this.parseOrder(response, market);

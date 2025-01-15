@@ -274,6 +274,88 @@ class deribit extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => true, // todo
+                        'leverage' => false,
+                        'marketBuyByCost' => true, // todo
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // todo => recheck
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'exceptions' => array(
                 // 0 or absent Success, No error.
                 '9999' => '\\ccxt\\PermissionDenied', // 'api_not_enabled' User didn't enable API for the Account.
@@ -1819,7 +1901,6 @@ class deribit extends Exchange {
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
         return $this->safe_order(array(
             'info' => $order,
@@ -1834,8 +1915,7 @@ class deribit extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $priceString,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_value($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $averageString,

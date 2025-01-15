@@ -346,6 +346,97 @@ class cryptocom extends Exchange {
                 ),
                 'broker' => 'CCXT',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        // todo => implementation fix
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => true, // todo => implement
+                        'trailing' => false,
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 1,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 1,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 1,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
                 'USD_STABLE_COIN' => 'USDC',
@@ -398,6 +489,9 @@ class cryptocom extends Exchange {
                     '40801' => '\\ccxt\\RequestTimeout',
                     '42901' => '\\ccxt\\RateLimitExceeded',
                     '43005' => '\\ccxt\\InvalidOrder', // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003' => '\\ccxt\\InvalidOrder', // FOK order has not been filled and cancelled
+                    '43004' => '\\ccxt\\InvalidOrder', // IOC order has not been filled and cancelled
+                    '43012' => '\\ccxt\\BadRequest', // Canceled due to Self Trade Prevention
                     '50001' => '\\ccxt\\ExchangeError',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
@@ -1176,7 +1270,7 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
-         * @param {float} [$params->triggerPrice] $price to trigger a stop order
+         * @param {float} [$params->triggerPrice] $price to trigger a trigger order
          * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
          * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2395,7 +2489,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $this->load_markets();
         $request = array();

@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class blofin
@@ -158,7 +158,7 @@ class blofin extends blofin$1 {
                     'rest': 'https://openapi.blofin.com',
                 },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -195,6 +195,18 @@ class blofin extends blofin$1 {
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
+                        'copytrading/instruments': 1,
+                        'copytrading/account/balance': 1,
+                        'copytrading/account/positions-by-order': 1,
+                        'copytrading/account/positions-details-by-order': 1,
+                        'copytrading/account/positions-by-contract': 1,
+                        'copytrading/account/position-mode': 1,
+                        'copytrading/account/leverage-info': 1,
+                        'copytrading/trade/orders-pending': 1,
+                        'copytrading/trade/pending-tpsl-by-contract': 1,
+                        'copytrading/trade/position-history-by-order': 1,
+                        'copytrading/trade/orders-history': 1,
+                        'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -206,6 +218,16 @@ class blofin extends blofin$1 {
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
                         'asset/transfer': 1,
+                        'copytrading/account/set-position-mode': 1,
+                        'copytrading/account/set-leverage': 1,
+                        'copytrading/trade/place-order': 1,
+                        'copytrading/trade/cancel-order': 1,
+                        'copytrading/trade/place-tpsl-by-contract': 1,
+                        'copytrading/trade/cancel-tpsl-by-contract': 1,
+                        'copytrading/trade/place-tpsl-by-order': 1,
+                        'copytrading/trade/cancel-tpsl-by-order': 1,
+                        'copytrading/trade/close-position-by-order': 1,
+                        'copytrading/trade/close-position-by-contract': 1,
                     },
                 },
             },
@@ -219,6 +241,93 @@ class blofin extends blofin$1 {
                 'apiKey': true,
                 'secret': true,
                 'password': true,
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'max': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'hedged': false,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'limit': true,
+                        },
+                        'hedged': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -278,12 +387,19 @@ class blofin extends blofin$1 {
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
-                'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -879,8 +995,9 @@ class blofin extends blofin$1 {
         const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
     }
-    parseBalanceByType(type, response) {
-        if (type) {
+    parseBalanceByType(response) {
+        const data = this.safeList(response, 'data');
+        if ((data !== undefined) && Array.isArray(data)) {
             return this.parseFundingBalance(response);
         }
         else {
@@ -998,11 +1115,11 @@ class blofin extends blofin$1 {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const accountType = this.safeString2(params, 'accountType', 'type');
-        params = this.omit(params, ['accountType', 'type']);
+        let accountType = undefined;
+        [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
         let response = undefined;
-        if (accountType !== undefined) {
+        if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
             request['accountType'] = parsedAccountType;
@@ -1011,7 +1128,7 @@ class blofin extends blofin$1 {
         else {
             response = await this.privateGetAccountBalance(this.extend(request, params));
         }
-        return this.parseBalanceByType(accountType, response);
+        return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1372,7 +1489,7 @@ class blofin extends blofin$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1392,12 +1509,12 @@ class blofin extends blofin$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response = undefined;
-        if (isStop || (method === 'privateGetTradeOrdersTpslPending')) {
+        if (isTrigger || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
         else {
@@ -1526,7 +1643,7 @@ class blofin extends blofin$1 {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1723,8 +1840,8 @@ class blofin extends blofin$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
-        const stop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
-        if (stop) {
+        const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
+        if (trigger) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -1738,7 +1855,7 @@ class blofin extends blofin$1 {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trigger) {
                     request.push({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2156,7 +2273,7 @@ class blofin extends blofin$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2179,12 +2296,12 @@ class blofin extends blofin$1 {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response = undefined;
-        if ((isStop) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {

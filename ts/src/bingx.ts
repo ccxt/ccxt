@@ -50,6 +50,7 @@ export default class bingx extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -72,6 +73,7 @@ export default class bingx extends Exchange {
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -82,7 +84,7 @@ export default class bingx extends Exchange {
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
-                'fetchPositionsHistory': false,
+                'fetchPositionsHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -206,7 +208,6 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'positionSide/dual': 5,
-                                'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
                                 'maintMarginRatio': 2,
@@ -385,9 +386,23 @@ export default class bingx extends Exchange {
                             'get': {
                                 'uid': 1,
                                 'apiKey/query': 2,
+                                'account/apiPermissions': 5,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,
+                            },
+                        },
+                    },
+                    'transfer': {
+                        'v1': {
+                            'private': {
+                                'get': {
+                                    'subAccount/asset/transferHistory': 1,
+                                },
+                                'post': {
+                                    'subAccount/transferAsset/supportCoins': 1,
+                                    'subAccount/transferAsset': 1,
+                                },
                             },
                         },
                     },
@@ -537,10 +552,9 @@ export default class bingx extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -548,6 +562,11 @@ export default class bingx extends Exchange {
                         },
                         'hedged': true,
                         'trailing': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 5,
@@ -580,7 +599,7 @@ export default class bingx extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': false,
@@ -604,7 +623,7 @@ export default class bingx extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': false,
@@ -1024,7 +1043,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
      * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1048,7 +1067,7 @@ export default class bingx extends Exchange {
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1068,7 +1087,7 @@ export default class bingx extends Exchange {
                 const price = this.safeString (params, 'price');
                 params = this.omit (params, 'price');
                 if (price === 'mark') {
-                    response = await this.swapV1PrivateGetMarketMarkPriceKlines (this.extend (request, params));
+                    response = await this.swapV1PublicGetMarketMarkPriceKlines (this.extend (request, params));
                 } else {
                     response = await this.swapV3PublicGetQuoteKlines (this.extend (request, params));
                 }
@@ -1556,8 +1575,7 @@ export default class bingx extends Exchange {
         symbols = this.marketSymbols (symbols, 'swap', true);
         const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (params));
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -2343,6 +2361,71 @@ export default class bingx extends Exchange {
 
     /**
      * @method
+     * @name bingx#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTs'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTs', request, params);
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.swapV1PrivateGetTradePositionHistory (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionHistory() is not supported for inverse swap positions');
+        }
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "positionHistory": [
+        //                 {
+        //                     "positionId": "1861675561156571136",
+        //                     "symbol": "LTC-USDT",
+        //                     "isolated": false,
+        //                     "positionSide": "LONG",
+        //                     "openTime": 1732693017000,
+        //                     "updateTime": 1733310292000,
+        //                     "avgPrice": "95.18",
+        //                     "avgClosePrice": "129.48",
+        //                     "realisedProfit": "102.89",
+        //                     "netProfit": "99.63",
+        //                     "positionAmt": "30.0",
+        //                     "closePositionAmt": "30.0",
+        //                     "leverage": 6,
+        //                     "closeAllPositions": true,
+        //                     "positionCommission": "-0.33699650000000003",
+        //                     "totalFunding": "-2.921461693902908"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const records = this.safeList (data, 'positionHistory', []);
+        const positions = this.parsePositions (records);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+    }
+
+    /**
+     * @method
      * @name bingx#fetchPositions
      * @description fetch all open positions
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
@@ -2588,6 +2671,27 @@ export default class bingx extends Exchange {
         //         "positionAmt": "1.20365912",
         //     }
         //
+        // linear swap fetchPositionHistory
+        //
+        //     {
+        //         "positionId": "1861675561156571136",
+        //         "symbol": "LTC-USDT",
+        //         "isolated": false,
+        //         "positionSide": "LONG",
+        //         "openTime": 1732693017000,
+        //         "updateTime": 1733310292000,
+        //         "avgPrice": "95.18",
+        //         "avgClosePrice": "129.48",
+        //         "realisedProfit": "102.89",
+        //         "netProfit": "99.63",
+        //         "positionAmt": "30.0",
+        //         "closePositionAmt": "30.0",
+        //         "leverage": 6,
+        //         "closeAllPositions": true,
+        //         "positionCommission": "-0.33699650000000003",
+        //         "totalFunding": "-2.921461693902908"
+        //     }
+        //
         let marketId = this.safeString (position, 'symbol', '');
         marketId = marketId.replace ('/', '-'); // standard return different format
         const isolated = this.safeBool (position, 'isolated');
@@ -2595,6 +2699,7 @@ export default class bingx extends Exchange {
         if (isolated !== undefined) {
             marginMode = isolated ? 'isolated' : 'cross';
         }
+        const timestamp = this.safeInteger (position, 'openTime');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'positionId'),
@@ -2612,8 +2717,8 @@ export default class bingx extends Exchange {
             'lastPrice': undefined,
             'side': this.safeStringLower (position, 'positionSide'),
             'hedged': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': this.safeInteger (position, 'updateTime'),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -2638,8 +2743,10 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -2652,8 +2759,10 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -2666,8 +2775,10 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (req, params));
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -3512,7 +3623,6 @@ export default class bingx extends Exchange {
             'postOnly': undefined,
             'side': this.parseOrderSide (side),
             'price': this.safeString2 (order, 'price', 'p'),
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
@@ -5504,6 +5614,9 @@ export default class bingx extends Exchange {
                 request['endTs'] = now;
             }
             if (market['spot']) {
+                if (limit !== undefined) {
+                    request['limit'] = limit; // default 500, maximum 1000
+                }
                 response = await this.spotV1PrivateGetTradeMyTrades (this.extend (request, params));
                 const data = this.safeDict (response, 'data', {});
                 fills = this.safeList (data, 'fills', []);
@@ -6066,7 +6179,7 @@ export default class bingx extends Exchange {
      * @param {float} amount how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.stopPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+     * @param {string} [params.triggerPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -6338,22 +6451,28 @@ export default class bingx extends Exchange {
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const type = section[0];
-        const version = section[1];
-        const access = section[2];
+        let type = section[0];
+        let version = section[1];
+        let access = section[2];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (isSandbox && (type !== 'swap')) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
         let url = this.implodeHostname (this.urls['api'][type]);
-        if (type === 'spot' && version === 'v3') {
-            url += '/api';
-        } else {
-            url += '/' + type;
-        }
-        url += '/' + version + '/';
         path = this.implodeParams (path, params);
-        url += path;
+        if (version === 'transfer') {
+            type = 'account/transfer';
+            version = section[2];
+            access = section[3];
+        }
+        if (path !== 'account/apiPermissions') {
+            if (type === 'spot' && version === 'v3') {
+                url += '/api';
+            } else {
+                url += '/' + type;
+            }
+        }
+        url += '/' + version + '/' + path;
         params = this.omit (params, this.extractParams (path));
         params['timestamp'] = this.nonce ();
         params = this.keysort (params);
@@ -6363,8 +6482,13 @@ export default class bingx extends Exchange {
             }
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
-            const isJsonContentType = ((type === 'subAccount') && (method === 'POST'));
-            const parsedParams = isJsonContentType ? params : this.parseParams (params);
+            const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
+            let parsedParams = undefined;
+            if (isJsonContentType) {
+                parsedParams = params;
+            } else {
+                parsedParams = this.parseParams (params);
+            }
             const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
@@ -6376,7 +6500,7 @@ export default class bingx extends Exchange {
                 body = this.json (parsedParams);
             } else {
                 const query = this.urlencode (parsedParams);
-                url += '?' + query + '&signature=' + signature;
+                url += '?' + query + '&' + 'signature=' + signature;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

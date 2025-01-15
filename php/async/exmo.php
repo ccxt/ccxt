@@ -34,6 +34,9 @@ class exmo extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
+                'createMarketBuyOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -895,35 +898,44 @@ class exmo extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
              * @param {int} [$limit] the maximum amount of $candles $to fetch
              * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $until = $this->safe_integer_product($params, 'until', 0.001);
+            $untilIsDefined = ($until !== null);
             $request = array(
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $maxLimit = 3000;
             $duration = $this->parse_timeframe($timeframe);
-            $now = $this->milliseconds();
+            $now = $this->parse_to_int($this->milliseconds() / 1000);
             if ($since === null) {
+                $to = $untilIsDefined ? min ($until, $now) : $now;
                 if ($limit === null) {
                     $limit = 1000; // cap default at generous amount
                 } else {
                     $limit = min ($limit, $maxLimit);
                 }
-                $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
-                $request['to'] = $this->parse_to_int($now / 1000);
+                $request['from'] = $to - ($limit * $duration) - 1;
+                $request['to'] = $to;
             } else {
                 $request['from'] = $this->parse_to_int($since / 1000) - 1;
-                if ($limit === null) {
-                    $limit = $maxLimit;
+                if ($untilIsDefined) {
+                    $request['to'] = min ($until, $now);
                 } else {
-                    $limit = min ($limit, $maxLimit);
+                    if ($limit === null) {
+                        $limit = $maxLimit;
+                    } else {
+                        $limit = min ($limit, $maxLimit);
+                    }
+                    $to = $this->sum($since, $limit * $duration);
+                    $request['to'] = min ($to, $now);
                 }
-                $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = $this->parse_to_int($to / 1000);
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetCandlesHistory ($this->extend($request, $params)));
             //
             //     {
@@ -1457,6 +1469,61 @@ class exmo extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params = $this->extend($params, array( 'cost' => $cost ));
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params = $this->extend($params, array( 'cost' => $cost ));
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params = $this->extend($params, array( 'cost' => $cost ));
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1472,9 +1539,10 @@ class exmo extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @param {string} [$params->timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
              * @param {boolean} [$params->postOnly] *spot only* true for post only orders
+             * @param {float} [$params->cost] *spot only* *$market orders only* the $cost of the order in the quote currency for $market orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1486,11 +1554,12 @@ class exmo extends Exchange {
                 throw new BadRequest($this->id . ' only supports isolated margin');
             }
             $isSpot = ($marginMode !== 'isolated');
-            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            $cost = $this->safe_string($params, 'cost');
             $request = array(
                 'pair' => $market['id'],
                 // 'leverage' => 2,
-                'quantity' => $this->amount_to_precision($market['symbol'], $amount),
+                // 'quantity' => $this->amount_to_precision($market['symbol'], $amount),
                 // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
                 // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
                 // 'stop_price' => $this->price_to_precision($symbol, stopPrice),
@@ -1499,6 +1568,11 @@ class exmo extends Exchange {
                 // 'client_id' => 123, // optional, must be a positive integer
                 // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
             );
+            if ($cost === null) {
+                $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            } else {
+                $request['quantity'] = $this->cost_to_precision($market['symbol'], $cost);
+            }
             $clientOrderId = $this->safe_value_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
@@ -1512,7 +1586,7 @@ class exmo extends Exchange {
             if (!$isSpot && ($leverage === null)) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires an extra param $params["leverage"] for margin orders');
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost' ));
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
@@ -1535,7 +1609,8 @@ class exmo extends Exchange {
                     if ($type === 'limit') {
                         $request['type'] = $side;
                     } elseif ($type === 'market') {
-                        $request['type'] = 'market_' . $side;
+                        $marketSuffix = ($cost !== null) ? '_total' : '';
+                        $request['type'] = 'market_' . $side . $marketSuffix;
                     }
                     if ($isPostOnly) {
                         $request['exec_type'] = 'post_only';
@@ -1573,19 +1648,19 @@ class exmo extends Exchange {
              * cancels an open order
              *
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
-             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // $stop market
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
              *
              * @param {string} $id order $id
              * @param {string} $symbol not used by exmo cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->trigger] true to cancel a trigger order
+             * @param {boolean} [$params->trigger] true to cancel a $trigger order
              * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
-            $stop = $this->safe_value_2($params, 'trigger', 'stop');
+            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
@@ -1600,7 +1675,7 @@ class exmo extends Exchange {
                 //    array()
                 //
             } else {
-                if ($stop) {
+                if ($trigger) {
                     $request['parent_order_id'] = $id;
                     $response = Async\await($this->privatePostStopMarketOrderCancel ($this->extend($request, $params)));
                     //
@@ -1999,7 +2074,6 @@ class exmo extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'cost' => $cost,
             'amount' => $amount,

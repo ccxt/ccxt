@@ -28,7 +28,10 @@ async function testFeatures(exchange, skippedProperties) {
                     const subKey = subKeys[j];
                     testSharedMethods.assertInArray(exchange, skippedProperties, 'features', subKeys, j, subTypes);
                     const subValue = value[subKey];
-                    testFeaturesInner(exchange, skippedProperties, subValue);
+                    // sometimes it might not be available for exchange, eg. future>inverse)
+                    if (subValue !== undefined) {
+                        testFeaturesInner(exchange, skippedProperties, subValue);
+                    }
                 }
             }
         }
@@ -53,7 +56,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
                     'mark': false,
                     'index': false,
                 },
-                'limitPrice': false,
+                'price': false,
             },
             'timeInForce': {
                 'GTC': false,
@@ -102,7 +105,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
         'fetchClosedOrders': {
             'marginMode': false,
             'limit': 0,
-            'daysBackClosed': 0,
+            'daysBack': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
             'trigger': false,

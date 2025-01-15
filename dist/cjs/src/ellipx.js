@@ -9,7 +9,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 var Precise = require('./base/Precise.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class ellipx
@@ -1296,7 +1296,6 @@ class ellipx extends ellipx$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
             'cost': cost,
@@ -1356,7 +1355,6 @@ class ellipx extends ellipx$1 {
             'postOnly': undefined,
             'side': undefined,
             'price': undefined,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
             'cost': undefined,

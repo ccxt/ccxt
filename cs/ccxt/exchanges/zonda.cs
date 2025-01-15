@@ -397,7 +397,6 @@ public partial class zonda : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "offerType") },
             { "price", this.safeString(order, "rate") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -698,7 +697,7 @@ public partial class zonda : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1291,7 +1290,7 @@ public partial class zonda : Exchange
         {
             if (!isTrue(isStopLossPrice))
             {
-                throw new ExchangeError ((string)add(this.id, " createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders")) ;
+                throw new ExchangeError ((string)add(this.id, " createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders")) ;
             }
             ((IDictionary<string,object>)request)["stopRate"] = this.priceToPrecision(symbol, stopLossPrice);
             response = await this.v1_01PrivatePostTradingStopOfferSymbol(this.extend(request, parameters));

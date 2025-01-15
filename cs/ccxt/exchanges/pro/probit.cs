@@ -172,6 +172,7 @@ public partial class probit : ccxt.probit
     {
         parameters ??= new Dictionary<string, object>();
         object channel = "recent_trades";
+        symbol = this.safeSymbol(symbol);
         object trades = await this.subscribePublic("watchTrades", symbol, "trades", channel, parameters);
         if (isTrue(this.newUpdates))
         {

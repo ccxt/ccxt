@@ -115,8 +115,8 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
@@ -189,6 +189,7 @@ class mexc extends Exchange {
                             'allOrders' => 10,
                             'account' => 10,
                             'myTrades' => 10,
+                            'tradeFee' => 10,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
                             'capital/config/getall' => 10,
@@ -439,6 +440,7 @@ class mexc extends Exchange {
                         '1h' => '60m',
                         '4h' => '4h',
                         '1d' => '1d',
+                        '1w' => '1W',
                         '1M' => '1M',
                     ),
                     'swap' => array(
@@ -669,6 +671,145 @@ class mexc extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
                 'broker' => 'CCXT',
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => array(
+                            'last' => false,
+                            'mark' => false,
+                            'index' => false,
+                        ),
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 30,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 7,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 7,
+                        'daysBackCanceled' => 7,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivs' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => true, // todo
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'hedged' => true,
+                        'leverage' => true, // todo
+                        'marketBuyByCost' => false,
+                    ),
+                    'createOrders' => null, // todo => needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'untilDays' => 90,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'untilDays' => 90,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 90,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -2108,8 +2249,10 @@ class mexc extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'buy', 0, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params));
     }
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -2128,8 +2271,10 @@ class mexc extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'sell', 0, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'sell', 0, null, $this->extend($req, $params));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2233,7 +2378,6 @@ class mexc extends Exchange {
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {string} [$marginMode] only 'isolated' is supported for spot-margin trading
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -2394,11 +2538,11 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ));
         $response = null;
-        if ($stopPrice) {
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($triggerPrice) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
             $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
             $request['trend'] = $this->safe_integer($params, 'trend', 1);
@@ -3441,7 +3585,6 @@ class mexc extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'average' => $this->safe_number($order, 'dealAvgPrice'),
             'amount' => $this->safe_number_2($order, 'origQty', 'vol'),
@@ -3586,35 +3729,45 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
-         * fetch the trading fees for multiple markets
+         * fetch the trading fees for a $market
          *
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
          *
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
-        $response = $this->fetch_account_helper('spot', $params);
-        $makerFee = $this->safe_string($response, 'makerCommission');
-        $takerFee = $this->safe_string($response, 'takerCommission');
-        $makerFee = Precise::string_div($makerFee, '1000');
-        $takerFee = Precise::string_div($takerFee, '1000');
-        $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'symbol' => $symbol,
-                'maker' => $this->parse_number($makerFee),
-                'taker' => $this->parse_number($takerFee),
-                'percentage' => true,
-                'tierBased' => false,
-                'info' => $response,
-            );
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new BadRequest($this->id . ' fetchTradingFee() supports spot markets only');
         }
-        return $result;
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->spotPrivateGetTradeFee ($this->extend($request, $params));
+        //
+        //  {
+        //      "data":array(
+        //        "makerCommission":0.003000000000000000,
+        //        "takerCommission":0.003000000000000000
+        //      ),
+        //      "code":0,
+        //      "msg":"success",
+        //      "timestamp":1669109672717
+        //  }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return array(
+            'info' => $data,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($data, 'makerCommission'),
+            'taker' => $this->safe_number($data, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
+        );
     }
 
     public function custom_parse_balance($response, $marketType): array {

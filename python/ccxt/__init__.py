@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.35'
+__version__ = '4.4.48'
 
 # ----------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ from ccxt.bitbank import bitbank                                      # noqa: F4
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
-from ccxt.bitfinex2 import bitfinex2                                  # noqa: F401
+from ccxt.bitfinex1 import bitfinex1                                  # noqa: F401
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
@@ -166,6 +166,7 @@ from ccxt.luno import luno                                            # noqa: F4
 from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
+from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
@@ -211,7 +212,7 @@ exchanges = [
     'bitbns',
     'bitcoincom',
     'bitfinex',
-    'bitfinex2',
+    'bitfinex1',
     'bitflyer',
     'bitget',
     'bithumb',
@@ -279,6 +280,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mexc',
+    'myokx',
     'ndax',
     'novadax',
     'oceanex',

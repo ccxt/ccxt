@@ -208,6 +208,80 @@ class bitopro(Exchange, ImplicitAPI):
                     'BSC': 'BSC',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo implement
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    # todo: implement through fetchOrders
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 10000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -964,7 +1038,6 @@ class bitopro(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1006,12 +1079,12 @@ class bitopro(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
+            if triggerPrice is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders')
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             condition = self.safe_string(params, 'condition')
             if condition is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')

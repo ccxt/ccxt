@@ -491,7 +491,19 @@
                 ]
             }
         ],
-        "fetchPositions": [
+    "fetchPositions": [
+            {
+                "description": "fetch btc positions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    null,
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
@@ -824,11 +836,19 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "fundingRate",
+                "description": "linear swap funding rate",
                 "method": "fetchFundingRate",
                 "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://testnet-api.phemex.com/v1/md/ticker/24hr?symbol=BTCUSD",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ],

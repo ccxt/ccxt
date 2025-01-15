@@ -313,6 +313,72 @@ class coinsph(Exchange, ImplicitAPI):
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             # https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -1146,10 +1212,10 @@ class coinsph(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, amount)
                 request['quoteOrderQty'] = quoteAmount
         if orderType == 'STOP_LOSS' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT' or orderType == 'TAKE_PROFIT_LIMIT':
-            stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is None:
+            triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = None
@@ -1212,7 +1278,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://coins-docs.github.io/rest-api/#query-order-user_data
+        https://coins-docs.github.io/rest-api/#current-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1374,9 +1440,9 @@ class coinsph(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
         trades = self.safe_value(order, 'fills', None)
-        stopPrice = self.safe_string(order, 'stopPrice')
-        if Precise.string_eq(stopPrice, '0'):
-            stopPrice = None
+        triggerPrice = self.safe_string(order, 'stopPrice')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -1389,8 +1455,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': None,
             'amount': self.safe_string(order, 'origQty'),
             'cost': self.safe_string(order, 'cummulativeQuoteQty'),

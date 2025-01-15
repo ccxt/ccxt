@@ -4,7 +4,7 @@ var tradeogre$1 = require('./abstract/tradeogre.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class tradeogre
@@ -578,7 +578,7 @@ class tradeogre extends tradeogre$1 {
             'postOnly': undefined,
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString(order, 'quantity'),
             'cost': undefined,
             'average': undefined,

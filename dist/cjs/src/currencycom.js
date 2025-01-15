@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class currencycom
@@ -247,6 +247,78 @@ class currencycom extends currencycom$1 {
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
                 'collateralCurrencies': ['USD', 'EUR', 'USDT'],
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': false,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': true,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implementation
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
             },
             'exceptions': {
                 'broad': {
@@ -1206,7 +1278,6 @@ class currencycom extends currencycom$1 {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1308,11 +1379,11 @@ class currencycom extends currencycom$1 {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
             else if (type === 'market') {
-                const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+                const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                if (stopPrice !== undefined) {
+                if (triggerPrice !== undefined) {
                     request['type'] = 'STOP';
-                    request['price'] = this.priceToPrecision(symbol, stopPrice);
+                    request['price'] = this.priceToPrecision(symbol, triggerPrice);
                 }
             }
         }
@@ -1698,7 +1769,7 @@ class currencycom extends currencycom$1 {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

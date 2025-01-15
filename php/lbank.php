@@ -1278,8 +1278,7 @@ class lbank extends Exchange {
         //     "success" => True,
         // }
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function fetch_balance($params = array ()): array {
@@ -1663,7 +1662,6 @@ class lbank extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => $costString,
             'amount' => $amountString,

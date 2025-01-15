@@ -41,7 +41,7 @@ class gate(Exchange, ImplicitAPI):
             'certified': True,
             'pro': True,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
                 'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {
@@ -240,6 +240,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/contract_stats': 1,
                             '{settle}/index_constituents/{index}': 1,
                             '{settle}/liq_orders': 1,
+                            '{settle}/risk_limit_tiers': 1,
                         },
                     },
                     'delivery': {
@@ -281,6 +282,7 @@ class gate(Exchange, ImplicitAPI):
                     'withdrawals': {
                         'post': {
                             'withdrawals': 20,  # 1r/s cost = 20 / 1 = 20
+                            'push': 1,
                         },
                         'delete': {
                             'withdrawals/{withdrawal_id}': 1,
@@ -292,6 +294,7 @@ class gate(Exchange, ImplicitAPI):
                             'withdrawals': 1,
                             'deposits': 1,
                             'sub_account_transfers': 1,
+                            'order_status': 1,
                             'withdraw_status': 1,
                             'sub_account_balances': 2.5,
                             'sub_account_margin_balances': 2.5,
@@ -302,6 +305,7 @@ class gate(Exchange, ImplicitAPI):
                             'total_balance': 2.5,
                             'small_balance': 1,
                             'small_balance_history': 1,
+                            'push': 1,
                         },
                         'post': {
                             'transfers': 2.5,  # 8r/s cost = 20 / 8 = 2.5
@@ -344,11 +348,14 @@ class gate(Exchange, ImplicitAPI):
                             'risk_units': 20 / 15,
                             'unified_mode': 20 / 15,
                             'loan_margin_tiers': 20 / 15,
+                            'leverage/user_currency_config': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15,  # 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'put': {
                             'unified_mode': 20 / 15,
@@ -528,9 +535,13 @@ class gate(Exchange, ImplicitAPI):
                             'orders': 20 / 15,
                             'orders/{order_id}': 20 / 15,
                             'my_trades': 20 / 15,
+                            'mmp': 20 / 15,
                         },
                         'post': {
                             'orders': 20 / 15,
+                            'countdown_cancel_all': 20 / 15,
+                            'mmp': 20 / 15,
+                            'mmp/reset': 20 / 15,
                         },
                         'delete': {
                             'orders': 20 / 15,
@@ -574,6 +585,7 @@ class gate(Exchange, ImplicitAPI):
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
                             'multi_collateral/fixed_rate': 20 / 15,
+                            'multi_collateral/current_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -587,8 +599,10 @@ class gate(Exchange, ImplicitAPI):
                     'account': {
                         'get': {
                             'detail': 20 / 15,
+                            'rate_limit': 20 / 15,
                             'stp_groups': 20 / 15,
                             'stp_groups/{stp_id}/users': 20 / 15,
+                            'stp_groups/debit_fee': 20 / 15,
                         },
                         'post': {
                             'stp_groups': 20 / 15,
@@ -652,6 +666,8 @@ class gate(Exchange, ImplicitAPI):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'unifiedAccount': None,
                 'createOrder': {
@@ -710,7 +726,7 @@ class gate(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': True,
@@ -721,7 +737,6 @@ class gate(Exchange, ImplicitAPI):
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -729,9 +744,11 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-specific features
-                        'iceberg': True,
-                        'selfTradePrevention': True,
+                        'iceberg': True,  # todo implement
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 40,  # NOTE! max 10 per symbol
@@ -760,12 +777,15 @@ class gate(Exchange, ImplicitAPI):
                         'trailing': False,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',
@@ -1155,6 +1175,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         rawPromises = [
             self.fetch_contract_markets(params),
@@ -1944,8 +1966,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2359,7 +2380,8 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                result['networks'][chainKey] = {
+                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                         'percentage': False,
@@ -3902,7 +3924,7 @@ class gate(Exchange, ImplicitAPI):
         :param float amount: the amount of currency to trade
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
@@ -4650,7 +4672,6 @@ class gate(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_value(order, 'is_reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'average': average,
             'amount': Precise.string_abs(amount),
@@ -6261,6 +6282,9 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
@@ -6320,7 +6344,8 @@ class gate(Exchange, ImplicitAPI):
                 body = self.json(query)
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
-            timestamp = self.seconds()
+            nonce = self.nonce()
+            timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
@@ -6474,7 +6499,7 @@ class gate(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        return self.parse_open_interests(response, market, since, limit)
+        return self.parse_open_interests_history(response, market, since, limit)
 
     def parse_open_interest(self, interest, market: Market = None):
         #
@@ -6692,7 +6717,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         paginate = False
