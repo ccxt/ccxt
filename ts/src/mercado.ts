@@ -203,7 +203,7 @@ export default class mercado extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOrders':  {
+                    'fetchOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'daysBack': 100000,
