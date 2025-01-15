@@ -1726,23 +1726,26 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            object entry = getValue(data, i);
-            object marketId = this.safeString(entry, "symbol");
-            object symbolInner = this.safeSymbol(marketId, market, "-", "swap");
-            object timestamp = this.safeInteger(entry, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", symbolInner },
-                { "fundingRate", this.safeNumber(entry, "fundingRate") },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
-        }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.parseFundingRateHistories(data, market, since, limit);
+    }
+
+    public override object parseFundingRateHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "fundingRate": "0.0001",
+        //         "fundingTime": 1585684800000
+        //     }
+        //
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(this.safeString(contract, "symbol"), market, "-", "swap") },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
     }
 
     /**
@@ -6024,7 +6027,14 @@ public partial class bingx : Exchange
         {
             this.checkRequiredCredentials();
             object isJsonContentType = (isTrue((isTrue((isEqual(type, "subAccount"))) || isTrue((isEqual(type, "account/transfer"))))) && isTrue((isEqual(method, "POST"))));
-            object parsedParams = this.parseParams(parameters);
+            object parsedParams = null;
+            if (isTrue(isJsonContentType))
+            {
+                parsedParams = parameters;
+            } else
+            {
+                parsedParams = this.parseParams(parameters);
+            }
             object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },

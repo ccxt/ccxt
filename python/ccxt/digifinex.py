@@ -253,6 +253,109 @@ class digifinex(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                        'marginMode': True,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 30,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrders': {
+                        'max': 20,
+                        'marginMode': False,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'daysBack': 100000,  # todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': True,

@@ -1621,21 +1621,24 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol')
-            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.parse_funding_rate_histories(data, market, since, limit)
+
+    def parse_funding_rate_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "fundingRate": "0.0001",
+        #         "fundingTime": 1585684800000
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(self.safe_string(contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -6188,7 +6191,11 @@ class bingx(Exchange, ImplicitAPI):
         elif access == 'private':
             self.check_required_credentials()
             isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
-            parsedParams = self.parse_params(params)
+            parsedParams = None
+            if isJsonContentType:
+                parsedParams = params
+            else:
+                parsedParams = self.parse_params(params)
             signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,

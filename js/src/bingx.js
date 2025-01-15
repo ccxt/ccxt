@@ -1659,22 +1659,24 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString(entry, 'symbol');
-            const symbolInner = this.safeSymbol(marketId, market, '-', 'swap');
-            const timestamp = this.safeInteger(entry, 'fundingTime');
-            rates.push({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': this.safeNumber(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            });
-        }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.parseFundingRateHistories(data, market, since, limit);
+    }
+    parseFundingRateHistory(contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "fundingRate": "0.0001",
+        //         "fundingTime": 1585684800000
+        //     }
+        //
+        const timestamp = this.safeInteger(contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(this.safeString(contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': this.safeNumber(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     /**
      * @method
@@ -6490,7 +6492,13 @@ export default class bingx extends Exchange {
         else if (access === 'private') {
             this.checkRequiredCredentials();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            const parsedParams = this.parseParams(params);
+            let parsedParams = undefined;
+            if (isJsonContentType) {
+                parsedParams = params;
+            }
+            else {
+                parsedParams = this.parseParams(params);
+            }
             const signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
