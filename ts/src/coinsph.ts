@@ -874,12 +874,16 @@ export default class coinsph extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
+        const until: Int = this.safeInteger (params, 'until');
+        const untilDefined = (until !== undefined);
+        params = this.omit (params, 'until');
         const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
@@ -890,11 +894,15 @@ export default class coinsph extends Exchange {
             // since work properly only when it is "younger" than last "limit" candle
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                request['endTime'] = this.sum (since, duration * (limit - 1));
+                const endTimeFromLimit = this.sum (since, duration * (limit - 1));
+                request['endTime'] = untilDefined ? Math.min (endTimeFromLimit, until) : endTimeFromLimit;
             } else {
-                request['endTime'] = this.milliseconds ();
+                request['endTime'] = untilDefined ? until : this.milliseconds ();
             }
         } else {
+            if (untilDefined) {
+                request['endTime'] = until;
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
