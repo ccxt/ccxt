@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ export default class idex extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
@@ -151,14 +151,14 @@ export default class idex extends Exchange {
                         'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
                         'orderbook': { 'cost': 1, 'bundled': 10 },
                         'fundingRates': { 'cost': 1, 'bundled': 10 },
-                        'gasFees': { 'cost': 1 }, // todo
+                        'gasFees': { 'cost': 1 }, // todo check and update if possible
                     },
                 },
                 'private': {
                     'get': {
                         // 'user': { 'cost': 1 }, not available in v4 API
                         'wallets': { 'cost': 1 },
-                        'positions': { 'cost': 1 }, // todo
+                        'positions': { 'cost': 1 },
                         'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
                         'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
@@ -166,19 +166,18 @@ export default class idex extends Exchange {
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
                         'withdrawals': { 'cost': 1, 'bundled': 10 },
-                        'gasFees': { 'cost': 1 },
-                        'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
-                        'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
-                        'payouts': { 'cost': 1 }, // todo
+                        'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo should it be unified?
+                        'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo should it be unified?
+                        'payouts': { 'cost': 1 }, // todo should it be unified?
                         'wsToken': { 'cost': 1 },
                     },
                     'post': {
                         'wallets': { 'cost': 1 },
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
-                        'orders': { 'cost': 1 },
+                        'orders': { 'cost': 1 }, // todo
                         // 'orders/test': { 'cost': 1 }, not available in v4 API
                         'withdrawals': { 'cost': 1 }, // todo
-                        'payouts': { 'cost': 1 }, // todo
+                        'payouts': { 'cost': 1 }, // todo should it be unified?
                     },
                     'delete': {
                         'orders': { 'cost': 1, 'bundled': 10 },
@@ -1307,6 +1306,122 @@ export default class idex extends Exchange {
             'takeProfitLimit': 'limit',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs-v4.idex.io/#get-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
+        };
+        const response = await this.privateGetPositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "quantity": "0.01000000",
+        //             "maximumQuantity": "0.01000000",
+        //             "entryPrice": "3291.40000000",
+        //             "exitPrice": "0.00000000",
+        //             "markPrice": "3299.30000000",
+        //             "indexPrice": "3300.40000000",
+        //             "liquidationPrice": "0.00000000",
+        //             "value": "33.00400000",
+        //             "realizedPnL": "-0.00987420",
+        //             "unrealizedPnL": "0.09000000",
+        //             "marginRequirement": "1.65020000",
+        //             "leverage": "0.52218865",
+        //             "totalFunding": "0.00000000",
+        //             "totalOpen": "0.01000000",
+        //             "totalClose": "0.00000000",
+        //             "adlQuintile": 3,
+        //             "openedByFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //             "lastFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //             "time": 1736952083438
+        //         }
+        //     ]
+        //
+        symbols = this.marketSymbols (symbols);
+        const positions = await this.parsePositions (response);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "market": "ETH-USD",
+        //         "quantity": "0.01000000",
+        //         "maximumQuantity": "0.01000000",
+        //         "entryPrice": "3291.40000000",
+        //         "exitPrice": "0.00000000",
+        //         "markPrice": "3299.30000000",
+        //         "indexPrice": "3300.40000000",
+        //         "liquidationPrice": "0.00000000",
+        //         "value": "33.00400000",
+        //         "realizedPnL": "-0.00987420",
+        //         "unrealizedPnL": "0.09000000",
+        //         "marginRequirement": "1.65020000",
+        //         "leverage": "0.52218865",
+        //         "totalFunding": "0.00000000",
+        //         "totalOpen": "0.01000000",
+        //         "totalClose": "0.00000000",
+        //         "adlQuintile": 3,
+        //         "openedByFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //         "lastFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //         "time": 1736952083438
+        //     }
+        //
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (position, 'time');
+        let amount = this.safeString (position, 'quantity');
+        let side = undefined;
+        if (Precise.stringLt (amount, '0')) {
+            side = 'short';
+            amount = Precise.stringAbs (amount);
+        } else if (Precise.stringGt (amount, '0')) {
+            side = 'long';
+        }
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': undefined,
+            'info': position,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': amount,
+            'contractSize': undefined, // todo check
+            'side': side,
+            'notional': this.safeString (position, 'value'),
+            'leverage': this.safeString (position, 'leverage'), // todo check
+            'unrealizedPnl': this.safeString (position, 'unrealizedPnL'),
+            'realizedPnl': this.safeString (position, 'realizedPnL'),
+            'collateral': undefined,
+            'entryPrice': this.safeString (position, 'entryPrice'),
+            'markPrice': this.safeString (position, 'markPrice'),
+            'liquidationPrice': this.safeString (position, 'liquidationPrice'),
+            'marginMode': 'cross', // todo check
+            'hedged': undefined, // todo check
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeString (position, 'marginRequirement'),
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+        });
     }
 
     async associateWallet (walletAddress, params = {}) {
