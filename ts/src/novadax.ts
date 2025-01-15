@@ -273,7 +273,7 @@ export default class novadax extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': undefined, // max 3000 bars
+                        'limit': 3000,
                     },
                 },
                 'swap': {
