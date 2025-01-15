@@ -94,7 +94,7 @@ export default class idex extends Exchange {
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
-                'fetchPositionsForSymbol': false,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -1352,8 +1352,25 @@ export default class idex extends Exchange {
         //     ]
         //
         symbols = this.marketSymbols (symbols);
-        const positions = await this.parsePositions (response);
+        const positions = this.parsePositions (response);
         return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+    }
+
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name idex#fetchPositionsForSymbol
+     * @see https://api-docs-v4.idex.io/#get-positions
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        params['market'] = market['id'];
+        return await this.fetchPositions (undefined, params);
     }
 
     parsePosition (position: Dict, market: Market = undefined): Position {
@@ -1411,7 +1428,7 @@ export default class idex extends Exchange {
             'liquidationPrice': this.safeString (position, 'liquidationPrice'),
             'marginMode': 'cross', // todo check
             'hedged': undefined, // todo check
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': undefined, // todo check
             'maintenanceMarginPercentage': undefined,
             'initialMargin': this.safeString (position, 'marginRequirement'),
             'initialMarginPercentage': undefined,
