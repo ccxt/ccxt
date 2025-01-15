@@ -299,7 +299,7 @@ export default class lbank extends Exchange {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
@@ -354,8 +354,13 @@ export default class lbank extends Exchange {
                         'limit': 2000,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
                 'future': {
