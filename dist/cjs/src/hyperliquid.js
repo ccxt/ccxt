@@ -205,6 +205,8 @@ class hyperliquid extends hyperliquid$1 {
                     'Order price cannot be more than 80% away from the reference price': errors.InvalidOrder,
                     'Order has zero size.': errors.InvalidOrder,
                     'Insufficient spot balance asset': errors.InsufficientFunds,
+                    'Insufficient balance for withdrawal': errors.InsufficientFunds,
+                    'Insufficient balance for token transfer': errors.InsufficientFunds,
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -2857,7 +2859,26 @@ class hyperliquid extends hyperliquid$1 {
             'signature': sig,
         };
         const response = await this.privatePostExchange(request);
-        return response;
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return this.parseTransfer(response);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'ok',
+        };
     }
     /**
      * @method

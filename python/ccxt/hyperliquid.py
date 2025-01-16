@@ -215,6 +215,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
                     'Order has zero size.': InvalidOrder,
                     'Insufficient spot balance asset': InsufficientFunds,
+                    'Insufficient balance for withdrawal': InsufficientFunds,
+                    'Insufficient balance for token transfer': InsufficientFunds,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2755,7 +2757,26 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': sig,
         }
         response = self.privatePostExchange(request)
-        return response
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return self.parse_transfer(response)
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok',
+        }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
