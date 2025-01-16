@@ -237,7 +237,7 @@ export default class novadax extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': true, // todo
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: add implementation
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
@@ -273,7 +273,7 @@ export default class novadax extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 3000,
+                        'limit': undefined, // todo max 3000
                     },
                 },
                 'swap': {
