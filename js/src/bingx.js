@@ -6457,6 +6457,48 @@ export default class bingx extends Exchange {
             'tierBased': false,
         };
     }
+    customEncode(params) {
+        const sortedParams = this.keysort(params);
+        const keys = Object.keys(sortedParams);
+        let adjustedValue = undefined;
+        let result = undefined;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = sortedParams[key];
+            if (Array.isArray(value)) {
+                let arrStr = undefined;
+                for (let j = 0; j < value.length; j++) {
+                    const arrayElement = value[j];
+                    const isString = (typeof arrayElement === 'string');
+                    if (isString) {
+                        if (j > 0) {
+                            arrStr += ',' + '"' + arrayElement.toString() + '"';
+                        }
+                        else {
+                            arrStr = '"' + arrayElement.toString() + '"';
+                        }
+                    }
+                    else {
+                        if (j > 0) {
+                            arrStr += ',' + arrayElement.toString();
+                        }
+                        else {
+                            arrStr = arrayElement.toString();
+                        }
+                    }
+                }
+                adjustedValue = '[' + arrStr + ']';
+                value = adjustedValue;
+            }
+            if (i === 0) {
+                result = key + '=' + value;
+            }
+            else {
+                result += '&' + key + '=' + value;
+            }
+        }
+        return result;
+    }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let type = section[0];
         let version = section[1];
@@ -6493,21 +6535,23 @@ export default class bingx extends Exchange {
             this.checkRequiredCredentials();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
             let parsedParams = undefined;
+            let encodeRequest = undefined;
             if (isJsonContentType) {
-                parsedParams = params;
+                encodeRequest = this.customEncode(params);
             }
             else {
                 parsedParams = this.parseParams(params);
+                encodeRequest = this.rawencode(parsedParams);
             }
-            const signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
+            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             if (isJsonContentType) {
                 headers['Content-Type'] = 'application/json';
-                parsedParams['signature'] = signature;
-                body = this.json(parsedParams);
+                params['signature'] = signature;
+                body = this.json(params);
             }
             else {
                 const query = this.urlencode(parsedParams);

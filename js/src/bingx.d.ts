@@ -760,6 +760,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
+    customEncode(params: any): any;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

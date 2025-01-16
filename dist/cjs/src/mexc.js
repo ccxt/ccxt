@@ -4694,7 +4694,7 @@ class mexc extends mexc$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, currencyId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
         };

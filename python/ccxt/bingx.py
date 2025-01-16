@@ -6163,6 +6163,37 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
+    def custom_encode(self, params):
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        adjustedValue = None
+        result = None
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = sortedParams[key]
+            if isinstance(value, list):
+                arrStr = None
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    isString = (isinstance(arrayElement, str))
+                    if isString:
+                        if j > 0:
+                            arrStr += ',' + '"' + str(arrayElement) + '"'
+                        else:
+                            arrStr = '"' + str(arrayElement) + '"'
+                    else:
+                        if j > 0:
+                            arrStr += ',' + str(arrayElement)
+                        else:
+                            arrStr = str(arrayElement)
+                adjustedValue = '[' + arrStr + ']'
+                value = adjustedValue
+            if i == 0:
+                result = key + '=' + value
+            else:
+                result += '&' + key + '=' + value
+        return result
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -6192,19 +6223,21 @@ class bingx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
             parsedParams = None
+            encodeRequest = None
             if isJsonContentType:
-                parsedParams = params
+                encodeRequest = self.custom_encode(params)
             else:
                 parsedParams = self.parse_params(params)
-            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
+                encodeRequest = self.rawencode(parsedParams)
+            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if isJsonContentType:
                 headers['Content-Type'] = 'application/json'
-                parsedParams['signature'] = signature
-                body = self.json(parsedParams)
+                params['signature'] = signature
+                body = self.json(params)
             else:
                 query = self.urlencode(parsedParams)
                 url += '?' + query + '&' + 'signature=' + signature

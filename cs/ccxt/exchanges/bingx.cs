@@ -5982,6 +5982,57 @@ public partial class bingx : Exchange
         };
     }
 
+    public virtual object customEncode(object parameters)
+    {
+        object sortedParams = this.keysort(parameters);
+        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        object adjustedValue = null;
+        object result = null;
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(sortedParams, key);
+            if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object arrStr = null;
+                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                {
+                    object arrayElement = getValue(value, j);
+                    object isString = ((arrayElement is string));
+                    if (isTrue(isString))
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(add(add(",", "\""), ((object)arrayElement).ToString()), "\""));
+                        } else
+                        {
+                            arrStr = add(add("\"", ((object)arrayElement).ToString()), "\"");
+                        }
+                    } else
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(",", ((object)arrayElement).ToString()));
+                        } else
+                        {
+                            arrStr = ((object)arrayElement).ToString();
+                        }
+                    }
+                }
+                adjustedValue = add(add("[", arrStr), "]");
+                value = adjustedValue;
+            }
+            if (isTrue(isEqual(i, 0)))
+            {
+                result = add(add(key, "="), value);
+            } else
+            {
+                result = add(result, add(add(add("&", key), "="), value));
+            }
+        }
+        return result;
+    }
+
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
@@ -6028,14 +6079,16 @@ public partial class bingx : Exchange
             this.checkRequiredCredentials();
             object isJsonContentType = (isTrue((isTrue((isEqual(type, "subAccount"))) || isTrue((isEqual(type, "account/transfer"))))) && isTrue((isEqual(method, "POST"))));
             object parsedParams = null;
+            object encodeRequest = null;
             if (isTrue(isJsonContentType))
             {
-                parsedParams = parameters;
+                encodeRequest = this.customEncode(parameters);
             } else
             {
                 parsedParams = this.parseParams(parameters);
+                encodeRequest = this.rawencode(parsedParams);
             }
-            object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
+            object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },
@@ -6043,8 +6096,8 @@ public partial class bingx : Exchange
             if (isTrue(isJsonContentType))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                ((IDictionary<string,object>)parsedParams)["signature"] = signature;
-                body = this.json(parsedParams);
+                ((IDictionary<string,object>)parameters)["signature"] = signature;
+                body = this.json(parameters);
             } else
             {
                 object query = this.urlencode(parsedParams);

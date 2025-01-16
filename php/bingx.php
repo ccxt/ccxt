@@ -6440,6 +6440,45 @@ class bingx extends Exchange {
         );
     }
 
+    public function custom_encode($params) {
+        $sortedParams = $this->keysort($params);
+        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        $adjustedValue = null;
+        $result = null;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $sortedParams[$key];
+            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                $arrStr = null;
+                for ($j = 0; $j < count($value); $j++) {
+                    $arrayElement = $value[$j];
+                    $isString = (gettype($arrayElement) === 'string');
+                    if ($isString) {
+                        if ($j > 0) {
+                            $arrStr .= ',' . '"' . (string) $arrayElement . '"';
+                        } else {
+                            $arrStr = '"' . (string) $arrayElement . '"';
+                        }
+                    } else {
+                        if ($j > 0) {
+                            $arrStr .= ',' . (string) $arrayElement;
+                        } else {
+                            $arrStr = (string) $arrayElement;
+                        }
+                    }
+                }
+                $adjustedValue = '[' . $arrStr . ']';
+                $value = $adjustedValue;
+            }
+            if ($i === 0) {
+                $result = $key . '=' . $value;
+            } else {
+                $result .= '&' . $key . '=' . $value;
+            }
+        }
+        return $result;
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
@@ -6474,20 +6513,22 @@ class bingx extends Exchange {
             $this->check_required_credentials();
             $isJsonContentType = ((($type === 'subAccount') || ($type === 'account/transfer')) && ($method === 'POST'));
             $parsedParams = null;
+            $encodeRequest = null;
             if ($isJsonContentType) {
-                $parsedParams = $params;
+                $encodeRequest = $this->custom_encode($params);
             } else {
                 $parsedParams = $this->parse_params($params);
+                $encodeRequest = $this->rawencode($parsedParams);
             }
-            $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
+            $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             if ($isJsonContentType) {
                 $headers['Content-Type'] = 'application/json';
-                $parsedParams['signature'] = $signature;
-                $body = $this->json($parsedParams);
+                $params['signature'] = $signature;
+                $body = $this->json($params);
             } else {
                 $query = $this->urlencode($parsedParams);
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
