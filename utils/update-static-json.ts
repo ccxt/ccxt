@@ -152,7 +152,7 @@ async function update_markets_and_currencies () {
         die ('Finished! ' + exchangeId + ' > ' + jsonStringify (symbolsOrCurrencies), 0);
     } catch (e) {
         // @ts-expect-error
-        die ('Static data writeJson error: ' + e.stack.toString (), 1);
+        die ('Static data write error: ' + e.stack.toString (), 1);
     }
 }
 
@@ -186,9 +186,9 @@ function updateMarketOrCurrency (exchange: any, symbolOrCurrency:string) {
         // @ts-expect-error
         die ('Symbol or Currency ['  + (symbolOrCurrency || 'undefined')  + '] not found in '+ exchange.id, 1);
     }
-    // writeJson to file
+    // write to file
     if (isMarketOrCurrency) {
-        // if it's market, then writeJson market object and currencies too
+        // if it's market, then write market object and currencies too
         // market object
         dataContainer.markets.json[symbolOrCurrency] = targetObject;
         writeJson (dataContainer.markets.path, dataContainer.markets.json, dataContainer.markets.indent);
@@ -201,7 +201,7 @@ function updateMarketOrCurrency (exchange: any, symbolOrCurrency:string) {
         dataContainer.currencies.json[quote] = quoteCurrency;
         writeJson (dataContainer.currencies.path, dataContainer.currencies.json, dataContainer.currencies.indent);
     } else {
-        // if currency, then only writeJson currency object
+        // if currency, then only write currency object
         dataContainer.currencies.json[symbolOrCurrency] = targetObject;
         writeJson(dataContainer.currencies.path, dataContainer.currencies.json, dataContainer.currencies.indent);
     }
