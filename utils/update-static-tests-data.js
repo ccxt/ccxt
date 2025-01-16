@@ -67,7 +67,7 @@ function die (errorMessage = undefined, code = 1) {
 async function ccxtClass () {
     let ccxtRef = undefined;
     try {
-        // if this script is running from tsx, import untranspiled ccxt
+        // if this script is running from tsx (cli.ts), import untranspiled ccxt
         ccxtRef = await import ('../ts/ccxt.ts');
     } catch (e) {
         ccxtRef = ccxt;
