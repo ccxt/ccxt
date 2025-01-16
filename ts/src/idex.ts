@@ -2155,7 +2155,7 @@ export default class idex extends Exchange {
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // fetchDeposits
+        // deposit
         //
         //     {
         //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
@@ -2167,61 +2167,47 @@ export default class idex extends Exchange {
         //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
         //     }
         //
-        // fetchWithdrwalas
-        //
+        // withdrawal (todo check)
         //     {
-        //         "withdrawalId": "a62d8760-ec4d-11ea-9fa6-47904c19499b",
-        //         "asset": "ETH",
-        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
-        //         "quantity": "0.20000000",
-        //         "time": 1598962883288,
-        //         "fee": "0.00024000",
-        //         "txId": "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
-        //         "txStatus": "mined"
-        //     }
-        //
-        // withdraw
-        //
-        //     {
-        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
-        //         "asset": "ETH",
-        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
-        //         "quantity": "0.20000000",
-        //         "time": 1598962883190,
-        //         "fee": "0.00024000",
-        //         "txStatus": "pending",
-        //         "txId": null
+        //         "withdrawalId": "3ac67790-a77c-11ea-ae39-b3356c7170f3",
+        //         "asset": "USDC",
+        //         "quantity": "1000.00000000",
+        //         "gas": "0.05000000",
+        //         "bridgeTarget": "stargate.arbitrum",
+        //         "time": 1705785508061,
+        //         "xchainTxId": "0x...",
+        //         "xchainTxStatus": "mined"
         //     }
         //
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
-        } else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
+        } else if ('withdrawalId' in transaction) {
             type = 'withdrawal';
         }
         let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
         id = this.safeString (transaction, 'withdrawalId', id);
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
-        const txid = this.safeString2 (transaction, 'txId', 'xchainTxId');
-        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
-        let fee = undefined;
-        if ('fee' in transaction) {
-            fee = {
-                'cost': this.safeNumber (transaction, 'fee'),
-                'currency': 'ETH',
-            };
-        }
+        const txid = this.safeString (transaction, 'xchainTxId');
+        const timestamp = this.safeInteger (transaction, 'time');
         const rawStatus = this.safeString (transaction, 'txStatus');
         const status = this.parseTransactionStatus (rawStatus);
-        const updated = this.safeInteger (transaction, 'confirmationTime');
+        let fee = undefined;
+        if ('gas' in transaction) {
+            fee = {
+                'cost': this.safeNumber (transaction, 'gas'),
+                'currency': code,
+            };
+        }
+        const networkId = this.safeString2 (transaction, 'bridgeSource', 'bridgeTarget');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': undefined,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2232,9 +2218,9 @@ export default class idex extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'comment': undefined,
-            'internal': undefined,
+            'internal': false,
             'fee': fee,
         } as Transaction;
     }
