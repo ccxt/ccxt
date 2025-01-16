@@ -78,7 +78,6 @@ export default class p2b extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
