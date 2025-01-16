@@ -776,6 +776,7 @@ export default class hollaex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -786,24 +787,32 @@ export default class hollaex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
+        let until = this.safeIntegerProduct (params, 'until', 0.001);
+        if (until !== undefined) {
+            until = this.parseToInt (until);
+        }
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
             }
-            const end = this.seconds ();
+            const end = (until !== undefined) ? until : this.seconds ();
             const start = end - duration * limit;
-            request['to'] = end;
+            request['to'] = end + 1;
             request['from'] = start;
         } else {
             if (limit === undefined) {
                 request['from'] = this.parseToInt (since / 1000);
-                request['to'] = this.seconds ();
+                const end = (until !== undefined) ? until : this.seconds ();
+                request['to'] = end + 1;
             } else {
                 const start = this.parseToInt (since / 1000);
                 request['from'] = start;
-                request['to'] = this.sum (start, duration * limit);
+                const endByLimit = this.sum (start, duration * limit);
+                const end = (until !== undefined) ? until : endByLimit;
+                request['to'] = end + 1;
             }
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetChart (this.extend (request, params));
         //
         //     [
