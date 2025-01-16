@@ -65,7 +65,7 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 
 	// encodedBytes := append(encodedDomain, encodedData...)
 
-	domainHex := hexutil.Encode(encodedDomain)// comes with 0x, remove
+	domainHex := hexutil.Encode(encodedDomain) // comes with 0x, remove
 	domainHex = strings.TrimPrefix(domainHex, "0x")
 	dataHex := hexutil.Encode(encodedData)
 	dataHex = strings.TrimPrefix(dataHex, "0x")
@@ -93,10 +93,10 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
 	// agent: {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
 	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
-	domain := domain2.(map[string]interface{})
-	messageTypes := messageTypes2.(map[string]interface{})
+	domain := this.Keysort(domain2)
+	messageTypes := this.Keysort(messageTypes2)
 	// messageTypesKeys := base.Keys(messageTypes)
-	messageData := messageData2.(map[string]interface{})
+	messageData := this.Keysort(messageData2)
 
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              this.SafeString(domain, "name").(string),

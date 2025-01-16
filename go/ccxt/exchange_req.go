@@ -190,6 +190,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			result = string(respBody)
 		}
 
+		// Log the response (for debugging purposes)
+		if this.Verbose {
+			fmt.Printf("Response: %s\n", respBody)
+		}
+
 		statusText := http.StatusText(resp.StatusCode)
 		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
@@ -207,11 +212,6 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// only handling failure here
 		if err != nil {
 			panic(fmt.Sprintf("request failed: %v", err))
-		}
-
-		// Log the response (for debugging purposes)
-		if this.Verbose {
-			fmt.Printf("Response: %s\n", respBody)
 		}
 
 		ch <- result
