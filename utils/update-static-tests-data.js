@@ -125,11 +125,12 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         // typically, method entries are at 3 levels deep, so add 3 indents
         const indentedContent = prependWhitespace(entryString, spacesAmount, 3);
         // check if regex matches and if so, then append an entry to it
-        const regex = new RegExp(`    "${method}":\\s*\\[`, 'g');
+        const methodStartRegex = `    "${method}":`;
+        const regex = new RegExp(methodStartRegex + `\\s*\\[`, 'g');
         const match = fileContent.match(regex);
         // if method exists
         if (match !== null) {
-            const newContent = fileContent.replace(regex, `"${method}": [\n${indentedContent},`);
+            const newContent = fileContent.replace(regex, methodStartRegex + ` [\n${indentedContent},`);
             writeString(filePath, newContent);
         } else {
             // inject it after "methods": { line
