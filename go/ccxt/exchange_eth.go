@@ -3,11 +3,12 @@ package ccxt
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/vmihailenco/msgpack/v5"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
@@ -64,8 +65,10 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 
 	// encodedBytes := append(encodedDomain, encodedData...)
 
-	domainHex := hexutil.Encode(encodedDomain) // comes with 0x, remove
+	domainHex := hexutil.Encode(encodedDomain)// comes with 0x, remove
+	domainHex = strings.TrimPrefix(domainHex, "0x")
 	dataHex := hexutil.Encode(encodedData)
+	dataHex = strings.TrimPrefix(dataHex, "0x")
 
 	encodedHex := "1901" + domainHex + dataHex
 	return encodedHex, nil
