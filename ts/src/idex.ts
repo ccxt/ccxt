@@ -79,6 +79,7 @@ export default class idex extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -148,10 +149,10 @@ export default class idex extends Exchange {
                         'tickers': { 'cost': 1 },
                         'candles': { 'cost': 1, 'bundled': 10 },
                         'trades': { 'cost': 1, 'bundled': 10 },
-                        'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
+                        'liquidations': { 'cost': 1, 'bundled': 10 },
                         'orderbook': { 'cost': 1, 'bundled': 10 },
                         'fundingRates': { 'cost': 1, 'bundled': 10 },
-                        'gasFees': { 'cost': 1 }, // todo check and update if possible
+                        'gasFees': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -756,6 +757,77 @@ export default class idex extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://api-docs-v4.idex.io/#get-liquidations
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.fromId] trade id of the earliest liquidation to fetch
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['end'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetLiquidations (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fillId": "761117fd-f8f5-3bca-a388-8c520e3a722f",
+        //             "price": "2560.00023034",
+        //             "quantity": "4.51400000",
+        //             "quoteQuantity": "11555.84103978",
+        //             "time": 1726770136029,
+        //             "liquidationSide": "buy"
+        //         }, ...
+        //     ]
+        //
+        return this.parseLiquidations (response, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market: Market = undefined) {
+        //
+        //     {
+        //         "fillId": "761117fd-f8f5-3bca-a388-8c520e3a722f",
+        //         "price": "2560.00023034",
+        //         "quantity": "4.51400000",
+        //         "quoteQuantity": "11555.84103978",
+        //         "time": 1726770136029,
+        //         "liquidationSide": "buy"
+        //     }
+        //
+        const timestamp = this.safeInteger (liquidation, 'time');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (undefined, market),
+            'contracts': this.safeString (liquidation, 'quantity'),
+            'contractSize': this.safeString (market, 'contractSize'),
+            'price': this.safeString (liquidation, 'price'),
+            'baseValue': this.safeString (liquidation, 'quantity'),
+            'quoteValue': this.safeString (liquidation, 'quoteQuantity'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 
     /**
@@ -1416,7 +1488,6 @@ export default class idex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'contracts': amount,
-            'contractSize': undefined, // todo check
             'side': side,
             'notional': this.safeString (position, 'value'),
             'leverage': this.safeString (position, 'leverage'), // todo check
