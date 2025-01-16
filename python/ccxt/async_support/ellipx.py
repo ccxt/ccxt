@@ -722,6 +722,7 @@ class ellipx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the API endpoint
+        :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns OHLCV[]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()

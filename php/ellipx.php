@@ -725,6 +725,7 @@ class ellipx extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the API endpoint
+         * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
          * @return {OHLCV[]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();

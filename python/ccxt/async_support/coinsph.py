@@ -875,27 +875,36 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
+        until = self.safe_integer(params, 'until')
         request: dict = {
             'symbol': market['id'],
             'interval': interval,
         }
+        if limit is None:
+            limit = 1000
         if since is not None:
             request['startTime'] = since
-            request['limit'] = 1000
             # since work properly only when it is "younger" than last "limit" candle
-            if limit is not None:
-                duration = self.parse_timeframe(timeframe) * 1000
-                request['endTime'] = self.sum(since, duration * (limit - 1))
+            if until is not None:
+                request['endTime'] = until
             else:
-                request['endTime'] = self.milliseconds()
-        else:
-            if limit is not None:
-                request['limit'] = limit
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTimeByLimit = self.sum(since, duration * (limit - 1))
+                now = self.milliseconds()
+                request['endTime'] = min(endTimeByLimit, now)
+        elif until is not None:
+            request['endTime'] = until
+            # since work properly only when it is "younger" than last "limit" candle
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['startTime'] = until - (duration * (limit - 1))
+        request['limit'] = limit
+        params = self.omit(params, 'until')
         response = await self.publicGetOpenapiQuoteV1Klines(self.extend(request, params))
         #
         #     [
