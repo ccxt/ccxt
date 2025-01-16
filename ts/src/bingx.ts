@@ -2352,12 +2352,14 @@ export default class bingx extends Exchange {
         } else {
             const linearSwapData = this.safeDict (response, 'data', {});
             const linearSwapBalance = this.safeDict (linearSwapData, 'balance');
-            const currencyId = this.safeString (linearSwapBalance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (linearSwapBalance, 'availableMargin');
-            account['used'] = this.safeString (linearSwapBalance, 'usedMargin');
-            result[code] = account;
+            if (linearSwapBalance) {
+                const currencyId = this.safeString (linearSwapBalance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (linearSwapBalance, 'availableMargin');
+                account['used'] = this.safeString (linearSwapBalance, 'usedMargin');
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
