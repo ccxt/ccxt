@@ -70,7 +70,7 @@ export default class idex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -160,7 +160,7 @@ export default class idex extends Exchange {
                         // 'user': { 'cost': 1 }, not available in v4 API
                         'wallets': { 'cost': 1 },
                         'positions': { 'cost': 1 },
-                        'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
+                        'fundingPayments': { 'cost': 1, 'bundled': 10 },
                         'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1, 'bundled': 10 },
@@ -1510,6 +1510,82 @@ export default class idex extends Exchange {
             'takeProfitPrice': undefined,
             'percentage': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name idex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://api-docs-v4.idex.io/#get-funding-payments
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history to fetch
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'nonce': this.uuidv1 (),
+            'wallet': this.walletAddress,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "paymentQuantity": "0.00320988",
+        //             "positionQuantity": "-0.01000000",
+        //             "fundingRate": "0.00009626",
+        //             "indexPrice": "3334.60000000",
+        //             "time": 1736956800000
+        //         }, ...
+        //     ]
+        //
+        return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //     {
+        //         "market": "ETH-USD",
+        //         "paymentQuantity": "0.00320988",
+        //         "positionQuantity": "-0.01000000",
+        //         "fundingRate": "0.00009626",
+        //         "indexPrice": "3334.60000000",
+        //         "time": 1736956800000
+        //     }
+        //
+        const marketId = this.safeString (income, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (income, 'time');
+        const code = this.safeCurrencyCode ('USDC'); // todo check
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (income, 'paymentQuantity'),
+            'rate': this.safeNumber (income, 'fundingRate'), // todo check
+        };
     }
 
     async associateWallet (walletAddress, params = {}) {
