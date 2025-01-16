@@ -87,7 +87,7 @@ function twoSpacedIndent (jsonStr) {
 function add_static_result (requestOrResponse, exchangeId, method, entry, spacesIndent = undefined) {
         
     if (!exchangeId) {
-        die ();
+        die ("Exchange id is missing");
     }
 
     if (!ccxt.exchanges.includes(exchangeId)) {

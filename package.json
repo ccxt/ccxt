@@ -128,7 +128,7 @@
     "response-php-sync": "npm run ti-php -- --responseTests --sync",
     "response-php": "npm run response-php-sync && npm run response-php-async",
     "response-tests": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs",
-    "static-updater": "tsx ./utils/update-static-tests-data --update",
+    "static-updater": "tsx ./utils/update-static-markets --update",
     "id-tests-js": "npm run ti-js  -- --idTests",
     "id-tests-py": "npm run ti-py  -- --idTests",
     "id-tests-php": "npm run ti-php -- --idTests",
