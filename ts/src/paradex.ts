@@ -279,6 +279,7 @@ export default class paradex extends Exchange {
                 'broker': 'CCXT',
             },
             'features': {
+                'spot': undefined,
                 'forSwap': {
                     'sandbox': true,
                     'createOrder': {
