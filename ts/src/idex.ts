@@ -69,7 +69,7 @@ export default class idex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawaFees': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -2104,7 +2104,7 @@ export default class idex extends Exchange {
      * @name idex#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
      * @see https://api-docs-v4.idex.io/#get-gas-fees
-     * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+     * @param {string[]|undefined} codes not used by idex fetchDepositWithdrawFees (), only USDC is supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
@@ -2127,7 +2127,10 @@ export default class idex extends Exchange {
         //     }
         //
         const withdrawal = this.safeDict (response, 'withdrawal', {});
-        return this.parseDepositWithdrawFees (withdrawal, codes, 'coin');
+        const usdcWithdrawal: Dict = {
+            'USDC': withdrawal, // todo check
+        };
+        return this.parseDepositWithdrawFees (usdcWithdrawal, codes, 'coin');
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
@@ -2144,19 +2147,24 @@ export default class idex extends Exchange {
         //         "stargate.sei": "0.01914629"
         //     }
         //
-        // todo should make the name of the network as ccxt unified network name
-        return {
-            'withdraw': {
-                'fee': this.parseNumber (fee),
-                'percentage': undefined,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'networks': {},
-            'info': fee,
-        };
+        const result = this.depositWithdrawFee (fee);
+        const networkIds = Object.keys (fee);
+        for (let i = 0; i < networkIds.length; i++) {
+            const networkId = networkIds[i];
+            const networkCode = this.networkIdToCode (networkId);
+            const feeCost = this.safeNumber (fee, networkId);
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': feeCost,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
