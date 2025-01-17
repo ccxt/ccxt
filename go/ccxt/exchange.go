@@ -279,10 +279,10 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		var defaultParams = map[string]interface{}{}
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
+			currencies = <-this.DerivedExchange.FetchCurrencies(defaultParams)
 		}
 
-		markets := <-this.callInternal("fetchMarkets", defaultParams)
+		markets := <-this.DerivedExchange.FetchMarkets(defaultParams)
 		PanicOnError(markets)
 
 		// Lock only for writing
