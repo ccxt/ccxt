@@ -4795,7 +4795,7 @@ export default class Exchange {
         });
     }
 
-    safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const result = this.safeMarketStructure ({
             'symbol': marketId,
             'marketId': marketId,

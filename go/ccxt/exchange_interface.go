@@ -167,3 +167,55 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 }
+
+type IDerivedExchange interface {
+	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
+	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseMarket(market interface{}) interface{}
+	ParseCurrency(rawCurrency interface{}) interface{}
+	ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}
+	ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{}
+	ParseAccount(account interface{}) interface{}
+	ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{}
+	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
+	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
+	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}
+	ParsePosition(position interface{}, optionalArgs ...interface{}) interface{}
+	SafeMarketStructure(optionalArgs ...interface{}) interface{}
+	ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{}
+	ParseLiquidation(liquidation interface{}, optionalArgs ...interface{}) interface{}
+	ParseIncome(info interface{}, optionalArgs ...interface{}) interface{}
+	ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{}
+	ParseBorrowInterest(info interface{}, optionalArgs ...interface{}) interface{}
+	ParseOption(chain interface{}, optionalArgs ...interface{}) interface{}
+	ParseDepositWithdrawFee(fee interface{}, optionalArgs ...interface{}) interface{}
+	CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{}
+	FetchMarginModes(optionalArgs ...interface{}) <- chan interface{}
+	FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
+	ParseBidsAsks(bidasks interface{}, optionalArgs ...interface{}) interface{}
+	FetchLeverages(optionalArgs ...interface{}) <- chan interface{}
+	SafeMarket(optionalArgs ...interface{}) interface{}
+	FetchTickers(optionalArgs ...interface{}) <- chan interface{}
+	Sign(path interface{}, optionalArgs ...interface{}) interface{}
+	FetchBalance(optionalArgs ...interface{}) <- chan interface{}
+	CancelOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{}
+	FetchDepositWithdrawFees(optionalArgs ...interface{}) <- chan interface{}
+	EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <- chan interface{}
+	FetchOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{}
+	FetchOrders(optionalArgs ...interface{}) <- chan interface{}
+	CreateExpiredOptionMarket(symbol interface{}) interface{}
+	FetchTime(optionalArgs ...interface{}) <- chan interface{}
+	FetchLeverageTiers(optionalArgs ...interface{}) <- chan interface{}
+	ParseDepositAddresses(addresses interface{}, optionalArgs ...interface{}) interface{}
+	ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{}
+	ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}
+	ParseFundingRateHistory(info interface{}, optionalArgs ...interface{}) interface{}
+	ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{}
+	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
+	FetchFundingRates(optionalArgs ...interface{}) <- chan interface{}
+	FetchFundingIntervals(optionalArgs ...interface{}) <- chan interface{}
+	FetchPositionsHistory(optionalArgs ...interface{}) <- chan interface{}
+	FetchDepositsWithdrawals(optionalArgs ...interface{}) <- chan interface{}
+	ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{}
+}

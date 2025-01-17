@@ -63,81 +63,79 @@ const goWithMethods = {};
 
 let goTests: string[] = [];
 
-const VIRTUAL_BASE_METHODS = [
-    "parseTrade",
-    "parseTicker",
-    "parseOrder",
-    "parseOrderStatus",
-    "parseOrderSide",
-    "parseOrderType",
-    "parseOHLCV",
-    "parseCurrency",
-    "parsePosition",
-    "parseBalance",
-    "parseDepositAddress",
-    "parseDeposit",
-    "parseWithdrawal",
-    "parseDepositStatus",
-    "parseWithdrawalStatus",
-    "parseTransaction",
-    "createOrder",
-    "editOrder",
-    "cancelOrder",
-    "fetchOrder",
-    "fetchOrders",
-    "fetchOpenOrders",
-    "fetchClosedOrders",
-    "fetchMyTrades",
-    "fetchTransactions",
-    "fetchDeposits",
-    "fetchWithdrawals",
-    "fetchDeposits",
-    "fetchWithdrawals",
-    "fetchBalance",
-    "fetchStatus",
-    "fetchTicker",
-    "fetchTickers",
-    "fetchOHLCV",
-    "fetchTrades",
-    "fetchOrderBook",
-    "fetchOrderBooks",
-    "fetchL2OrderBook",
-    "fetchL3OrderBook",
-    "fetchOrderTrades",
-    'fetchFundingInterval',
-    'fetchFundingIntervals',
-    "fetchLeverage",
-    "fetchLeverages",
-    "fetchOption",
-    "parseOption",
-    "safeMarket", // try to remove custom implementations
-    "createExpiredOptionMarket",
-    "fetchLeverageTiers",
-    "fetchDepositsWithdrawals",
-    "fetchMarginModes",
-    "fetchMarginMode",
-    "parseMarginMode",
-    "fetchFundingRates",
-    "fetchDepositWithdrawFees",
-    "parseMarginModification",
-    "parseIncome",
-    "parseBorrowInterest",
-    "parseLedgerEntry",
-    "parseTransfer",
-    "fetchPositionsHistory",
-    "parseAccount",
-    "parseFundingRateHistory",
-    "parseFundingRate",
-    "parseMarket",
-    "parseLiquidation",
-    "parseMarketLeverageTiers",
-    "parseDepositWithdrawFee",
-    "parseBorrowRate",
-    "parseOpenInterest",
-    "parseBidsAsks",
-    "fetchTime",
-    "sign"
-]
+const VIRTUAL_BASE_METHODS = {
+    "cancelOrder": true, // true if the method returns a channel (async in JS)
+    "createExpiredOptionMarket": false,
+    "createOrder": true,
+    "editOrder": true,
+    "fetchBalance": true,
+    "fetchClosedOrders": true,
+    "fetchDeposits": true,
+    "fetchDepositsWithdrawals": true,
+    "fetchDepositWithdrawFees": true,
+    "fetchFundingInterval": true,
+    "fetchFundingIntervals": true,
+    "fetchFundingRates": true,
+    "fetchL2OrderBook": true,
+    "fetchL3OrderBook": true,
+    "fetchLeverage": true,
+    "fetchLeverages": true,
+    "fetchLeverageTiers": true,
+    "fetchMarginMode": true,
+    "fetchMarginModes": true,
+    "fetchMyTrades": true,
+    "fetchOHLCV": true,
+    "fetchOpenOrders": true,
+    "fetchOption": true,
+    "fetchOrder": true,
+    "fetchOrderBook": true,
+    "fetchOrderBooks": true,
+    "fetchOrders": true,
+    "fetchOrderTrades": true,
+    "fetchPositionsHistory": true,
+    "fetchStatus": true,
+    "fetchTicker": true,
+    "fetchTickers": true,
+    "fetchTime": true,
+    "fetchTrades": true,
+    "fetchTransactions": true,
+    "fetchWithdrawals": true,
+    "parseAccount": false,
+    "parseBalance": false,
+    "parseBidsAsks": false,
+    "parseBorrowInterest": false,
+    "parseBorrowRate": false,
+    "parseCurrency": false,
+    "parseDeposit": false,
+    "parseDepositAddress": false,
+    "parseDepositStatus": false,
+    "parseDepositWithdrawFee": false,
+    "parseFundingRate": false,
+    "parseFundingRateHistory": false,
+    "parseIncome": false,
+    "parseLedgerEntry": false,
+    "parseLiquidation": false,
+    "parseMarginMode": false,
+    "parseMarginModification": false,
+    "parseMarket": false,
+    "parseMarketLeverageTiers": false,
+    "parseOHLCV": false,
+    "parseOpenInterest": false,
+    "parseOption": false,
+    "parseOrder": false,
+    "parseOrderSide": false,
+    "parseOrderStatus": false,
+    "parseOrderType": false,
+    "parsePosition": false,
+    "parseTicker": false,
+    "parseTrade": false,
+    "parseTransaction": false,
+    "parseTransfer": false,
+    "parseWithdrawal": false,
+    "parseWithdrawalStatus": false,
+    "safeMarket": false, // try to remove custom implementations
+    "sign": false
+}
 
 class NewTranspiler {
 
@@ -940,11 +938,30 @@ ${constStatements.join('\n')}
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        this.transpiler.goTranspiler.wrapCallMethods = VIRTUAL_BASE_METHODS;
+        const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
+        this.transpiler.goTranspiler.wrapCallMethods = Object.keys(VIRTUAL_BASE_METHODS);
         const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any;// remove this later
 
+        const syncMethods = allVirtual.filter(elem => !VIRTUAL_BASE_METHODS[elem])
+        const asyncMethods = allVirtual.filter(elem => VIRTUAL_BASE_METHODS[elem])
+
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
+        // console.log(syncRegex)
+        // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
+        baseClass = baseClass.replace(syncRegex, (_match, p1, p2) => {
+            const capitalizedMethod = this.capitalize(p1);
+            return `this.DerivedExchange.${capitalizedMethod}(${p2})`;
+        });
+
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
+        // console.log(asyncRegex)
+        // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
+        baseClass = baseClass.replace(asyncRegex, (_match, p1, p2) => {
+            const capitalizedMethod = this.capitalize(p1);
+            return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
+        });
         // create wrappers with specific types
         // this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
@@ -1296,12 +1313,14 @@ ${caseStatements.join('\n')}
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
     this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+    this.Exchange.DerivedExchange = this
 }\n`
         } else {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.${baseClass}.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
+    this.Exchange.DerivedExchange = this
 }\n`
         }
 

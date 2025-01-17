@@ -93,10 +93,13 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
 	// agent: {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
 	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
-	domain := this.Keysort(domain2)
-	messageTypes := this.Keysort(messageTypes2)
+	domain := domain2.(map[string]interface{})
+	messageTypes := messageTypes2.(map[string]interface{})
 	// messageTypesKeys := base.Keys(messageTypes)
-	messageData := this.Keysort(messageData2)
+	messageData := messageData2.(map[string]interface{})
+	// fmt.Println("domain", this.Json(domain))
+	// fmt.Println("messageTypes", this.Json(messageTypes))
+	// fmt.Println("messageData", this.Json(messageData))
 
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              this.SafeString(domain, "name").(string),
@@ -157,20 +160,20 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	return this.Base16ToBinary(hexData)
 }
 
-func ConvertInt64ToString(data interface{}) interface{} {
+func ConvertInt64ToInt(data interface{}) interface{} {
 	switch v := data.(type) {
 	case map[string]interface{}:
 		for key, value := range v {
-			v[key] = ConvertInt64ToString(value)
+			v[key] = ConvertInt64ToInt(value)
 		}
 		return v
 	case []interface{}:
 		for i, item := range v {
-			v[i] = ConvertInt64ToString(item)
+			v[i] = ConvertInt64ToInt(item)
 		}
 		return v
 	case int64:
-		return fmt.Sprintf("%d", v)
+		return int(v)
 	default:
 		return v // Leave other types unchanged
 	}
@@ -178,7 +181,7 @@ func ConvertInt64ToString(data interface{}) interface{} {
 
 func (this *Exchange) Packb(data interface{}) []uint8 {
 	// data := data2.(map[string]interface{})
-	converted := ConvertInt64ToString(data) // avoid this error: position 7: int64 marker - cannot parse uint64 to javascript, setting to Infinity
+	converted := ConvertInt64ToInt(data) // avoid this error: position 7: int64 marker - cannot parse uint64 to javascript, setting to Infinity
 	packed, err := msgpack.Marshal(converted)
 	if err != nil {
 		panic(err)
