@@ -4616,7 +4616,7 @@ public partial class mexc : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, currencyId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };

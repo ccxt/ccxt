@@ -953,6 +953,8 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1771,6 +1773,9 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         let types = undefined;
         [types, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -7451,6 +7456,9 @@ export default class htx extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit(params, this.extractParams(path));
@@ -7465,7 +7473,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams(path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials();
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7545,7 +7553,7 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',

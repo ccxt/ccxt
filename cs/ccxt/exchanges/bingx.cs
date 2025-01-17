@@ -828,8 +828,8 @@ public partial class bingx : Exchange
         //              "symbols": [
         //                  {
         //                    "symbol": "GEAR-USDT",
-        //                    "minQty": 735,
-        //                    "maxQty": 2941177,
+        //                    "minQty": 735, // deprecated
+        //                    "maxQty": 2941177, // deprecated
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -964,6 +964,11 @@ public partial class bingx : Exchange
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
+        object minAmount = null;
+        if (!isTrue(spot))
+        {
+            minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
+        }
         object timeOnline = this.safeInteger(market, "timeOnline");
         if (isTrue(isEqual(timeOnline, 0)))
         {
@@ -1006,8 +1011,8 @@ public partial class bingx : Exchange
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
-                    { "max", this.safeNumber(market, "maxQty") },
+                    { "min", minAmount },
+                    { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", minTickSize },
@@ -1726,23 +1731,26 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            object entry = getValue(data, i);
-            object marketId = this.safeString(entry, "symbol");
-            object symbolInner = this.safeSymbol(marketId, market, "-", "swap");
-            object timestamp = this.safeInteger(entry, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", symbolInner },
-                { "fundingRate", this.safeNumber(entry, "fundingRate") },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
-        }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.parseFundingRateHistories(data, market, since, limit);
+    }
+
+    public override object parseFundingRateHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "fundingRate": "0.0001",
+        //         "fundingTime": 1585684800000
+        //     }
+        //
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(this.safeString(contract, "symbol"), market, "-", "swap") },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
     }
 
     /**
@@ -2373,12 +2381,15 @@ public partial class bingx : Exchange
         {
             object linearSwapData = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object linearSwapBalance = this.safeDict(linearSwapData, "balance");
-            object currencyId = this.safeString(linearSwapBalance, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(linearSwapBalance))
+            {
+                object currencyId = this.safeString(linearSwapBalance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -5979,6 +5990,57 @@ public partial class bingx : Exchange
         };
     }
 
+    public virtual object customEncode(object parameters)
+    {
+        object sortedParams = this.keysort(parameters);
+        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        object adjustedValue = null;
+        object result = null;
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(sortedParams, key);
+            if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object arrStr = null;
+                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                {
+                    object arrayElement = getValue(value, j);
+                    object isString = ((arrayElement is string));
+                    if (isTrue(isString))
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(add(add(",", "\""), ((object)arrayElement).ToString()), "\""));
+                        } else
+                        {
+                            arrStr = add(add("\"", ((object)arrayElement).ToString()), "\"");
+                        }
+                    } else
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(",", ((object)arrayElement).ToString()));
+                        } else
+                        {
+                            arrStr = ((object)arrayElement).ToString();
+                        }
+                    }
+                }
+                adjustedValue = add(add("[", arrStr), "]");
+                value = adjustedValue;
+            }
+            if (isTrue(isEqual(i, 0)))
+            {
+                result = add(add(key, "="), value);
+            } else
+            {
+                result = add(result, add(add(add("&", key), "="), value));
+            }
+        }
+        return result;
+    }
+
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
@@ -6024,8 +6086,17 @@ public partial class bingx : Exchange
         {
             this.checkRequiredCredentials();
             object isJsonContentType = (isTrue((isTrue((isEqual(type, "subAccount"))) || isTrue((isEqual(type, "account/transfer"))))) && isTrue((isEqual(method, "POST"))));
-            object parsedParams = this.parseParams(parameters);
-            object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
+            object parsedParams = null;
+            object encodeRequest = null;
+            if (isTrue(isJsonContentType))
+            {
+                encodeRequest = this.customEncode(parameters);
+            } else
+            {
+                parsedParams = this.parseParams(parameters);
+                encodeRequest = this.rawencode(parsedParams);
+            }
+            object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },
@@ -6033,8 +6104,8 @@ public partial class bingx : Exchange
             if (isTrue(isJsonContentType))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                ((IDictionary<string,object>)parsedParams)["signature"] = signature;
-                body = this.json(parsedParams);
+                ((IDictionary<string,object>)parameters)["signature"] = signature;
+                body = this.json(parameters);
             } else
             {
                 object query = this.urlencode(parsedParams);

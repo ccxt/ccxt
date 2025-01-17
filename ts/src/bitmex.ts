@@ -301,9 +301,11 @@ export default class bitmex extends Exchange {
                             'trailing': true,
                             'marketBuyRequiresPrice': false,
                             'marketBuyByCost': false,
-                            'leverage': false,
-                            'selfTradePrevention': false,
-                            'iceberg': true, // todo
+                            // exchange-supported features
+                            // 'selfTradePrevention': true,
+                            // 'twap': false,
+                            // 'iceberg': false,
+                            // 'oco': false,
                         },
                         'createOrders': undefined,
                         'fetchMyTrades': {
@@ -334,7 +336,7 @@ export default class bitmex extends Exchange {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': undefined,
+                            'daysBackClosed': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,
@@ -2629,7 +2631,8 @@ export default class bitmex extends Exchange {
             }
         }
         symbols = this.marketSymbols (symbols);
-        return this.parseFundingRates (filteredResponse, symbols);
+        const result = this.parseFundingRates (filteredResponse);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

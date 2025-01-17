@@ -215,6 +215,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
                     'Order has zero size.': InvalidOrder,
                     'Insufficient spot balance asset': InsufficientFunds,
+                    'Insufficient balance for withdrawal': InsufficientFunds,
+                    'Insufficient balance for token transfer': InsufficientFunds,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -693,6 +695,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         price = self.safe_number(market, 'markPx', 0)
         pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
         pricePrecisionStr = self.number_to_string(pricePrecision)
+        isDelisted = self.safe_bool(market, 'isDelisted')
+        active = True
+        if isDelisted is not None:
+            active = not isDelisted
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -708,7 +714,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': True,
+            'active': active,
             'contract': contract,
             'linear': True,
             'inverse': False,
@@ -2751,7 +2757,26 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': sig,
         }
         response = self.privatePostExchange(request)
-        return response
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return self.parse_transfer(response)
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok',
+        }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
