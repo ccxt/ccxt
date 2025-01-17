@@ -1561,6 +1561,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1574,19 +1575,30 @@ class digifinex(Exchange, ImplicitAPI):
                 request['limit'] = min(limit, 100)
             response = self.publicSwapGetPublicCandles(self.extend(request, params))
         else:
+            until = self.safe_integer(params, 'until')
             request['symbol'] = market['id']
             request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
-            if since is not None:
-                startTime = self.parse_to_int(since / 1000)
+            startTime = since
+            duration = self.parse_timeframe(timeframe)
+            if startTime is None:
+                if (limit is not None) or (until is not None):
+                    endTime = until if (until is not None) else self.milliseconds()
+                    startLimit = limit if (limit is not None) else 200
+                    startTime = endTime - (startLimit * duration * 1000)
+            if startTime is not None:
+                startTime = self.parse_to_int(startTime / 1000)
                 request['start_time'] = startTime
-                if limit is not None:
-                    duration = self.parse_timeframe(timeframe)
-                    request['end_time'] = self.sum(startTime, limit * duration)
-            elif limit is not None:
-                endTime = self.seconds()
-                duration = self.parse_timeframe(timeframe)
-                auxLimit = limit  # in c# -limit is mutating the arg
-                request['start_time'] = self.sum(endTime, -auxLimit * duration)
+                if (limit is not None) or (until is not None):
+                    if until is not None:
+                        endByUntil = self.parse_to_int(until / 1000)
+                        if limit is not None:
+                            endByLimit = self.sum(startTime, limit * duration)
+                            request['end_time'] = min(endByLimit, endByUntil)
+                        else:
+                            request['end_time'] = endByUntil
+                    else:
+                        request['end_time'] = self.sum(startTime, limit * duration)
+            params = self.omit(params, 'until')
             response = self.publicSpotGetKline(self.extend(request, params))
         #
         # spot

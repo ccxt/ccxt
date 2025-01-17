@@ -1581,6 +1581,7 @@ public partial class digifinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1602,24 +1603,44 @@ public partial class digifinex : Exchange
             response = await this.publicSwapGetPublicCandles(this.extend(request, parameters));
         } else
         {
+            object until = this.safeInteger(parameters, "until");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
-            if (isTrue(!isEqual(since, null)))
+            object startTime = since;
+            object duration = this.parseTimeframe(timeframe);
+            if (isTrue(isEqual(startTime, null)))
             {
-                object startTime = this.parseToInt(divide(since, 1000));
-                ((IDictionary<string,object>)request)["start_time"] = startTime;
-                if (isTrue(!isEqual(limit, null)))
+                if (isTrue(isTrue((!isEqual(limit, null))) || isTrue((!isEqual(until, null)))))
                 {
-                    object duration = this.parseTimeframe(timeframe);
-                    ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
+                    object endTime = ((bool) isTrue((!isEqual(until, null)))) ? until : this.milliseconds();
+                    object startLimit = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 200;
+                    startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
-            } else if (isTrue(!isEqual(limit, null)))
-            {
-                object endTime = this.seconds();
-                object duration = this.parseTimeframe(timeframe);
-                object auxLimit = limit; // in c# -limit is mutating the arg
-                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref auxLimit), duration));
             }
+            if (isTrue(!isEqual(startTime, null)))
+            {
+                startTime = this.parseToInt(divide(startTime, 1000));
+                ((IDictionary<string,object>)request)["start_time"] = startTime;
+                if (isTrue(isTrue((!isEqual(limit, null))) || isTrue((!isEqual(until, null)))))
+                {
+                    if (isTrue(!isEqual(until, null)))
+                    {
+                        object endByUntil = this.parseToInt(divide(until, 1000));
+                        if (isTrue(!isEqual(limit, null)))
+                        {
+                            object endByLimit = this.sum(startTime, multiply(limit, duration));
+                            ((IDictionary<string,object>)request)["end_time"] = mathMin(endByLimit, endByUntil);
+                        } else
+                        {
+                            ((IDictionary<string,object>)request)["end_time"] = endByUntil;
+                        }
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
+                    }
+                }
+            }
+            parameters = this.omit(parameters, "until");
             response = await this.publicSpotGetKline(this.extend(request, parameters));
         }
         //
