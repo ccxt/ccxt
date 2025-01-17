@@ -874,33 +874,42 @@ class coinsph extends coinsph$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe);
+        const until = this.safeInteger(params, 'until');
         const request = {
             'symbol': market['id'],
             'interval': interval,
         };
+        if (limit === undefined) {
+            limit = 1000;
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-            request['limit'] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe(timeframe) * 1000;
-                request['endTime'] = this.sum(since, duration * (limit - 1));
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             else {
-                request['endTime'] = this.milliseconds();
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const endTimeByLimit = this.sum(since, duration * (limit - 1));
+                const now = this.milliseconds();
+                request['endTime'] = Math.min(endTimeByLimit, now);
             }
         }
-        else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+        else if (until !== undefined) {
+            request['endTime'] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['startTime'] = until - (duration * (limit - 1));
         }
+        request['limit'] = limit;
+        params = this.omit(params, 'until');
         const response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, params));
         //
         //     [

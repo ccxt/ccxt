@@ -883,6 +883,7 @@ public partial class coinsph : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -892,30 +893,38 @@ public partial class coinsph : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe);
+        object until = this.safeInteger(parameters, "until");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", interval },
         };
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 1000;
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-            ((IDictionary<string,object>)request)["limit"] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(!isEqual(until, null)))
             {
-                object duration = multiply(this.parseTimeframe(timeframe), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                ((IDictionary<string,object>)request)["endTime"] = until;
             } else
             {
-                ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
+                object duration = multiply(this.parseTimeframe(timeframe), 1000);
+                object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                object now = this.milliseconds();
+                ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
             }
-        } else
+        } else if (isTrue(!isEqual(until, null)))
         {
-            if (isTrue(!isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["limit"] = limit;
-            }
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            object duration = multiply(this.parseTimeframe(timeframe), 1000);
+            ((IDictionary<string,object>)request)["startTime"] = subtract(until, (multiply(duration, (subtract(limit, 1)))));
         }
+        ((IDictionary<string,object>)request)["limit"] = limit;
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters));
         //
         //     [

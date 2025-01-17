@@ -196,6 +196,8 @@ public partial class hyperliquid : Exchange
                     { "Order price cannot be more than 80% away from the reference price", typeof(InvalidOrder) },
                     { "Order has zero size.", typeof(InvalidOrder) },
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
+                    { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
+                    { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -3112,7 +3114,28 @@ public partial class hyperliquid : Exchange
             { "signature", sig },
         };
         object response = await this.privatePostExchange(request);
-        return response;
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return this.parseTransfer(response);
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "currency", null },
+            { "amount", null },
+            { "fromAccount", null },
+            { "toAccount", null },
+            { "status", "ok" },
+        };
     }
 
     /**

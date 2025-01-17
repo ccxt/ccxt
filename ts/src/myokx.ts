@@ -37,6 +37,16 @@ export default class myokx extends okx {
                 'future': false,
                 'option': false,
             },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 }

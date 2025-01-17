@@ -40,4 +40,14 @@ class myokx(okx, ImplicitAPI):
                 'future': False,
                 'option': False,
             },
+            'features': {
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })

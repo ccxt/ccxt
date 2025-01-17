@@ -220,13 +220,91 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "spot ohlcv",
+                "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1m&",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1m&limit=1000&",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&limit=4&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&endTime=1735948800000&startTime=1732352400000&limit=1000&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1735862399999&endTime=1735873199999&limit=4&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1735862400000&endTime=1735948800000&limit=1000&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&endTime=1735948800000&startTime=1735938000000&limit=4&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1735862400000&endTime=1735948800000&limit=4&",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+              }              
         ]
     }
 }
