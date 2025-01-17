@@ -836,8 +836,8 @@ class bingx extends Exchange {
             //              "symbols" => array(
             //                  array(
             //                    "symbol" => "GEAR-USDT",
-            //                    "minQty" => 735,
-            //                    "maxQty" => 2941177,
+            //                    "minQty" => 735, // deprecated
+            //                    "maxQty" => 2941177, // deprecated
             //                    "minNotional" => 5,
             //                    "maxNotional" => 20000,
             //                    "status" => 1,
@@ -968,6 +968,10 @@ class bingx extends Exchange {
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
+        $minAmount = null;
+        if (!$spot) {
+            $minAmount = $this->safe_number_2($market, 'minQty', 'tradeMinQuantity');
+        }
         $timeOnline = $this->safe_integer($market, 'timeOnline');
         if ($timeOnline === 0) {
             $timeOnline = null;
@@ -1009,8 +1013,8 @@ class bingx extends Exchange {
                     'max' => null,
                 ),
                 'amount' => array(
-                    'min' => $this->safe_number_2($market, 'minQty', 'tradeMinQuantity'),
-                    'max' => $this->safe_number($market, 'maxQty'),
+                    'min' => $minAmount,
+                    'max' => null,
                 ),
                 'price' => array(
                     'min' => $minTickSize,
@@ -2393,12 +2397,14 @@ class bingx extends Exchange {
         } else {
             $linearSwapData = $this->safe_dict($response, 'data', array());
             $linearSwapBalance = $this->safe_dict($linearSwapData, 'balance');
-            $currencyId = $this->safe_string($linearSwapBalance, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
-            $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
-            $result[$code] = $account;
+            if ($linearSwapBalance) {
+                $currencyId = $this->safe_string($linearSwapBalance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
+                $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }

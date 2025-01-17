@@ -830,8 +830,8 @@ class bingx(Exchange, ImplicitAPI):
         #              "symbols": [
         #                  {
         #                    "symbol": "GEAR-USDT",
-        #                    "minQty": 735,
-        #                    "maxQty": 2941177,
+        #                    "minQty": 735,  # deprecated
+        #                    "maxQty": 2941177,  # deprecated
         #                    "minNotional": 5,
         #                    "maxNotional": 20000,
         #                    "status": 1,
@@ -949,6 +949,9 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
+        minAmount = None
+        if not spot:
+            minAmount = self.safe_number_2(market, 'minQty', 'tradeMinQuantity')
         timeOnline = self.safe_integer(market, 'timeOnline')
         if timeOnline == 0:
             timeOnline = None
@@ -989,8 +992,8 @@ class bingx(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),
-                    'max': self.safe_number(market, 'maxQty'),
+                    'min': minAmount,
+                    'max': None,
                 },
                 'price': {
                     'min': minTickSize,
@@ -2278,12 +2281,13 @@ class bingx(Exchange, ImplicitAPI):
         else:
             linearSwapData = self.safe_dict(response, 'data', {})
             linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
-            currencyId = self.safe_string(linearSwapBalance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
-            account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
-            result[code] = account
+            if linearSwapBalance:
+                currencyId = self.safe_string(linearSwapBalance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:

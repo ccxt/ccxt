@@ -824,8 +824,8 @@ export default class bingx extends Exchange {
         //              "symbols": [
         //                  {
         //                    "symbol": "GEAR-USDT",
-        //                    "minQty": 735,
-        //                    "maxQty": 2941177,
+        //                    "minQty": 735, // deprecated
+        //                    "maxQty": 2941177, // deprecated
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -949,6 +949,10 @@ export default class bingx extends Exchange {
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
+        let minAmount = undefined;
+        if (!spot) {
+            minAmount = this.safeNumber2(market, 'minQty', 'tradeMinQuantity');
+        }
         let timeOnline = this.safeInteger(market, 'timeOnline');
         if (timeOnline === 0) {
             timeOnline = undefined;
@@ -990,8 +994,8 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber2(market, 'minQty', 'tradeMinQuantity'),
-                    'max': this.safeNumber(market, 'maxQty'),
+                    'min': minAmount,
+                    'max': undefined,
                 },
                 'price': {
                     'min': minTickSize,
@@ -2348,12 +2352,14 @@ export default class bingx extends Exchange {
         else {
             const linearSwapData = this.safeDict(response, 'data', {});
             const linearSwapBalance = this.safeDict(linearSwapData, 'balance');
-            const currencyId = this.safeString(linearSwapBalance, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
-            account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
-            result[code] = account;
+            if (linearSwapBalance) {
+                const currencyId = this.safeString(linearSwapBalance, 'asset');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
+                account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
