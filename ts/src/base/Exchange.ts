@@ -3463,14 +3463,17 @@ export default class Exchange {
         let results = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend (this.parseOrder (orders[i], market), params);
+                const parsed = this.parseOrder (orders[i], market); // don't inline this call
+                const order = this.extend (parsed, params);
                 results.push (order);
             }
         } else {
             const ids = Object.keys (orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                const idExtended = this.extend ({ 'id': id }, orders[id]);
+                const parsedOrder = this.parseOrder (idExtended, market); // don't  inline these calls
+                const order = this.extend (parsedOrder, params);
                 results.push (order);
             }
         }

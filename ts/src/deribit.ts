@@ -681,7 +681,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    parseAccount (account, currency: Currency = undefined) {
+    parseAccount (account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -700,7 +700,7 @@ export default class deribit extends Exchange {
             'info': account,
             'id': this.safeString (account, 'id'),
             'type': this.safeString (account, 'type'),
-            'code': this.safeCurrencyCode (undefined, currency),
+            'code': undefined,
         };
     }
 
