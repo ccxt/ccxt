@@ -4779,7 +4779,8 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const candles = this.parseOHLCVs (response, market, timeframe, since, limit);
+        return candles;
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

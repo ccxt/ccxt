@@ -25,6 +25,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			ch <- this.FetchResponse
 			return
 		}
+		this.UpdateProxySettings() // for now this needs to be here
+
 		// Convert url to string
 		urlStr, ok := url.(string)
 		if !ok {

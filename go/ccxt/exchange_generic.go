@@ -15,10 +15,10 @@ func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...int
 	}
 	list := array.([]interface{})
 
-	if reflect.TypeOf(value1).Kind() == reflect.String {
+	if str, ok := value1.(string); ok {
 		sort.Slice(list, func(i, j int) bool {
-			a := list[i].(map[string]interface{})[value1.(string)]
-			b := list[j].(map[string]interface{})[value1.(string)]
+			a := list[i].(map[string]interface{})[str]
+			b := list[j].(map[string]interface{})[str]
 			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
 		})
 		if desc {
@@ -82,12 +82,13 @@ func (this *Exchange) SortBy2(array interface{}, key1 interface{}, key2 interfac
 	}
 	list := array.([]interface{})
 
-	if reflect.TypeOf(key1).Kind() == reflect.String {
+	if str, ok := key1.(string); ok  {
+		key2Str, _ := key2.(string)
 		sort.Slice(list, func(i, j int) bool {
-			a1 := list[i].(map[string]interface{})[key1.(string)]
-			a2 := list[i].(map[string]interface{})[key2.(string)]
-			b1 := list[j].(map[string]interface{})[key1.(string)]
-			b2 := list[j].(map[string]interface{})[key2.(string)]
+			a1 := list[i].(map[string]interface{})[str]
+			a2 := list[i].(map[string]interface{})[key2Str]
+			b1 := list[j].(map[string]interface{})[str]
+			b2 := list[j].(map[string]interface{})[key2Str]
 			if a1 == b1 {
 				return fmt.Sprintf("%v", a2) < fmt.Sprintf("%v", b2)
 			}

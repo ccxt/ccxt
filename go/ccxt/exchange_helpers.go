@@ -83,13 +83,28 @@ func EvalTruthy(val interface{}) bool {
 		return v != ""
 	case bool:
 		return v // bool is already truthy or falsy
+	case []interface{}:
+		return len(v) > 0
+	case map[string]interface{}:
+		return len(v) > 0
+	case []string:
+		return len(v) > 0
+	case []int64:
+		return len(v) > 0
+	case []float64:
+		return len(v) > 0
+	case []bool:
+		return len(v) > 0
+	case []int:
+		return len(v) > 0
 	default:
+		return true
 		// Use reflection for other complex types (slices, maps, pointers, etc.)
-		valType := reflect.TypeOf(val)
-		switch valType.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Chan, reflect.Func:
-			return !reflect.ValueOf(val).IsNil()
-		}
+		// valType := reflect.TypeOf(val)
+		// switch valType.Kind() {
+		// case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Chan, reflect.Func:
+		// 	return !reflect.ValueOf(val).IsNil()
+		// }
 	}
 
 	return true // Consider non-nil complex types as truthy
@@ -116,14 +131,14 @@ func IsInteger(value interface{}) bool {
 		// Check if the float has no fractional part
 		return v == math.Trunc(v.(float64))
 	default:
-		// Handle other numeric types, including when value is a pointer to an int type
-		val := reflect.ValueOf(value)
-		if val.Kind() == reflect.Ptr {
-			elem := val.Elem()
-			if elem.IsValid() && elem.Kind() >= reflect.Int && elem.Kind() <= reflect.Float64 {
-				return float64(elem.Float()) == math.Trunc(elem.Float())
-			}
-		}
+		// // Handle other numeric types, including when value is a pointer to an int type
+		// val := reflect.ValueOf(value)
+		// if val.Kind() == reflect.Ptr {
+		// 	elem := val.Elem()
+		// 	if elem.IsValid() && elem.Kind() >= reflect.Int && elem.Kind() <= reflect.Float64 {
+		// 		return float64(elem.Float()) == math.Trunc(elem.Float())
+		// 	}
+		// }
 		return false
 	}
 }
@@ -676,7 +691,17 @@ func IsDictionary(v interface{}) bool {
 	if v == nil {
 		return false
 	}
-	return reflect.TypeOf(v).Kind() == reflect.Map
+	switch v.(type) {
+	case map[string]interface{}:
+		return true
+	case Dict:
+		return true
+	case map[interface{}]interface{}:
+		return true
+	default:
+		return false
+	}
+	// return reflect.TypeOf(v).Kind() == reflect.Map
 }
 
 // IsString checks if the input is a string
@@ -967,8 +992,18 @@ func IsArray(v interface{}) bool {
 	if v == nil {
 		return false
 	}
-	kind := reflect.TypeOf(v).Kind()
-	return kind == reflect.Slice || kind == reflect.Array
+	switch v.(type) {
+	case []interface{}:
+		return true
+	case []string, []bool:
+		return true
+	case []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:
+		return true
+	default:
+		return false
+	// kind := reflect.TypeOf(v).Kind()
+	// return kind == reflect.Slice || kind == reflect.Array
+	}
 }
 
 func Shift(slice interface{}) (interface{}, interface{}) {
