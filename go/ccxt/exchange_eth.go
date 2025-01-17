@@ -96,7 +96,8 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	domain := domain2.(map[string]interface{})
 	messageTypes := messageTypes2.(map[string]interface{})
 	// messageTypesKeys := base.Keys(messageTypes)
-	messageData := messageData2.(map[string]interface{})
+	// messageData := messageData2.(map[string]interface{})
+	messageData := ConvertInt64ToBigInt(messageData2).(map[string]interface{})
 	// fmt.Println("domain", this.Json(domain))
 	// fmt.Println("messageTypes", this.Json(messageTypes))
 	// fmt.Println("messageData", this.Json(messageData))
@@ -160,6 +161,25 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	return this.Base16ToBinary(hexData)
 }
 
+func ConvertInt64ToBigInt(data interface{}) interface{} {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			v[key] = ConvertInt64ToBigInt(value)
+		}
+		return v
+	case []interface{}:
+		for i, item := range v {
+			v[i] = ConvertInt64ToBigInt(item)
+		}
+		return v
+	case int64:
+		return big.NewInt(v)
+	default:
+		return v // Leave other types unchanged
+	}
+}
+
 func ConvertInt64ToInt(data interface{}) interface{} {
 	switch v := data.(type) {
 	case map[string]interface{}:
@@ -181,7 +201,7 @@ func ConvertInt64ToInt(data interface{}) interface{} {
 
 func (this *Exchange) Packb(data interface{}) []uint8 {
 	// data := data2.(map[string]interface{})
-	converted := ConvertInt64ToInt(data) // avoid this error: position 7: int64 marker - cannot parse uint64 to javascript, setting to Infinity
+	converted := ConvertInt64ToBigInt(data) // avoid this error: position 7: int64 marker - cannot parse uint64 to javascript, setting to Infinity
 	packed, err := msgpack.Marshal(converted)
 	if err != nil {
 		panic(err)

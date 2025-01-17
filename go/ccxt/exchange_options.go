@@ -328,7 +328,7 @@ package ccxt
 
 // type Dict map[string]interface{}
 
-func (this *Exchange) initializeProperties(extendedProperties Dict) {
+func (this *Exchange) initializeProperties(extendedProperties map[string]interface{}) {
 
 	this.TransformedApi = map[string]interface{}{}
 	this.Version = SafeString(extendedProperties, "version", "").(string)

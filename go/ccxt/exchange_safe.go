@@ -22,6 +22,147 @@ func ConvertToDictionaryOfStringObject(potentialDictionary interface{}) (map[str
 }
 
 // SafeValueN retrieves a value from a nested structure
+// func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
+// 	var defVal interface{} = nil
+// 	if len(defaultValue) > 0 {
+// 		defVal = defaultValue[0]
+// 	}
+// 	if obj == nil {
+// 		return defVal
+// 	}
+
+// 	objType := reflect.TypeOf(obj).Kind()
+
+// 	// Convert array to slice if needed
+// 	if objType == reflect.Array {
+// 		obj = reflect.ValueOf(obj).Slice(0, reflect.ValueOf(obj).Len()).Interface()
+// 	}
+
+// 	switch objType {
+// 	case reflect.Map:
+// 		if dict, err := ConvertToDictionaryOfStringObject(obj); err == nil {
+// 			for _, key := range keys {
+// 				if key == nil {
+// 					continue
+// 				}
+// 				keyStr := fmt.Sprintf("%v", key)
+// 				if value, found := dict[keyStr]; found {
+// 					if value != nil && value != "" {
+// 						return value
+// 					}
+// 				}
+// 			}
+// 		}
+// 	case reflect.Slice:
+// 		if list, ok := obj.([]interface{}); ok {
+// 			for _, key := range keys {
+// 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+// 					if keyInt >= 0 && keyInt < len(list) {
+// 						return list[keyInt]
+// 					}
+// 				}
+// 			}
+// 		}
+
+// 		if list, ok := obj.([]string); ok {
+// 			for _, key := range keys {
+// 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+// 					if keyInt >= 0 && keyInt < len(list) {
+// 						return list[keyInt]
+// 					}
+// 				}
+// 			}
+// 		}
+
+// 		if list, ok := obj.([]int64); ok {
+// 			for _, key := range keys {
+// 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+// 					if keyInt >= 0 && keyInt < len(list) {
+// 						return list[keyInt]
+// 					}
+// 				}
+// 			}
+// 		}
+
+// 		if list, ok := obj.([]int32); ok {
+// 			for _, key := range keys {
+// 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+// 					if keyInt >= 0 && keyInt < len(list) {
+// 						return list[keyInt]
+// 					}
+// 				}
+// 			}
+// 		}
+
+// 		if list, ok := obj.([]float64); ok {
+// 			for _, key := range keys {
+// 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+// 					if keyInt >= 0 && keyInt < len(list) {
+// 						return list[keyInt]
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return defVal
+// }
+
+func getValueFromList(list interface{}, keys []interface{}, defVal interface{}) interface{} {
+	switch l := list.(type) {
+	case []interface{}:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	case []string:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	case []int:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	case []int32:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	case []int64:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	case []float64:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					return l[keyInt]
+				}
+			}
+		}
+	}
+	return defVal
+}
+
+
 func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
@@ -31,81 +172,39 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		return defVal
 	}
 
-	objType := reflect.TypeOf(obj).Kind()
-
-	// Convert array to slice if needed
-	if objType == reflect.Array {
-		obj = reflect.ValueOf(obj).Slice(0, reflect.ValueOf(obj).Len()).Interface()
+	// Handle maps
+	if dict, ok := obj.(map[string]interface{}); ok {
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if value, found := dict[keyStr]; found {
+				if value != nil && value != "" {
+					return value
+				}
+			}
+		}
+		return defVal
 	}
 
-	switch objType {
-	case reflect.Map:
-		if dict, err := ConvertToDictionaryOfStringObject(obj); err == nil {
-			for _, key := range keys {
-				if key == nil {
-					continue
-				}
-				keyStr := fmt.Sprintf("%v", key)
-				if value, found := dict[keyStr]; found {
-					if value != nil && value != "" {
-						return value
-					}
-				}
-			}
-		}
-	case reflect.Slice:
-		if list, ok := obj.([]interface{}); ok {
-			for _, key := range keys {
-				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-					if keyInt >= 0 && keyInt < len(list) {
-						return list[keyInt]
-					}
-				}
-			}
-		}
-
-		if list, ok := obj.([]string); ok {
-			for _, key := range keys {
-				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-					if keyInt >= 0 && keyInt < len(list) {
-						return list[keyInt]
-					}
-				}
-			}
-		}
-
-		if list, ok := obj.([]int64); ok {
-			for _, key := range keys {
-				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-					if keyInt >= 0 && keyInt < len(list) {
-						return list[keyInt]
-					}
-				}
-			}
-		}
-
-		if list, ok := obj.([]int32); ok {
-			for _, key := range keys {
-				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-					if keyInt >= 0 && keyInt < len(list) {
-						return list[keyInt]
-					}
-				}
-			}
-		}
-
-		if list, ok := obj.([]float64); ok {
-			for _, key := range keys {
-				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-					if keyInt >= 0 && keyInt < len(list) {
-						return list[keyInt]
-					}
-				}
-			}
-		}
+	// Handle slices
+	switch list := obj.(type) {
+	case []interface{}:
+		return getValueFromList(list, keys, defVal)
+	case []string:
+		return getValueFromList(list, keys, defVal)
+	case []int:
+		return getValueFromList(list, keys, defVal)
+	case []int32:
+		return getValueFromList(list, keys, defVal)
+	case []int64:
+		return getValueFromList(list, keys, defVal)
+	case []float64:
+		return getValueFromList(list, keys, defVal)
+	default:
+		return defVal
 	}
-
-	return defVal
 }
 
 // SafeStringN retrieves a string value from a nested structure
