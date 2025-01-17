@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -91,6 +93,8 @@ type Exchange struct {
 	Login         string
 	PrivateKey    string
 	WalletAddress string
+
+	httpClient  *http.Client
 
 	HttpProxy            interface{}
 	HttpsProxy           interface{}
@@ -184,6 +188,13 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	}
 
 	this.transformApiNew(this.Api)
+	transport := &http.Transport{}
+
+	this.httpClient = &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: transport,
+	}
+	this.UpdateProxySettings()
 
 	// fmt.Println(this.TransformedApi)
 }
@@ -252,7 +263,7 @@ func (this *Exchange) WarmUpCache() {
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
-	
+
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -280,15 +291,15 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
-		
+
 		markets := <-this.callInternal("fetchMarkets", defaultParams)
 		PanicOnError(markets)
-		
+
 		// Lock only for writing
 		this.marketsMutex.Lock()
 		result := this.SetMarkets(markets, currencies)
 		this.marketsMutex.Unlock()
-		
+
 		ch <- result
 	}()
 	return ch
@@ -852,7 +863,7 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 		}()
 
 		this.WarmUpCache()
-		
+
 		res := <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
 		ch <- res
 	}()
@@ -1079,3 +1090,34 @@ func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 
 // func (this *Exchange) Init(userConfig map[string]interface{}) {
 // }
+
+func (this *Exchange) UpdateProxySettings() {
+	proxyUrl := this.CheckProxyUrlSettings(nil, nil, nil, nil)
+	proxies := this.CheckProxySettings(nil, "", nil, nil)
+	httProxy := this.SafeString(proxies, 0)
+	httpsProxy := this.SafeString(proxies, 1)
+	socksProxy := this.SafeString(proxies, 2)
+
+	hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
+	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
+
+	if hasHttProxyDefined {
+		proxyTransport := &http.Transport{
+			// MaxIdleConns:       100,
+			// IdleConnTimeout:    90 * time.Second,
+			// DisableCompression: false,
+			// DisableKeepAlives:  false,
+		}
+
+		proxyUrlStr := ""
+		if httProxy != nil {
+			proxyUrlStr = httProxy.(string)
+		} else {
+			proxyUrlStr = httpsProxy.(string)
+		}
+		proxyURLParsed, _ := url.Parse(proxyUrlStr)
+		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
+
+		this.httpClient.Transport = proxyTransport
+	}
+}
