@@ -554,7 +554,8 @@ export default class kucoinfutures extends kucoin {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const expiry = this.safeInteger (market, 'expireDate');
-            const future = expiry ? true : false;
+            const contractType = this.safeString (market, 'type');
+            const future = (contractType === 'FFICSX') ? true : false;
             const swap = !future;
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
@@ -567,6 +568,9 @@ export default class kucoinfutures extends kucoin {
             if (future) {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
+                // add legacy symbol to aliases
+                this.market_symbol_aliases.push (symbol);
+                symbol = symbol + 'Q';
             }
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
