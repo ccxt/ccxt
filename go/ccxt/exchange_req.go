@@ -8,9 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	neturl "net/url"
 	"strings"
-	"time"
 )
 
 func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) chan interface{} {
@@ -45,15 +43,6 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			panic("headers must be a map[string]interface{}")
 		}
 
-		// ####### PROXY SETTINGS #######
-		proxyUrl := this.CheckProxyUrlSettings(url, method, headers, body)
-		proxies := this.CheckProxySettings(url, methodStr, headersMap, body)
-		httProxy := this.SafeString(proxies, 0)
-		httpsProxy := this.SafeString(proxies, 1)
-		socksProxy := this.SafeString(proxies, 2)
-
-		hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
-		this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
 		if this.Verbose {
 			fmt.Println("Headers:", headersMap)
 			fmt.Println("\n\n")
@@ -68,24 +57,6 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
-		// Create a transport with the proxy
-		transport := &http.Transport{}
-
-		if (httProxy != nil) || (httpsProxy != nil) {
-			proxyUrlStr := ""
-			if httProxy != nil {
-				proxyUrlStr = httProxy.(string)
-			} else {
-				proxyUrlStr = httpsProxy.(string)
-			}
-			proxyURLParsed, _ := neturl.Parse(proxyUrlStr)
-			transport.Proxy = http.ProxyURL(proxyURLParsed)
-		}
-
-		client := &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: transport,
-		}
 
 		// Marshal the body to JSON if not nil
 		// var requestBody []byte
@@ -147,7 +118,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 
 		// strings.NewReader()
 		// Send the request
-		resp, err := client.Do(req)
+		resp, err := this.httpClient.Do(req)
 
 		// Read the response body
 		// respBody, err := ioutil.ReadAll(resp.Body)
