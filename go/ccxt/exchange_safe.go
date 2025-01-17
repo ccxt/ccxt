@@ -1,25 +1,25 @@
 package ccxt
 
 import (
-	"errors"
+	// "errors"
 	"fmt"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"strings"
 )
 
-// ConvertToDictionaryOfStringObject converts a potential dictionary to a map[string]interface{}
-func ConvertToDictionaryOfStringObject(potentialDictionary interface{}) (map[string]interface{}, error) {
-	dictValue := reflect.ValueOf(potentialDictionary)
-	if dictValue.Kind() == reflect.Map && dictValue.Type().Key().Kind() == reflect.String {
-		result := make(map[string]interface{})
-		for _, key := range dictValue.MapKeys() {
-			result[key.String()] = dictValue.MapIndex(key).Interface()
-		}
-		return result, nil
-	}
-	return nil, errors.New("the provided object is not a dictionary")
-}
+// // ConvertToDictionaryOfStringObject converts a potential dictionary to a map[string]interface{}
+// func ConvertToDictionaryOfStringObject(potentialDictionary interface{}) (map[string]interface{}, error) {
+// 	dictValue := reflect.ValueOf(potentialDictionary)
+// 	if dictValue.Kind() == reflect.Map && dictValue.Type().Key().Kind() == reflect.String {
+// 		result := make(map[string]interface{})
+// 		for _, key := range dictValue.MapKeys() {
+// 			result[key.String()] = dictValue.MapIndex(key).Interface()
+// 		}
+// 		return result, nil
+// 	}
+// 	return nil, errors.New("the provided object is not a dictionary")
+// }
 
 // SafeValueN retrieves a value from a nested structure
 // func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
