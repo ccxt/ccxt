@@ -57,7 +57,7 @@
                 "method": "fetchTrades",
                 "url": "https://test.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC-26JAN24-39000-C&include_old=true",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             },
             {
@@ -182,7 +182,7 @@
                 "method": "createOrder",
                 "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=limit&price=0.15",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C",
+                    "BTC/USD:BTC-240126M-39000-C",
                     "limit",
                     "buy",
                     1,
@@ -194,7 +194,7 @@
                 "method": "createOrder",
                 "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=market",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C",
+                    "BTC/USD:BTC-240126M-39000-C",
                     "market",
                     "buy",
                     1
@@ -229,7 +229,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://test.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -258,7 +258,7 @@
                 "url": "https://test.deribit.com/api/v2/private/cancel?order_id=20906817839",
                 "input": [
                     "20906817839",
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -290,7 +290,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://test.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -322,7 +322,7 @@
                 "method": "fetchClosedOrders",
                 "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -372,7 +372,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://test.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -438,7 +438,7 @@
                 "url": "https://test.deribit.com/api/v2/private/edit?order_id=20906817839&amount=1&price=0.14",
                 "input": [
                     "20906817839",
-                    "BTC/USD:BTC-240126-39000-C",
+                    "BTC/USD:BTC-240126M-39000-C",
                     "limit",
                     "buy",
                     1,
@@ -488,7 +488,7 @@
                 "method": "fetchTicker",
                 "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             },
             {
@@ -530,7 +530,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-26JAN24-39000-C&resolution=1&start_timestamp=1705497642549&end_timestamp=1705557582549",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             },
             {
@@ -583,7 +583,7 @@
                 "method": "fetchOrderBook",
                 "url": "https://test.deribit.com/api/v2/public/get_order_book?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             },
             {
@@ -628,7 +628,7 @@
                 "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=20906817839",
                 "input": [
                     "20906817839",
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -686,7 +686,7 @@
                 "method": "fetchGreeks",
                 "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
@@ -707,7 +707,7 @@
                 "url": "https://test.deribit.com/api/v2/private/get_positions?currency=BTC&kind=option",
                 "input": [
                     [
-                        "BTC/USD:BTC-240126-39000-C"
+                        "BTC/USD:BTC-240126M-39000-C"
                     ]
                 ]
             }
@@ -726,7 +726,7 @@
                 "method": "fetchPosition",
                 "url": "https://test.deribit.com/api/v2/private/get_position?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
-                    "BTC/USD:BTC-240126-39000-C"
+                    "BTC/USD:BTC-240126M-39000-C"
                 ]
             }
         ],
