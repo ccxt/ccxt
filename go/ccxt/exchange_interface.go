@@ -218,4 +218,6 @@ type IDerivedExchange interface {
 	FetchPositionsHistory(optionalArgs ...interface{}) <- chan interface{}
 	FetchDepositsWithdrawals(optionalArgs ...interface{}) <- chan interface{}
 	ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{}
+	FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
+	FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} 
 }

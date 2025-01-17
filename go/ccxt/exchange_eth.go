@@ -103,10 +103,10 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	// fmt.Println("messageData", this.Json(messageData))
 
 	domainTyped := apitypes.TypedDataDomain{
-		Name:              this.SafeString(domain, "name").(string),
-		Version:           this.SafeString(domain, "version").(string),
+		Name:              this.SafeString(domain, "name", "").(string),
+		Version:           this.SafeString(domain, "version", "").(string),
 		ChainId:           (*math.HexOrDecimal256)(big.NewInt(this.SafeInteger(domain, "chainId").(int64))),
-		VerifyingContract: this.SafeString(domain, "verifyingContract").(string),
+		VerifyingContract: this.SafeString(domain, "verifyingContract", "").(string),
 	}
 
 	messageTypesTyped := map[string][]apitypes.Type{}

@@ -16,10 +16,11 @@ import (
 )
 
 type Exchange struct {
-	marketsMutex 		sync.Mutex
+	marketsMutex        sync.Mutex
 	Itf                 interface{}
+	DerivedExchange     IDerivedExchange
 	methodCache         sync.Map
-	cacheLoaded 		bool
+	cacheLoaded         bool
 	Version             string
 	Id                  string
 	Name                string
@@ -252,7 +253,7 @@ func (this *Exchange) WarmUpCache() {
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
-	
+
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -280,15 +281,15 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
-		
+
 		markets := <-this.callInternal("fetchMarkets", defaultParams)
 		PanicOnError(markets)
-		
+
 		// Lock only for writing
 		this.marketsMutex.Lock()
 		result := this.SetMarkets(markets, currencies)
 		this.marketsMutex.Unlock()
-		
+
 		ch <- result
 	}()
 	return ch
@@ -852,7 +853,7 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 		}()
 
 		this.WarmUpCache()
-		
+
 		res := <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
 		ch <- res
 	}()
