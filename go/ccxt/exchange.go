@@ -195,7 +195,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	this.UpdateProxySettings()
 
 	// fmt.Println(this.TransformedApi)
 }
