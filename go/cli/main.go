@@ -21,6 +21,7 @@ const (
 	ROOT_DIR = "/../../"
 )
 
+var rateLimit = true
 var verbose = false
 var noKeys = false
 var timeIt = false
@@ -122,6 +123,10 @@ func InitOptions(instance ccxt.IExchange, flags []string) {
 
 	if containsStr(flags, "--time") {
 		timeIt = true
+	}
+
+	if containsStr(flags, "--rate") {
+		rateLimit = false
 	}
 }
 
@@ -235,6 +240,10 @@ func main() {
 
 	if verbose {
 		instance.SetVerbose(true)
+	}
+
+	if !rateLimit {
+		instance.SetRateLimit(false)
 	}
 
 	before := time.Now().UnixMilli()

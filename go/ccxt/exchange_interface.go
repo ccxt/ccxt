@@ -4,6 +4,7 @@ import "sync"
 
 // Exchange interface based on the methods from binance.go
 type IExchange interface {
+	SetRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
 	SetWssProxy(wssProxy interface{})

@@ -2,6 +2,10 @@ package ccxt
 
 import "sync"
 
+func (this *Exchange) SetRateLimit(rateLimit bool) {
+	this.EnableRateLimit = rateLimit
+}
+
 func (this *Exchange) GetSymbols() []string {
 	return this.Symbols
 }
