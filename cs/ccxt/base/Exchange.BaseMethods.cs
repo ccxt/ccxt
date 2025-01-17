@@ -1708,7 +1708,6 @@ public partial class Exchange
     {
         object values = new List<object>() {};
         this.markets_by_id = new Dictionary<string, object>() {};
-        this.market_symbol_aliases = new List<string, object>() {};
         // handle marketId conflicts
         // we insert spot markets first
         object marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
@@ -5295,19 +5294,6 @@ public partial class Exchange
         } else if (isTrue(isTrue(isTrue(isTrue((((string)symbol).EndsWith(((string)"-C")))) || isTrue((((string)symbol).EndsWith(((string)"-P"))))) || isTrue((((string)symbol).StartsWith(((string)"C-"))))) || isTrue((((string)symbol).StartsWith(((string)"P-"))))))
         {
             return this.createExpiredOptionMarket(symbol);
-        } else if (isTrue((this.inArray(symbol, this.market_symbol_aliases)))))
-        {
-            object markets = this.markets;
-            object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-            {
-                object currentSymbol = getValue(markets, i);
-                if (isTrue(isGreaterThan(getIndexOf(currentSymbol, symbol), -1)))
-                {
-                    return this.safeDict(markets, currentSymbol);
-                }
-            }
-            throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
         }
         throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
     }
