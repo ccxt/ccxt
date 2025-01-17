@@ -828,8 +828,8 @@ public partial class bingx : Exchange
         //              "symbols": [
         //                  {
         //                    "symbol": "GEAR-USDT",
-        //                    "minQty": 735,
-        //                    "maxQty": 2941177,
+        //                    "minQty": 735, // deprecated
+        //                    "maxQty": 2941177, // deprecated
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -964,6 +964,11 @@ public partial class bingx : Exchange
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
+        object minAmount = null;
+        if (!isTrue(spot))
+        {
+            minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
+        }
         object timeOnline = this.safeInteger(market, "timeOnline");
         if (isTrue(isEqual(timeOnline, 0)))
         {
@@ -1006,8 +1011,8 @@ public partial class bingx : Exchange
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
-                    { "max", this.safeNumber(market, "maxQty") },
+                    { "min", minAmount },
+                    { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", minTickSize },
@@ -2376,12 +2381,15 @@ public partial class bingx : Exchange
         {
             object linearSwapData = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object linearSwapBalance = this.safeDict(linearSwapData, "balance");
-            object currencyId = this.safeString(linearSwapBalance, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(linearSwapBalance))
+            {
+                object currencyId = this.safeString(linearSwapBalance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
