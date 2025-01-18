@@ -152,34 +152,34 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		return nil
 	}
 
-	switch v := collection.(type) {
-	case map[string]interface{}:
-		if val, ok := v[key.(string)]; ok {
-			return val
-		}
-		return nil
-	case []interface{}:
-		index := int(ParseInt(key))
-		return v[index]
-	case []string:
-		index := int(ParseInt(key))
-		return v[index]
-	case []int64:
-		index := int(ParseInt(key))
-		return v[index]
-	case []float64:
-		index := int(ParseInt(key))
-		return v[index]
-	case []bool:
-		index := int(ParseInt(key))
-		return v[index]
-	case []int:
-		index := int(ParseInt(key))
-		return v[index]
-	case string:
-		index := int(ParseInt(key))
-		return string(v[index])
-	}
+	// switch v := collection.(type) {
+	// case map[string]interface{}:
+	// 	if val, ok := v[key.(string)]; ok {
+	// 		return val
+	// 	}
+	// 	return nil
+	// case []interface{}:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case []string:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case []int64:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case []float64:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case []bool:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case []int:
+	// 	index := int(ParseInt(key))
+	// 	return v[index]
+	// case string:
+	// 	index := int(ParseInt(key))
+	// 	return string(v[index])
+	// }
 
 	reflectValue := reflect.ValueOf(collection)
 
@@ -658,30 +658,58 @@ func InOp(dict interface{}, key interface{}) bool {
 	if IsNumber(key) {
 		return false
 	}
-	
-	switch v := dict.(type) {
-	case map[string]interface{}:
-		if _, ok := v[key.(string)]; ok {
-			return true
-		}
+	dictVal := reflect.ValueOf(dict)
+
+	// Ensure that the provided dict is a map
+	if dictVal.Kind() != reflect.Map {
+		return false
 	}
 
+	keyVal := reflect.ValueOf(key)
+
+	// Check if the map has the provided key todo:debug here
+	if dictVal.MapIndex(keyVal).IsValid() {
+		return true
+	}
 	return false
-	// dictVal := reflect.ValueOf(dict)
-
-	// // Ensure that the provided dict is a map
-	// if dictVal.Kind() != reflect.Map {
-	// 	return false
-	// }
-
-	// keyVal := reflect.ValueOf(key)
-
-	// // Check if the map has the provided key todo:debug here
-	// if dictVal.MapIndex(keyVal).IsValid() {
-	// 	return true
-	// }
-	// return false
 }
+
+// func InOp(dict interface{}, key interface{}) bool {
+
+// 	if dict == nil {
+// 		return false
+// 	}
+// 	if key == nil {
+// 		return false
+// 	}
+
+// 	if IsNumber(key) {
+// 		return false
+// 	}
+	
+// 	switch v := dict.(type) {
+// 	case map[string]interface{}:
+// 		if _, ok := v[key.(string)]; ok {
+// 			return true
+// 		}
+// 	}
+
+// 	return false
+// 	// dictVal := reflect.ValueOf(dict)
+
+// 	// // Ensure that the provided dict is a map
+// 	// if dictVal.Kind() != reflect.Map {
+// 	// 	return false
+// 	// }
+
+// 	// keyVal := reflect.ValueOf(key)
+
+// 	// // Check if the map has the provided key todo:debug here
+// 	// if dictVal.MapIndex(keyVal).IsValid() {
+// 	// 	return true
+// 	// }
+// 	// return false
+// }
 
 func GetIndexOf(str interface{}, target interface{}) int {
 	switch v := str.(type) {

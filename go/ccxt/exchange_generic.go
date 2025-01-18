@@ -173,24 +173,16 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 		if x == nil {
 			continue
 		}
-		// if xMap, ok := x.(map[string]interface{}); ok {
-		if xMap, ok := x.(map[string]interface{}); ok {
-			if outObj == nil {
-				outObj = make(map[string]interface{})
-			} else if _, ok := x.(map[string]interface{}); !ok  {
-				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
+		if reflect.TypeOf(x).Kind() == reflect.Map {
+			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
 				outObj = make(map[string]interface{})
 			}
-			dictX := xMap
+			dictX := x.(map[string]interface{})
 			for k, _ := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
-				if arg1 != nil && arg2 != nil {
-					_, arg1IsMap := arg1.(map[string]interface{})
-					_, arg2IsMap := arg2.(map[string]interface{})
-					if arg1IsMap && arg2IsMap {
-						outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
-					}
+				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
+					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
 				} else {
 					if arg2 != nil {
 						outObj.(map[string]interface{})[k] = arg2
@@ -205,6 +197,45 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	}
 	return outObj.(map[string]interface{})
 }
+
+// func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
+// 	var outObj interface{}
+// 	for _, x := range objs {
+// 		if x == nil {
+// 			continue
+// 		}
+// 		// if xMap, ok := x.(map[string]interface{}); ok {
+// 		if xMap, ok := x.(map[string]interface{}); ok {
+// 			if outObj == nil {
+// 				outObj = make(map[string]interface{})
+// 			} else if _, ok := x.(map[string]interface{}); !ok  {
+// 				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
+// 				outObj = make(map[string]interface{})
+// 			}
+// 			dictX := xMap
+// 			for k, _ := range dictX {
+// 				arg1 := outObj.(map[string]interface{})[k]
+// 				arg2 := dictX[k]
+// 				if arg1 != nil && arg2 != nil {
+// 					_, arg1IsMap := arg1.(map[string]interface{})
+// 					_, arg2IsMap := arg2.(map[string]interface{})
+// 					if arg1IsMap && arg2IsMap {
+// 						outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
+// 					}
+// 				} else {
+// 					if arg2 != nil {
+// 						outObj.(map[string]interface{})[k] = arg2
+// 					} else {
+// 						outObj.(map[string]interface{})[k] = arg1
+// 					}
+// 				}
+// 			}
+// 		} else {
+// 			outObj = x
+// 		}
+// 	}
+// 	return outObj.(map[string]interface{})
+// }
 
 // func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
 // 	if list2 == nil {
