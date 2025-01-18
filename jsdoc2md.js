@@ -115,8 +115,9 @@ outputByExchange.forEach ((output, i) => {
   try {
     fs.writeFileSync(outputFolder + fileName, output)
   } catch (e) {
-    console.error(`Error writing file ${fileName}:`, e.message)
-    debugger
+    const error = `Error writing file ${fileName}: ${e.message}`
+    console.error(error)
+    throw error
   }
   exchangeLinks.push (`\t- [${name}](${fileName})`)
 })
