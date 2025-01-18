@@ -853,7 +853,7 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
 ```javascript
 {
     'id':       'btc',       // string literal for referencing within an exchange
-    'code':     'BTC',       // uppercase unified string literal code the currency
+    'code':     'BTC',       // uppercase unified string literal code of the currency
     'name':     'Bitcoin',   // string, human-readable name, if specified
     'active':    true,       // boolean, currency status (tradeable and withdrawable)
     'fee':       0.123,      // withdrawal fee, flat

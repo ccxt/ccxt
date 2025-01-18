@@ -411,7 +411,7 @@ public partial class bybit
     /// <item>
     /// <term>params.isLeverage</term>
     /// <description>
-    /// boolean : *unified spot only* false then spot trading true then margin trading
+    /// int : *unified spot only* false then spot trading true then margin trading
     /// </description>
     /// </item>
     /// <item>

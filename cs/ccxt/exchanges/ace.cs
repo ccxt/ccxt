@@ -471,7 +471,7 @@ public partial class ace : Exchange
         //     }
         //
         object orderBook = this.safeDict(response, "attachment");
-        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks");
+        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks", 1, 0);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

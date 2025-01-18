@@ -201,6 +201,8 @@ class hyperliquid extends Exchange {
                     'Order price cannot be more than 80% away from the reference price' => '\\ccxt\\InvalidOrder',
                     'Order has zero size.' => '\\ccxt\\InvalidOrder',
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -694,6 +696,11 @@ class hyperliquid extends Exchange {
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
+        $isDelisted = $this->safe_bool($market, 'isDelisted');
+        $active = true;
+        if ($isDelisted !== null) {
+            $active = !$isDelisted;
+        }
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -709,7 +716,7 @@ class hyperliquid extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => true,
+            'active' => $active,
             'contract' => $contract,
             'linear' => true,
             'inverse' => false,
@@ -2879,7 +2886,27 @@ class hyperliquid extends Exchange {
             'signature' => $sig,
         );
         $response = $this->privatePostExchange ($request);
-        return $response;
+        //
+        // array('response' => array('type' => 'default'), 'status' => 'ok')
+        //
+        return $this->parse_transfer($response);
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        // array('response' => array('type' => 'default'), 'status' => 'ok')
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'ok',
+        );
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {

@@ -4781,7 +4781,7 @@ class mexc extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $currencyId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );

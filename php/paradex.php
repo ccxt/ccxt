@@ -260,6 +260,7 @@ class paradex extends Exchange {
                     '40112' => '\\ccxt\\PermissionDenied', // Geo IP blocked
                 ),
                 'broad' => array(
+                    'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -268,6 +269,74 @@ class paradex extends Exchange {
             'options' => array(
                 'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
                 'broker' => 'CCXT',
+            ),
+            'features' => array(
+                'spot' => null,
+                'forSwap' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true, // todo
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => null, // todo
+                    'fetchOHLCV' => array(
+                        'limit' => null, // todo by from/to
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forSwap',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
         ));
     }
@@ -1045,7 +1114,8 @@ class paradex extends Exchange {
             }
         }
         $account = $this->retrieve_account();
-        $expires = $now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        $expires = $now + 180;
         $req = array(
             'method' => 'POST',
             'path' => '/v1/auth',

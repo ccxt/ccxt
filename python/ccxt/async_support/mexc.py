@@ -4475,7 +4475,7 @@ class mexc(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, currencyId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }

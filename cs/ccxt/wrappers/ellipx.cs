@@ -98,6 +98,12 @@ public partial class ellipx
     /// object : extra parameters specific to the API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>OHLCV[]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
