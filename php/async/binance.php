@@ -7154,6 +7154,7 @@ class binance extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch for a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
