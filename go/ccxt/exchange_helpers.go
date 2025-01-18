@@ -658,20 +658,29 @@ func InOp(dict interface{}, key interface{}) bool {
 	if IsNumber(key) {
 		return false
 	}
-	dictVal := reflect.ValueOf(dict)
-
-	// Ensure that the provided dict is a map
-	if dictVal.Kind() != reflect.Map {
-		return false
+	
+	switch v := dict.(type) {
+	case map[string]interface{}:
+		if _, ok := v[key.(string)]; ok {
+			return true
+		}
 	}
 
-	keyVal := reflect.ValueOf(key)
-
-	// Check if the map has the provided key todo:debug here
-	if dictVal.MapIndex(keyVal).IsValid() {
-		return true
-	}
 	return false
+	// dictVal := reflect.ValueOf(dict)
+
+	// // Ensure that the provided dict is a map
+	// if dictVal.Kind() != reflect.Map {
+	// 	return false
+	// }
+
+	// keyVal := reflect.ValueOf(key)
+
+	// // Check if the map has the provided key todo:debug here
+	// if dictVal.MapIndex(keyVal).IsValid() {
+	// 	return true
+	// }
+	// return false
 }
 
 // func InOp(dict interface{}, key interface{}) bool {
