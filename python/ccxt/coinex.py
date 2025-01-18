@@ -4612,6 +4612,12 @@ class coinex(Exchange, ImplicitAPI):
             'ccy': currency['id'],
             'to_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'amount': self.number_to_string(amount),  # the actual amount without fees, https://www.coinex.com/fees
+        }
+        if tag:
+            request: dict = {
+            'ccy': currency['id'],
+            'to_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'amount': self.number_to_string(amount),  # the actual amount without fees, https://www.coinex.com/fees
             'memo': tag
         }
         networkCode = None
