@@ -152,34 +152,34 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		return nil
 	}
 
-	// switch v := collection.(type) {
-	// case map[string]interface{}:
-	// 	if val, ok := v[key.(string)]; ok {
-	// 		return val
-	// 	}
-	// 	return nil
-	// case []interface{}:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case []string:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case []int64:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case []float64:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case []bool:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case []int:
-	// 	index := int(ParseInt(key))
-	// 	return v[index]
-	// case string:
-	// 	index := int(ParseInt(key))
-	// 	return string(v[index])
-	// }
+	switch v := collection.(type) {
+	case map[string]interface{}:
+		if val, ok := v[key.(string)]; ok {
+			return val
+		}
+		return nil
+	case []interface{}:
+		index := int(ParseInt(key))
+		return v[index]
+	case []string:
+		index := int(ParseInt(key))
+		return v[index]
+	case []int64:
+		index := int(ParseInt(key))
+		return v[index]
+	case []float64:
+		index := int(ParseInt(key))
+		return v[index]
+	case []bool:
+		index := int(ParseInt(key))
+		return v[index]
+	case []int:
+		index := int(ParseInt(key))
+		return v[index]
+	case string:
+		index := int(ParseInt(key))
+		return string(v[index])
+	}
 
 	reflectValue := reflect.ValueOf(collection)
 
