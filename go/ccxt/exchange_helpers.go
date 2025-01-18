@@ -658,20 +658,29 @@ func InOp(dict interface{}, key interface{}) bool {
 	if IsNumber(key) {
 		return false
 	}
-	dictVal := reflect.ValueOf(dict)
-
-	// Ensure that the provided dict is a map
-	if dictVal.Kind() != reflect.Map {
-		return false
+	
+	switch v := dict.(type) {
+	case map[string]interface{}:
+		if _, ok := v[key.(string)]; ok {
+			return true
+		}
 	}
 
-	keyVal := reflect.ValueOf(key)
-
-	// Check if the map has the provided key todo:debug here
-	if dictVal.MapIndex(keyVal).IsValid() {
-		return true
-	}
 	return false
+	// dictVal := reflect.ValueOf(dict)
+
+	// // Ensure that the provided dict is a map
+	// if dictVal.Kind() != reflect.Map {
+	// 	return false
+	// }
+
+	// keyVal := reflect.ValueOf(key)
+
+	// // Check if the map has the provided key todo:debug here
+	// if dictVal.MapIndex(keyVal).IsValid() {
+	// 	return true
+	// }
+	// return false
 }
 
 func GetIndexOf(str interface{}, target interface{}) int {
@@ -980,32 +989,44 @@ func Split(str interface{}, sep interface{}) []string {
 
 // ObjectKeys returns the keys of a map as a slice of strings
 func ObjectKeys(v interface{}) []string {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Map {
+
+	if v == nil {
 		return nil
 	}
 
-	keys := val.MapKeys()
-	strKeys := make([]string, len(keys))
-	for i, key := range keys {
-		strKeys[i] = ToString(key.Interface())
+	if mapObject, ok := v.(map[string]interface{}); ok {
+		keys := make([]string, 0, len(mapObject))
+		for key := range mapObject {
+			keys = append(keys, key)
+		}
+		return keys
 	}
-	return strKeys
+	return nil
+	// val := reflect.ValueOf(v)
+	// if val.Kind() != reflect.Map {
+	// 	return nil
+	// }
+
+	// keys := val.MapKeys()
+	// strKeys := make([]string, len(keys))
+	// for i, key := range keys {
+	// 	strKeys[i] = ToString(key.Interface())
+	// }
+	// return strKeys
 }
 
 // ObjectValues returns the values of a map as a slice of interface{}
 func ObjectValues(v interface{}) []interface{} {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Map {
-		return nil
+	// return values
+	if mapObject, ok := v.(map[string]interface{}); ok {
+		values := make([]interface{}, 0, len(mapObject))
+		for _, value := range mapObject {
+			values = append(values, value)
+		}
+		return values
 	}
-
-	keys := val.MapKeys()
-	values := make([]interface{}, len(keys))
-	for i, key := range keys {
-		values[i] = val.MapIndex(key).Interface()
-	}
-	return values
+	return nil
+	// val := ref
 }
 
 func JsonParse(jsonStr2 interface{}) interface{} {
@@ -1142,16 +1163,24 @@ func IsNil(x interface{}) bool {
 	if x == nil {
 		return true
 	}
+	return false
 
-	value := reflect.ValueOf(x)
-	kind := value.Kind()
+	// switch val := x.(type){
+	// case interface{}:
+	// 	return val == nil
+	// case 
 
-	switch kind {
-	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
-		return value.IsNil()
-	default:
-		return false
-	}
+	// }
+
+	// value := reflect.ValueOf(x)
+	// kind := value.Kind()
+
+	// switch kind {
+	// case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+	// 	return value.IsNil()
+	// default:
+	// 	return false
+	// }
 }
 
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
