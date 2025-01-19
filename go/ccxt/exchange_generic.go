@@ -134,9 +134,11 @@ func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
 		outDict[key] = value
 	}
 	if len(bb) > 0 {
-		b := bb[0].(map[string]interface{})
-		for key, value := range b {
-			outDict[key] = value
+		b, ok := bb[0].(map[string]interface{})
+		if ok {
+			for key, value := range b {
+				outDict[key] = value
+			}
 		}
 	}
 	return outDict
@@ -167,71 +169,71 @@ func (this *Exchange) DeepExtend2(objs ...interface{}) interface{} {
 	return outDict
 }
 
-// func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
-// 	var outObj interface{}
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		if reflect.TypeOf(x).Kind() == reflect.Map {
-// 			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
-// 				outObj = make(map[string]interface{})
-// 			}
-// 			dictX := x.(map[string]interface{})
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]interface{})[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-// 					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]interface{})[k] = arg2
-// 					} else {
-// 						outObj.(map[string]interface{})[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]interface{})
-// }
-
 func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
-	var outObj map[string]interface{}
-
+	var outObj interface{}
 	for _, x := range objs {
 		if x == nil {
 			continue
 		}
-
-		dictX, ok := x.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		if outObj == nil {
-			outObj = make(map[string]interface{})
-		}
-
-		for k, v := range dictX {
-			if existingVal, exists := outObj[k]; exists {
-				if existingMap, ok1 := existingVal.(map[string]interface{}); ok1 {
-					if vMap, ok2 := v.(map[string]interface{}); ok2 {
-						// Recursively merge maps
-						outObj[k] = this.DeepExtend(existingMap, vMap)
-						continue
+		if reflect.TypeOf(x).Kind() == reflect.Map {
+			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
+				outObj = make(map[string]interface{})
+			}
+			dictX := x.(map[string]interface{})
+			for k, _ := range dictX {
+				arg1 := outObj.(map[string]interface{})[k]
+				arg2 := dictX[k]
+				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
+					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
+				} else {
+					if arg2 != nil {
+						outObj.(map[string]interface{})[k] = arg2
+					} else {
+						outObj.(map[string]interface{})[k] = arg1
 					}
 				}
 			}
-			// Directly assign the value if no deep merging is needed
-			outObj[k] = v
+		} else {
+			outObj = x
 		}
 	}
-
-	return outObj
+	return outObj.(map[string]interface{})
 }
+
+// func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
+// 	var outObj map[string]interface{}
+
+// 	for _, x := range objs {
+// 		if x == nil {
+// 			continue
+// 		}
+
+// 		dictX, ok := x.(map[string]interface{})
+// 		if !ok {
+// 			continue
+// 		}
+
+// 		if outObj == nil {
+// 			outObj = make(map[string]interface{})
+// 		}
+
+// 		for k, v := range dictX {
+// 			if existingVal, exists := outObj[k]; exists {
+// 				if existingMap, ok1 := existingVal.(map[string]interface{}); ok1 {
+// 					if vMap, ok2 := v.(map[string]interface{}); ok2 {
+// 						// Recursively merge maps
+// 						outObj[k] = this.DeepExtend(existingMap, vMap)
+// 						continue
+// 					}
+// 				}
+// 			}
+// 			// Directly assign the value if no deep merging is needed
+// 			outObj[k] = v
+// 		}
+// 	}
+
+// 	return outObj
+// }
 
 // func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 // 	var outObj interface{}
