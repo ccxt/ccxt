@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
@@ -25,6 +26,11 @@ var rateLimit = true
 var verbose = false
 var noKeys = false
 var timeIt = false
+
+func getRandomKeyFromList(list []string) string {
+	randomIndex := rand.IntN(len(list) - 1)
+	return list[randomIndex]
+}
 
 func benchmarks() {
 	exchange := ccxt.NewBinanceCore()
@@ -54,7 +60,7 @@ func benchmarks() {
 	afterTickerNs := time.Now().UnixNano()
 	_ = exchange.ParseOHLCV(ohlcvContent)
 	afterOHLCV := time.Now().UnixNano()
-	_ = exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
+	ob := exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
 	afterOrderBook := time.Now().UnixNano()
 	_ = exchange.ParseTrades(tradesContent)
 	afterTrades := time.Now().UnixNano()
@@ -76,6 +82,8 @@ func benchmarks() {
 		"third":  3.0,
 	}
 
+	testMapKeys := []string{"first", "second", "third"}
+
 	toExtendMap := map[string]interface{}{
 		"fourth": 4,
 		"first":  2,
@@ -94,7 +102,7 @@ func benchmarks() {
 	var safeNumberRes int64 = 0
 	for i := 0; i < 1000; i++ {
 		beforeNs := time.Now().UnixNano()
-		_ = exchange.SafeNumber(testMap, "first")
+		_ = exchange.SafeNumber(testMap, getRandomKeyFromList(testMapKeys))
 		afterNs := time.Now().UnixNano()
 		took := afterNs - beforeNs
 		safeNumberRes += took
@@ -116,6 +124,62 @@ func benchmarks() {
 	fmt.Println("|--------------------------------------------|")
 	fmt.Println("|  safeNumber on an array:     ", safeNumberResArr, "ns")
 	fmt.Println("|  safeNumber on an array avg: ", safeNumberResArr/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var safeIntegerRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeInteger(testMap, getRandomKeyFromList(testMapKeys))
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeIntegerRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeInteger on a map:     ", safeIntegerRes, "ns")
+	fmt.Println("|  safeInteger on a map avg: ", safeIntegerRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var safeIntegerResArr int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeInteger(testArr, 0)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeIntegerResArr += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeInteger on an array:     ", safeIntegerResArr, "ns")
+	fmt.Println("|  safeInteger on an array avg: ", safeIntegerResArr/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var safeStringRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeString(testMap, getRandomKeyFromList(testMapKeys))
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeStringRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeString on a map:     ", safeStringRes, "ns")
+	fmt.Println("|  safeString on a map avg: ", safeStringRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var safeStringResArr int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeString(testArr, 0)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeStringResArr += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeString on an array:     ", safeStringResArr, "ns")
+	fmt.Println("|  safeString on an array avg: ", safeStringResArr/1000, "ns")
 	fmt.Println("|--------------------------------------------|")
 
 	var deepExtendRes int64 = 0
@@ -149,7 +213,7 @@ func benchmarks() {
 	var getValueRes int64 = 0
 	for i := 0; i < 1000; i++ {
 		beforeNs := time.Now().UnixNano()
-		_ = ccxt.GetValue(testMap, "first")
+		_ = ccxt.GetValue(testMap, getRandomKeyFromList(testMapKeys))
 		afterNs := time.Now().UnixNano()
 		took := afterNs - beforeNs
 		getValueRes += took
@@ -172,6 +236,22 @@ func benchmarks() {
 	fmt.Println("|--------------------------------------------|")
 	fmt.Println("|  getValue on an array:     ", getValueArrRes, "ns")
 	fmt.Println("|  getValue on an array avg: ", getValueArrRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	obBids := ccxt.GetValue(ob, "bids")
+	var sortByRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SortBy(obBids, 0)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		sortByRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  sortBy on an array:     ", sortByRes, "ns")
+	fmt.Println("|  sortBy on an array avg: ", sortByRes/1000, "ns")
+	fmt.Println("|  sortBy on an array avg: ", sortByRes/1000/1000000, "ms")
 	fmt.Println("|--------------------------------------------|")
 }
 
