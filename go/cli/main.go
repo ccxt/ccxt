@@ -40,10 +40,12 @@ func benchmarks() {
 	tickersFile := baseDir + "/bench/tickers.json"
 	ohlcvFile := baseDir + "/bench/ohlcv.json"
 	orderBookFile := baseDir + "/bench/orderbook.json"
+	tradesFile := baseDir + "/bench/trades.json"
 
 	tickersContent := IoFileRead(tickersFile, true)
 	ohlcvContent := IoFileRead(ohlcvFile, true)
 	orderBookContent := IoFileRead(orderBookFile, true)
+	tradesContent := IoFileRead(tradesFile, true)
 
 	exchange.Markets = marketsContent.(map[string]interface{})
 
@@ -54,14 +56,18 @@ func benchmarks() {
 	afterOHLCV := time.Now().UnixNano()
 	_ = exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
 	afterOrderBook := time.Now().UnixNano()
+	_ = exchange.ParseTrades(tradesContent, "BTC/USDT")
+	afterTrades := time.Now().UnixNano()
 
 	tickerNs := afterTickerNs - beforeTickerNs
 	ohlcvNs := afterOHLCV - afterTickerNs
 	orderBookNs := afterOrderBook - afterOHLCV
+	tradesNs := afterTrades - afterOrderBook
 	fmt.Println("|--------------------------------------------|")
 	fmt.Println("| [2000+] parseTickers:   ", tickerNs, "ns ", tickerNs/1000000, "ms")
 	fmt.Println("| [500]   parseOHLCV:     ", afterOHLCV-afterTickerNs, "ns ", ohlcvNs/1000000, "ms")
 	fmt.Println("| [5000]  parseOrderBook: ", afterOrderBook-afterOHLCV, "ns ", orderBookNs/1000000, "ms")
+	fmt.Println("| [1000]  parseTrades:    ", afterTrades-afterOrderBook, "ns ", tradesNs/1000000, "ms")
 	fmt.Println("|--------------------------------------------|")
 
 	testMap := map[string]interface{}{
