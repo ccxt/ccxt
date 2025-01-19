@@ -26,6 +26,121 @@ var verbose = false
 var noKeys = false
 var timeIt = false
 
+func benchmarks() {
+	exchange := ccxt.NewBinanceCore()
+	exchange.Init(nil)
+
+	dir := GetRootDir()
+
+	baseDir := dir + "/go/cli"
+
+	marketsFile := baseDir + "/bench/markets.json"
+	marketsContent := IoFileRead(marketsFile, true)
+
+	tickersFile := baseDir + "/bench/tickers.json"
+	ohlcvFile := baseDir + "/bench/ohlcv.json"
+	orderBookFile := baseDir + "/bench/orderbook.json"
+
+	tickersContent := IoFileRead(tickersFile, true)
+	ohlcvContent := IoFileRead(ohlcvFile, true)
+	orderBookContent := IoFileRead(orderBookFile, true)
+
+	exchange.Markets = marketsContent.(map[string]interface{})
+
+	beforeTickerNs := time.Now().UnixNano()
+	_ = exchange.ParseTickers(tickersContent)
+	afterTickerNs := time.Now().UnixNano()
+	_ = exchange.ParseOHLCV(ohlcvContent)
+	afterOHLCV := time.Now().UnixNano()
+	_ = exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
+	afterOrderBook := time.Now().UnixNano()
+
+	tickerNs := afterTickerNs - beforeTickerNs
+	ohlcvNs := afterOHLCV - afterTickerNs
+	orderBookNs := afterOrderBook - afterOHLCV
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("| [2000+] parseTickers:   ", tickerNs, "ns ", tickerNs/1000000, "ms")
+	fmt.Println("| [500]   parseOHLCV:     ", afterOHLCV-afterTickerNs, "ns ", ohlcvNs/1000000, "ms")
+	fmt.Println("| [5000]  parseOrderBook: ", afterOrderBook-afterOHLCV, "ns ", orderBookNs/1000000, "ms")
+	fmt.Println("|--------------------------------------------|")
+
+	testMap := map[string]interface{}{
+		"first":  1,
+		"second": "2",
+		"third":  3.0,
+	}
+
+	toExtendMap := map[string]interface{}{
+		"fourth": 4,
+		"first":  2,
+		"third": map[string]interface{}{
+			"nested": 3,
+		},
+	}
+
+	testArr := []interface{}{
+		1,
+		"2",
+		3.0,
+	}
+
+	// safeNumber on a map
+	var safeNumberRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeNumber(testMap, "first")
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeNumberRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeNumber on a map:     ", safeNumberRes, "ns")
+	fmt.Println("|  safeNumber on a map avg: ", safeNumberRes/1000, "ns")
+
+	var safeNumberResArr int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.SafeNumber(testArr, 0)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		safeNumberResArr += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  safeNumber on an array:     ", safeNumberResArr, "ns")
+	fmt.Println("|  safeNumber on an array avg: ", safeNumberResArr/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var deepExtendRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = exchange.DeepExtend(testMap, toExtendMap)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		deepExtendRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  deepExtend on a map:     ", deepExtendRes, "ns")
+	fmt.Println("|  deepExtend on a map avg: ", deepExtendRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var inOpRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = ccxt.InOp("first", testMap)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		inOpRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  inOp on a map:     ", inOpRes, "ns")
+	fmt.Println("|  inOp on a map avg: ", inOpRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+}
+
 func contains(arr []interface{}, item interface{}) bool {
 	for _, a := range arr {
 		if a == item {
@@ -128,6 +243,7 @@ func InitOptions(instance ccxt.IExchange, flags []string) {
 	if containsStr(flags, "--rate") {
 		rateLimit = false
 	}
+
 }
 
 func PrettyPrintData(data interface{}) {
@@ -171,6 +287,11 @@ func SetCredentials(instance ccxt.IExchange) {
 }
 
 func main() {
+
+	if containsStr(os.Args, "--bench") {
+		benchmarks()
+		return
+	}
 
 	args := os.Args
 	if len(args) < 3 {
