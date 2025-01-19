@@ -1380,6 +1380,7 @@ class mexc(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
+            isLinear = quote == settle
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1397,8 +1398,8 @@ class mexc(Exchange, ImplicitAPI):
                 'option': False,
                 'active': (state == '0'),
                 'contract': True,
-                'linear': True,
-                'inverse': False,
+                'linear': isLinear,
+                'inverse': not isLinear,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
