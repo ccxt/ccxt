@@ -73,7 +73,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#createOrder
+     * @name hyperliquid#createOrderWs
      * @description create a trade order using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -99,7 +99,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#editOrder
+     * @name hyperliquid#editOrderWs
      * @description edit a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
