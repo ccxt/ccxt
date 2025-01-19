@@ -56,7 +56,7 @@ func benchmarks() {
 	afterOHLCV := time.Now().UnixNano()
 	_ = exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
 	afterOrderBook := time.Now().UnixNano()
-	_ = exchange.ParseTrades(tradesContent, "BTC/USDT")
+	_ = exchange.ParseTrades(tradesContent)
 	afterTrades := time.Now().UnixNano()
 
 	tickerNs := afterTickerNs - beforeTickerNs
