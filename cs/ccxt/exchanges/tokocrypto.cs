@@ -2485,7 +2485,7 @@ public partial class tokocrypto : Exchange
 
     /**
      * @method
-     * @name bybit#withdraw
+     * @name tokocrypto#withdraw
      * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
      * @description make a withdrawal
      * @param {string} code unified currency code
