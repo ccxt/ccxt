@@ -623,40 +623,122 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 	}
 }
 
+// without reflection
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
-	val := reflect.ValueOf(arrayOrDict)
-	key := reflect.ValueOf(stringOrInt)
-	valueVal := reflect.ValueOf(value)
-
-	switch val.Kind() {
-	case reflect.Slice:
-		if key.Kind() != reflect.Int {
-			// return fmt.Errorf("index must be an integer for slices")
-		}
-		index := int(key.Int())
-		if index < 0 || index >= val.Len() {
-			// return fmt.Errorf("index out of range")
-		}
-		val.Index(index).Set(valueVal)
-	case reflect.Map:
-		if !key.Type().AssignableTo(val.Type().Key()) {
-			// return fmt.Errorf("key type %s does not match map key type %s", key.Type(), val.Type().Key())
-		}
-		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
-		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
-		// }
-		// fmt.Println("key", key.Interface())
-		// fmt.Println("value", valueVal.Interface())
-		if !valueVal.IsValid() {
-			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+	switch obj := arrayOrDict.(type) {
+	case []string:
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < len(obj) {
+				obj[index] = fmt.Sprintf("%v", value)
+				// return nil
+			} else {
+				// return fmt.Errorf("index out of range")
+			}
 		} else {
-			val.SetMapIndex(key, valueVal)
+			// return fmt.Errorf("invalid key type for slice: expected int")
+		}
+	case []int:
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < len(obj) {
+				if v, ok := value.(int); ok {
+					obj[index] = v
+					// return nil
+				} else {
+					// return fmt.Errorf("value type mismatch for slice of int")
+				}
+			} else {
+				// return fmt.Errorf("index out of range")
+			}
+		} else {
+			// return fmt.Errorf("invalid key type for slice: expected int")
+		}
+	case []interface{}:
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < len(obj) {
+				obj[index] = value
+				// return nil
+			} else {
+				// return fmt.Errorf("index out of range")
+			}
+		} else {
+			// return fmt.Errorf("invalid key type for slice: expected int")
+		}
+	case []int64:
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < len(obj) {
+				if v, ok := value.(int64); ok {
+					obj[index] = v
+					// return nil
+				} else {
+					// return fmt.Errorf("value type mismatch for slice of int64")
+				}
+			} else {
+				// return fmt.Errorf("index out of range")
+			}
+		} else {
+			// return fmt.Errorf("invalid key type for slice: expected int")
+		}
+	case []float64:
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < len(obj) {
+				if v, ok := value.(float64); ok {
+					obj[index] = v
+					// return nil
+				} else {
+					// return fmt.Errorf("value type mismatch for slice of float64")
+				}
+			} else {
+				// return fmt.Errorf("index out of range")
+			}
+		} else {
+			// return fmt.Errorf("invalid key type for slice: expected int")
+		}
+	case map[string]interface{}:
+		if key, ok := stringOrInt.(string); ok {
+			obj[key] = value
+			// return nil
+		} else {
+			// return fmt.Errorf("invalid key type for map: expected string")
 		}
 	default:
-		// return fmt.Errorf("unsupported type: %s", val.Kind())
+		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
 	}
-	// return nil
 }
+
+// func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
+// 	val := reflect.ValueOf(arrayOrDict)
+// 	key := reflect.ValueOf(stringOrInt)
+// 	valueVal := reflect.ValueOf(value)
+
+// 	switch val.Kind() {
+// 	case reflect.Slice:
+// 		if key.Kind() != reflect.Int {
+// 			// return fmt.Errorf("index must be an integer for slices")
+// 		}
+// 		index := int(key.Int())
+// 		if index < 0 || index >= val.Len() {
+// 			// return fmt.Errorf("index out of range")
+// 		}
+// 		val.Index(index).Set(valueVal)
+// 	case reflect.Map:
+// 		if !key.Type().AssignableTo(val.Type().Key()) {
+// 			// return fmt.Errorf("key type %s does not match map key type %s", key.Type(), val.Type().Key())
+// 		}
+// 		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
+// 		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
+// 		// }
+// 		// fmt.Println("key", key.Interface())
+// 		// fmt.Println("value", valueVal.Interface())
+// 		if !valueVal.IsValid() {
+// 			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 		} else {
+// 			val.SetMapIndex(key, valueVal)
+// 		}
+// 	default:
+// 		// return fmt.Errorf("unsupported type: %s", val.Kind())
+// 	}
+// 	// return nil
+// }
 
 func InOp(dict interface{}, key interface{}) bool {
 
@@ -1242,9 +1324,10 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 		return def
 	}
 
-	if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
-		return def
-	}
+	// do we need this??
+	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+	// 	return def
+	// }
 
 	return val
 }
