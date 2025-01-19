@@ -210,6 +210,64 @@ export default class exmo extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true, // todo revise
+                        'triggerPrice': true, // todo: endpoint lacks other features
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo, not in request
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {
                 'GMT': 'GMT Token',
             },
@@ -875,36 +933,45 @@ export default class exmo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeIntegerProduct (params, 'until', 0.001);
+        const untilIsDefined = (until !== undefined);
         const request: Dict = {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const maxLimit = 3000;
         const duration = this.parseTimeframe (timeframe);
-        const now = this.milliseconds ();
+        const now = this.parseToInt (this.milliseconds () / 1000);
         if (since === undefined) {
+            const to = untilIsDefined ? Math.min (until, now) : now;
             if (limit === undefined) {
                 limit = 1000; // cap default at generous amount
             } else {
                 limit = Math.min (limit, maxLimit);
             }
-            request['from'] = this.parseToInt (now / 1000) - limit * duration - 1;
-            request['to'] = this.parseToInt (now / 1000);
+            request['from'] = to - (limit * duration) - 1;
+            request['to'] = to;
         } else {
             request['from'] = this.parseToInt (since / 1000) - 1;
-            if (limit === undefined) {
-                limit = maxLimit;
+            if (untilIsDefined) {
+                request['to'] = Math.min (until, now);
             } else {
-                limit = Math.min (limit, maxLimit);
+                if (limit === undefined) {
+                    limit = maxLimit;
+                } else {
+                    limit = Math.min (limit, maxLimit);
+                }
+                const to = this.sum (since, limit * duration);
+                request['to'] = Math.min (to, now);
             }
-            const to = this.sum (since, limit * duration * 1000);
-            request['to'] = this.parseToInt (to / 1000);
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetCandlesHistory (this.extend (request, params));
         //
         //     {

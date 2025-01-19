@@ -281,6 +281,7 @@ class onetrading extends Exchange {
                     'INTERNAL_SERVER_ERROR' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
+                    'Order not found.' => '\\ccxt\\OrderNotFound',
                 ),
             ),
             'commonCurrencies' => array(
@@ -292,6 +293,72 @@ class onetrading extends Exchange {
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
                 'fiat' => array( 'EUR', 'CHF' ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1 / 12, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
         ));
     }
@@ -900,7 +967,8 @@ class onetrading extends Exchange {
             //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521),
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $ohlcv = $this->safe_list($response, 'candlesticks');
+            return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
 
@@ -1044,6 +1112,7 @@ class onetrading extends Exchange {
             'CLOSED' => 'canceled',
             'FAILED' => 'failed',
             'STOP_TRIGGERED' => 'triggered',
+            'DONE' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1139,7 +1208,7 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -1154,6 +1223,13 @@ class onetrading extends Exchange {
             // 'fee' => null,
             'trades' => $rawTrades,
         ), $market);
+    }
+
+    public function parse_order_type(?string $type) {
+        $types = array(
+            'booked' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1220,6 +1296,9 @@ class onetrading extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
+            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+            $params = $this->omit($params, 'timeInForce');
+            $request['time_in_force'] = $timeInForce;
             $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             //
             //     {
@@ -1263,11 +1342,16 @@ class onetrading extends Exchange {
             } else {
                 $request['order_id'] = $id;
             }
-            $response = Async\await($this->$method ($this->extend($request, $params)));
+            $response = null;
+            if ($method === 'privateDeleteAccountOrdersOrderId') {
+                $response = Async\await($this->privateDeleteAccountOrdersOrderId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteAccountOrdersClientClientId ($this->extend($request, $params)));
+            }
             //
             // responds with an empty body
             //
-            return $response;
+            return $this->parse_order($response);
         }) ();
     }
 

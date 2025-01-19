@@ -1403,18 +1403,18 @@ class bitget(Exchange, ImplicitAPI):
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 52,
+                        '10m': 30,
                         '15m': 52,
-                        '30m': 52,
+                        '30m': 62,
                         '1h': 83,
                         '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 360,
-                        '1d': 360,
-                        '3d': 1000,
-                        '1w': 1000,
-                        '1M': 1000,
+                        '1d': 300,
+                        '3d': 300,
+                        '1w': 300,
+                        '1M': 300,
                     },
                 },
                 'fetchTrades': {
@@ -1445,16 +1445,102 @@ class bitget(Exchange, ImplicitAPI):
                 },
                 'sandboxMode': False,
                 'networks': {
+                    # 'TRX': 'TRX',  # different code for mainnet
                     'TRC20': 'TRC20',
+                    # 'ETH': 'ETH',  # different code for mainnet
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
-                    'ARB': 'ArbitrumOne',
+                    # 'BEP20': 'BEP20',  # different for BEP20
+                    'BSC': 'BEP20',
+                    'ATOM': 'ATOM',
+                    'ACA': 'AcalaToken',
+                    'APT': 'Aptos',
+                    'ARBONE': 'ArbitrumOne',
+                    'ARBNOVA': 'ArbitrumNova',
+                    'AVAXC': 'C-Chain',
+                    'AVAXX': 'X-Chain',
+                    'AR': 'Arweave',
+                    'BCH': 'BCH',
+                    'BCHA': 'BCHA',
+                    'BITCI': 'BITCI',
+                    'BTC': 'BTC',
+                    'CELO': 'CELO',
+                    'CSPR': 'CSPR',
+                    'ADA': 'Cardano',
+                    'CHZ': 'ChilizChain',
+                    'CRC20': 'CronosChain',
+                    'DOGE': 'DOGE',
+                    'DOT': 'DOT',
+                    'EOS': 'EOS',
+                    'ETHF': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'ETC': 'ETC',
+                    'EGLD': 'Elrond',
+                    'FIL': 'FIL',
+                    'FIO': 'FIO',
+                    'FTM': 'Fantom',
+                    'HRC20': 'HECO',
+                    'ONE': 'Harmony',
+                    'HNT': 'Helium',
+                    'ICP': 'ICP',
+                    'IOTX': 'IoTeX',
+                    'KARDIA': 'KAI',
+                    'KAVA': 'KAVA',
+                    'KDA': 'KDA',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
+                    'LAT': 'LAT',
+                    'LTC': 'LTC',
+                    'MINA': 'MINA',
+                    'MOVR': 'MOVR',
+                    'METIS': 'MetisToken',
+                    'GLMR': 'Moonbeam',
+                    'NEAR': 'NEARProtocol',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OASIS': 'ROSE',
+                    'OMNI': 'OMNI',
+                    'ONT': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'OSMO': 'Osmosis',
+                    'POKT': 'PocketNetwork',
+                    'MATIC': 'Polygon',
+                    'QTUM': 'QTUM',
+                    'REEF': 'REEF',
+                    'SOL': 'SOL',
+                    'SYS': 'SYS',  # SyscoinNEVM is different
+                    'SXP': 'Solar',
+                    'XYM': 'Symbol',
+                    'TON': 'TON',
+                    'TT': 'TT',
+                    'TLOS': 'Telos',
+                    'THETA': 'ThetaToken',
+                    'VITE': 'VITE',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAXP',
+                    'WEMIX': 'WEMIXMainnet',
+                    'XDC': 'XDCNetworkXDC',
+                    'XRP': 'XRP',
+                    'FET': 'FETCH',
+                    'NEM': 'NEM',
+                    'REI': 'REINetwork',
+                    'ZIL': 'ZIL',
+                    'ABBC': 'ABBCCoin',
+                    'RSK': 'RSK',
+                    'AZERO': 'AZERO',
+                    'TRC10': 'TRC10',
+                    'JUNO': 'JUNO',
+                    # undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                    # todo: uncomment below after unification
+                    # 'TERRACLASSIC': 'Terra',  # tbd, that network id is also assigned to TERRANEW network
+                    # 'CUBENETWORK': 'CUBE',
+                    # 'CADUCEUS': 'CMP',
+                    # 'CONFLUX': 'CFX',  # CFXeSpace is different
+                    # 'CERE': 'CERE',
+                    # 'CANTO': 'CANTO',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'APT': 'Aptos',
-                    'MATIC': 'Polygon',
                     'VIC': 'VICTION',
-                    'AVAXC': 'C-Chain',
                 },
                 'networksById': {
                 },
@@ -1483,7 +1569,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': False,
                                 'index': False,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1525,7 +1611,7 @@ class bitget(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 100,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -1553,7 +1639,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': False,
+                            'price': False,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -2304,13 +2390,13 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
-        chain = self.safe_string_2(params, 'chain', 'network')
-        params = self.omit(params, 'network')
-        if chain is None:
-            raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter or a network parameter')
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         await self.load_markets()
         currency = self.currency(code)
-        networkId = self.network_code_to_id(chain)
+        networkId = self.network_code_to_id(networkCode)
         request: dict = {
             'coin': currency['id'],
             'address': address,
@@ -2333,27 +2419,8 @@ class bitget(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        result: dict = {
-            'id': self.safe_string(data, 'orderId'),
-            'info': response,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'network': None,
-            'addressFrom': None,
-            'address': None,
-            'addressTo': None,
-            'amount': None,
-            'type': 'withdrawal',
-            'currency': None,
-            'status': None,
-            'updated': None,
-            'tagFrom': None,
-            'tag': None,
-            'tagTo': None,
-            'comment': None,
-            'fee': None,
-        }
+        result = self.parse_transaction(data, currency)
+        result['type'] = 'withdrawal'
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
@@ -2364,7 +2431,7 @@ class bitget(Exchange, ImplicitAPI):
             result['tag'] = tag
             result['address'] = address
             result['addressTo'] = address
-            result['network'] = chain
+            result['network'] = networkCode
         return result
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2526,17 +2593,14 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        networkCode = self.safe_string_2(params, 'chain', 'network')
-        params = self.omit(params, 'network')
-        networkId = None
-        if networkCode is not None:
-            networkId = self.network_code_to_id(networkCode, code)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
         }
-        if networkId is not None:
-            request['chain'] = networkId
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode, code)
         response = await self.privateSpotGetV2SpotWalletDepositAddress(self.extend(request, params))
         #
         #     {
@@ -3400,6 +3464,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -3411,8 +3476,9 @@ class bitget(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
         market = None
         if sandboxMode:
             sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
@@ -3440,7 +3506,7 @@ class bitget(Exchange, ImplicitAPI):
         ohlcOptions = self.safe_dict(self.options, 'fetchOHLCV', {})
         retrievableDaysMap = self.safe_dict(ohlcOptions, 'maxDaysPerTimeframe', {})
         maxRetrievableDaysForRecent = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
-        endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay
+        endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay
         if limitDefined:
             limit = min(limit, maxLimitForRecentEndpoint)
             request['limit'] = limit
@@ -3471,7 +3537,7 @@ class bitget(Exchange, ImplicitAPI):
         # make request
         if market['spot']:
             # checks if we need history endpoint
-            if historicalEndpointNeeded:
+            if historicalEndpointNeeded or useHistoryEndpoint:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
@@ -3495,7 +3561,7 @@ class bitget(Exchange, ImplicitAPI):
             elif priceType == 'index':
                 response = await self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
             else:
-                if historicalEndpointNeeded:
+                if historicalEndpointNeeded or useHistoryEndpoint:
                     response = await self.publicMixGetV2MixMarketHistoryCandles(extended)
                 else:
                     response = await self.publicMixGetV2MixMarketCandles(extended)
@@ -4129,8 +4195,10 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+        }
+        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -6614,8 +6682,9 @@ class bitget(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
+        symbols = self.market_symbols(symbols)
         data = self.safe_list(response, 'data', [])
-        return self.parse_funding_rates(data, market)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

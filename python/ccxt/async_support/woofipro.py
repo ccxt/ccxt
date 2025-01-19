@@ -327,8 +327,11 @@ class woofipro(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
-                        # exchange specific
-                        # 'iceberg': True,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 10,
@@ -354,7 +357,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 500,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 100000,
                         'trigger': True,
@@ -375,7 +378,7 @@ class woofipro(Exchange, ImplicitAPI):
                         'attachedStopLossTakeProfit': {
                             # todo: implementation needs unification
                             'triggerPriceType': None,
-                            'limitPrice': False,
+                            'price': False,
                         },
                     },
                 },
@@ -959,8 +962,7 @@ class woofipro(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'rows', [])
-        result = self.parse_funding_rates(rows)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rows, symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

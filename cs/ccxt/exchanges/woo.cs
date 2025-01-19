@@ -274,6 +274,8 @@ public partial class woo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "network-aliases-for-tokens", new Dictionary<string, object>() {
@@ -317,6 +319,11 @@ public partial class woo : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -347,7 +354,7 @@ public partial class woo : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 500 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", true },
@@ -489,6 +496,10 @@ public partial class woo : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.v1PublicGetInfo(parameters);
         //
         // {
@@ -1101,7 +1112,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["margin_mode"] = this.encodeMarginMode(marginMode);
         }
-        object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object algoType = this.safeString(parameters, "algoType");
@@ -1210,7 +1221,7 @@ public partial class woo : Exchange
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(!isEqual(stopLoss, null)))
             {
-                object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                object stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
                 object stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algoType", "STOP_LOSS" },
@@ -1222,7 +1233,7 @@ public partial class woo : Exchange
             }
             if (isTrue(!isEqual(takeProfit, null)))
             {
-                object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                object takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
                 object takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algoType", "TAKE_PROFIT" },
@@ -2813,7 +2824,7 @@ public partial class woo : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -3175,8 +3186,7 @@ public partial class woo : Exchange
         //     }
         //
         object rows = this.safeList(response, "rows", new List<object>() {});
-        object result = this.parseFundingRates(rows);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rows, symbols);
     }
 
     /**

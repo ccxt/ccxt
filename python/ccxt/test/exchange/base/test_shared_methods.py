@@ -326,6 +326,137 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
         assert_greater_or_equal(exchange, skipped_properties, method, entry, key, '-8')  # in real-world cases, there would not be less than that
 
 
+def fetch_best_bid_ask(exchange, method, symbol):
+    log_text = log_template(exchange, method, {})
+    # find out best bid/ask price
+    best_bid = None
+    best_ask = None
+    used_method = None
+    if exchange.has['fetchOrderBook']:
+        used_method = 'fetchOrderBook'
+        orderbook = exchange.fetch_order_book(symbol)
+        bids = exchange.safe_list(orderbook, 'bids')
+        asks = exchange.safe_list(orderbook, 'asks')
+        best_bid_array = exchange.safe_list(bids, 0)
+        best_ask_array = exchange.safe_list(asks, 0)
+        best_bid = exchange.safe_number(best_bid_array, 0)
+        best_ask = exchange.safe_number(best_ask_array, 0)
+    elif exchange.has['fetchBidsAsks']:
+        used_method = 'fetchBidsAsks'
+        tickers = exchange.fetch_bids_asks([symbol])
+        ticker = exchange.safe_dict(tickers, symbol)
+        best_bid = exchange.safe_number(ticker, 'bid')
+        best_ask = exchange.safe_number(ticker, 'ask')
+    elif exchange.has['fetchTicker']:
+        used_method = 'fetchTicker'
+        ticker = exchange.fetch_ticker(symbol)
+        best_bid = exchange.safe_number(ticker, 'bid')
+        best_ask = exchange.safe_number(ticker, 'ask')
+    elif exchange.has['fetchTickers']:
+        used_method = 'fetchTickers'
+        tickers = exchange.fetch_tickers([symbol])
+        ticker = exchange.safe_dict(tickers, symbol)
+        best_bid = exchange.safe_number(ticker, 'bid')
+        best_ask = exchange.safe_number(ticker, 'ask')
+    #
+    assert best_bid is not None and best_ask is not None, log_text + ' ' + exchange.id + ' could not get best bid/ask for ' + symbol + ' using ' + used_method + ' while testing ' + method
+    return [best_bid, best_ask]
+
+
+def fetch_order(exchange, symbol, order_id, skipped_properties):
+    fetched_order = None
+    original_id = order_id
+    # set 'since' to 5 minute ago for optimal results
+    since_time = exchange.milliseconds() - 1000 * 60 * 5
+    # iterate
+    methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']
+    for i in range(0, len(methods_singular)):
+        singular_fetch_name = methods_singular[i]
+        if exchange.has[singular_fetch_name]:
+            current_order = exchange[singular_fetch_name](original_id, symbol)
+            # if there is an id inside the order, it means the order was fetched successfully
+            if current_order['id'] == original_id:
+                fetched_order = current_order
+                break
+    #
+    # search through plural methods
+    if fetched_order is None:
+        methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']
+        for i in range(0, len(methods_plural)):
+            plural_fetch_name = methods_plural[i]
+            if exchange.has[plural_fetch_name]:
+                orders = exchange[plural_fetch_name](symbol, since_time)
+                found = False
+                for j in range(0, len(orders)):
+                    current_order = orders[j]
+                    if current_order['id'] == original_id:
+                        fetched_order = current_order
+                        found = True
+                        break
+                if found:
+                    break
+    return fetched_order
+
+
+def assert_order_state(exchange, skipped_properties, method, order, asserted_status, strict_check):
+    # note, `strictCheck` is `true` only from "fetchOrder" cases
+    log_text = log_template(exchange, method, order)
+    msg = 'order should be ' + asserted_status + ', but it was not asserted' + log_text
+    filled = exchange.safe_string(order, 'filled')
+    amount = exchange.safe_string(order, 'amount')
+    # shorthand variables
+    status_undefined = (order['status'] is None)
+    status_open = (order['status'] == 'open')
+    status_closed = (order['status'] == 'closed')
+    status_clanceled = (order['status'] == 'canceled')
+    filled_defined = (filled is not None)
+    amount_defined = (amount is not None)
+    condition = None
+    #
+    # ### OPEN STATUS
+    #
+    # if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
+    strict_open = status_open and (filled_defined and amount_defined and filled < amount)
+    # if non-strict check, then accept & ignore undefined values
+    nonstrict_open = (status_open or status_undefined) and ((not filled_defined or not amount_defined) or Precise.string_lt(filled, amount))
+    # check
+    if asserted_status == 'open':
+        condition = strict_open if strict_check else nonstrict_open
+        assert condition, msg
+        return
+    #
+    # ### CLOSED STATUS
+    #
+    # if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
+    closed_strict = status_closed and (filled_defined and amount_defined and Precise.string_eq(filled, amount))
+    # if non-strict check, then accept & ignore undefined values
+    closed_non_strict = (status_closed or status_undefined) and ((not filled_defined or not amount_defined) or Precise.string_eq(filled, amount))
+    # check
+    if asserted_status == 'closed':
+        condition = closed_strict if strict_check else closed_non_strict
+        assert condition, msg
+        return
+    #
+    # ### CANCELED STATUS
+    #
+    # if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
+    canceled_strict = status_clanceled and (filled_defined and amount_defined and Precise.string_lt(filled, amount))
+    # if non-strict check, then accept & ignore undefined values
+    canceled_non_strict = (status_clanceled or status_undefined) and ((not filled_defined or not amount_defined) or Precise.string_lt(filled, amount))
+    # check
+    if asserted_status == 'canceled':
+        condition = canceled_strict if strict_check else canceled_non_strict
+        assert condition, msg
+        return
+    #
+    # ### CLOSED_or_CANCELED STATUS
+    #
+    if asserted_status == 'closed_or_canceled':
+        condition = (closed_strict or canceled_strict) if strict_check else (closed_non_strict or canceled_non_strict)
+        assert condition, msg
+        return
+
+
 def remove_proxy_options(exchange, skipped_properties):
     proxy_url = exchange.check_proxy_url_settings()
     [http_proxy, https_proxy, socks_proxy] = exchange.check_proxy_settings()

@@ -88,6 +88,7 @@ class vertex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -1388,15 +1389,82 @@ class vertex extends Exchange {
         //     }
         // }
         //
-        $value = $this->safe_number($interest, 'open_interest_usd');
+        $marketId = $this->safe_string($interest, 'ticker_id');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
-            'openInterestAmount' => null,
-            'openInterestValue' => $value,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => $this->safe_number($interest, 'open_interest_usd'),
             'timestamp' => null,
             'datetime' => null,
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * Retrieves the open interest for a list of $symbols
+             *
+             * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+             *
+             * @param {string[]} [$symbols] a list of unified CCXT $market $symbols
+             * @param {array} [$params] exchange specific parameters
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->v2ArchiveGetContracts ($params));
+            //
+            //     {
+            //         "ADA-PERP_USDC" => array(
+            //             "ticker_id" => "ADA-PERP_USDC",
+            //             "base_currency" => "ADA-PERP",
+            //             "quote_currency" => "USDC",
+            //             "last_price" => 0.85506,
+            //             "base_volume" => 1241320.0,
+            //             "quote_volume" => 1122670.9080057142,
+            //             "product_type" => "perpetual",
+            //             "contract_price" => 0.8558601432685385,
+            //             "contract_price_currency" => "USD",
+            //             "open_interest" => 104040.0,
+            //             "open_interest_usd" => 89043.68930565874,
+            //             "index_price" => 0.8561952606869176,
+            //             "mark_price" => 0.856293781088936,
+            //             "funding_rate" => 0.000116153806226841,
+            //             "next_funding_rate_timestamp" => 1734685200,
+            //             "price_change_percent_24h" => -12.274325340321374
+            //         ),
+            //     }
+            //
+            $parsedSymbols = array();
+            $results = array();
+            $markets = is_array($response) ? array_keys($response) : array();
+            if ($symbols === null) {
+                $symbols = array();
+                for ($y = 0; $y < count($markets); $y++) {
+                    $tickerId = $markets[$y];
+                    $parsedTickerId = explode('-', $tickerId);
+                    $currentSymbol = $parsedTickerId[0] . '/USDC:USDC';
+                    if (!$this->in_array($currentSymbol, $symbols)) {
+                        $symbols[] = $currentSymbol;
+                    }
+                }
+            }
+            for ($i = 0; $i < count($markets); $i++) {
+                $marketId = $markets[$i];
+                $marketInner = $this->safe_market($marketId);
+                $openInterest = $this->safe_dict($response, $marketId, array());
+                for ($j = 0; $j < count($symbols); $j++) {
+                    $market = $this->market($symbols[$j]);
+                    $tickerId = $market['base'] . '_USDC';
+                    if ($marketInner['marketId'] === $tickerId) {
+                        $parsedSymbols[] = $market['symbol'];
+                        $results[] = $this->parse_open_interest($openInterest, $market);
+                    }
+                }
+            }
+            return $this->filter_by_array($results, 'symbol', $parsedSymbols);
+        }) ();
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

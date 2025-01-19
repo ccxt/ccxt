@@ -726,6 +726,7 @@ interface binance {
     papiGetUmSymbolConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmAccountConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder(params?: {}): Promise<implicitReturnType>;
@@ -761,6 +762,7 @@ interface binance {
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;
     papiDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    papiV2GetUmAccount(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class binance extends _binance {
 }

@@ -145,6 +145,64 @@ public partial class exmo : Exchange
                     { "fillResponseFromRequest", true },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "GMT", "GMT Token" },
             } },
@@ -867,6 +925,7 @@ public partial class exmo : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -875,15 +934,18 @@ public partial class exmo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object until = this.safeIntegerProduct(parameters, "until", 0.001);
+        object untilIsDefined = (!isEqual(until, null));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         object maxLimit = 3000;
         object duration = this.parseTimeframe(timeframe);
-        object now = this.milliseconds();
+        object now = this.parseToInt(divide(this.milliseconds(), 1000));
         if (isTrue(isEqual(since, null)))
         {
+            object to = ((bool) isTrue(untilIsDefined)) ? mathMin(until, now) : now;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1000; // cap default at generous amount
@@ -891,21 +953,28 @@ public partial class exmo : Exchange
             {
                 limit = mathMin(limit, maxLimit);
             }
-            ((IDictionary<string,object>)request)["from"] = subtract(subtract(this.parseToInt(divide(now, 1000)), multiply(limit, duration)), 1);
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
+            ((IDictionary<string,object>)request)["from"] = subtract(subtract(to, (multiply(limit, duration))), 1);
+            ((IDictionary<string,object>)request)["to"] = to;
         } else
         {
             ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
-            if (isTrue(isEqual(limit, null)))
+            if (isTrue(untilIsDefined))
             {
-                limit = maxLimit;
+                ((IDictionary<string,object>)request)["to"] = mathMin(until, now);
             } else
             {
-                limit = mathMin(limit, maxLimit);
+                if (isTrue(isEqual(limit, null)))
+                {
+                    limit = maxLimit;
+                } else
+                {
+                    limit = mathMin(limit, maxLimit);
+                }
+                object to = this.sum(since, multiply(limit, duration));
+                ((IDictionary<string,object>)request)["to"] = mathMin(to, now);
             }
-            object to = this.sum(since, multiply(multiply(limit, duration), 1000));
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandlesHistory(this.extend(request, parameters));
         //
         //     {

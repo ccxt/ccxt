@@ -2,7 +2,7 @@
 
 var binance = require('./binance.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class binanceus extends binance {
     describe() {
@@ -203,6 +203,16 @@ class binanceus extends binance {
                     'post': {
                         'sub-account/transfer': 1,
                     },
+                },
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });

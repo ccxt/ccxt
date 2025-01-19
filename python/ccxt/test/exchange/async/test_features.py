@@ -59,9 +59,10 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                     'mark': False,
                     'index': False,
                 },
-                'limitPrice': False,
+                'price': False,
             },
             'timeInForce': {
+                'GTC': False,
                 'IOC': False,
                 'FOK': False,
                 'PO': False,
@@ -101,7 +102,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
         'fetchClosedOrders': {
             'marginMode': False,
             'limit': 0,
-            'daysBackClosed': 0,
+            'daysBack': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
             'trigger': False,

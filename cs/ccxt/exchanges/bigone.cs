@@ -208,6 +208,104 @@ public partial class bigone : Exchange
                     { "ZEC", "Zcash" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "mark", true },
+                            { "index", true },
+                            { "last", true },
+                        } },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -1151,6 +1249,7 @@ public partial class bigone : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1163,22 +1262,35 @@ public partial class bigone : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
+        object until = this.safeInteger(parameters, "until");
+        object untilIsDefined = (!isEqual(until, null));
+        object sinceIsDefined = (!isEqual(since, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 500
+            limit = ((bool) isTrue((isTrue(sinceIsDefined) && isTrue(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         object request = new Dictionary<string, object>() {
             { "asset_pair_name", getValue(market, "id") },
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
             { "limit", limit },
         };
-        if (isTrue(!isEqual(since, null)))
+        if (isTrue(sinceIsDefined))
         {
             // const start = this.parseToInt (since / 1000);
             object duration = this.parseTimeframe(timeframe);
-            object end = this.sum(since, multiply(multiply(limit, duration), 1000));
-            ((IDictionary<string,object>)request)["time"] = this.iso8601(end);
+            object endByLimit = this.sum(since, multiply(multiply(limit, duration), 1000));
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["time"] = this.iso8601(mathMin(endByLimit, add(until, 1)));
+            } else
+            {
+                ((IDictionary<string,object>)request)["time"] = this.iso8601(endByLimit);
+            }
+        } else if (isTrue(untilIsDefined))
+        {
+            ((IDictionary<string,object>)request)["time"] = this.iso8601(add(until, 1));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, parameters));
         //
         //     {

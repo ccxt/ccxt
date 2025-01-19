@@ -292,6 +292,105 @@ class bigone extends Exchange {
                     // undetermined => XinFin, YAS, Ycash
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true, // todo implement
+                        'stopLossPrice' => false, // todo by trigger
+                        'takeProfitPrice' => false, // todo by trigger
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implement
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'index' => true,
+                            'last' => true,
+                        ),
+                    ),
+                    'fetchOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -1197,6 +1296,7 @@ class bigone extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1204,20 +1304,30 @@ class bigone extends Exchange {
         if ($market['contract']) {
             throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
+        $until = $this->safe_integer($params, 'until');
+        $untilIsDefined = ($until !== null);
+        $sinceIsDefined = ($since !== null);
         if ($limit === null) {
-            $limit = 100; // default 100, max 500
+            $limit = ($sinceIsDefined && $untilIsDefined) ? 500 : 100; // default 100, max 500, if $since and $limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         $request = array(
             'asset_pair_name' => $market['id'],
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
-        if ($since !== null) {
+        if ($sinceIsDefined) {
             // $start = $this->parse_to_int($since / 1000);
             $duration = $this->parse_timeframe($timeframe);
-            $end = $this->sum($since, $limit * $duration * 1000);
-            $request['time'] = $this->iso8601($end);
+            $endByLimit = $this->sum($since, $limit * $duration * 1000);
+            if ($untilIsDefined) {
+                $request['time'] = $this->iso8601(min ($endByLimit, $until + 1));
+            } else {
+                $request['time'] = $this->iso8601($endByLimit);
+            }
+        } elseif ($untilIsDefined) {
+            $request['time'] = $this->iso8601($until + 1);
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params));
         //
         //     {

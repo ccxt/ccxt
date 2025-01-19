@@ -1057,6 +1057,244 @@
                   }
                 ]
               }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "29162446",
+                      "amount": "29162.446000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761301608.157400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8142.478",
+                      "trade_volume": "8142478",
+                      "trade_turnover": "772388837.3592",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  ],
+                  "ts": "1735383186448"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "baseVolume": 29162446,
+                  "quoteVolume": 2761301608.1574,
+                  "openInterestAmount": 29162446,
+                  "openInterestValue": 2761301608.1574,
+                  "timestamp": 1735383186448,
+                  "datetime": "2024-12-28T10:53:06.448Z",
+                  "info": {
+                    "volume": "29162446",
+                    "amount": "29162.446000000000000000",
+                    "symbol": "BTC",
+                    "value": "2761301608.157400000000000000",
+                    "contract_code": "BTC-USDT",
+                    "trade_amount": "8142.478",
+                    "trade_volume": "8142478",
+                    "trade_turnover": "772388837.3592",
+                    "business_type": "swap",
+                    "pair": "BTC-USDT",
+                    "contract_type": "swap",
+                    "trade_partition": "USDT"
+                  }
+                }
+            },
+            {
+                "description": "inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "358158.000000000000000000",
+                      "amount": "378.400136924647070383",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "116.9397254894748133599845592591834559263",
+                      "trade_volume": "110724",
+                      "trade_turnover": "11072400.000000000000000000"
+                    }
+                  ],
+                  "ts": "1735383301024"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USD:BTC",
+                  "baseVolume": 358158,
+                  "quoteVolume": null,
+                  "openInterestAmount": 358158,
+                  "openInterestValue": null,
+                  "timestamp": 1735383301024,
+                  "datetime": "2024-12-28T10:55:01.024Z",
+                  "info": {
+                    "volume": "358158.000000000000000000",
+                    "amount": "378.400136924647070383",
+                    "symbol": "BTC",
+                    "contract_code": "BTC-USD",
+                    "trade_amount": "116.9397254894748133599845592591834559263",
+                    "trade_volume": "110724",
+                    "trade_turnover": "11072400.000000000000000000"
+                  }
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "inverse swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "231391.000000000000000000",
+                      "amount": "1073301.853535447241961519",
+                      "symbol": "XRP",
+                      "contract_code": "XRP-USD",
+                      "trade_amount": "878789.8722867232510360793169418857709672311",
+                      "trade_volume": "189372",
+                      "trade_turnover": "1893720.000000000000000000"
+                    },
+                    {
+                      "volume": "358165.000000000000000000",
+                      "amount": "378.679187631564757614",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "117.0178362634861033342502886349856939548",
+                      "trade_volume": "110800",
+                      "trade_turnover": "11080000.000000000000000000"
+                    },
+                    {
+                      "volume": "42608.000000000000000000",
+                      "amount": "490444.459536145070634914",
+                      "symbol": "ADA",
+                      "contract_code": "ADA-USD",
+                      "trade_amount": "939951.7861933000483488196333556351784453272",
+                      "trade_volume": "82736",
+                      "trade_turnover": "827360.000000000000000000"
+                    }
+                  ],
+                  "ts": "1735382530465"
+                },
+                "parsedResponse": {
+                  "BTC/USD:BTC": {
+                    "symbol": "BTC/USD:BTC",
+                    "baseVolume": 358165,
+                    "quoteVolume": null,
+                    "openInterestAmount": 358165,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "358165.000000000000000000",
+                      "amount": "378.679187631564757614",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "117.0178362634861033342502886349856939548",
+                      "trade_volume": "110800",
+                      "trade_turnover": "11080000.000000000000000000"
+                    }
+                  }
+                }
+            },
+            {
+                "description": "linear swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "4941204",
+                      "amount": "4941204000000.000000000000000000",
+                      "symbol": "SATS",
+                      "value": "865698.940800000000000000",
+                      "contract_code": "SATS-USDT",
+                      "trade_amount": "1917446000000",
+                      "trade_volume": "1917446",
+                      "trade_turnover": "338799.9488",
+                      "business_type": "swap",
+                      "pair": "SATS-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    },
+                    {
+                      "volume": "29163579",
+                      "amount": "29163.579000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761750102.289400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8225.994",
+                      "trade_volume": "8225994",
+                      "trade_turnover": "780469490.0094",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    },
+                    {
+                      "volume": "91348",
+                      "amount": "91348.000000000000000000",
+                      "symbol": "ZRO",
+                      "value": "485880.012000000000000000",
+                      "contract_code": "ZRO-USDT",
+                      "trade_amount": "75458",
+                      "trade_volume": "75458",
+                      "trade_turnover": "416536.154",
+                      "business_type": "swap",
+                      "pair": "ZRO-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  ],
+                  "ts": "1735382711003"
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": 29163579,
+                    "quoteVolume": 2761750102.2894,
+                    "openInterestAmount": 29163579,
+                    "openInterestValue": 2761750102.2894,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "29163579",
+                      "amount": "29163.579000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761750102.289400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8225.994",
+                      "trade_volume": "8225994",
+                      "trade_turnover": "780469490.0094",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  }
+                }
+            }
         ]
     }
 }

@@ -377,6 +377,18 @@
                 ]
             }
         ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch the open interest for unified symbols",
+                "method": "fetchOpenInterests",
+                "url": "https://archive.prod.vertexprotocol.com/v2/contracts",
+                "input": [
+                  [
+                    "SOL/USDC:USDC"
+                  ]
+                ]
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "tickers",

@@ -114,6 +114,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -967,6 +968,8 @@ class htx(Exchange, ImplicitAPI):
                         'inverse': True,
                     },
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': True,
                 },
@@ -1269,9 +1272,11 @@ class htx(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-specific features
                         'iceberg': False,
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1307,7 +1312,7 @@ class htx(Exchange, ImplicitAPI):
                         'trailing': False,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1348,7 +1353,7 @@ class htx(Exchange, ImplicitAPI):
                         'trailing': False,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1766,6 +1771,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         types = None
         types, params = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
         allMarkets = []
@@ -6776,8 +6783,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
@@ -6899,6 +6905,9 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
@@ -6911,7 +6920,7 @@ class htx(Exchange, ImplicitAPI):
             url += '/' + self.implode_params(path, params)
             if api == 'private' or api == 'v2Private':
                 self.check_required_credentials()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -6975,7 +6984,7 @@ class htx(Exchange, ImplicitAPI):
                         clientOrderId = self.safe_string(params, 'client-order-id')
                         if clientOrderId is None:
                             params['client-order-id'] = id + self.uuid()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -8003,6 +8012,99 @@ class htx(Exchange, ImplicitAPI):
         tick = self.safe_list(data, 'tick')
         return self.parse_open_interests_history(tick, market, since, limit)
 
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                first = self.safe_string(symbols, 0)
+                market = self.market(first)
+        request: dict = {}
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        response = None
+        if marketType == 'future':
+            response = self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 118850.000000000000000000,
+            #                 "amount": 635.502025211544374189,
+            #                 "symbol": "BTC",
+            #                 "contract_type": "self_week",
+            #                 "contract_code": "BTC220930",
+            #                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            #                 "trade_volume": 286286,
+            #                 "trade_turnover": 28628600.000000000000000000
+            #             }
+            #         ],
+            #         "ts": 1664337928805
+            #     }
+            #
+        elif subType == 'inverse':
+            response = self.contractPublicGetSwapApiV1SwapOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 518018.000000000000000000,
+            #                 "amount": 2769.675777407074725180,
+            #                 "symbol": "BTC",
+            #                 "contract_code": "BTC-USD",
+            #                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            #                 "trade_volume": 1848448,
+            #                 "trade_turnover": 184844800.000000000000000000
+            #             }
+            #         ],
+            #         "ts": 1664337226028
+            #     }
+            #
+        else:
+            request['contract_type'] = 'swap'
+            response = self.contractPublicGetLinearSwapApiV1SwapOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 7192610.000000000000000000,
+            #                 "amount": 7192.610000000000000000,
+            #                 "symbol": "BTC",
+            #                 "value": 134654290.332000000000000000,
+            #                 "contract_code": "BTC-USDT",
+            #                 "trade_amount": 70692.804,
+            #                 "trade_volume": 70692804,
+            #                 "trade_turnover": 1379302592.9518,
+            #                 "business_type": "swap",
+            #                 "pair": "BTC-USDT",
+            #                 "contract_type": "swap",
+            #                 "trade_partition": "USDT"
+            #             }
+            #         ],
+            #         "ts": 1664336503144
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
+
     def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
@@ -8161,8 +8263,9 @@ class htx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
         value = self.safe_number(interest, 'value')
+        marketId = self.safe_string(interest, 'contract_code')
         return self.safe_open_interest({
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_symbol(marketId, market),
             'baseVolume': amount,  # deprecated
             'quoteVolume': value,  # deprecated
             'openInterestAmount': amount,

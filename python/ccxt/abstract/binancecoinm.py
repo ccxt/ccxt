@@ -727,6 +727,7 @@ class ImplicitAPI:
     papi_get_um_symbolconfig = papiGetUmSymbolConfig = Entry('um/symbolConfig', 'papi', 'GET', {'cost': 1})
     papi_get_cm_accountconfig = papiGetCmAccountConfig = Entry('cm/accountConfig', 'papi', 'GET', {'cost': 1})
     papi_get_cm_symbolconfig = papiGetCmSymbolConfig = Entry('cm/symbolConfig', 'papi', 'GET', {'cost': 1})
+    papi_get_ratelimit_order = papiGetRateLimitOrder = Entry('rateLimit/order', 'papi', 'GET', {'cost': 1})
     papi_post_um_order = papiPostUmOrder = Entry('um/order', 'papi', 'POST', {'cost': 1})
     papi_post_um_conditional_order = papiPostUmConditionalOrder = Entry('um/conditional/order', 'papi', 'POST', {'cost': 1})
     papi_post_cm_order = papiPostCmOrder = Entry('cm/order', 'papi', 'POST', {'cost': 1})
@@ -762,3 +763,4 @@ class ImplicitAPI:
     papi_delete_margin_allopenorders = papiDeleteMarginAllOpenOrders = Entry('margin/allOpenOrders', 'papi', 'DELETE', {'cost': 5})
     papi_delete_margin_orderlist = papiDeleteMarginOrderList = Entry('margin/orderList', 'papi', 'DELETE', {'cost': 2})
     papi_delete_listenkey = papiDeleteListenKey = Entry('listenKey', 'papi', 'DELETE', {'cost': 0.2})
+    papiv2_get_um_account = papiV2GetUmAccount = Entry('um/account', 'papiV2', 'GET', {'cost': 1})

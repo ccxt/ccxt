@@ -282,6 +282,8 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
@@ -330,9 +332,11 @@ class woo extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
-                        // exchange specific params:
-                        // 'iceberg' => true,
-                        // 'oco' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -363,7 +367,7 @@ class woo extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => true,
@@ -496,6 +500,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $response = $this->v1PublicGetInfo ($params);
         //
         // {
@@ -1068,7 +1075,7 @@ class woo extends Exchange {
         if ($marginMode !== null) {
             $request['margin_mode'] = $this->encode_margin_mode($marginMode);
         }
-        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
@@ -1156,7 +1163,7 @@ class woo extends Exchange {
             );
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($stopLoss !== null) {
-                $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
                     'algoType' => 'STOP_LOSS',
@@ -1167,7 +1174,7 @@ class woo extends Exchange {
                 $outterOrder['childOrders'][] = $stopLossOrder;
             }
             if ($takeProfit !== null) {
-                $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
                     'algoType' => 'TAKE_PROFIT',
@@ -2659,7 +2666,7 @@ class woo extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2974,8 +2981,7 @@ class woo extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'rows', array());
-        $result = $this->parse_funding_rates($rows);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($rows, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

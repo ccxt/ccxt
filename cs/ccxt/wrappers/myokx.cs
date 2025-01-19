@@ -4,7 +4,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-public partial class hitbtc3
+public partial class myokx
 {
 
 }

@@ -367,6 +367,8 @@ class coinbase extends coinbase$1 {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
@@ -375,7 +377,7 @@ class coinbase extends coinbase$1 {
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -393,6 +395,11 @@ class coinbase extends coinbase$1 {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -423,7 +430,7 @@ class coinbase extends coinbase$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,
@@ -433,21 +440,20 @@ class coinbase extends coinbase$1 {
                         'limit': 350,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': undefined,
                 },
                 'future': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': undefined,
                 },
             },
         });
@@ -1271,6 +1277,9 @@ class coinbase extends coinbase$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3(params);
@@ -2443,7 +2452,7 @@ class coinbase extends coinbase$1 {
         [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
         const ledger = this.parseLedger(response['data'], currency, since, limit);
         const length = ledger.length;
@@ -4877,6 +4886,9 @@ class coinbase extends coinbase$1 {
         const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         return token;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4949,7 +4961,9 @@ class coinbase extends coinbase$1 {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const timestampString = this.seconds().toString();
+                    const nonce = this.nonce();
+                    const timestamp = this.parseToInt(nonce / 1000);
+                    const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                     headers = {

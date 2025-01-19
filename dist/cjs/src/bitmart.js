@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -526,6 +526,8 @@ class bitmart extends bitmart$1 {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -707,14 +709,11 @@ class bitmart extends bitmart$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'marketBuyRequiresPrice': true,
+                        'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        // exchange-supported features
-                        // 'leverage': true,
-                        // 'selfTradePrevention': false,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 10,
@@ -740,7 +739,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -769,7 +768,7 @@ class bitmart extends bitmart$1 {
                                 'mark': true,
                                 'index': false,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -807,7 +806,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -1143,6 +1142,9 @@ class bitmart extends bitmart$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const spot = await this.fetchSpotMarkets(params);
         const contract = await this.fetchContractMarkets(params);
         return this.arrayConcat(spot, contract);
@@ -5303,7 +5305,7 @@ class bitmart extends bitmart$1 {
         return this.filterBySinceLimit(sorted, since, limit);
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const parts = path.split('/');
@@ -5323,7 +5325,7 @@ class bitmart extends bitmart$1 {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const timestamp = this.milliseconds().toString();
+            const timestamp = this.nonce().toString();
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,

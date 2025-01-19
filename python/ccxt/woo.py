@@ -296,6 +296,8 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
@@ -344,9 +346,11 @@ class woo(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
-                        # exchange specific params:
-                        # 'iceberg': True,
-                        # 'oco': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -377,7 +381,7 @@ class woo(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 500,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 100000,
                         'trigger': True,
@@ -506,6 +510,8 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         response = self.v1PublicGetInfo(params)
         #
         # {
@@ -1051,7 +1057,7 @@ class woo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
             request['margin_mode'] = self.encode_margin_mode(marginMode)
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
@@ -1128,7 +1134,7 @@ class woo(Exchange, ImplicitAPI):
             }
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
-                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1138,7 +1144,7 @@ class woo(Exchange, ImplicitAPI):
                 }
                 outterOrder['childOrders'].append(stopLossOrder)
             if takeProfit is not None:
-                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
@@ -2534,7 +2540,7 @@ class woo(Exchange, ImplicitAPI):
         }
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
@@ -2823,8 +2829,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'rows', [])
-        result = self.parse_funding_rates(rows)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rows, symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

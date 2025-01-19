@@ -411,7 +411,7 @@ public partial class bybit
     /// <item>
     /// <term>params.isLeverage</term>
     /// <description>
-    /// boolean : *unified spot only* false then spot trading true then margin trading
+    /// int : *unified spot only* false then spot trading true then margin trading
     /// </description>
     /// </item>
     /// <item>
@@ -1600,7 +1600,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

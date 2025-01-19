@@ -438,8 +438,12 @@ class bitfinex(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        'trailing': True,  # todo: unify
-                        # todo: leverage unify
+                        'trailing': True,  # todo: implement
+                        'leverage': True,  # todo: implement
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 75,
@@ -465,7 +469,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': None,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 100000,
                         'trigger': False,
@@ -3008,7 +3012,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #       ]
         #   ]
         #
-        return self.parse_funding_rates(response)
+        return self.parse_funding_rates(response, symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3235,8 +3239,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        result = self.parse_open_interests(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(response, symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """

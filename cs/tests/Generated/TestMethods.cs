@@ -814,6 +814,10 @@ public partial class testMainClass
             { "fetchBorrowRateHistory", new List<object>() {code} },
             { "fetchLedgerEntry", new List<object>() {code} },
         };
+        if (isTrue(getCliArgValue("--fundedTests")))
+        {
+            ((IDictionary<string,object>)tests)["createOrder"] = new List<object>() {symbol};
+        }
         if (isTrue(this.wsTests))
         {
             tests = new Dictionary<string, object>() {
