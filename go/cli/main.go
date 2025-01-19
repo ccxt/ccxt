@@ -145,6 +145,34 @@ func benchmarks() {
 	fmt.Println("|  inOp on a map:     ", inOpRes, "ns")
 	fmt.Println("|  inOp on a map avg: ", inOpRes/1000, "ns")
 	fmt.Println("|--------------------------------------------|")
+
+	var getValueRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = ccxt.GetValue(testMap, "first")
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		getValueRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  getValue on a map:     ", getValueRes, "ns")
+	fmt.Println("|  getValue on a map avg: ", getValueRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
+
+	var getValueArrRes int64 = 0
+	for i := 0; i < 1000; i++ {
+		beforeNs := time.Now().UnixNano()
+		_ = ccxt.GetValue(testArr, 0)
+		afterNs := time.Now().UnixNano()
+		took := afterNs - beforeNs
+		getValueArrRes += took
+	}
+
+	fmt.Println("|--------------------------------------------|")
+	fmt.Println("|  getValue on an array:     ", getValueArrRes, "ns")
+	fmt.Println("|  getValue on an array avg: ", getValueArrRes/1000, "ns")
+	fmt.Println("|--------------------------------------------|")
 }
 
 func contains(arr []interface{}, item interface{}) bool {
