@@ -7462,8 +7462,8 @@ func  (this *Exchange) ParseTickers(tickers interface{}, optionalArgs ...interfa
     var results interface{} = []interface{}{}
     if IsTrue(IsArray(tickers)) {
         for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-
-            var parsedTicker interface{} = this.DerivedExchange.ParseTicker(GetValue(tickers, i))
+            tickerI := GetValue(tickers, i)
+            var parsedTicker interface{} = this.DerivedExchange.ParseTicker(tickerI)
             PanicOnError(parsedTicker)
             var ticker interface{} = this.Extend(parsedTicker, params)
             AppendToArray(&results,ticker)

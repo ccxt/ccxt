@@ -152,33 +152,45 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		return nil
 	}
 
+	keyNum := -1
+	keyStr, ok := key.(string)
+	if !ok {
+		keyNum64 := ParseInt(key)
+		if keyNum64 == math.MinInt64 {
+			return nil
+		}
+		keyNum = int(keyNum64)
+	}
+
+	_, isMap := collection.(map[string]interface{})
+
+	if !isMap && keyNum == -1 {
+		return nil
+	}
+
 	switch v := collection.(type) {
 	case map[string]interface{}:
-		if val, ok := v[key.(string)]; ok {
+		if !ok {
+			return nil
+		}
+		if val, ok := v[keyStr]; ok {
 			return val
 		}
 		return nil
 	case []interface{}:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case []string:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case []int64:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case []float64:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case []bool:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case []int:
-		index := int(ParseInt(key))
-		return v[index]
+		return v[keyNum]
 	case string:
-		index := int(ParseInt(key))
-		return string(v[index])
+		return string(v[keyNum])
 	}
 
 	reflectValue := reflect.ValueOf(collection)
@@ -658,7 +670,7 @@ func InOp(dict interface{}, key interface{}) bool {
 	if IsNumber(key) {
 		return false
 	}
-	
+
 	switch v := dict.(type) {
 	case map[string]interface{}:
 		if _, ok := v[key.(string)]; ok {
@@ -695,7 +707,7 @@ func InOp(dict interface{}, key interface{}) bool {
 // 	if IsNumber(key) {
 // 		return false
 // 	}
-	
+
 // 	switch v := dict.(type) {
 // 	case map[string]interface{}:
 // 		if _, ok := v[key.(string)]; ok {
@@ -1089,8 +1101,8 @@ func IsArray(v interface{}) bool {
 		return true
 	default:
 		return false
-	// kind := reflect.TypeOf(v).Kind()
-	// return kind == reflect.Slice || kind == reflect.Array
+		// kind := reflect.TypeOf(v).Kind()
+		// return kind == reflect.Slice || kind == reflect.Array
 	}
 }
 
@@ -1205,7 +1217,7 @@ func IsNil(x interface{}) bool {
 	// switch val := x.(type){
 	// case interface{}:
 	// 	return val == nil
-	// case 
+	// case
 
 	// }
 
@@ -1328,7 +1340,7 @@ func promiseAll(tasksInterface interface{}) <-chan interface{} {
 		results := make([]interface{}, len(tasks))
 		var wg sync.WaitGroup
 		var resultsLock sync.Mutex
-		
+
 		wg.Add(len(tasks))
 
 		for i, task := range tasks {
