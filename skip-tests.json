@@ -1801,5 +1801,13 @@
             },
             "loadMarkets": "linear and inverse values are same"
         }
+    },
+    "gleec": {
+        "skipMethods": {
+            "loadMarkets": {
+                "markets": ["ICPUSDT_PERP"],
+                "currencyIdAndCode": "ICP currency code is not available in currencies"
+            }
+        }
     }
 }
