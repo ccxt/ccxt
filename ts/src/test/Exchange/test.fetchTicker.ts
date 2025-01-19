@@ -5,6 +5,7 @@ async function testFetchTicker (exchange: Exchange, skippedProperties: object, s
     const method = 'fetchTicker';
     const ticker = await exchange.fetchTicker (symbol);
     testTicker (exchange, skippedProperties, method, ticker, symbol);
+    return true;
 }
 
 export default testFetchTicker;

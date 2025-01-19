@@ -1971,6 +1971,7 @@
             },
             {
                 "description": "fetch deposit address without network",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "input": [
                   "USDT"

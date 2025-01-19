@@ -2090,10 +2090,8 @@ public partial class mexc : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "buy", 0, null, parameters);
     }
 
     /**
@@ -2115,10 +2113,8 @@ public partial class mexc : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", "sell", 0, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "sell", 0, null, parameters);
     }
 
     /**

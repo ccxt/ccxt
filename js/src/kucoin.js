@@ -2318,10 +2318,8 @@ export default class kucoin extends Exchange {
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         await this.loadMarkets();
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
     /**
      * @method

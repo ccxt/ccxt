@@ -9,6 +9,7 @@ const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
+const GO_PATH = './go/ccxt/'
 const IDEN = '    ';
 
 
@@ -19,6 +20,8 @@ let storedCSharpMethods = {};
 let storedContext = {};
 let storedPhpMethods = {};
 let storedPyMethods = {};
+let storedGoMethods = {};
+
 
 const [,, ...args] = process.argv
 const langKeys = {
@@ -207,6 +210,46 @@ function createImplicitMethodsCSharp(){
 
 //-------------------------------------------------------------------------
 
+function createImplicitMethodsGo(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const methodNames = storedCamelCaseMethods[exchange];
+
+        const methods = methodNames.map(method=> {
+            return [
+                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+                `   parameters := GetArg(args, 0, nil)`,
+                `   ch := make(chan interface{})`,
+                `   go func() {`,
+                `       defer close(ch)`,
+                `       defer func() {`,
+                `           if r := recover(); r != nil {`,
+                `               ch <- "panic:" + ToString(r)`,
+                `           }`,
+                `       }()`,
+                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
+                `       PanicOnError(ch)`,
+                `   }()`,
+                `   return ch`,
+                `}`,
+                ``,
+            ].join('\n')
+            // return [
+            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+            //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
+            //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
+            //     `${IDEN}}`,
+            //     ``,
+            // ].join('\n')
+        });
+       storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
+    }
+}
+
+
+//-------------------------------------------------------------------------
+
 async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
@@ -227,6 +270,14 @@ async function editAPIFilesCSharp(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+}
+
+// -------------------------------------------------------------------------
+
+async function editAPIFilesGo(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
+    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
@@ -274,6 +325,13 @@ function createCSharpHeader(exchange, parent){
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
+// -------------------------------------------------------------------------
+
+function createGoHeader(exchange, parent){
+    const namespace = 'package ccxt'
+    storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
+}
+
 //-------------------------------------------------------------------------
 
 function populateImplicitMethods(exchanges: string[]) {
@@ -291,6 +349,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createPhpHeader(instance, parent);
         createCSharpHeader(instance, parent);
         createPyHeader(instance, parent);
+        createGoHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -354,6 +413,13 @@ async function main() {
         createImplicitMethodsCSharp()
         await editAPIFilesCSharp();
         log.bright.cyan ('C# implicit api methods completed!')
+    }
+
+
+    if (shouldGenerateAll || langKeys['--go']) {
+        createImplicitMethodsGo()
+        await editAPIFilesGo()
+        log.bright.cyan ('GO implicit api methods completed!')
     }
 
     // await unlinkFiles (JS_PATH, '.js')

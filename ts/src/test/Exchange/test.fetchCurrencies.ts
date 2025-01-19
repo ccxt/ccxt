@@ -14,6 +14,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             testCurrency (exchange, skippedProperties, method, values[i]);
         }
     }
+    return true;
 }
 
 export default testFetchCurrencies;
