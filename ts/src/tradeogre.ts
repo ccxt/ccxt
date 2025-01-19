@@ -552,7 +552,7 @@ export default class tradeogre extends Exchange {
 
     /**
      * @method
-     * @name ace#fetchOrder
+     * @name tradeogre#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
      * @param {string} id order id
