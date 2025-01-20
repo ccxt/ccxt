@@ -12,7 +12,7 @@ const ccxt = require ('../../../ccxt');
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
         'coinbasepro': 'BTC/USD',
-        'ftx': 'BTC/USDT',
+        'bybit': 'BTC/USDT',
         'okex': 'BTC/USDT',
         'gateio': 'BTC/USDT',
     };
