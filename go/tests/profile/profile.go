@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -28,6 +27,33 @@ func printMemStats(label string) {
 
 func bToMb(b uint64) uint64 {
 	return b / 1024 / 1024
+}
+
+// Add timing stats struct
+type TimingStats struct {
+	Slowest    time.Duration
+	Fastest    time.Duration
+	TotalTime  time.Duration
+	Count      int
+	SlowSymbol string
+	FastSymbol string
+	mu         sync.Mutex
+}
+
+func (ts *TimingStats) Update(symbol string, duration time.Duration) {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+
+	if duration > ts.Slowest {
+		ts.Slowest = duration
+		ts.SlowSymbol = symbol
+	}
+	if ts.Count == 0 || duration < ts.Fastest {
+		ts.Fastest = duration
+		ts.FastSymbol = symbol
+	}
+	ts.TotalTime += duration
+	ts.Count++
 }
 
 func main() {
@@ -102,6 +128,9 @@ func main() {
 	var totalDuration time.Duration
 	var totalSuccess, totalFailed int
 
+	// Initialize timing stats
+	stats := &TimingStats{}
+
 	// Run test 10 times
 	for run := 0; run < numRuns; run++ {
 		fmt.Printf("\n=== Run %d/%d ===\n", run+1, numRuns)
@@ -109,6 +138,7 @@ func main() {
 		// Print memory before run
 		printMemStats(fmt.Sprintf("Before Run %d", run+1))
 
+		runStats := &TimingStats{} // Stats for this run
 		start := time.Now()
 
 		// Create channels for results
@@ -130,12 +160,18 @@ func main() {
 			wg.Add(1)
 			go func(sym string) {
 				defer wg.Done()
+				startFetch := time.Now()
 				orderBook, err := binance.FetchOrderBook(sym)
+				duration := time.Since(startFetch)
+
 				results <- OrderBookResult{
 					Symbol:    sym,
 					OrderBook: orderBook,
 					Error:     err,
 				}
+
+				runStats.Update(sym, duration)
+				stats.Update(sym, duration)
 			}(symbol)
 		}
 
@@ -162,11 +198,16 @@ func main() {
 		totalSuccess += success
 		totalFailed += failed
 
-		// Print run statistics
+		// Print run statistics with timing info
 		fmt.Printf("\n=== Run %d Results ===\n", run+1)
 		fmt.Printf("Successful: %d\n", success)
 		fmt.Printf("Failed: %d\n", failed)
-		fmt.Printf("Duration: %v\n", duration)
+		fmt.Printf("Total Duration: %v\n", duration)
+		if runStats.Count > 0 {
+			fmt.Printf("Fastest: %v (%s)\n", runStats.Fastest, runStats.FastSymbol)
+			fmt.Printf("Slowest: %v (%s)\n", runStats.Slowest, runStats.SlowSymbol)
+			fmt.Printf("Average per fetch: %v\n", runStats.TotalTime/time.Duration(runStats.Count))
+		}
 
 		// Add check for zero symbols
 		if len(symbols) > 0 {
@@ -189,12 +230,17 @@ func main() {
 	// Final memory profile
 	captureMemProfile("final")
 
-	// Print aggregate statistics
+	// Print aggregate statistics with timing info
 	fmt.Printf("\n=== Aggregate Results (%d runs) ===\n", numRuns)
-	fmt.Printf("Average Duration: %v\n", totalDuration/numRuns)
-	fmt.Printf("Average Success Rate: %.2f%%\n", float64(totalSuccess)/float64(totalSuccess+totalFailed)*100)
-	fmt.Printf("Total Successful: %d\n", totalSuccess)
-	fmt.Printf("Total Failed: %d\n", totalFailed)
+	fmt.Printf("Average Duration per Run: %v\n", totalDuration/numRuns)
+	fmt.Printf("Success Rate: %.2f%%\n", float64(totalSuccess)/float64(totalSuccess+totalFailed)*100)
+	if stats.Count > 0 {
+		fmt.Printf("\nTiming Statistics:\n")
+		fmt.Printf("Fastest Call: %v (%s)\n", stats.Fastest, stats.FastSymbol)
+		fmt.Printf("Slowest Call: %v (%s)\n", stats.Slowest, stats.SlowSymbol)
+		fmt.Printf("Average Call: %v\n", stats.TotalTime/time.Duration(stats.Count))
+		fmt.Printf("Total Calls: %d\n", stats.Count)
+	}
 
 	// Final memory stats
 	printMemStats("Final State")
