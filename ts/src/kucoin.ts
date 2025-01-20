@@ -1664,7 +1664,10 @@ export default class kucoin extends Exchange {
                 const chain = chains[i];
                 const networkCodeNew = this.networkIdToCode (this.safeString (chain, 'chainId'), this.safeString (currency, 'code'));
                 resultNew['networks'][networkCodeNew] = {
-                    'withdraw': this.safeNumber (chain, 'withdrawalMinFee'),
+                    'withdraw': {
+                        'fee': this.safeNumber (chain, 'withdrawMinFee'),
+                        'percentage': false,
+                    },
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
