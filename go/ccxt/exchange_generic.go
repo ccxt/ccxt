@@ -396,32 +396,78 @@ func (this *Exchange) IsArray(a interface{}) bool {
 	return false
 }
 
-func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interface{} {
+func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interface{} {
 	outDict := make(map[string]interface{})
 	var targetX []interface{}
+
+	// Check if `a` is a slice of `[]interface{}` or a map
 	if aArr, ok := a.([]interface{}); ok {
 		targetX = aArr
-	} else {
-		for _, v := range a.(map[string]interface{}) {
+	} else if aMap, ok := a.(map[string]interface{}); ok {
+		for _, v := range aMap {
 			targetX = append(targetX, v)
 		}
+	} else {
+		return outDict // Unsupported type
 	}
+
+	// Process the slice `targetX`
 	for _, elem := range targetX {
-		if reflect.TypeOf(elem).Kind() == reflect.Map {
-			elem2 := elem.(map[string]interface{})
-			if val, ok := elem2[ToString(key2)]; ok {
-				outDict[ToString(val)] = elem2
+		switch v := elem.(type) {
+		case map[string]interface{}:
+			// Handle map entries
+			if val, ok := v[ToString(key)]; ok {
+				outDict[ToString(val)] = v
 			}
-		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
-			index := key2.(int)
-			elem2 := elem.([]interface{})
-			if len(elem2) > index {
-				outDict[elem2[index].(string)] = elem2
+		case []interface{}:
+			// Handle slices of []interface{}
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				if keyStr, ok := v[idx].(string); ok {
+					outDict[keyStr] = v
+				}
+			}
+		case []string:
+			// Handle slices of []string
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict[v[idx]] = v
+			}
+		case []int:
+			// Handle slices of []int
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict[fmt.Sprintf("%d", v[idx])] = v
 			}
 		}
 	}
+
 	return outDict
 }
+
+// func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interface{} {
+// 	outDict := make(map[string]interface{})
+// 	var targetX []interface{}
+// 	if aArr, ok := a.([]interface{}); ok {
+// 		targetX = aArr
+// 	} else {
+// 		for _, v := range a.(map[string]interface{}) {
+// 			targetX = append(targetX, v)
+// 		}
+// 	}
+// 	for _, elem := range targetX {
+// 		if reflect.TypeOf(elem).Kind() == reflect.Map {
+// 			elem2 := elem.(map[string]interface{})
+// 			if val, ok := elem2[ToString(key2)]; ok {
+// 				outDict[ToString(val)] = elem2
+// 			}
+// 		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
+// 			index := key2.(int)
+// 			elem2 := elem.([]interface{})
+// 			if len(elem2) > index {
+// 				outDict[elem2[index].(string)] = elem2
+// 			}
+// 		}
+// 	}
+// 	return outDict
+// }
 
 func (this *Exchange) GroupBy(trades interface{}, key2 interface{}) map[string]interface{} {
 	key := key2.(string)
