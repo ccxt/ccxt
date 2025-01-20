@@ -288,7 +288,7 @@ export default class blofin extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'max': 1440,
+                        'limit': 1440,
                     },
                 },
                 'spot': {
