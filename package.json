@@ -184,7 +184,8 @@
     "package-test": "./utils/package-test.sh",
     "test-freshness": "tsx ./utils/test-freshness.ts",
     "benchmark": "tsx examples/ts/benchmark.ts",
-    "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts"
+    "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
+    "test-types-go": "go run ./go/tests/types/types.go"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {

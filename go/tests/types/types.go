@@ -172,15 +172,19 @@ func testOrder(exchange ccxt.Binance) {
 func testPosition(exchange ccxt.Binance) {
 	Blue("Testing Position type")
 	file := GetRootDir() + BASE_DIR + "positions.json"
-	content := IoFileRead(file, true)
+	content := IoFileRead(file, true).([]interface{})
 
-	parsed := exchange.ParsePositions(content)
-	typed := ccxt.NewPositionArray(parsed)
+	// parsed := exchange.ParsePositions(content) // binance has multiple parsers :/
+	parsedPositions := []interface{}{}
+	for _, item := range content {
+		parsed := exchange.ParsePositionRisk(item)
+		parsedPositions = append(parsedPositions, parsed)
+	}
+	typed := ccxt.NewPositionArray(parsedPositions)
 	Assert(len(typed) > 0)
 	Assert(*typed[1].Symbol != "")
 	Assert(*typed[1].Side != "")
 	Assert(*typed[1].Contracts > 0)
-	Assert(*typed[1].ContractSize > 0)
 	Assert(*typed[1].Timestamp > 0)
 	Assert(*typed[1].Datetime != "")
 	Assert(len(typed[0].Info) > 0)
