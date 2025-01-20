@@ -42,14 +42,16 @@ use React\Promise;
 //
 //
 // the below one is the accepted way of handling assertion errors nowadays (however, keep this also commented here for a while)
-//
-// set_exception_handler( function (\Throwable $e) {
-//     if ($e instanceof \AssertionError) {
-//         dump('[ASSERT_ERROR] -' . exception_message($e));
-//         exit_script(0);
-//     }
-//     throw $e;
-// } );
+
+set_exception_handler( function (\Throwable $e) {
+    dump('[TEST_FAILURE]', exception_message($e));
+    exit_script(1);
+    // if ($e instanceof \AssertionError) {
+    //     dump(exception_message($e));
+    //     exit_script(1);
+    // }
+    // throw $e;
+} );
 
 // ############## detect cli arguments ############## //
 array_shift($argv); // remove first argument (which is script path)

@@ -129,15 +129,16 @@ const exec = (bin, ...args) => {
             // detect error
             const hasFailed = (
                 // exception caught in "test -> testMethod"
-                output.indexOf('[TEST_FAILURE]') > -1 ||
-                // 1) thrown from JS assert module
-                output.indexOf('AssertionError:') > -1 ||
-                // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
-                output.match(/\[\w+Error\]/) ||
-                // 3) thrown from PHP assert hook
-                output.indexOf('[ASSERT_ERROR]') > -1 ||
-                // 4) thrown from PHP async library
-                output.indexOf('Fatal error:') > -1
+                output.indexOf('[TEST_FAILURE]') > -1
+                // we comment below, because we always add `[TEST_FAILURE]` to the output
+                // // 1) thrown from JS assert module
+                // output.indexOf('AssertionError:') > -1 ||
+                // // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
+                // output.match(/\[\w+Error\]/) ||
+                // // 3) thrown from PHP assert hook
+                // output.indexOf('[ASSERT_ERROR]') > -1 ||
+                // // 4) thrown from PHP async library
+                // output.indexOf('Fatal error:') > -1
             );
 
             // ### Infos ###
