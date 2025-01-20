@@ -107,8 +107,8 @@ func (this *Exchange) SortBy2(array interface{}, key1 interface{}, key2 interfac
 
 func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
 	var targetA []interface{}
-	if reflect.TypeOf(aa).Kind() == reflect.Slice {
-		targetA = aa.([]interface{})
+	if aaArr, ok := aa.([]interface{}); ok {
+		targetA = aaArr
 	} else {
 		for _, v := range aa.(map[string]interface{}) {
 			targetA = append(targetA, v)
@@ -378,14 +378,29 @@ func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
 // }
 
 func (this *Exchange) IsArray(a interface{}) bool {
-	return reflect.TypeOf(a).Kind() == reflect.Slice
+	// return reflect.TypeOf(a).Kind() == reflect.Slice
+	switch a.(type) {
+	case []interface{}:
+		return true
+	case []string:
+		return true
+	case []int:
+		return true
+	case []int64:
+		return true
+	case []float64:
+		return true
+	case []map[string]interface{}:
+		return true
+	}
+	return false
 }
 
 func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interface{} {
 	outDict := make(map[string]interface{})
 	var targetX []interface{}
-	if reflect.TypeOf(a).Kind() == reflect.Slice {
-		targetX = a.([]interface{})
+	if aArr, ok := a.([]interface{}); ok {
+		targetX = aArr
 	} else {
 		for _, v := range a.(map[string]interface{}) {
 			targetX = append(targetX, v)

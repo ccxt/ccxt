@@ -373,19 +373,34 @@ func GetArrayLength(value interface{}) int {
 		return 0
 	}
 
-	val := reflect.ValueOf(value)
-
-	switch val.Kind() {
-	case reflect.Slice, reflect.Array:
-		return val.Len()
-	case reflect.String:
-		return val.Len()
-	case reflect.Map:
-		// Specific check for a map type similar to List<dict> in C#
-		if _, ok := value.(Dict); ok {
-			return len(value.(Dict))
-		}
+	switch v := value.(type) {
+	case []interface{}:
+		return len(v)
+	case []string:
+		return len(v)
+	case []int64:
+		return len(v)
+	case []float64:
+		return len(v)
+	case []bool:
+		return len(v)
+	case []int:
+		return len(v)
 	}
+
+	// val := reflect.ValueOf(value)
+
+	// switch val.Kind() {
+	// case reflect.Slice, reflect.Array:
+	// 	return val.Len()
+	// case reflect.String:
+	// 	return val.Len()
+	// case reflect.Map:
+	// 	// Specific check for a map type similar to List<dict> in C#
+	// 	if _, ok := value.(Dict); ok {
+	// 		return len(value.(Dict))
+	// 	}
+	// }
 
 	return 0
 }
@@ -398,22 +413,57 @@ func IsGreaterThan(a, b interface{}) bool {
 		return false
 	}
 
-	aVal, bVal, ok := NormalizeAndConvert(a, b)
-	if !ok {
-		return false
+	// Handle int, int64, float64 comparisons
+	switch aVal := a.(type) {
+	case int:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > bVal
+		case int64:
+			return int64(aVal) > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case int64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > int64(bVal)
+		case int64:
+			return aVal > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case float64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > float64(bVal)
+		case int64:
+			return aVal > float64(bVal)
+		case float64:
+			return aVal > bVal
+		}
 	}
 
-	switch aVal.Kind() {
-	case reflect.Int, reflect.Int64:
-		return aVal.Int() > bVal.Int()
-	case reflect.Float64:
-		return aVal.Float() > bVal.Float()
-	case reflect.String:
-		return aVal.String() > bVal.String()
-	default:
-		return false
-	}
+	// If types cannot be compared, return false
+	return false
 }
+
+// aVal, bVal, ok := NormalizeAndConvert(a, b)
+// if !ok {
+// 	return false
+// }
+
+// switch aVal.Kind() {
+// case reflect.Int, reflect.Int64:
+// 	return aVal.Int() > bVal.Int()
+// case reflect.Float64:
+// 	return aVal.Float() > bVal.Float()
+// case reflect.String:
+// 	return aVal.String() > bVal.String()
+// default:
+// 	return false
+// }
+// }
 
 // IsLessThan checks if a is less than b
 func IsLessThan(a, b interface{}) bool {
@@ -472,21 +522,58 @@ func IsEqual(a, b interface{}) bool {
 		return true
 	}
 
-	aVal, bVal, ok := NormalizeAndConvert(a, b)
-	if !ok {
-		return false
+	// // aVal, bVal, ok := NormalizeAndConvert(a, b)
+	// if !ok {
+	// 	return false
+	// }
+
+	switch aVal := a.(type) {
+	case int:
+		switch bVal := b.(type) {
+		case int:
+			return aVal == bVal
+		case int64:
+			return int64(aVal) == bVal
+		case float64:
+			return float64(aVal) == bVal
+		}
+	case int64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal == int64(bVal)
+		case int64:
+			return aVal == bVal
+		case float64:
+			return float64(aVal) == bVal
+		}
+	case float64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal == float64(bVal)
+		case int64:
+			return aVal == float64(bVal)
+		case float64:
+			return aVal == bVal
+		}
+	case string:
+		if bVal, ok := b.(string); ok {
+			return aVal == bVal
+		}
 	}
 
-	switch aVal.Kind() {
-	case reflect.Int, reflect.Int64:
-		return aVal.Int() == bVal.Int()
-	case reflect.Float64:
-		return aVal.Float() == bVal.Float()
-	case reflect.String:
-		return aVal.String() == bVal.String()
-	default:
-		return false
-	}
+	// If types don't match or aren't handled, return false
+	return false
+
+	// switch aVal.Kind() {
+	// case reflect.Int, reflect.Int64:
+	// 	return aVal.Int() == bVal.Int()
+	// case reflect.Float64:
+	// 	return aVal.Float() == bVal.Float()
+	// case reflect.String:
+	// 	return aVal.String() == bVal.String()
+	// default:
+	// 	return false
+	// }
 }
 
 // NormalizeAndConvert normalizes and attempts to convert a and b to a common type
