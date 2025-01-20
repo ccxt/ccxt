@@ -5116,7 +5116,7 @@ export default class binance extends Exchange {
         method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
         if (limit !== undefined) {
             const isFutureOrSwap = (market['swap'] || market['future']);
-            const isHistoricalEndpoint = method.indexOf ('GetHistoricalTrades') >= 0;
+            const isHistoricalEndpoint = (method !== undefined) && (method.indexOf ('GetHistoricalTrades') >= 0);
             const maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
             request['limit'] = isFutureOrSwap ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
