@@ -302,6 +302,45 @@ func WithFetchTradesParams(params map[string]interface{}) FetchTradesOptions {
 }
 
 
+type CreateMarketOrderWithCostOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateMarketOrderWithCostOptions func(opts *CreateMarketOrderWithCostOptionsStruct)
+
+func WithCreateMarketOrderWithCostParams(params map[string]interface{}) CreateMarketOrderWithCostOptions {
+    return func(opts *CreateMarketOrderWithCostOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type CreateMarketBuyOrderWithCostOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateMarketBuyOrderWithCostOptions func(opts *CreateMarketBuyOrderWithCostOptionsStruct)
+
+func WithCreateMarketBuyOrderWithCostParams(params map[string]interface{}) CreateMarketBuyOrderWithCostOptions {
+    return func(opts *CreateMarketBuyOrderWithCostOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type CreateMarketSellOrderWithCostOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateMarketSellOrderWithCostOptions func(opts *CreateMarketSellOrderWithCostOptionsStruct)
+
+func WithCreateMarketSellOrderWithCostParams(params map[string]interface{}) CreateMarketSellOrderWithCostOptions {
+    return func(opts *CreateMarketSellOrderWithCostOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type CancelAllOrdersOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}
@@ -802,19 +841,6 @@ func WithFetchLeveragesParams(params map[string]interface{}) FetchLeveragesOptio
 }
 
 
-type CreateMarketBuyOrderWithCostOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type CreateMarketBuyOrderWithCostOptions func(opts *CreateMarketBuyOrderWithCostOptionsStruct)
-
-func WithCreateMarketBuyOrderWithCostParams(params map[string]interface{}) CreateMarketBuyOrderWithCostOptions {
-    return func(opts *CreateMarketBuyOrderWithCostOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
 type FetchBidsAsksOptionsStruct struct {
     Symbols *[]string
     Params *map[string]interface{}
@@ -928,32 +954,6 @@ func WithEditContractOrderPrice(price float64) EditContractOrderOptions {
 
 func WithEditContractOrderParams(params map[string]interface{}) EditContractOrderOptions {
     return func(opts *EditContractOrderOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type CreateMarketOrderWithCostOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type CreateMarketOrderWithCostOptions func(opts *CreateMarketOrderWithCostOptionsStruct)
-
-func WithCreateMarketOrderWithCostParams(params map[string]interface{}) CreateMarketOrderWithCostOptions {
-    return func(opts *CreateMarketOrderWithCostOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type CreateMarketSellOrderWithCostOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type CreateMarketSellOrderWithCostOptions func(opts *CreateMarketSellOrderWithCostOptionsStruct)
-
-func WithCreateMarketSellOrderWithCostParams(params map[string]interface{}) CreateMarketSellOrderWithCostOptions {
-    return func(opts *CreateMarketSellOrderWithCostOptionsStruct) {
         opts.Params = &params
     }
 }

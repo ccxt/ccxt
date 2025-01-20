@@ -164,35 +164,34 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 
 	_, isMap := collection.(map[string]interface{})
 
-	if !isMap && keyNum == -1 {
-		return nil
-	}
-
-	switch v := collection.(type) {
-	case map[string]interface{}:
-		if !ok {
+	if isMap || keyNum != -1 {
+		switch v := collection.(type) {
+		case map[string]interface{}:
+			if !ok {
+				return nil
+			}
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
 			return nil
+		case []interface{}:
+			return v[keyNum]
+		case []string:
+			return v[keyNum]
+		case []int64:
+			return v[keyNum]
+		case []float64:
+			return v[keyNum]
+		case []bool:
+			return v[keyNum]
+		case []int:
+			return v[keyNum]
+		case string:
+			return string(v[keyNum])
 		}
-		if val, ok := v[keyStr]; ok {
-			return val
-		}
-		return nil
-	case []interface{}:
-		return v[keyNum]
-	case []string:
-		return v[keyNum]
-	case []int64:
-		return v[keyNum]
-	case []float64:
-		return v[keyNum]
-	case []bool:
-		return v[keyNum]
-	case []int:
-		return v[keyNum]
-	case string:
-		return string(v[keyNum])
 	}
 
+	// this is needed in checkRequiredCredentials or alike
 	reflectValue := reflect.ValueOf(collection)
 
 	if reflectValue.Kind() == reflect.Ptr {

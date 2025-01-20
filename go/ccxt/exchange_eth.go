@@ -96,8 +96,8 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	domain := domain2.(map[string]interface{})
 	messageTypes := messageTypes2.(map[string]interface{})
 	// messageTypesKeys := base.Keys(messageTypes)
-	// messageData := messageData2.(map[string]interface{})
-	messageData := ConvertInt64ToBigInt(messageData2).(map[string]interface{})
+	messageData := messageData2.(map[string]interface{})
+	// messageData := ConvertInt64ToBigInt(messageData2).(map[string]interface{})
 	// fmt.Println("domain", this.Json(domain))
 	// fmt.Println("messageTypes", this.Json(messageTypes))
 	// fmt.Println("messageData", this.Json(messageData))
@@ -174,7 +174,7 @@ func ConvertInt64ToBigInt(data interface{}) interface{} {
 		}
 		return v
 	case int64:
-		return big.NewInt(v)
+		return uint8(v)
 	default:
 		return v // Leave other types unchanged
 	}
