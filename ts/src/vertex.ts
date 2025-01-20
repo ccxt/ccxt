@@ -1501,13 +1501,15 @@ export default class vertex extends Exchange {
         //         "price_change_percent_24h": -0.6348599635253989
         //     }
         //
-        const base = this.safeString (ticker, 'base_currency');
-        const quote = this.safeString (ticker, 'quote_currency');
-        let marketId = base + '/' + quote;
-        if (base.indexOf ('PERP') > 0) {
-            marketId = marketId.replace ('-PERP', '') + ':USDC';
+        const tickerId = this.safeString (ticker, 'ticker_id');
+        const productId = this.safeString (this.options['productIdByTicker'], tickerId);
+        if (productId !== undefined) {
+            // if product-id is found, then get market for it
+            market = this.safeMarket (productId, market);
+        } else {
+            // else, create a safe market from ticker-id, as we don't have any other known info
+            market = this.safeMarket (tickerId, market);
         }
-        market = this.market (marketId);
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -1533,6 +1535,19 @@ export default class vertex extends Exchange {
         }, market);
     }
 
+    loadTickerIdMappings () {
+        if (this.safeDict (this.options, 'productIdByTicker') === undefined) {
+            this.options['productIdByTicker'] = {};
+            const keys = Object.keys (this.markets);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const market = this.markets[key];
+                const ticker_id = this.safeString (market, 'baseId') + '_' + this.safeString (market, 'quoteId');
+                this.options['productIdByTicker'][ticker_id] = this.safeString (market, 'id');
+            }
+        }
+    }
+
     /**
      * @method
      * @name vertex#fetchTickers
@@ -1544,6 +1559,7 @@ export default class vertex extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
+        this.loadTickerIdMappings ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const request = {};
         const response = await this.v2ArchiveGetTickers (this.extend (request, params));
