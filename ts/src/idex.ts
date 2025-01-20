@@ -2,14 +2,14 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/idex.js';
-import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE } from './base/functions/number.js';
-import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ArgumentsRequired, InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -23,8 +23,8 @@ export default class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
-            'version': 'v3',
+            'rateLimit': 100,
+            'version': 'v4',
             'pro': true,
             'dex': true,
             'certified': false,
@@ -43,32 +43,43 @@ export default class idex extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
-                'createStopOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': false,
+                'createStopLossOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'createTakeProfitOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
+                'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -79,11 +90,12 @@ export default class idex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
-                'fetchPositionsForSymbol': false,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -93,7 +105,7 @@ export default class idex extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -116,57 +128,93 @@ export default class idex extends Exchange {
             },
             'urls': {
                 'test': {
-                    'MATIC': 'https://api-sandbox-matic.idex.io',
+                    'api': 'https://api-sandbox.idex.io',
+                },
+                'api': {
+                    'api': 'https://api.idex.io',
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
-                'api': {
-                    'MATIC': 'https://api-matic.idex.io',
-                },
                 'www': 'https://idex.io',
                 'doc': [
-                    'https://api-docs-v3.idex.io/',
+                    'https://api-docs-v4.idex.io',
                 ],
             },
             'api': {
                 'public': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'exchange': 1,
-                        'assets': 1,
-                        'markets': 1,
-                        'tickers': 1,
-                        'candles': 1,
-                        'trades': 1,
-                        'orderbook': 1,
+                        'ping': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'exchange': { 'cost': 1 },
+                        'markets': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'candles': { 'cost': 1, 'bundled': 10 },
+                        'trades': { 'cost': 1, 'bundled': 10 },
+                        'liquidations': { 'cost': 1, 'bundled': 10 },
+                        'orderbook': { 'cost': 1, 'bundled': 10 },
+                        'fundingRates': { 'cost': 1, 'bundled': 10 },
+                        'gasFees': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
-                        'wallets': 1,
-                        'balances': 1,
-                        'orders': 0.1,
-                        'fills': 0.1,
-                        'deposits': 1,
-                        'withdrawals': 1,
-                        'wsToken': 1,
+                        // 'user': { 'cost': 1 }, not available in v4 API
+                        'wallets': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
+                        'fundingPayments': { 'cost': 1, 'bundled': 10 },
+                        'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
+                        'orders': { 'cost': 1, 'bundled': 10 },
+                        'fills': { 'cost': 1, 'bundled': 10 },
+                        'deposits': { 'cost': 1, 'bundled': 10 },
+                        'withdrawals': { 'cost': 1, 'bundled': 10 },
+                        'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo should it be unified?
+                        'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo should it be unified?
+                        'payouts': { 'cost': 1 }, // todo should it be unified?
+                        'wsToken': { 'cost': 1 },
                     },
                     'post': {
-                        'wallets': 1,
-                        'orders': 0.1,
-                        'orders/test': 0.1,
-                        'withdrawals': 1,
+                        'wallets': { 'cost': 1 },
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
+                        'orders': { 'cost': 1 }, // todo
+                        // 'orders/test': { 'cost': 1 }, not available in v4 API
+                        'withdrawals': { 'cost': 1 }, // todo
+                        'payouts': { 'cost': 1 }, // todo should it be unified?
                     },
                     'delete': {
-                        'orders': 0.1,
+                        'orders': { 'cost': 1, 'bundled': 10 },
                     },
                 },
             },
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
-                'network': 'MATIC',
+                'precision': '8',
+                'defaultSettle': 'USDC',
+                'createOrder': {
+                    'triggerType': 'last',
+                },
+                'networks': {
+                    'XCHAIN': 'xchain.xchain',
+                    'ARB': 'stargate.arbitrum',
+                    'BASE': 'stargate.base',
+                    'BEP20': 'stargate.bnb',
+                    'ERC20': 'stargate.ethereum',
+                    'MANTLE': 'stargate.mantle',
+                    'OPTIMISM': 'stargate.optimism',
+                    'MATIC': 'stargate.polygon',
+                    'SEI': 'stargate.sei',
+                },
+                'networksById': {
+                    'xchain.xchain': 'XCHAIN',
+                    'stargate.arbitrum': 'ARB',
+                    'stargate.base': 'BASE',
+                    'stargate.bnb': 'BEP20',
+                    'stargate.ethereum': 'ERC20',
+                    'stargate.mantle': 'MANTLE',
+                    'stargate.optimism': 'OPTIMISM',
+                    'stargate.polygon': 'MATIC',
+                    'stargate.sei': 'SEI',
+                },
             },
             'features': {
                 'spot': {
@@ -257,27 +305,36 @@ export default class idex extends Exchange {
                 'secret': true,
             },
             'precisionMode': TICK_SIZE,
-            'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         });
     }
 
-    priceToPrecision (symbol, price) {
-        //
-        // we override priceToPrecision to fix the following issue
-        // https://github.com/ccxt/ccxt/issues/13367
-        // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
-        //
-        const market = this.market (symbol);
-        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
-        return this.decimalToPrecision (price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
+    priceToPrecision (symbol: string, price: any): string {
+        const priceString = super.priceToPrecision (symbol, price);
+        return this.padWithZeroes (priceString, 8);
+    }
+
+    amountToPrecision (symbol: string, amount: any): string {
+        const amountString = super.amountToPrecision (symbol, amount);
+        return this.padWithZeroes (amountString, 8);
+    }
+
+    padWithZeroes (num: string, decimalSize: number): string {
+        const parts = num.split ('.');
+        const integerPart = this.safeString (parts, 0);
+        let decimalPart = this.safeString (parts, 1, '');
+        const decimalLength = decimalPart.length;
+        for (let i = decimalLength; i < decimalSize; i++) {
+            decimalPart += '0';
+        }
+        return integerPart + '.' + decimalPart;
     }
 
     /**
      * @method
      * @name idex#fetchMarkets
      * @description retrieves data on all markets for idex
-     * @see https://api-docs-v3.idex.io/#get-markets
+     * @see https://api-docs-v4.idex.io/#get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -285,133 +342,156 @@ export default class idex extends Exchange {
         const response = await this.publicGetMarkets (params);
         //
         //    [
-        //        {
-        //            "market": "ETH-USDC",
-        //            "type": "hybrid",
-        //            "status": "activeHybrid",
-        //            "baseAsset": "ETH",
-        //            "baseAssetPrecision": "8",
-        //            "quoteAsset": "USDC",
-        //            "quoteAssetPrecision": "8",
-        //            "makerFeeRate": "0.0000",
-        //            "takerFeeRate": "0.2500",
-        //            "takerIdexFeeRate": "0.0500",
-        //            "takerLiquidityProviderFeeRate": "0.2000",
-        //            "tickSize": "0.01000000"
-        //        },
+        //         {
+        //             "market": "ETH-USD",
+        //             "type": "perpetual",
+        //             "status": "active",
+        //             "baseAsset": "ETH",
+        //             "quoteAsset": "USD",
+        //             "stepSize": "0.00000100",
+        //             "tickSize": "0.01000000",
+        //             "indexPrice": "2236.32000000",
+        //             "indexPrice24h": "2101.81000000",
+        //             "indexPricePercentChange": "0.06399722",
+        //             "lastFundingRate": "0.00017100",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1704182400000,
+        //             "makerOrderMinimum": "0.01000000",
+        //             "takerOrderMinimum": "0.01000000",
+        //             "marketOrderExecutionPriceLimit": "0.10000000",
+        //             "limitOrderExecutionPriceLimit": "0.40000000",
+        //             "minimumPositionSize": "0.01000000",
+        //             "maximumPositionSize": "500.00000000",
+        //             "initialMarginFraction": "0.05000000",
+        //             "maintenanceMarginFraction": "0.03000000",
+        //             "basePositionSize": "25.00000000",
+        //             "incrementalPositionSize": "5.00000000",
+        //             "incrementalInitialMarginFraction": "0.01000000",
+        //             "makerFeeRate": "-0.00010000",
+        //             "takerFeeRate": "0.00040000",
+        //             "volume24h": "294856820.05",
+        //             "trades24h": 221307,
+        //             "openInterest": "57178.63200000",
+        //         },
         //    ]
         //
-        const response2 = await this.publicGetExchange ();
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market: Dict): Market {
         //
-        //    {
-        //        "timeZone": "UTC",
-        //        "serverTime": "1654460599952",
-        //        "maticDepositContractAddress": "0x3253a7e75539edaeb1db608ce6ef9aa1ac9126b6",
-        //        "maticCustodyContractAddress": "0x3bcc4eca0a40358558ca8d1bcd2d1dbde63eb468",
-        //        "maticUsdPrice": "0.60",
-        //        "gasPrice": "180",
-        //        "volume24hUsd": "10015814.46",
-        //        "totalVolumeUsd": "1589273533.28",
-        //        "totalTrades": "1534904",
-        //        "totalValueLockedUsd": "12041929.44",
-        //        "idexStakingValueLockedUsd": "20133816.98",
-        //        "idexTokenAddress": "0x9Cb74C8032b007466865f060ad2c46145d45553D",
-        //        "idexUsdPrice": "0.07",
-        //        "idexMarketCapUsd": "48012346.00",
-        //        "makerFeeRate": "0.0000",
-        //        "takerFeeRate": "0.0025",
-        //        "takerIdexFeeRate": "0.0005",
-        //        "takerLiquidityProviderFeeRate": "0.0020",
-        //        "makerTradeMinimum": "10.00000000",
-        //        "takerTradeMinimum": "1.00000000",
-        //        "withdrawMinimum": "0.50000000",
-        //        "liquidityAdditionMinimum": "0.50000000",
-        //        "liquidityRemovalMinimum": "0.40000000",
-        //        "blockConfirmationDelay": "64"
-        //    }
+        //     {
+        //         "market": "ETH-USD",
+        //         "type": "perpetual",
+        //         "status": "active",
+        //         "baseAsset": "ETH",
+        //         "quoteAsset": "USD",
+        //         "stepSize": "0.00000100",
+        //         "tickSize": "0.01000000",
+        //         "indexPrice": "2236.32000000",
+        //         "indexPrice24h": "2101.81000000",
+        //         "indexPricePercentChange": "0.06399722",
+        //         "lastFundingRate": "0.00017100",
+        //         "currentFundingRate": "0.00010000",
+        //         "nextFundingTime": 1704182400000,
+        //         "makerOrderMinimum": "0.01000000",
+        //         "takerOrderMinimum": "0.01000000",
+        //         "marketOrderExecutionPriceLimit": "0.10000000",
+        //         "limitOrderExecutionPriceLimit": "0.40000000",
+        //         "minimumPositionSize": "0.01000000",
+        //         "maximumPositionSize": "500.00000000",
+        //         "initialMarginFraction": "0.05000000",
+        //         "maintenanceMarginFraction": "0.03000000",
+        //         "basePositionSize": "25.00000000",
+        //         "incrementalPositionSize": "5.00000000",
+        //         "incrementalInitialMarginFraction": "0.01000000",
+        //         "makerFeeRate": "-0.00010000",
+        //         "takerFeeRate": "0.00040000",
+        //         "volume24h": "294856820.05",
+        //         "trades24h": 221307,
+        //         "openInterest": "57178.63200000",
+        //     }
         //
-        const maker = this.safeNumber (response2, 'makerFeeRate');
-        const taker = this.safeNumber (response2, 'takerFeeRate');
-        const makerMin = this.safeString (response2, 'makerTradeMinimum');
-        const takerMin = this.safeString (response2, 'takerTradeMinimum');
-        const minCostETH = this.parseNumber (Precise.stringMin (makerMin, takerMin));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'market');
-            const baseId = this.safeString (entry, 'baseAsset');
-            const quoteId = this.safeString (entry, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
-            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
-            const status = this.safeString (entry, 'status');
-            let minCost = undefined;
-            if (quote === 'ETH') {
-                minCost = minCostETH;
-            }
-            result.push ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status !== 'inactive'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': taker,
-                'maker': maker,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': basePrecision,
-                    'price': this.safeNumber (entry, 'tickSize'),
-                    'base': basePrecision,
-                    'quote': quotePrecision,
+        const marketId = this.safeString (market, 'market');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = 'USDC'; // todo check
+        const status = this.safeString (market, 'status');
+        const takerMinAmount = this.safeString (market, 'takerOrderMinimum');
+        const makerMinAmount = this.safeString (market, 'makerOrderMinimum');
+        const minAmount = this.parseNumber (Precise.stringMin (takerMinAmount, makerMinAmount));
+        const basePrecision = this.safeNumber (market, 'stepSize');
+        const quotePrecision = this.safeNumber (market, 'tickSize');
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'lowercaseId': marketId.toLowerCase (),
+            'symbol': baseId + '/' + quoteId + ':' + settle,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settle,
+            'type': 'swap', // todo check
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'index': false,
+            'active': status === 'active',
+            'contract': true,
+            'linear': undefined,
+            'inverse': undefined,
+            'subType': undefined,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': 1, // todo check
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': basePrecision,
+                'price': quotePrecision,
+                'cost': undefined,
+                'base': basePrecision,
+                'quote': quotePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': basePrecision,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': quotePrecision,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': this.safeNumber (market, 'maximumPositionSize'),
                 },
-                'created': undefined,
-                'info': entry,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'marginModes': {
+                'cross': undefined,
+                'isolated': undefined,
+            },
+            'created': undefined,
+            'info': undefined,
+        });
     }
 
     /**
      * @method
      * @name idex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs-v3.idex.io/#get-tickers
+     * @see https://api-docs-v4.idex.io/#get-tickers
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -422,24 +502,34 @@ export default class idex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        // [
-        //   {
-        //     "market": "DIL-ETH",
-        //     "time": 1598367493008,
-        //     "open": "0.09695361",
-        //     "high": "0.10245881",
-        //     "low": "0.09572507",
-        //     "close": "0.09917079",
-        //     "closeQuantity": "0.71320950",
-        //     "baseVolume": "309.17380612",
-        //     "quoteVolume": "30.57633981",
-        //     "percentChange": "2.28",
-        //     "numTrades": 205,
-        //     "ask": "0.09910476",
-        //     "bid": "0.09688340",
-        //     "sequence": 3902
-        //   }
-        // ]
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "time": 1735917438000,
+        //             "open": "3484.90000000",
+        //             "high": "3539.40000000",
+        //             "low": "3423.60000000",
+        //             "close": "3539.40000000",
+        //             "closeQuantity": "0.01000000",
+        //             "baseVolume": "25.30400000",
+        //             "quoteVolume": "87590.84350000",
+        //             "percentChange": "1.56388900",
+        //             "trades": 1502,
+        //             "sequence": 214572,
+        //             "ask": "3535.60000000",
+        //             "bid": "3535.30000000",
+        //             "markPrice": "3535.60000000",
+        //             "indexPrice": "3533.90000000",
+        //             "indexPrice24h": "3484.10000000",
+        //             "indexPricePercentChange": "0.01429350",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "119.42700000"
+        //         }
+        //     ]
+        //
         const response = await this.publicGetTickers (this.extend (request, params));
         const ticker = this.safeDict (response, 0);
         return this.parseTicker (ticker, market);
@@ -449,52 +539,74 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://api-docs-v3.idex.io/#get-tickers
+     * @see https://api-docs-v4.idex.io/#get-tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        // [
-        //   {
-        //     "market": "DIL-ETH",
-        //     "time": 1598367493008,
-        //     "open": "0.09695361",
-        //     "high": "0.10245881",
-        //     "low": "0.09572507",
-        //     "close": "0.09917079",
-        //     "closeQuantity": "0.71320950",
-        //     "baseVolume": "309.17380612",
-        //     "quoteVolume": "30.57633981",
-        //     "percentChange": "2.28",
-        //     "numTrades": 205,
-        //     "ask": "0.09910476",
-        //     "bid": "0.09688340",
-        //     "sequence": 3902
-        //   }, ...
-        // ]
+        //
+        //     [
+        //         {
+        //             "market": "BNB-USD",
+        //             "time": 1735917617000,
+        //             "open": "708.25000000",
+        //             "high": "708.82000000",
+        //             "low": "695.91000000",
+        //             "close": "706.80000000",
+        //             "closeQuantity": "0.05000000",
+        //             "baseVolume": "4689.56000000",
+        //             "quoteVolume": "3304350.75710000",
+        //             "percentChange": "-0.20472900",
+        //             "trades": 1758,
+        //             "sequence": 141478,
+        //             "ask": "706.65000000",
+        //             "bid": "706.50000000",
+        //             "markPrice": "706.65000000",
+        //             "indexPrice": "707.34000000",
+        //             "indexPrice24h": "709.23000000",
+        //             "indexPricePercentChange": "-0.00266486",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "62.30000000"
+        //         }, ...
+        //     ]
+        //
         const response = await this.publicGetTickers (params);
         return this.parseTickers (response, symbols);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        // {
-        //   "market": "DIL-ETH",
-        //   "time": 1598367493008,
-        //   "open": "0.09695361",
-        //   "high": "0.10245881",
-        //   "low": "0.09572507",
-        //   "close": "0.09917079",
-        //   "closeQuantity": "0.71320950",
-        //   "baseVolume": "309.17380612",
-        //   "quoteVolume": "30.57633981",
-        //   "percentChange": "2.28",
-        //   "numTrades": 205,
-        //   "ask": "0.09910476",
-        //   "bid": "0.09688340",
-        //   "sequence": 3902
-        // }
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "time": 1735917438000,
+        //             "open": "3484.90000000",
+        //             "high": "3539.40000000",
+        //             "low": "3423.60000000",
+        //             "close": "3539.40000000",
+        //             "closeQuantity": "0.01000000",
+        //             "baseVolume": "25.30400000",
+        //             "quoteVolume": "87590.84350000",
+        //             "percentChange": "1.56388900",
+        //             "trades": 1502,
+        //             "sequence": 214572,
+        //             "ask": "3535.60000000",
+        //             "bid": "3535.30000000",
+        //             "markPrice": "3535.60000000",
+        //             "indexPrice": "3533.90000000",
+        //             "indexPrice24h": "3484.10000000",
+        //             "indexPricePercentChange": "0.01429350",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "119.42700000"
+        //         }
+        //     ]
+        //
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
@@ -520,6 +632,8 @@ export default class idex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -528,12 +642,13 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api-docs-v3.idex.io/#get-candles
+     * @see https://api-docs-v4.idex.io/#get-candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 50, maximum 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -547,44 +662,52 @@ export default class idex extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1000);
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
         }
         const response = await this.publicGetCandles (this.extend (request, params));
-        if (Array.isArray (response)) {
-            // [
-            //   {
-            //     "start": 1598345580000,
-            //     "open": "0.09771286",
-            //     "high": "0.09771286",
-            //     "low": "0.09771286",
-            //     "close": "0.09771286",
-            //     "volume": "1.45340410",
-            //     "sequence": 3853
-            //   }, ...
-            // ]
-            return this.parseOHLCVs (response, market, timeframe, since, limit);
-        } else {
-            //  {"nextTime":1595536440000}
-            return [];
-        }
+        //
+        //     [
+        //         {
+        //             "start": 1735913340000,
+        //             "open": "3495.90000000",
+        //             "high": "3496.60000000",
+        //             "low": "3495.90000000",
+        //             "close": "3496.60000000",
+        //             "baseVolume": "0.02000000",
+        //             "quoteVolume": "69.92500000",
+        //             "trades": 2,
+        //             "sequence": 214495
+        //         }, ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        // {
-        //   "start": 1598345580000,
-        //   "open": "0.09771286",
-        //   "high": "0.09771286",
-        //   "low": "0.09771286",
-        //   "close": "0.09771286",
-        //   "volume": "1.45340410",
-        //   "sequence": 3853
-        // }
+        //
+        //     {
+        //         "start": 1735913340000,
+        //         "open": "3495.90000000",
+        //         "high": "3496.60000000",
+        //         "low": "3495.90000000",
+        //         "close": "3496.60000000",
+        //         "baseVolume": "0.02000000",
+        //         "quoteVolume": "69.92500000",
+        //         "trades": 2,
+        //         "sequence": 214495
+        //     }
+        //
         const timestamp = this.safeInteger (ohlcv, 'start');
         const open = this.safeNumber (ohlcv, 'open');
         const high = this.safeNumber (ohlcv, 'high');
         const low = this.safeNumber (ohlcv, 'low');
         const close = this.safeNumber (ohlcv, 'close');
-        const volume = this.safeNumber (ohlcv, 'volume');
+        const volume = this.safeNumber (ohlcv, 'baseVolume');
         return [ timestamp, open, high, low, close, volume ];
     }
 
@@ -592,11 +715,13 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api-docs-v3.idex.io/#get-trades
+     * @see https://api-docs-v4.idex.io/#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {string} [params.fromId] trade id of the earliest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -611,90 +736,91 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        // [
-        //   {
-        //     "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
-        //     "price": "0.09771286",
-        //     "quantity": "1.45340410",
-        //     "quoteQuantity": "0.14201627",
-        //     "time": 1598345638994,
-        //     "makerSide": "buy",
-        //     "sequence": 3853
-        //   }, ...
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //             "price": "0.09771286",
+        //             "quantity": "1.45340410",
+        //             "quoteQuantity": "0.14201627",
+        //             "time": 1598345638994,
+        //             "makerSide": "buy",
+        //             "sequence": 3853
+        //         }, ...
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public trades
-        //  {
-        //      "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
-        //      "price":"0.20377008",
-        //      "quantity":"47.58448728",
-        //      "quoteQuantity":"9.69629509",
-        //      "time":1642091300873,
-        //      "makerSide":"buy",
-        //      "type":"hybrid",        // one of either: "orderBook", "hybrid", or "pool"
-        //      "sequence":31876
-        //  }
+        //     {
+        //         "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
+        //         "price":"0.20377008",
+        //         "quantity":"47.58448728",
+        //         "quoteQuantity":"9.69629509",
+        //         "time":1642091300873,
+        //         "makerSide":"buy",
+        //         "sequence":31876
+        //     }
         //
         // private trades
-        //  {
-        //      "fillId":"83429066-9334-3582-b710-78858b2f0d6b",
-        //      "price":"0.20717368",
-        //      "quantity":"15.00000000",
-        //      "quoteQuantity":"3.10760523",
-        //      "orderBookQuantity":"0.00000003",
-        //      "orderBookQuoteQuantity":"0.00000001",
-        //      "poolQuantity":"14.99999997",
-        //      "poolQuoteQuantity":"3.10760522",
-        //      "time":1642083351215,
-        //      "makerSide":"sell",
-        //      "sequence":31795,
-        //      "market":"IDEX-USDC",
-        //      "orderId":"4fe993f0-747b-11ec-bd08-79d4a0b6e47c",
-        //      "side":"buy",
-        //      "fee":"0.03749989",
-        //      "feeAsset":"IDEX",
-        //      "gas":"0.40507261",
-        //      "liquidity":"taker",
-        //      "type":"hybrid",
-        //      "txId":"0x69f6d82a762d12e3201efd0b3e9cc1969351e3c6ea3cf07c47c66bf24a459815",
-        //      "txStatus":"mined"
-        //  }
+        //     {
+        //         "fillId": "343754f8-0ccd-320d-a17b-50637ebd9104",
+        //         "price": "3346.90000000",
+        //         "quantity": "0.01000000",
+        //         "quoteQuantity": "33.46900000",
+        //         "realizedPnL": "-0.01104070",
+        //         "time": 1736322764159,
+        //         "makerSide": "buy",
+        //         "sequence": 221971,
+        //         "fee": "0.01004070",
+        //         "liquidity": "taker",
+        //         "action": "close",
+        //         "position": "none",
+        //         "type": "market",
+        //         "txId": "0x90bf0bf1fe4b8e11eb85610a704a37b5a0431964bf810ec69879a861c6201c9f",
+        //         "txStatus": "mined"
+        //     }
         //
         const id = this.safeString (trade, 'fillId');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market, '-');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'quoteQuantity');
         const timestamp = this.safeInteger (trade, 'time');
-        const marketId = this.safeString (trade, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
         // this code handles the duality of public vs private trades
         const makerSide = this.safeString (trade, 'makerSide');
-        const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
-        const side = this.safeString (trade, 'side', oppositeSide);
+        const takerSide = (makerSide === 'buy') ? 'sell' : 'buy';
         const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
+        let side = undefined;
+        if (takerOrMaker !== undefined) {
+            side = (takerOrMaker === 'taker') ? takerSide : makerSide;
+        }
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'feeAsset');
             fee = {
                 'cost': feeCostString,
-                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'currency': 'USDC', // todo check
             };
         }
-        const orderId = this.safeString (trade, 'orderId');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': this.safeString (market, 'symbol'),
             'id': id,
-            'order': orderId,
-            'type': 'limit',
+            'order': undefined,
+            'type': 'limit', // todo must be checked
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -706,56 +832,80 @@ export default class idex extends Exchange {
 
     /**
      * @method
-     * @name idex#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://api-docs-v3.idex.io/#get-api-account
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @name idex#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://api-docs-v4.idex.io/#get-liquidations
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.fromId] trade id of the earliest liquidation to fetch
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        this.checkRequiredCredentials ();
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const nonce = this.uuidv1 ();
+        const market = this.market (symbol);
         const request: Dict = {
-            'nonce': nonce,
+            'market': market['id'],
         };
-        let response = undefined;
-        response = await this.privateGetUser (this.extend (request, params));
+        if (since !== undefined) {
+            request['end'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetLiquidations (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fillId": "761117fd-f8f5-3bca-a388-8c520e3a722f",
+        //             "price": "2560.00023034",
+        //             "quantity": "4.51400000",
+        //             "quoteQuantity": "11555.84103978",
+        //             "time": 1726770136029,
+        //             "liquidationSide": "buy"
+        //         }, ...
+        //     ]
+        //
+        return this.parseLiquidations (response, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
-        //         "depositEnabled": true,
-        //         "orderEnabled": true,
-        //         "cancelEnabled": true,
-        //         "withdrawEnabled": true,
-        //         "totalPortfolioValueUsd": "0.00",
-        //         "makerFeeRate": "0.0000",
-        //         "takerFeeRate": "0.0025",
-        //         "takerIdexFeeRate": "0.0005",
-        //         "takerLiquidityProviderFeeRate": "0.0020"
+        //         "fillId": "761117fd-f8f5-3bca-a388-8c520e3a722f",
+        //         "price": "2560.00023034",
+        //         "quantity": "4.51400000",
+        //         "quoteQuantity": "11555.84103978",
+        //         "time": 1726770136029,
+        //         "liquidationSide": "buy"
         //     }
         //
-        const maker = this.safeNumber (response, 'makerFeeRate');
-        const taker = this.safeNumber (response, 'takerFeeRate');
-        const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
-                'percentage': true,
-                'tierBased': false,
-            };
-        }
-        return result;
+        const timestamp = this.safeInteger (liquidation, 'time');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (undefined, market),
+            'contracts': this.safeString (liquidation, 'quantity'),
+            'contractSize': this.safeString (market, 'contractSize'),
+            'price': this.safeString (liquidation, 'price'),
+            'baseValue': this.safeString (liquidation, 'quantity'),
+            'quoteValue': this.safeString (liquidation, 'quoteQuantity'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 
     /**
      * @method
      * @name idex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs-v3.idex.io/#get-order-books
+     * @see https://api-docs-v4.idex.io/#get-order-books
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -771,99 +921,129 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // {
-        //   "sequence": 36416753,
-        //   "bids": [
-        //     [ '0.09672815', "8.22284267", 1 ],
-        //     [ '0.09672814', "1.83685554", 1 ],
-        //     [ '0.09672143', "4.10962617", 1 ],
-        //     [ '0.09658884', "4.03863759", 1 ],
-        //     [ '0.09653781', "3.35730684", 1 ],
-        //     [ '0.09624660', "2.54163586", 1 ],
-        //     [ '0.09617490', "1.93065030", 1 ]
-        //   ],
-        //   "asks": [
-        //     [ '0.09910476', "3.22840154", 1 ],
-        //     [ '0.09940587', "3.39796593", 1 ],
-        //     [ '0.09948189', "4.25088898", 1 ],
-        //     [ '0.09958362', "2.42195784", 1 ],
-        //     [ '0.09974393', "4.25234367", 1 ],
-        //     [ '0.09995250', "3.40192141", 1 ]
-        //   ]
-        // }
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        const nonce = this.safeInteger (response, 'sequence');
-        return {
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': nonce,
-            'bids': this.parseSide (response, 'bids'),
-            'asks': this.parseSide (response, 'asks'),
-        } as OrderBook;
-    }
-
-    parseSide (book, side) {
-        const bookSide = this.safeValue (book, side, []);
-        const result = [];
-        for (let i = 0; i < bookSide.length; i++) {
-            const order = bookSide[i];
-            const price = this.safeNumber (order, 0);
-            const amount = this.safeNumber (order, 1);
-            const orderCount = this.safeInteger (order, 2);
-            result.push ([ price, amount, orderCount ]);
-        }
-        const descending = side === 'bids';
-        return this.sortBy (result, 0, descending);
+        //
+        //     {
+        //         "sequence": 228525431,
+        //         "bids": [
+        //             ["3581.60000000", "11.19600000", 2]
+        //         ],
+        //         "asks": [
+        //             ["3582.50000000", "11.17000000", 1]
+        //         ],
+        //         "lastPrice": "3581.80000000",
+        //         "markPrice": "3581.80000000",
+        //         "indexPrice": "3579.30000000"
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
+        return orderbook;
     }
 
     /**
      * @method
-     * @name idex#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-docs-v3.idex.io/#get-assets
+     * @name idex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-docs-v4.idex.io/#get-funding-rates
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetAssets (params);
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        const response = await this.publicGetFundingRates (this.extend (request, params));
         //
         //     [
-        //        {
-        //            "name": "Ethereum",
-        //            "symbol": "ETH",
-        //            "contractAddress": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-        //            "assetDecimals": "18",
-        //            "exchangeDecimals": "8",
-        //            "maticPrice": "3029.38503483"
-        //        },
+        //         {
+        //             "fundingRate": "0.00010005",
+        //             "indexPrice": "3846.80000000",
+        //             "time": 1734508800000
+        //         }, ...
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const name = this.safeString (entry, 'name');
-            const currencyId = this.safeString (entry, 'symbol');
-            const code = this.safeCurrencyCode (currencyId);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals')));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': entry,
-                'type': undefined,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': { 'min': precision, 'max': undefined },
-                    'withdraw': { 'min': precision, 'max': undefined },
-                },
-            };
+        let data = [];
+        if (Array.isArray (response)) {
+            data = response;
         }
-        return result;
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return sorted as FundingRateHistory[];
+    }
+
+    /**
+     * @method
+     * @name idex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs-v4.idex.io/#get-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] the wallet address to fetch the balance for
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const wallet = this.safeString (params, 'wallet');
+        if (wallet !== undefined) {
+            request['wallet'] = wallet;
+        }
+        //
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
+        //
+        const response = await this.privateGetWallets (this.extend (request, params));
+        return this.parseBalance (response);
     }
 
     parseBalance (response): Balances {
@@ -872,72 +1052,29 @@ export default class idex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (entry, 'quantity');
-            account['free'] = this.safeString (entry, 'availableForTrade');
-            account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
-        }
+        const responseLength = response.length;
+        const entry = response[responseLength - 1];
+        const code = this.safeString (this.options, 'defaultSettle');
+        const account = this.account ();
+        account['total'] = this.safeString (entry, 'availableCollateral');
+        account['free'] = this.safeString (entry, 'freeCollateral');
+        account['used'] = this.safeString (entry, 'heldCollateral');
+        result[code] = account;
         return this.safeBalance (result);
-    }
-
-    /**
-     * @method
-     * @name idex#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-docs-v3.idex.io/#get-balances
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-     */
-    async fetchBalance (params = {}): Promise<Balances> {
-        this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        const nonce1 = this.uuidv1 ();
-        const request: Dict = {
-            'nonce': nonce1,
-            'wallet': this.walletAddress,
-        };
-        // [
-        //   {
-        //     "asset": "DIL",
-        //     "quantity": "0.00000000",
-        //     "availableForTrade": "0.00000000",
-        //     "locked": "0.00000000",
-        //     "usdValue": null
-        //   }, ...
-        // ]
-        const extendedRequest = this.extend (request, params);
-        if (extendedRequest['wallet'] === undefined) {
-            throw new BadRequest (this.id + ' fetchBalance() wallet is undefined, set this.walletAddress or "address" in params');
-        }
-        let response = undefined;
-        try {
-            response = await this.privateGetBalances (extendedRequest);
-        } catch (e) {
-            if (e instanceof InvalidAddress) {
-                const walletAddress = extendedRequest['wallet'];
-                await this.associateWallet (walletAddress);
-                response = await this.privateGetBalances (extendedRequest);
-            } else {
-                throw e;
-            }
-        }
-        return this.parseBalance (response);
     }
 
     /**
      * @method
      * @name idex#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://api-docs-v3.idex.io/#get-fills
+     * @see https://api-docs-v4.idex.io/#get-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {string} [params.fromId] trade id of the earliest trade to fetch
+     * @param {string} [params.fillId] fillId of the single trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -958,26 +1095,35 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // [
-        //   {
-        //     "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //     "price": "0.09905990",
-        //     "quantity": "0.40000000",
-        //     "quoteQuantity": "0.03962396",
-        //     "time": 1598873478762,
-        //     "makerSide": "sell",
-        //     "sequence": 5053,
-        //     "market": "DIL-ETH",
-        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //     "side": "buy",
-        //     "fee": "0.00080000",
-        //     "feeAsset": "DIL",
-        //     "gas": "0.00857497",
-        //     "liquidity": "taker",
-        //     "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
-        //     "txStatus": "mined"
-        //   }
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        //
+        //     [
+        //         {
+        //             "fillId": "38a0e73a-4793-3f0d-bc6a-c00586584338",
+        //             "price": "3347.00000000",
+        //             "quantity": "0.01000000",
+        //             "quoteQuantity": "33.47000000",
+        //             "realizedPnL": "-0.01004100",
+        //             "time": 1736322747566,
+        //             "makerSide": "sell",
+        //             "sequence": 221970,
+        //             "market": "ETH-USD",
+        //             "orderId": "81588ce0-cd95-11ef-9297-8bb2bcc7f7ee",
+        //             "side": "buy",
+        //             "fee": "0.01004100",
+        //             "liquidity": "taker",
+        //             "action": "open",
+        //             "position": "long",
+        //             "type": "market",
+        //             "txId": "0x582f6f7fc68c3bcf38dd9eaa8f29369065eb33460771b6e2522175903cc57fe7",
+        //             "txStatus": "mined"
+        //         }
+        //     ]
+        //
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
             throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
@@ -994,14 +1140,38 @@ export default class idex extends Exchange {
                 throw e;
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        let result = response;
+        if (!Array.isArray (response)) {
+            result = [ response ]; // for single trade
+        }
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api-docs-v4.idex.io/#get-fills
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     /**
      * @method
      * @name idex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api-docs-v3.idex.io/#get-orders
+     * @see https://api-docs-v4.idex.io/#get-orders
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1018,11 +1188,13 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://api-docs-v3.idex.io/#get-orders
+     * @see https://api-docs-v4.idex.io/#get-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest open order to fetch
+     * @param {string} [params.fromId] order id of the earliest open order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1036,11 +1208,13 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://api-docs-v3.idex.io/#get-orders
+     * @see https://api-docs-v4.idex.io/#get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest closed order to fetch
+     * @param {string} [params.fromId] order id of the earliest closed order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1067,68 +1241,87 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
         const response = await this.privateGetOrders (this.extend (request, params));
+        //
         // fetchClosedOrders / fetchOpenOrders
-        // [
-        //   {
-        //     "market": "DIL-ETH",
-        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //     "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //     "time": 1598873478650,
-        //     "status": "filled",
-        //     "type": "limit",
-        //     "side": "buy",
-        //     "originalQuantity": "0.40000000",
-        //     "executedQuantity": "0.40000000",
-        //     "cumulativeQuoteQuantity": "0.03962396",
-        //     "avgExecutionPrice": "0.09905990",
-        //     "price": "1.00000000",
-        //     "fills": [
-        //       {
-        //         "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //         "price": "0.09905990",
-        //         "quantity": "0.40000000",
-        //         "quoteQuantity": "0.03962396",
-        //         "time": 1598873478650,
-        //         "makerSide": "sell",
-        //         "sequence": 5053,
-        //         "fee": "0.00080000",
-        //         "feeAsset": "DIL",
-        //         "gas": "0.00857497",
-        //         "liquidity": "taker",
-        //         "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
-        //         "txStatus": "mined"
-        //       }
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "orderId": "81588ce0-cd95-11ef-9297-8bb2bcc7f7ee",
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "time": 1736322747566,
+        //             "status": "filled",
+        //             "type": "market",
+        //             "side": "buy",
+        //             "originalQuantity": "0.01000000",
+        //             "executedQuantity": "0.01000000",
+        //             "cumulativeQuoteQuantity": "33.47000000",
+        //             "avgExecutionPrice": "3347.00000000",
+        //             "reduceOnly": false,
+        //             "selfTradePrevention": "dc",
+        //             "fills": [
+        //                 {
+        //                     "fillId": "38a0e73a-4793-3f0d-bc6a-c00586584338",
+        //                     "price": "3347.00000000",
+        //                     "quantity": "0.01000000",
+        //                     "quoteQuantity": "33.47000000",
+        //                     "realizedPnL": "-0.01004100",
+        //                     "time": 1736322747566,
+        //                     "makerSide": "sell",
+        //                     "sequence": 221970,
+        //                     "fee": "0.01004100",
+        //                     "liquidity": "taker",
+        //                     "action": "open",
+        //                     "position": "long",
+        //                     "type": "market",
+        //                     "txId": "0x582f6f7fc68c3bcf38dd9eaa8f29369065eb33460771b6e2522175903cc57fe7",
+        //                     "txStatus": "mined"
+        //                 }
+        //             ]
+        //         }, ...
         //     ]
-        //   }
-        // ]
+        //
         // fetchOrder
-        // { market: "DIL-ETH",
-        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //   "time": 1598873478650,
-        //   "status": "filled",
-        //   "type": "limit",
-        //   "side": "buy",
-        //   "originalQuantity": "0.40000000",
-        //   "executedQuantity": "0.40000000",
-        //   "cumulativeQuoteQuantity": "0.03962396",
-        //   "avgExecutionPrice": "0.09905990",
-        //   "price": "1.00000000",
-        //   "fills":
-        //    [ { fillId: "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //        "price": "0.09905990",
-        //        "quantity": "0.40000000",
-        //        "quoteQuantity": "0.03962396",
-        //        "time": 1598873478650,
-        //        "makerSide": "sell",
-        //        "sequence": 5053,
-        //        "fee": "0.00080000",
-        //        "feeAsset": "DIL",
-        //        "gas": "0.00857497",
-        //        "liquidity": "taker",
-        //        "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
-        //        "txStatus": "mined" } ] }
+        //     {
+        //         "market": "ETH-USD",
+        //         "orderId": "8b3c70f0-cd95-11ef-84c8-c3c6a9268bfd",
+        //         "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //         "time": 1736322764159,
+        //         "status": "filled",
+        //         "type": "market",
+        //         "side": "sell",
+        //         "originalQuantity": "0.01000000",
+        //         "executedQuantity": "0.01000000",
+        //         "cumulativeQuoteQuantity": "33.46900000",
+        //         "avgExecutionPrice": "3346.90000000",
+        //         "reduceOnly": true,
+        //         "selfTradePrevention": "dc",
+        //         "fills": [
+        //             {
+        //                 "fillId": "343754f8-0ccd-320d-a17b-50637ebd9104",
+        //                 "price": "3346.90000000",
+        //                 "quantity": "0.01000000",
+        //                 "quoteQuantity": "33.46900000",
+        //                 "realizedPnL": "-0.01104070",
+        //                 "time": 1736322764159,
+        //                 "makerSide": "buy",
+        //                 "sequence": 221971,
+        //                 "fee": "0.01004070",
+        //                 "liquidity": "taker",
+        //                 "action": "close",
+        //                 "position": "none",
+        //                 "type": "market",
+        //                 "txId": "0x90bf0bf1fe4b8e11eb85610a704a37b5a0431964bf810ec69879a861c6201c9f",
+        //                 "txStatus": "mined"
+        //             }
+        //         ]
+        //     }
+        //
         if (Array.isArray (response)) {
             return this.parseOrders (response, market, since, limit) as any;
         } else {
@@ -1137,7 +1330,7 @@ export default class idex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        // https://docs.idex.io/#order-states-amp-lifecycle
+        // https://api-docs-v4.idex.io/#order-states-amp-lifecycle
         const statuses: Dict = {
             'active': 'open',
             'partiallyFilled': 'open',
@@ -1150,52 +1343,74 @@ export default class idex extends Exchange {
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
-        //         "market": "DIL-ETH",
-        //         "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //         "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "time": 1598873478650,
+        //         "market": "ETH-USD",
+        //         "orderId": "8b3c70f0-cd95-11ef-84c8-c3c6a9268bfd",
+        //         "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //         "time": 1736322764159,
         //         "status": "filled",
-        //         "type": "limit",
-        //         "side": "buy",
-        //         "originalQuantity": "0.40000000",
-        //         "executedQuantity": "0.40000000",
-        //         "cumulativeQuoteQuantity": "0.03962396",
-        //         "avgExecutionPrice": "0.09905990",
-        //         "price": "1.00000000",
+        //         "type": "market",
+        //         "side": "sell",
+        //         "originalQuantity": "0.01000000",
+        //         "executedQuantity": "0.01000000",
+        //         "cumulativeQuoteQuantity": "33.46900000",
+        //         "avgExecutionPrice": "3346.90000000",
+        //         "reduceOnly": true,
+        //         "selfTradePrevention": "dc",
         //         "fills": [
         //             {
-        //             "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //             "price": "0.09905990",
-        //             "quantity": "0.40000000",
-        //             "quoteQuantity": "0.03962396",
-        //             "time": 1598873478650,
-        //             "makerSide": "sell",
-        //             "sequence": 5053,
-        //             "fee": "0.00080000",
-        //             "feeAsset": "DIL",
-        //             "gas": "0.00857497",
-        //             "liquidity": "taker",
-        //             "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
-        //             "txStatus": "mined"
+        //                 "fillId": "343754f8-0ccd-320d-a17b-50637ebd9104",
+        //                 "price": "3346.90000000",
+        //                 "quantity": "0.01000000",
+        //                 "quoteQuantity": "33.46900000",
+        //                 "realizedPnL": "-0.01104070",
+        //                 "time": 1736322764159,
+        //                 "makerSide": "buy",
+        //                 "sequence": 221971,
+        //                 "fee": "0.01004070",
+        //                 "liquidity": "taker",
+        //                 "action": "close",
+        //                 "position": "none",
+        //                 "type": "market",
+        //                 "txId": "0x90bf0bf1fe4b8e11eb85610a704a37b5a0431964bf810ec69879a861c6201c9f",
+        //                 "txStatus": "mined"
         //             }
         //         ]
         //     }
         //
         const timestamp = this.safeInteger (order, 'time');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeList (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
         const side = this.safeString (order, 'side');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const type = this.safeString (order, 'type');
+        const rawType = this.safeString (order, 'type');
         const amount = this.safeString (order, 'originalQuantity');
         const filled = this.safeString (order, 'executedQuantity');
         const average = this.safeString (order, 'avgExecutionPrice');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString (order, 'price'); // todo check it
         const rawStatus = this.safeString (order, 'status');
         const timeInForce = this.safeStringUpper (order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTX') {
+                postOnly = true;
+            } else {
+                postOnly = false;
+            }
+        }
         const status = this.parseOrderStatus (rawStatus);
+        const triggerPrice = this.safeString (order, 'triggerPrice');
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (triggerPrice !== undefined) {
+            if (rawType.indexOf ('stopLoss') >= 0) {
+                stopLossPrice = triggerPrice;
+            } else if (rawType.indexOf ('takeProfit') >= 0) {
+                takeProfitPrice = triggerPrice;
+            }
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1204,12 +1419,15 @@ export default class idex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (rawType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'triggerPrice': triggerPrice, // todo check
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1219,6 +1437,226 @@ export default class idex extends Exchange {
             'fee': undefined,
             'trades': fills,
         }, market);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'market': 'market',
+            'limit': 'limit',
+            'stopLossMarket': 'market',
+            'stopLossLimit': 'limit',
+            'takeProfitMarket': 'market',
+            'takeProfitLimit': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs-v4.idex.io/#get-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
+        };
+        const response = await this.privateGetPositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "quantity": "0.01000000",
+        //             "maximumQuantity": "0.01000000",
+        //             "entryPrice": "3291.40000000",
+        //             "exitPrice": "0.00000000",
+        //             "markPrice": "3299.30000000",
+        //             "indexPrice": "3300.40000000",
+        //             "liquidationPrice": "0.00000000",
+        //             "value": "33.00400000",
+        //             "realizedPnL": "-0.00987420",
+        //             "unrealizedPnL": "0.09000000",
+        //             "marginRequirement": "1.65020000",
+        //             "leverage": "0.52218865",
+        //             "totalFunding": "0.00000000",
+        //             "totalOpen": "0.01000000",
+        //             "totalClose": "0.00000000",
+        //             "adlQuintile": 3,
+        //             "openedByFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //             "lastFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //             "time": 1736952083438
+        //         }
+        //     ]
+        //
+        symbols = this.marketSymbols (symbols);
+        const positions = this.parsePositions (response);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+    }
+
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name idex#fetchPositionsForSymbol
+     * @see https://api-docs-v4.idex.io/#get-positions
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        params['market'] = market['id'];
+        return await this.fetchPositions (undefined, params);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "market": "ETH-USD",
+        //         "quantity": "0.01000000",
+        //         "maximumQuantity": "0.01000000",
+        //         "entryPrice": "3291.40000000",
+        //         "exitPrice": "0.00000000",
+        //         "markPrice": "3299.30000000",
+        //         "indexPrice": "3300.40000000",
+        //         "liquidationPrice": "0.00000000",
+        //         "value": "33.00400000",
+        //         "realizedPnL": "-0.00987420",
+        //         "unrealizedPnL": "0.09000000",
+        //         "marginRequirement": "1.65020000",
+        //         "leverage": "0.52218865",
+        //         "totalFunding": "0.00000000",
+        //         "totalOpen": "0.01000000",
+        //         "totalClose": "0.00000000",
+        //         "adlQuintile": 3,
+        //         "openedByFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //         "lastFillId": "de347bd9-bce2-374a-b52b-5ee6d4612358",
+        //         "time": 1736952083438
+        //     }
+        //
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (position, 'time');
+        let amount = this.safeString (position, 'quantity');
+        let side = undefined;
+        if (Precise.stringLt (amount, '0')) {
+            side = 'short';
+            amount = Precise.stringAbs (amount);
+        } else if (Precise.stringGt (amount, '0')) {
+            side = 'long';
+        }
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': undefined,
+            'info': position,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': amount,
+            'side': side,
+            'notional': this.safeString (position, 'value'),
+            'leverage': this.safeString (position, 'leverage'), // todo check
+            'unrealizedPnl': this.safeString (position, 'unrealizedPnL'),
+            'realizedPnl': this.safeString (position, 'realizedPnL'),
+            'collateral': undefined,
+            'entryPrice': this.safeString (position, 'entryPrice'),
+            'markPrice': this.safeString (position, 'markPrice'),
+            'liquidationPrice': this.safeString (position, 'liquidationPrice'),
+            'marginMode': 'cross', // todo check
+            'hedged': undefined, // todo check
+            'maintenanceMargin': undefined, // todo check
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeString (position, 'marginRequirement'),
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name idex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://api-docs-v4.idex.io/#get-funding-payments
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history to fetch
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'nonce': this.uuidv1 (),
+            'wallet': this.walletAddress,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "paymentQuantity": "0.00320988",
+        //             "positionQuantity": "-0.01000000",
+        //             "fundingRate": "0.00009626",
+        //             "indexPrice": "3334.60000000",
+        //             "time": 1736956800000
+        //         }, ...
+        //     ]
+        //
+        return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //     {
+        //         "market": "ETH-USD",
+        //         "paymentQuantity": "0.00320988",
+        //         "positionQuantity": "-0.01000000",
+        //         "fundingRate": "0.00009626",
+        //         "indexPrice": "3334.60000000",
+        //         "time": 1736956800000
+        //     }
+        //
+        const marketId = this.safeString (income, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (income, 'time');
+        const code = this.safeCurrencyCode ('USDC'); // todo check
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (income, 'paymentQuantity'),
+            'rate': this.safeNumber (income, 'fundingRate'), // todo check
+        };
     }
 
     async associateWallet (walletAddress, params = {}) {
@@ -1251,210 +1689,213 @@ export default class idex extends Exchange {
      * @method
      * @name idex#createOrder
      * @description create a trade order, https://docs.idex.io/#create-order
-     * @see https://api-docs-v3.idex.io/#create-order
+     * @see https://api-docs-v4.idex.io/#create-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market', 'limit', 'stopLossMarket', 'stopLossLimit', 'takeProfitMarket', or 'takeProfitLimit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+     * @param {string} [params.wallet] the wallet address to create the order for
+     * @param {string} [params.delegatedKey] delegated key public address if authorized via delegated key
+     * @param {string} [params.triggerPrice] the price at which the stop loss or take profit order is to be triggered, in units of the quote currency
+     * @param {string} [params.stopLossPrice] the price at which the stop loss order is to be triggered, in units of the quote currency
+     * @param {string} [params.takeProfitPrice] the price at which the take profit order is to be triggered, in units of the quote currency
+     * @param {string} [params.triggerType] 'last' or 'index', default is 'last'
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not provided
+     * @param {bool} [params.reduceOnly] if true, the order will only reduce your position, not increase it (default is false)
+     * @param {string} [params.timeInForce] 'GTC', 'IOK', 'FOK' or 'GTX' (post-only) default is 'GTC'
+     * @param {string} [params.postOnly] if true, the order will only be placed if it would not execute immediately
+     * @param {string} [params.selfTradePrevention] 'dc', 'co', 'cn', or 'cb', default is 'dc', must be cn if fok timeInForce is specified
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const testOrder = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
         const market = this.market (symbol);
-        const nonce = this.uuidv1 ();
-        let typeEnum = undefined;
-        const stopLossTypeEnums: Dict = {
-            'stopLoss': 3,
-            'stopLossLimit': 4,
-            'takeProfit': 5,
-            'takeProfitLimit': 6,
+        let wallet = this.walletAddress;
+        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        const order: Dict = {
+            'nonce': this.uuidv1 (),
+            'wallet': wallet,
+            'market': market['id'],
+            'side': side.toLowerCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'reduceOnly': this.safeBool (params, 'reduceOnly', false),
         };
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
-        let triggerPriceString = undefined;
-        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
-            if (triggerPrice === undefined) {
-                throw new BadRequest (this.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders');
-            }
-            triggerPriceString = this.priceToPrecision (symbol, triggerPrice);
+        let delegatedKey = undefined;
+        [ delegatedKey, params ] = this.handleOptionAndParams (params, 'createOrder', 'delegatedKey');
+        if (delegatedKey !== undefined) {
+            order['delegatedKey'] = delegatedKey;
         }
-        const limitTypeEnums: Dict = {
+        let triggerPrice = this.safeString (params, 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if ((type === 'market') || (type === 'limit')) {
+            if (triggerPrice !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() triggerPrice is supported with stopLossMarket, stopLossLimit, takeProfitMarket, or takeProfitLimit types only');
+            } else if (stopLossPrice !== undefined) {
+                type = 'stopLoss' + this.capitalize (type);
+                triggerPrice = stopLossPrice;
+            } else if (takeProfitPrice !== undefined) {
+                type = 'takeProfit' + this.capitalize (type);
+                triggerPrice = takeProfitPrice;
+            }
+        }
+        order['type'] = type;
+        if (triggerPrice !== undefined) {
+            order['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            let triggerType = 'last';
+            [ triggerType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerType', triggerType);
+            order['triggerType'] = triggerType;
+        }
+        const isLimitOrder = (type === 'limit') || (type === 'stopLossLimit') || (type === 'takeProfitLimit');
+        const isMarketOrder = (type === 'market') || (type === 'stopLossMarket') || (type === 'takeProfitMarket');
+        if (price !== undefined) {
+            if (isMarketOrder) {
+                throw new BadRequest (this.id + ' createOrder() price is supported with limit, stopLossLimit, or takeProfitLimit types only');
+            }
+            order['price'] = this.priceToPrecision (symbol, price);
+        } else if (isLimitOrder) {
+            throw new BadRequest (this.id + ' createOrder() price is required with limit, stopLossLimit, or takeProfitLimit types');
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            order['clientOrderId'] = clientOrderId;
+        }
+        let timeInForce = this.safeStringLower (params, 'timeInForce');
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'gtx', params);
+        if (postOnly) {
+            timeInForce = 'gtx';
+        }
+        if (timeInForce !== undefined) {
+            order['timeInForce'] = timeInForce;
+        }
+        const selfTradePrevention = this.safeStringLower (params, 'selfTradePrevention');
+        const isFillOrKill = timeInForce === 'fok';
+        if (selfTradePrevention !== undefined) {
+            if (isFillOrKill && (selfTradePrevention !== 'cn')) {
+                throw new BadRequest (this.id + ' createOrder() selfTradePrevention must be "cn" if timeInForce is "FOK"');
+            } else {
+                order['selfTradePrevention'] = selfTradePrevention;
+            }
+        } else if (isFillOrKill) {
+            order['selfTradePrevention'] = 'cn';
+        }
+        const signature = this.generateSignatureForCreateOrder (order);
+        const request: Dict = {
+            'parameters': order,
+            'signature': signature,
+        };
+        //
+        // we don't use extend here because it is a signed endpoint
+        const response = await this.privatePostOrders (request);
+        return this.parseOrder (response, market);
+    }
+
+    generateSignatureForCreateOrder (order) {
+        // https://api-docs-v4.idex.io/#authentication
+        const nonce = order['nonce'];
+        const wallet = this.safeString (order, 'wallet');
+        const walletBytes = this.remove0xPrefix (wallet);
+        const market = this.safeString (order, 'market');
+        const type = this.safeString (order, 'type');
+        // https://api-docs-v4.idex.io/#wallet-signature-hash-enums
+        const typeEnums: Dict = {
+            'market': 0,
             'limit': 1,
-            'limitMaker': 2,
+            'stopLossMarket': 2,
+            'stopLossLimit': 3,
+            'takeProfitMarket': 4,
+            'takeProfitLimit': 5,
         };
-        let priceString = undefined;
-        const typeLower = type.toLowerCase ();
-        const limitOrder = typeLower.indexOf ('limit') >= 0;
-        if (type in limitTypeEnums) {
-            typeEnum = limitTypeEnums[type];
-            priceString = this.priceToPrecision (symbol, price);
-        } else if (type in stopLossTypeEnums) {
-            typeEnum = stopLossTypeEnums[type];
-            priceString = this.priceToPrecision (symbol, price);
-        } else if (type === 'market') {
-            typeEnum = 0;
-        } else {
-            throw new BadRequest (this.id + ' ' + type + ' is not a valid order type');
+        if (!(type in typeEnums)) {
+            throw new BadRequest (this.id + ' createOrder() invalid order type: ' + type + ' (limit, market, stopLossMarket, stopLossLimit, takeProfitMarket, takeProfitLimit types are supported only)');
         }
-        let amountEnum = 0; // base quantity
-        if ('quoteOrderQuantity' in params) {
-            if (type !== 'market') {
-                throw new NotSupported (this.id + ' createOrder() quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders');
-            }
-            amountEnum = 1;
-            amount = this.safeNumber (params, 'quoteOrderQuantity');
+        const typeEnum = typeEnums[type];
+        const side = this.safeString (order, 'side');
+        const sideEnums: Dict = {
+            'buy': 0,
+            'sell': 1,
+        };
+        if (!(side in sideEnums)) {
+            throw new BadRequest (this.id + ' createOrder() invalid order side: ' + side + ' (buy or sell sides are supported only)');
         }
-        const sideEnum = (side === 'buy') ? 0 : 1;
-        const walletBytes = this.remove0xPrefix (this.walletAddress);
-        const network = this.safeString (this.options, 'network', 'ETH');
-        const orderVersion = this.getSupportedMapping (network, {
-            'ETH': 1,
-            'BSC': 2,
-            'MATIC': 4,
-        });
-        const amountString = this.amountToPrecision (symbol, amount);
-        // https://docs.idex.io/#time-in-force
+        const sideEnum = sideEnums[side];
+        const quantity = this.safeString (order, 'quantity');
+        const price = this.safeString (order, 'price', '0.00000000');
+        const triggerPrice = this.safeString (order, 'triggerPrice', '0.00000000');
+        const triggerTypeEnums: Dict = {
+            'none': 0,
+            'last': 1,
+            'index': 2,
+        };
+        const triggerType = this.safeString (order, 'triggerType', 'none');
+        if (!(triggerType in triggerTypeEnums)) {
+            throw new BadRequest (this.id + ' createOrder() invalid triggerType: ' + triggerType + ' (last or index are supported only)');
+        }
+        const triggerTypeEnum = triggerTypeEnums[triggerType];
+        const callbackRate = '0.00000000'; // unused
+        const conditionalOrderId = 0; // unused
+        const reduceOnly = this.safeBool (order, 'reduceOnly', false);
+        const reduceOnlyEnum = reduceOnly ? 1 : 0;
         const timeInForceEnums: Dict = {
             'gtc': 0,
+            'gtx': 1,
             'ioc': 2,
             'fok': 3,
         };
-        const defaultTimeInForce = this.safeString (this.options, 'defaultTimeInForce', 'gtc');
-        const timeInForce = this.safeString (params, 'timeInForce', defaultTimeInForce);
-        let timeInForceEnum = undefined;
-        if (timeInForce in timeInForceEnums) {
-            timeInForceEnum = timeInForceEnums[timeInForce];
-        } else {
-            const allOptions = Object.keys (timeInForceEnums);
-            const asString = allOptions.join (', ');
-            throw new BadRequest (this.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString);
+        const timeInForce = this.safeString (order, 'timeInForce', 'gtc');
+        if (!(timeInForce in timeInForceEnums)) {
+            throw new BadRequest (this.id + ' createOrder() invalid timeInForce: ' + timeInForce + ' (GTC, GTX, IOC, FOK are supported only)');
         }
-        // https://docs.idex.io/#self-trade-prevention
+        const timeInForceEnum = timeInForceEnums[timeInForce];
         const selfTradePreventionEnums: Dict = {
             'dc': 0,
             'co': 1,
             'cn': 2,
             'cb': 3,
         };
-        const defaultSelfTradePrevention = this.safeString (this.options, 'defaultSelfTradePrevention', 'cn');
-        const selfTradePrevention = this.safeString (params, 'selfTradePrevention', defaultSelfTradePrevention);
-        let selfTradePreventionEnum = undefined;
-        if (selfTradePrevention in selfTradePreventionEnums) {
-            selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention];
-        } else {
-            const allOptions = Object.keys (selfTradePreventionEnums);
-            const asString = allOptions.join (', ');
-            throw new BadRequest (this.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose one of ' + asString);
+        const selfTradePrevention = this.safeString (order, 'selfTradePrevention', 'dc');
+        if (!(selfTradePrevention in selfTradePreventionEnums)) {
+            throw new BadRequest (this.id + ' createOrder() invalid selfTradePrevention: ' + selfTradePrevention + ' (dc, co, cn, cb are supported only)');
         }
+        const selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention];
+        const isLiquidationAcquisitionOnlyInt = 0; // false - unused
+        // const delegatedPublicKey = this.safeString (order, 'delegatedKey', '0x0');
+        // const delegatedPublicKeyBytes = this.remove0xPrefix (delegatedPublicKey);
+        const clientOrderId = this.safeString (order, 'clientOrderId', '');
         const byteArray = [
-            this.numberToBE (orderVersion, 1),
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.encode (market['id']),
+            this.encode (market),
             this.numberToBE (typeEnum, 1),
             this.numberToBE (sideEnum, 1),
-            this.encode (amountString),
-            this.numberToBE (amountEnum, 1),
-        ];
-        if (limitOrder) {
-            const encodedPrice = this.encode (priceString);
-            byteArray.push (encodedPrice);
-        }
-        if (type in stopLossTypeEnums) {
-            const encodedPrice = this.encode (triggerPriceString || priceString);
-            byteArray.push (encodedPrice);
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            byteArray.push (this.encode (clientOrderId));
-        }
-        const after = [
+            this.encode (quantity),
+            this.encode (price),
+            this.encode (triggerPrice),
+            this.numberToBE (triggerTypeEnum, 1),
+            this.encode (callbackRate),
+            this.numberToBE (conditionalOrderId, 8),
+            this.numberToBE (reduceOnlyEnum, 1),
             this.numberToBE (timeInForceEnum, 1),
             this.numberToBE (selfTradePreventionEnum, 1),
-            this.numberToBE (0, 8), // unused
+            this.numberToBE (isLiquidationAcquisitionOnlyInt, 1),
+            // this.base16ToBinary (delegatedPublicKeyBytes), todo handle with delegatedKey
+            this.encode (clientOrderId),
         ];
-        const allBytes = this.arrayConcat (byteArray, after);
-        const binary = this.binaryConcatArray (allBytes);
+        const binary = this.binaryConcatArray (byteArray);
         const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
-        const request: Dict = {
-            'parameters': {
-                'nonce': nonce,
-                'market': market['id'],
-                'side': side,
-                'type': type,
-                'wallet': this.walletAddress,
-                'selfTradePrevention': selfTradePrevention,
-            },
-            'signature': signature,
-        };
-        if (type !== 'market') {
-            request['parameters']['timeInForce'] = timeInForce;
-        }
-        if (limitOrder) {
-            request['parameters']['price'] = priceString;
-        }
-        if (type in stopLossTypeEnums) {
-            request['parameters']['stopPrice'] = triggerPriceString || priceString;
-        }
-        if (amountEnum === 0) {
-            request['parameters']['quantity'] = amountString;
-        } else {
-            request['parameters']['quoteOrderQuantity'] = amountString;
-        }
-        if (clientOrderId !== undefined) {
-            request['parameters']['clientOrderId'] = clientOrderId;
-        }
-        // {
-        //   "market": "DIL-ETH",
-        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //   "time": 1598873478650,
-        //   "status": "filled",
-        //   "type": "limit",
-        //   "side": "buy",
-        //   "originalQuantity": "0.40000000",
-        //   "executedQuantity": "0.40000000",
-        //   "cumulativeQuoteQuantity": "0.03962396",
-        //   "price": "1.00000000",
-        //   "fills": [
-        //     {
-        //       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //       "price": "0.09905990",
-        //       "quantity": "0.40000000",
-        //       "quoteQuantity": "0.03962396",
-        //       "time": 1598873478650,
-        //       "makerSide": "sell",
-        //       "sequence": 5053,
-        //       "fee": "0.00080000",
-        //       "feeAsset": "DIL",
-        //       "gas": "0.00857497",
-        //       "liquidity": "taker",
-        //       "txStatus": "pending"
-        //     }
-        //   ],
-        //   "avgExecutionPrice": "0.09905990"
-        // }
-        // we don't use extend here because it is a signed endpoint
-        let response = undefined;
-        if (testOrder) {
-            response = await this.privatePostOrdersTest (request);
-        } else {
-            response = await this.privatePostOrders (request);
-        }
-        return this.parseOrder (response, market);
+        return signature;
     }
 
     /**
      * @method
      * @name idex#withdraw
      * @description make a withdrawal
-     * @see https://api-docs-v3.idex.io/#withdraw-funds
+     * @see https://api-docs-v4.idex.io/#withdraw-funds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -1509,7 +1950,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#cancelAllOrders
      * @description cancel all open orders
-     * @see https://api-docs-v3.idex.io/#cancel-order
+     * @see https://api-docs-v4.idex.io/#cancel-order
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1550,7 +1991,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#cancelOrder
      * @description cancels an open order
-     * @see https://api-docs-v3.idex.io/#cancel-order
+     * @see https://api-docs-v4.idex.io/#cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1601,7 +2042,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchDeposit
      * @description fetch information on a deposit
-     * @see https://api-docs-v3.idex.io/#get-deposits
+     * @see https://api-docs-v4.idex.io/#get-deposits
      * @param {string} id deposit id
      * @param {string} code not used by idex fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1616,6 +2057,17 @@ export default class idex extends Exchange {
             'depositId': id,
         };
         const response = await this.privateGetDeposits (this.extend (request, params));
+        //
+        //     {
+        //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //         "asset": "USDC",
+        //         "quantity": "30.00000000",
+        //         "bridgeSource": "stargate.ethereum",
+        //         "time":1736163836056,
+        //         "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
+        //     }
+        //
         return this.parseTransaction (response);
     }
 
@@ -1623,17 +2075,40 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://api-docs-v3.idex.io/#get-deposits
+     * @see https://api-docs-v4.idex.io/#get-deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         params = this.extend ({
             'method': 'privateGetDeposits',
         }, params);
+        //
+        //     [
+        //         {
+        //             "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //             "asset": "USDC",
+        //             "quantity": "30.00000000",
+        //             "bridgeSource": "stargate.ethereum",
+        //             "time":1736163836056,
+        //             "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //             "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
+        //         },
+        //         {
+        //             "depositId": "feb34d60-cc23-11ef-b8de-9990667b52c0",
+        //             "asset": "USDC",
+        //             "quantity": "33.07000000",
+        //             "bridgeSource": "stargate.ethereum",
+        //             "time":1736164044086,
+        //             "bridgeTxId": "0xa42a14e7b5c907a42c43a148df679e3ac977608bb6793fccd5d0e9963e6f52a3",
+        //             "xchainTxId": "0xb58a46bc7bfe602bc53d4985781586c496c540596084e3e825431cb7d8b36f9e"
+        //         }
+        //     ]
+        //
         return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
@@ -1641,7 +2116,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://api-docs-v3.idex.io/#get-ping
+     * @see https://api-docs-v4.idex.io/#get-ping
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -1660,7 +2135,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://api-docs-v3.idex.io/#get-time
+     * @see https://api-docs-v4.idex.io/#get-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -1676,7 +2151,7 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
-     * @see https://api-docs-v3.idex.io/#get-withdrawals
+     * @see https://api-docs-v4.idex.io/#get-withdrawals
      * @param {string} id withdrawal id
      * @param {string} code not used by idex.fetchWithdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1698,11 +2173,12 @@ export default class idex extends Exchange {
      * @method
      * @name idex#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://api-docs-v3.idex.io/#get-withdrawals
+     * @see https://api-docs-v4.idex.io/#get-withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1730,16 +2206,11 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // [
-        //   {
-        //     "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
-        //     "asset": "ETH",
-        //     "quantity": "1.00000000",
-        //     "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
-        //     "txTime": 1598865853000,
-        //     "confirmationTime": 1598865930231
-        //   }
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
         const method = params['method'];
         params = this.omit (params, 'method');
         let response = undefined;
@@ -1753,81 +2224,61 @@ export default class idex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            'mined': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // fetchDeposits
+        // deposit
         //
         //     {
-        //         "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
-        //         "asset": "ETH",
-        //         "quantity": "1.00000000",
-        //         "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
-        //         "txTime": 1598865853000,
-        //         "confirmationTime": 1598865930231
+        //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //         "asset": "USDC",
+        //         "quantity": "30.00000000",
+        //         "bridgeSource": "stargate.ethereum",
+        //         "time":1736163836056,
+        //         "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
         //     }
         //
-        // fetchWithdrwalas
-        //
+        // withdrawal (todo check)
         //     {
-        //         "withdrawalId": "a62d8760-ec4d-11ea-9fa6-47904c19499b",
-        //         "asset": "ETH",
-        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
-        //         "quantity": "0.20000000",
-        //         "time": 1598962883288,
-        //         "fee": "0.00024000",
-        //         "txId": "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
-        //         "txStatus": "mined"
-        //     }
-        //
-        // withdraw
-        //
-        //     {
-        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
-        //         "asset": "ETH",
-        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
-        //         "quantity": "0.20000000",
-        //         "time": 1598962883190,
-        //         "fee": "0.00024000",
-        //         "txStatus": "pending",
-        //         "txId": null
+        //         "withdrawalId": "3ac67790-a77c-11ea-ae39-b3356c7170f3",
+        //         "asset": "USDC",
+        //         "quantity": "1000.00000000",
+        //         "gas": "0.05000000",
+        //         "bridgeTarget": "stargate.arbitrum",
+        //         "time": 1705785508061,
+        //         "xchainTxId": "0x...",
+        //         "xchainTxStatus": "mined"
         //     }
         //
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
-        } else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
+        } else if ('withdrawalId' in transaction) {
             type = 'withdrawal';
         }
         let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
         id = this.safeString (transaction, 'withdrawalId', id);
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
-        const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
-        let fee = undefined;
-        if ('fee' in transaction) {
-            fee = {
-                'cost': this.safeNumber (transaction, 'fee'),
-                'currency': 'ETH',
-            };
-        }
+        const txid = this.safeString (transaction, 'xchainTxId');
+        const timestamp = this.safeInteger (transaction, 'time');
         const rawStatus = this.safeString (transaction, 'txStatus');
         const status = this.parseTransactionStatus (rawStatus);
-        const updated = this.safeInteger (transaction, 'confirmationTime');
+        let fee = undefined;
+        if ('gas' in transaction) {
+            fee = {
+                'cost': this.safeNumber (transaction, 'gas'),
+                'currency': code,
+            };
+        }
+        const networkId = this.safeString2 (transaction, 'bridgeSource', 'bridgeTarget');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': undefined,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -1838,28 +2289,108 @@ export default class idex extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'comment': undefined,
-            'internal': undefined,
+            'internal': false,
             'fee': fee,
         } as Transaction;
     }
 
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'mined': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://api-docs-v4.idex.io/#get-gas-fees
+     * @param {string[]|undefined} codes not used by idex fetchDepositWithdrawFees (), only USDC is supported
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetGasFees (params);
+        //
+        //     {
+        //         "withdrawal": {
+        //             "xchain.xchain": "0.05000000",
+        //             "stargate.arbitrum": "0.07648418",
+        //             "stargate.base": "0.07453254",
+        //             "stargate.bnb": "0.35694860",
+        //             "stargate.ethereum": "8.11213457",
+        //             "stargate.mantle": "0.09499113",
+        //             "stargate.optimism": "0.04842092",
+        //             "stargate.polygon": "0.05420854",
+        //             "stargate.sei": "0.01914629"
+        //         }
+        //     }
+        //
+        const withdrawal = this.safeDict (response, 'withdrawal', {});
+        const usdcWithdrawal: Dict = {
+            'USDC': withdrawal, // todo check
+        };
+        return this.parseDepositWithdrawFees (usdcWithdrawal, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+        //
+        //     {
+        //         "xchain.xchain": "0.05000000",
+        //         "stargate.arbitrum": "0.07648418",
+        //         "stargate.base": "0.07453254",
+        //         "stargate.bnb": "0.35694860",
+        //         "stargate.ethereum": "8.11213457",
+        //         "stargate.mantle": "0.09499113",
+        //         "stargate.optimism": "0.04842092",
+        //         "stargate.polygon": "0.05420854",
+        //         "stargate.sei": "0.01914629"
+        //     }
+        //
+        const result = this.depositWithdrawFee (fee);
+        const networkIds = Object.keys (fee);
+        for (let i = 0; i < networkIds.length; i++) {
+            const networkId = networkIds[i];
+            const networkCode = this.networkIdToCode (networkId);
+            const feeCost = this.safeNumber (fee, networkId);
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': feeCost,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
+    }
+
     calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const hasApiKey = (this.apiKey !== undefined);
-        const hasSecret = (this.secret !== undefined);
-        const hasWalletAddress = (this.walletAddress !== undefined);
-        const hasPrivateKey = (this.privateKey !== undefined);
-        const defaultCost = this.safeValue (config, 'cost', 1);
-        const authenticated = hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey;
-        return authenticated ? (defaultCost / 2) : defaultCost;
+        let cost = this.safeNumber (config, 'cost', 1);
+        const bundled = this.safeNumber (config, 'bundled');
+        const limit = this.safeNumber (params, 'limit');
+        if ((bundled !== undefined) && (limit !== undefined) && (limit > 100)) {
+            cost = bundled;
+        } else if (api === 'public') {
+            const signed = this.checkRequiredCredentials (false);
+            if (!signed) {
+                cost = cost * 2;
+            }
+        }
+        return cost;
     }
 
     /**
      * @method
      * @name idex#fetchDepositAddress
      * @description fetch the Polygon address of the wallet
-     * @see https://api-docs-v3.idex.io/#get-wallets
+     * @see https://api-docs-v4.idex.io/#get-wallets
      * @param {string} code not used by idex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1869,54 +2400,63 @@ export default class idex extends Exchange {
         request['nonce'] = this.uuidv1 ();
         const response = await this.privateGetWallets (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
-        //            totalPortfolioValueUsd: "0.00",
-        //            time: "1678342148086"
-        //        },
-        //        {
-        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
-        //            totalPortfolioValueUsd: "15.90",
-        //            time: "1691697811659"
-        //        }
-        //    ]
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
         //
         return this.parseDepositAddress (response);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
-        //    [
-        //        {
-        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
-        //            totalPortfolioValueUsd: "0.00",
-        //            time: "1678342148086"
-        //        },
-        //        {
-        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
-        //            totalPortfolioValueUsd: "15.90",
-        //            time: "1691697811659"
-        //        }
-        //    ]
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
         //
         const length = depositAddress.length;
         const entry = this.safeDict (depositAddress, length - 1);
-        const address = this.safeString (entry, 'address');
+        const address = this.safeString (entry, 'wallet');
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': undefined,
-            'network': 'MATIC',
+            'currency': this.options['defaultSettle'], // todo check if it's correct
+            'network': undefined,
             'address': address,
             'tag': undefined,
         } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const network = this.safeString (this.options, 'network', 'ETH');
-        const version = this.safeString (this.options, 'version', 'v1');
-        let url = this.urls['api'][network] + '/' + version + '/' + path;
+        const version = this.safeString (this.options, 'version', 'v4');
+        let url = this.urls['api']['api'] + '/' + version + '/' + path;
         const keys = Object.keys (params);
         const length = keys.length;
         let query = undefined;

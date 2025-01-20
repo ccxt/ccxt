@@ -12,24 +12,34 @@ interface Exchange {
     publicGetPing (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetExchange (params?: {}): Promise<implicitReturnType>;
-    publicGetAssets (params?: {}): Promise<implicitReturnType>;
     publicGetMarkets (params?: {}): Promise<implicitReturnType>;
     publicGetTickers (params?: {}): Promise<implicitReturnType>;
     publicGetCandles (params?: {}): Promise<implicitReturnType>;
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetLiquidations (params?: {}): Promise<implicitReturnType>;
     publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    privateGetUser (params?: {}): Promise<implicitReturnType>;
+    publicGetFundingRates (params?: {}): Promise<implicitReturnType>;
+    publicGetGasFees (params?: {}): Promise<implicitReturnType>;
     privateGetWallets (params?: {}): Promise<implicitReturnType>;
-    privateGetBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetFundingPayments (params?: {}): Promise<implicitReturnType>;
+    privateGetHistoricalPnL (params?: {}): Promise<implicitReturnType>;
+    privateGetInitialMarginFractionOverride (params?: {}): Promise<implicitReturnType>;
     privateGetOrders (params?: {}): Promise<implicitReturnType>;
     privateGetFills (params?: {}): Promise<implicitReturnType>;
     privateGetDeposits (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privateGetGasFees (params?: {}): Promise<implicitReturnType>;
+    privateGetMarketMakerRewardsV1Epochs (params?: {}): Promise<implicitReturnType>;
+    privateGetMarketMakerRewardsV1Epoch (params?: {}): Promise<implicitReturnType>;
+    privateGetPayouts (params?: {}): Promise<implicitReturnType>;
     privateGetWsToken (params?: {}): Promise<implicitReturnType>;
     privatePostWallets (params?: {}): Promise<implicitReturnType>;
+    privatePostInitialMarginFractionOverride (params?: {}): Promise<implicitReturnType>;
     privatePostOrders (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersTest (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privatePostPayouts (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

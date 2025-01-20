@@ -1,5 +1,268 @@
 {
     "exchange": "idex",
     "skipKeys": [],
-    "methods": {}
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USD",
+                    "1m"
+                ],
+                "httpResponse": [
+                    {
+                        "start": "1736155560000",
+                        "open": "3646.20000000",
+                        "high": "3646.20000000",
+                        "low": "3645.40000000",
+                        "close": "3645.40000000",
+                        "baseVolume": "0.02000000",
+                        "quoteVolume": "72.91600000",
+                        "trades": "2",
+                        "sequence": "219006"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1736155560000,
+                        3646.2,
+                        3646.2,
+                        3645.4,
+                        3645.4,
+                        0.02
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "fillId": "1c3e9798-7a24-3d5f-9a2e-f42d8338aa89",
+                        "price": "3641.30000000",
+                        "quantity": "0.01000000",
+                        "quoteQuantity": "36.41300000",
+                        "time": "1736158441663",
+                        "makerSide": "buy",
+                        "sequence": "219058"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fillId": "1c3e9798-7a24-3d5f-9a2e-f42d8338aa89",
+                            "price": "3641.30000000",
+                            "quantity": "0.01000000",
+                            "quoteQuantity": "36.41300000",
+                            "time": "1736158441663",
+                            "makerSide": "buy",
+                            "sequence": "219058"
+                        },
+                        "timestamp": 1736158441663,
+                        "datetime": "2025-01-06T10:14:01.663Z",
+                        "symbol": "ETH/USD",
+                        "id": "1c3e9798-7a24-3d5f-9a2e-f42d8338aa89",
+                        "order": null,
+                        "type": "limit",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 3641.3,
+                        "amount": 0.01,
+                        "cost": 36.413,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": {
+                    "sequence": "232801544",
+                    "bids": [
+                        [
+                            "3637.50000000",
+                            "2.47400000",
+                            1
+                        ],
+                        [
+                            "3637.00000000",
+                            "0.02900000",
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "3638.40000000",
+                            "2.74800000",
+                            2
+                        ],
+                        [
+                            "3638.50000000",
+                            "0.02700000",
+                            1
+                        ]
+                    ],
+                    "lastPrice": "3640.00000000",
+                    "markPrice": "3638.40000000",
+                    "indexPrice": "3635.70000000"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USD",
+                    "bids": [
+                        [
+                            3637.5,
+                            2.474,
+                            1
+                        ],
+                        [
+                            3637,
+                            0.029,
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            3638.4,
+                            2.748,
+                            2
+                        ],
+                        [
+                            3638.5,
+                            0.027,
+                            1
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": 232801544
+                }
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "fundingRate": "0.00010041",
+                        "indexPrice": "3649.60000000",
+                        "time": "1736150400000"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingRate": "0.00010041",
+                            "indexPrice": "3649.60000000",
+                            "time": "1736150400000"
+                        },
+                        "symbol": "ETH/USD",
+                        "fundingRate": 0.00010041,
+                        "timestamp": 1736150400000,
+                        "datetime": "2025-01-06T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "market": "ETH-USD",
+                        "time": "1736160892000",
+                        "open": "3615.00000000",
+                        "high": "3697.20000000",
+                        "low": "3598.30000000",
+                        "close": "3638.20000000",
+                        "closeQuantity": "0.01000000",
+                        "baseVolume": "30.51600000",
+                        "quoteVolume": "111600.43020000",
+                        "percentChange": "0.64177000",
+                        "trades": "1614",
+                        "sequence": "219101",
+                        "ask": "3641.00000000",
+                        "bid": "3640.40000000",
+                        "markPrice": "3640.40000000",
+                        "indexPrice": "3638.40000000",
+                        "indexPrice24h": "3612.60000000",
+                        "indexPricePercentChange": "0.00714167",
+                        "lastFundingRate": "0.00010041",
+                        "currentFundingRate": "0.00010000",
+                        "nextFundingTime": "1736179200000",
+                        "openInterest": "146.93100000"
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USD": {
+                        "symbol": "ETH/USD",
+                        "timestamp": 1736160892000,
+                        "datetime": "2025-01-06T10:54:52.000Z",
+                        "high": 3697.2,
+                        "low": 3598.3,
+                        "bid": 3640.4,
+                        "bidVolume": null,
+                        "ask": 3641,
+                        "askVolume": null,
+                        "vwap": 3657.1120133700356,
+                        "open": 3615,
+                        "close": 3638.2,
+                        "last": 3638.2,
+                        "previousClose": null,
+                        "change": 23.2,
+                        "percentage": 0.64177,
+                        "average": 3626.6,
+                        "baseVolume": 30.516,
+                        "quoteVolume": 111600.4302,
+                        "indexPrice": 3638.4,
+                        "markPrice": 3640.4,
+                        "info": {
+                            "market": "ETH-USD",
+                            "time": "1736160892000",
+                            "open": "3615.00000000",
+                            "high": "3697.20000000",
+                            "low": "3598.30000000",
+                            "close": "3638.20000000",
+                            "closeQuantity": "0.01000000",
+                            "baseVolume": "30.51600000",
+                            "quoteVolume": "111600.43020000",
+                            "percentChange": "0.64177000",
+                            "trades": "1614",
+                            "sequence": "219101",
+                            "ask": "3641.00000000",
+                            "bid": "3640.40000000",
+                            "markPrice": "3640.40000000",
+                            "indexPrice": "3638.40000000",
+                            "indexPrice24h": "3612.60000000",
+                            "indexPricePercentChange": "0.00714167",
+                            "lastFundingRate": "0.00010041",
+                            "currentFundingRate": "0.00010000",
+                            "nextFundingTime": "1736179200000",
+                            "openInterest": "146.93100000"
+                        }
+                    }
+                }
+            }
+        ]
+  }
 }
