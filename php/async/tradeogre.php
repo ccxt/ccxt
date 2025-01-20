@@ -162,6 +162,57 @@ class tradeogre extends Exchange {
             ),
             'options' => array(
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => null, // todo
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -464,6 +515,9 @@ class tradeogre extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
+             * @see https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -533,6 +587,9 @@ class tradeogre extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
+             * @see https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -558,7 +615,7 @@ class tradeogre extends Exchange {
             /**
              * fetches information on an order made by the user
              *
-             * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+             * @see https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in

@@ -175,7 +175,7 @@ public partial class hollaex
         return new TradingFees(res);
     }
     /// <summary>
-    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// hollaex has large gaps between candles, so it's recommended to specify since
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.hollaex.com/#chart"/>  <br/>
@@ -196,6 +196,12 @@ public partial class hollaex
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
     /// </list>

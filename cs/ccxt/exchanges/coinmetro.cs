@@ -1532,7 +1532,7 @@ public partial class coinmetro : Exchange
 
     /**
      * @method
-     * @name coinmetro#cancelOrder
+     * @name coinmetro#closePosition
      * @description closes an open position
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
      * @param {string} symbol not used by coinmetro closePosition ()

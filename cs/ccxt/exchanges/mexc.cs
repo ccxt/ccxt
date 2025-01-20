@@ -1227,6 +1227,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             object state = this.safeString(market, "state");
+            object isLinear = isEqual(quote, settle);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -1244,8 +1245,8 @@ public partial class mexc : Exchange
                 { "option", false },
                 { "active", (isEqual(state, "0")) },
                 { "contract", true },
-                { "linear", true },
-                { "inverse", false },
+                { "linear", isLinear },
+                { "inverse", !isTrue(isLinear) },
                 { "taker", this.safeNumber(market, "takerFeeRate") },
                 { "maker", this.safeNumber(market, "makerFeeRate") },
                 { "contractSize", this.safeNumber(market, "contractSize") },

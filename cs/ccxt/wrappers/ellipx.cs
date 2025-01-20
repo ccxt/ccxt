@@ -402,6 +402,21 @@ public partial class ellipx
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);
     }
+    /// <summary>
+    /// Make a withdrawal request
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>tag</term>
+    /// <description>
+    /// string : Additional tag/memo for currencies that require it
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
     public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);

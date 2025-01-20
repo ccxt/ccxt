@@ -1719,7 +1719,7 @@ class paradex extends paradex$1 {
     }
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

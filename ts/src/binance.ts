@@ -7070,6 +7070,7 @@ export default class binance extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -10632,7 +10633,7 @@ export default class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const side = this.safeStringLower (position, 'side');
         let quantity = this.safeString (position, 'quantity');

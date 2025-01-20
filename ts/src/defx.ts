@@ -948,7 +948,7 @@ export default class defx extends Exchange {
 
     /**
      * @method
-     * @name defx#fetchTrades
+     * @name defx#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
      * @param {string} symbol unified symbol of the market to fetch trades for

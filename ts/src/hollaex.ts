@@ -842,13 +842,14 @@ export default class hollaex extends Exchange {
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -858,25 +859,19 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const duration = this.parseTimeframe (timeframe);
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            }
-            const end = this.seconds ();
-            const start = end - duration * limit;
-            request['to'] = end;
-            request['from'] = start;
-        } else {
-            if (limit === undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-                request['to'] = this.seconds ();
-            } else {
-                const start = this.parseToInt (since / 1000);
-                request['from'] = start;
-                request['to'] = this.sum (start, duration * limit);
-            }
+        const until = this.safeInteger (params, 'until');
+        let end = this.seconds ();
+        if (until !== undefined) {
+            end = this.parseToInt (until / 1000);
         }
+        const defaultSpan = 2592000; // 30 days
+        if (since !== undefined) {
+            request['from'] = this.parseToInt (since / 1000);
+        } else {
+            request['from'] = end - defaultSpan;
+        }
+        request['to'] = end;
+        params = this.omit (params, 'until');
         const response = await this.publicGetChart (this.extend (request, params));
         //
         //     [

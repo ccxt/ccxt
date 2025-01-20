@@ -1955,7 +1955,7 @@ class blofin extends blofin$1 {
     }
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols

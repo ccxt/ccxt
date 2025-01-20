@@ -7185,6 +7185,7 @@ class binance extends binance$1 {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {

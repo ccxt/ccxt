@@ -344,7 +344,7 @@ export default class bybit extends Exchange {
     fetchOrderClassic(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
-     * @name bybit#fetchOrderClassic
+     * @name bybit#fetchOrder
      * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
@@ -357,7 +357,7 @@ export default class bybit extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
-     * @name bybit#fetchOrders
+     * @name bybit#fetchOrdersClassic
      * @description fetches information on multiple orders made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} symbol unified market symbol of the market orders were made in

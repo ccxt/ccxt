@@ -1387,6 +1387,7 @@ export default class mexc extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
+            const isLinear = quote === settle;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1404,8 +1405,8 @@ export default class mexc extends Exchange {
                 'option': false,
                 'active': (state === '0'),
                 'contract': true,
-                'linear': true,
-                'inverse': false,
+                'linear': isLinear,
+                'inverse': !isLinear,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.safeNumber (market, 'contractSize'),

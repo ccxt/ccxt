@@ -1382,6 +1382,7 @@ class mexc extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
+            $isLinear = $quote === $settle;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -1399,8 +1400,8 @@ class mexc extends Exchange {
                 'option' => false,
                 'active' => ($state === '0'),
                 'contract' => true,
-                'linear' => true,
-                'inverse' => false,
+                'linear' => $isLinear,
+                'inverse' => !$isLinear,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),

@@ -54,6 +54,9 @@ class alpaca extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createMarketBuyOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
                 'createOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
@@ -933,6 +936,67 @@ class alpaca extends Exchange {
         return $clientOrderId;
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             *
+             * @see https://docs.alpaca.markets/reference/postorder
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params)));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             *
+             * @see https://docs.alpaca.markets/reference/postorder
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             *
+             * @see https://docs.alpaca.markets/reference/postorder
+             *
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -947,6 +1011,7 @@ class alpaca extends Exchange {
              * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {float} [$params->cost] *$market orders only* the $cost of the $order in units of the quote currency
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -954,7 +1019,6 @@ class alpaca extends Exchange {
             $id = $market['id'];
             $request = array(
                 'symbol' => $id,
-                'qty' => $this->amount_to_precision($symbol, $amount),
                 'side' => $side,
                 'type' => $type, // $market, limit, stop_limit
             );
@@ -971,6 +1035,13 @@ class alpaca extends Exchange {
             }
             if (mb_strpos($type, 'limit') !== false) {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $cost = $this->safe_string($params, 'cost');
+            if ($cost !== null) {
+                $params = $this->omit($params, 'cost');
+                $request['notional'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
             $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
             $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);

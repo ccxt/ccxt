@@ -50,7 +50,7 @@ export default class hashkey extends hashkeyRest {
     handleTrades(client: Client, message: any): void;
     /**
      * @method
-     * @name alpaca#watchOrderBook
+     * @name hashkey#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -104,7 +104,7 @@ export default class hashkey extends hashkeyRest {
     parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
-     * @name bitmart#watchBalance
+     * @name hashkey#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
      * @param {object} [params] extra parameters specific to the exchange API endpoint
