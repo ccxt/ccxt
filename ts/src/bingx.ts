@@ -1132,7 +1132,7 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        let ohlcvs = this.safeValue (response, 'data', []);
+        let ohlcvs = this.safeList (response, 'data', []);
         if (!Array.isArray (ohlcvs)) {
             ohlcvs = [ ohlcvs ];
         }
@@ -3581,24 +3581,24 @@ export default class bingx extends Exchange {
                 feeCurrencyCode = market['quote'];
             }
         }
-        let stopLoss = this.safeValue (order, 'stopLoss');
+        let stopLoss = this.safeDict (order, 'stopLoss');
         let stopLossPrice = undefined;
-        if ((stopLoss !== undefined) && (stopLoss !== '')) {
+        if ((stopLoss !== undefined)) {
             stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
         }
-        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
+        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson (stopLoss);
             }
             stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
         }
-        let takeProfit = this.safeValue (order, 'takeProfit');
+        let takeProfit = this.safeDict (order, 'takeProfit');
         let takeProfitPrice = undefined;
-        if (takeProfit !== undefined && (takeProfit !== '')) {
+        if (takeProfit !== undefined) {
             takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
         }
-        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
+        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson (takeProfit);
@@ -4009,7 +4009,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
         params = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
@@ -5197,7 +5197,7 @@ export default class bingx extends Exchange {
         //
         // parse withdraw-type output first...
         //
-        const data = this.safeValue (transaction, 'data');
+        const data = this.safeDict (transaction, 'data');
         const dataId = (data === undefined) ? undefined : this.safeString (data, 'id');
         const id = this.safeString (transaction, 'id', dataId);
         const address = this.safeString (transaction, 'address');
@@ -5804,7 +5804,7 @@ export default class bingx extends Exchange {
         }
         params = this.omit (params, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         //    {
         //        "code":0,
         //        "timestamp":1689258953651,
