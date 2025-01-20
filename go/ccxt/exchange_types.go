@@ -456,23 +456,23 @@ func NewTicker(data interface{}) Ticker {
 
 // OHLCV struct
 type OHLCV struct {
-	Timestamp *int64
-	Open      *float64
-	High      *float64
-	Low       *float64
-	Close     *float64
-	Volume    *float64
+	Timestamp int64
+	Open      float64
+	High      float64
+	Low       float64
+	Close     float64
+	Volume    float64
 }
 
 func NewOHLCV(data interface{}) OHLCV {
 	ohlcv := data.([]interface{})
 	return OHLCV{
-		Timestamp: SafeInt64Typed(ohlcv, 0),
-		Open:      SafeFloatTyped(ohlcv, 1),
-		High:      SafeFloatTyped(ohlcv, 2),
-		Low:       SafeFloatTyped(ohlcv, 3),
-		Close:     SafeFloatTyped(ohlcv, 4),
-		Volume:    SafeFloatTyped(ohlcv, 5),
+		Timestamp: *SafeInt64Typed(ohlcv, 0),
+		Open:      *SafeFloatTyped(ohlcv, 1),
+		High:      *SafeFloatTyped(ohlcv, 2),
+		Low:       *SafeFloatTyped(ohlcv, 3),
+		Close:     *SafeFloatTyped(ohlcv, 4),
+		Volume:    *SafeFloatTyped(ohlcv, 5),
 	}
 }
 
@@ -618,9 +618,9 @@ type Balance struct {
 
 type Balances struct {
 	Balances map[string]Balance
-	Free     map[string]float64
-	Used     map[string]float64
-	Total    map[string]float64
+	Free     map[string]*float64
+	Used     map[string]*float64
+	Total    map[string]*float64
 	Info     map[string]interface{}
 }
 
@@ -637,9 +637,9 @@ func NewBalance(balanceData map[string]interface{}) Balance {
 func NewBalances(balancesData2 interface{}) Balances {
 	balancesData := balancesData2.(map[string]interface{})
 	balancesMap := make(map[string]Balance)
-	freeBalances := make(map[string]float64)
-	usedBalances := make(map[string]float64)
-	totalBalances := make(map[string]float64)
+	freeBalances := make(map[string]*float64)
+	usedBalances := make(map[string]*float64)
+	totalBalances := make(map[string]*float64)
 
 	for key, value := range balancesData {
 		// Skip non-balance fields
@@ -655,8 +655,10 @@ func NewBalances(balancesData2 interface{}) Balances {
 	// Handle "free" balances
 	if freeData, ok := balancesData["free"].(map[string]interface{}); ok {
 		for key, value := range freeData {
-			if floatValue, ok := value.(float64); ok {
-				freeBalances[key] = floatValue
+			if value == nil {
+				freeBalances[key] = nil
+			} else if floatValue, ok := value.(float64); ok {
+				freeBalances[key] = &floatValue
 			}
 		}
 	}
@@ -664,8 +666,10 @@ func NewBalances(balancesData2 interface{}) Balances {
 	// Handle "used" balances
 	if usedData, ok := balancesData["used"].(map[string]interface{}); ok {
 		for key, value := range usedData {
-			if floatValue, ok := value.(float64); ok {
-				usedBalances[key] = floatValue
+			if value == nil {
+				usedBalances[key] = nil
+			} else if floatValue, ok := value.(float64); ok {
+				usedBalances[key] = &floatValue
 			}
 		}
 	}
@@ -673,8 +677,10 @@ func NewBalances(balancesData2 interface{}) Balances {
 	// Handle "total" balances
 	if totalData, ok := balancesData["total"].(map[string]interface{}); ok {
 		for key, value := range totalData {
-			if floatValue, ok := value.(float64); ok {
-				totalBalances[key] = floatValue
+			if value == nil {
+				totalBalances[key] = nil
+			} else if floatValue, ok := value.(float64); ok {
+				totalBalances[key] = &floatValue
 			}
 		}
 	}
@@ -1406,7 +1412,7 @@ type Position struct {
 	Timestamp                   *float64
 	Datetime                    *string
 	Contracts                   *float64
-	ContractsSize               *float64
+	ContractSize                *float64
 	Side                        *string
 	Notional                    *float64
 	Leverage                    *float64
@@ -1438,7 +1444,7 @@ func NewPosition(data interface{}) Position {
 		Timestamp:                   SafeFloatTyped(data, "timestamp"),
 		Datetime:                    SafeStringTyped(data, "datetime"),
 		Contracts:                   SafeFloatTyped(data, "contracts"),
-		ContractsSize:               SafeFloatTyped(data, "contractsSize"),
+		ContractSize:                SafeFloatTyped(data, "contractsSize"),
 		Side:                        SafeStringTyped(data, "side"),
 		Notional:                    SafeFloatTyped(data, "notional"),
 		Leverage:                    SafeFloatTyped(data, "leverage"),
