@@ -844,6 +844,14 @@
                 "output": "{\"currency\":\"USDT\",\"chain\":\"eth\"}"
             }
         ],
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.kucoin.com/api/v3/currencies",
+                "input": []
+            }
+        ],
         "fetchBorrowInterest": [
             {
                 "description": "cross fetch the borrow interest",
