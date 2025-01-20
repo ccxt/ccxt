@@ -753,6 +753,7 @@ export default class xt extends Exchange {
                     'extends': 'default',
                 },
                 'forDerivatives': {
+                    'extends': 'default',
                     'createOrder': {
                         'triggerPrice': true,
                         // todo
