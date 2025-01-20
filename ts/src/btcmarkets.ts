@@ -617,6 +617,7 @@ export default class btcmarkets extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -631,12 +632,17 @@ export default class btcmarkets extends Exchange {
             // 'after': 1234567890123,
             // 'limit': limit, // default 10, max 200
         };
+        const until = this.safeInteger (params, 'until');
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 200); // default is 10, max 200
         }
+        if (until !== undefined) {
+            request['to'] = this.iso8601 (until);
+        }
+        params = this.omit (params, 'until');
         const response = await this.publicGetMarketsMarketIdCandles (this.extend (request, params));
         //
         //     [
