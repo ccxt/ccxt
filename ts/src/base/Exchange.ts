@@ -356,6 +356,7 @@ export default class Exchange {
         },
     };
     markets_by_id: Dictionary<any> = undefined;
+    market_symbol_aliases: string[] = [];
     symbols: string[] = undefined;
     ids: string[] = undefined;
     currencies: Currencies = {};
@@ -5952,6 +5953,17 @@ export default class Exchange {
             return markets[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
             return this.createExpiredOptionMarket (symbol);
+        } else if (this.inArray (symbol, this.market_symbol_aliases)) {
+            // find the first market symbol that has the legacy symbol in its name
+            const markets = this.markets;
+            const keys = Object.keys (markets);
+            for (let i = 0; i < keys.length; i++) {
+                const currentSymbol = keys[i];
+                if (currentSymbol.indexOf (symbol) > -1) {
+                    return markets[currentSymbol] as MarketInterface;
+                }
+            }
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }

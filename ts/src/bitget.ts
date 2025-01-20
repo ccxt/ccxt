@@ -1948,6 +1948,12 @@ export default class bitget extends Exchange {
                 type = 'future';
                 future = true;
                 symbol = symbol + ':' + settle + '-' + expiryString;
+                const period = this.safeString (market, 'deliveryPeriod');
+                if ((period === 'this_quarter') || (period === 'next_quarter')) {
+                    // add legacy symbol to aliases
+                    this.market_symbol_aliases.push (symbol);
+                    symbol = symbol + 'Q';
+                }
             }
             contract = true;
             inverse = (base === settle);
