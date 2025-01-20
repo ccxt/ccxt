@@ -11205,7 +11205,7 @@ public partial class binance : Exchange
         //     }
         //
         object marketId = this.safeString(position, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         object symbol = getValue(market, "symbol");
         object side = this.safeStringLower(position, "side");
         object quantity = this.safeString(position, "quantity");
