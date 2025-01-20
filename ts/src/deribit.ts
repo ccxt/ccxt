@@ -951,11 +951,26 @@ export default class deribit extends Exchange {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
                         symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        let expiryLetter = undefined;
+                        if (settlementPeriod === 'month') {
+                            expiryLetter = 'M';
+                        } else if (settlementPeriod === 'week') {
+                            expiryLetter = 'W';
+                        } else if (settlementPeriod === 'day') {
+                            expiryLetter = 'D';
+                        } else {
+                            expiryLetter = '';
+                        }
                         if (option) {
                             strike = this.safeNumber (market, 'strike');
                             optionType = this.safeString (market, 'option_type');
                             const letter = (optionType === 'call') ? 'C' : 'P';
-                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                            const oldSymbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                            this.market_symbol_aliases.push (oldSymbol);
+                            symbol = symbol + expiryLetter + '-' + this.numberToString (strike) + '-' + letter;
+                        } else {
+                            this.market_symbol_aliases.push (symbol);
+                            symbol = symbol + expiryLetter;
                         }
                     }
                     inverse = (quote !== settle);

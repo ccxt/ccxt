@@ -110,9 +110,9 @@
             "price_index": "btc_usdt"
         }
     },
-    "BTC/USD:BTC-240126-39000-C": {
+    "BTC/USD:BTC-240126M-39000-C": {
         "id": "BTC-26JAN24-39000-C",
-        "symbol": "BTC/USD:BTC-240126-39000-C",
+        "symbol": "BTC/USD:BTC-240126M-39000-C",
         "base": "BTC",
         "quote": "USD",
         "settle": "BTC",
