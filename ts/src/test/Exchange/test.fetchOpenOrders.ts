@@ -14,6 +14,7 @@ async function testFetchOpenOrders (exchange: Exchange, skippedProperties: objec
         testSharedMethods.assertInArray (exchange, skippedProperties, method, order, 'status', [ 'open' ]);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, symbol, orders);
+    return true;
 }
 
 export default testFetchOpenOrders;

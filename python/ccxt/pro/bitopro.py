@@ -77,7 +77,7 @@ class bitopro(ccxt.async_support.bitopro):
         if limit is None:
             endPart = market['id']
         else:
-            endPart = market['id'] + ':' + self.number_to_string(limit)
+            endPart = market['id'] + ':' + limit
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 

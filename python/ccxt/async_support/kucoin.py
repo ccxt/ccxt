@@ -2237,10 +2237,8 @@ class kucoin(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        req = {
-            'cost': cost,
-        }
-        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
+        params['cost'] = cost
+        return await self.create_order(symbol, 'market', side, cost, None, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """

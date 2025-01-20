@@ -809,7 +809,7 @@ class Transpiler {
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
-            'MarketInterface': /-> MarketInterface:/,
+            // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
@@ -829,10 +829,12 @@ class Transpiler {
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
             'FundingRates': /-> FundingRates:/,
+            'OrderBooks': /-> OrderBooks:/,
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []

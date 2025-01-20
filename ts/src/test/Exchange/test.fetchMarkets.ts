@@ -12,6 +12,7 @@ async function testFetchMarkets (exchange: Exchange, skippedProperties: object) 
     for (let i = 0; i < marketValues.length; i++) {
         testMarket (exchange, skippedProperties, method, marketValues[i]);
     }
+    return true;
 }
 
 export default testFetchMarkets;

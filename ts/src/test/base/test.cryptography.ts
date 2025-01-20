@@ -25,7 +25,7 @@ function equals (a, b) {
 
 function testCryptography () {
 
-    const exchange = new Exchange ();
+    // const exchange = new Exchange ();
 
     // ---------------------------------------------------------------------------------------------------------------------
 

@@ -1708,7 +1708,7 @@ export default class bigone extends Exchange {
                 'status': 'failed',
             }));
         }
-        return result;
+        return result as Order[];
     }
 
     /**

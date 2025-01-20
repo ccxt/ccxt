@@ -2255,10 +2255,8 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
     }
     /**
      * @method
@@ -2276,10 +2274,8 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
     }
     /**
      * @method

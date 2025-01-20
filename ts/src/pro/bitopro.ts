@@ -78,7 +78,7 @@ export default class bitopro extends bitoproRest {
         if (limit === undefined) {
             endPart = market['id'];
         } else {
-            endPart = market['id'] + ':' + this.numberToString (limit);
+            endPart = market['id'] + ':' + limit;
         }
         const orderbook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit ();

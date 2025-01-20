@@ -1277,7 +1277,7 @@ export default class phemex extends Exchange {
     }
 
     fromEn (en, scale) {
-        if (en === undefined) {
+        if (en === undefined || scale === undefined) {
             return undefined;
         }
         const precise = new Precise (en);
@@ -2235,8 +2235,10 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
-        return result;
+        if (type === 'swap') {
+            return this.parseSwapBalance (response);
+        }
+        return this.parseSpotBalance (response);
     }
 
     parseOrderStatus (status: Str) {
@@ -2930,7 +2932,7 @@ export default class phemex extends Exchange {
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
