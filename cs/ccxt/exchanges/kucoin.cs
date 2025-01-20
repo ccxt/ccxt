@@ -1430,6 +1430,39 @@ public partial class kucoin : Exchange
         //        "chain": "ERC20"
         //    }
         //
+        if (isTrue(inOp(fee, "chains")))
+        {
+            // if data obtained through `currencies` endpoint
+            object resultNew = new Dictionary<string, object>() {
+                { "info", fee },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", false },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "networks", new Dictionary<string, object>() {} },
+            };
+            object chains = this.safeList(fee, "chains", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
+            {
+                object chain = getValue(chains, i);
+                object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
+                ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(chain, "withdrawMinFee") },
+                        { "percentage", false },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
+            return resultNew;
+        }
         object minWithdrawFee = this.safeNumber(fee, "withdrawMinFee");
         object result = new Dictionary<string, object>() {
             { "info", fee },
