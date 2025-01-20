@@ -251,7 +251,6 @@ public partial class tokocrypto
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.tokocrypto.com/apidocs/#new-order--signed"/>  <br/>
-    /// See <see href="https://www.tokocrypto.com/apidocs/#account-trade-list-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -290,7 +289,7 @@ public partial class tokocrypto
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.tokocrypto.com/apidocs/#all-orders-signed"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#query-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -829,7 +829,7 @@ class hollaex(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        hollaex has large gaps between candles, so it's recommended to specify since
 
         https://apidocs.hollaex.com/#chart
 
@@ -838,6 +838,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -846,22 +847,17 @@ class hollaex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        duration = self.parse_timeframe(timeframe)
-        if since is None:
-            if limit is None:
-                limit = 1000  # they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            end = self.seconds()
-            start = end - duration * limit
-            request['to'] = end
-            request['from'] = start
+        until = self.safe_integer(params, 'until')
+        end = self.seconds()
+        if until is not None:
+            end = self.parse_to_int(until / 1000)
+        defaultSpan = 2592000  # 30 days
+        if since is not None:
+            request['from'] = self.parse_to_int(since / 1000)
         else:
-            if limit is None:
-                request['from'] = self.parse_to_int(since / 1000)
-                request['to'] = self.seconds()
-            else:
-                start = self.parse_to_int(since / 1000)
-                request['from'] = start
-                request['to'] = self.sum(start, duration * limit)
+            request['from'] = end - defaultSpan
+        request['to'] = end
+        params = self.omit(params, 'until')
         response = self.publicGetChart(self.extend(request, params))
         #
         #     [
