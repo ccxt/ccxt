@@ -1645,6 +1645,34 @@ export default class kucoin extends Exchange {
         //        "chain": "ERC20"
         //    }
         //
+        if ('chains' in fee) {
+            // if data obtained through `currencies` endpoint
+            const resultNew: Dict = {
+                'info': fee,
+                'withdraw': {
+                    'fee': undefined,
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+                'networks': {},
+            };
+            const chains = this.safeList (fee, 'chains', []);
+            for (let i = 0; i < chains.length; i++) {
+                const chain = chains[i];
+                const networkCodeNew = this.networkIdToCode (this.safeString (chain, 'chainId'), this.safeString (currency, 'code'));
+                resultNew['networks'][networkCodeNew] = {
+                    'withdraw': this.safeNumber (chain, 'withdrawalMinFee'),
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
+            return resultNew;
+        }
         const minWithdrawFee = this.safeNumber (fee, 'withdrawMinFee');
         const result: Dict = {
             'info': fee,
