@@ -6444,6 +6444,29 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
+    handleTriggerDirectionAndParams (params, exchangeSpecificKey: string) {
+        /**
+         * @ignore
+         * @method
+         * @returns {[string, object]} the trigger-direction value and omited params
+         */
+        let triggerDirection = this.safeString (params, 'triggerDirection');
+        // throw exception if:
+        // A) if provided value is not unified (support old "up/down" strings too)
+        // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
+        if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down', 'above', 'below' ]) && !(exchangeSpecificKey in params)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
+        }
+        // if old format was provided, overwrite to new
+        if (triggerDirection === 'up' || triggerDirection === 'above') {
+            triggerDirection = 'ascending';
+        } else if (triggerDirection === 'down' || triggerDirection === 'below') {
+            triggerDirection = 'descending';
+        }
+        params = this.omit (params, 'triggerDirection');
+        return [ triggerDirection, params ];
+    }
+
     handleTriggerAndParams (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
