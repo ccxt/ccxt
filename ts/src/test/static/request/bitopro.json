@@ -54,7 +54,75 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1h&to=1735948800&from=1734148800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1h&from=1735862399&to=1735876799",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1h&from=1735862400&to=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1h&to=1735948800&from=1735934400",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1h&from=1735862400&to=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
             }
+              
         ],
         "fetchOpenOrders": [
             {
