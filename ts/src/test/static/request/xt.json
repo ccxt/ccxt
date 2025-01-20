@@ -216,6 +216,132 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV no arguments",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?interval=1m&limit=1000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704127200000&interval=1m&limit=1000&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?interval=1m&limit=4&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067380000&interval=1m&limit=1000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067440000&interval=1m&limit=4&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067380000&interval=1m&limit=1000&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  null,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067380000&interval=1m&limit=4&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since less than limit",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067320000&interval=1m&limit=2&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  2,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since equal to limit",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067380000&interval=1m&limit=3&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  3,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since greater than limit",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.xt.com/v4/public/kline?endTime=1704067380000&interval=1m&limit=4&startTime=1704067200000&symbol=btc_usdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4,
+                  {
+                    "until": 1704067320000
+                  }
+                ]
+            }
         ]
     }
 }

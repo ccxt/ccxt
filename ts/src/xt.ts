@@ -1284,23 +1284,36 @@ export default class xt extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {object} [params] extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        if (limit === undefined) {
+            limit = 1000;   // max limit
+        }
         const request = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
+            'limit': limit,
         };
+        const duration = this.parseTimeframe (timeframe) * 1000;
         if (since !== undefined) {
             request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+            const endByLimit = since + duration * limit;
+            if (until === undefined) {
+                request['endTime'] = endByLimit;
+            } else {
+                request['endTime'] = Math.min (endByLimit, until + duration);
+            }
+        } else if (until !== undefined) {
+            request['endTime'] = until + duration;
         }
         let response = undefined;
+        params = this.omit (params, 'until');
         if (market['linear']) {
             response = await this.publicLinearGetFutureMarketV1PublicQKline (this.extend (request, params));
         } else if (market['inverse']) {
