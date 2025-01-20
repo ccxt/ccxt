@@ -31,13 +31,38 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 }
 
 // omit removes specified keys from a map.
+// func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
+// 	if len(parameters) == 1 {
+// 		// maybe we got []interface{} as the only variadic argument, handle it
+// 		if reflect.TypeOf(parameters[0]).Kind() == reflect.Slice {
+// 			return this.OmitN(a, parameters[0].([]interface{}))
+// 		}
+// 	}
+// 	keys := make([]interface{}, len(parameters))
+// 	for i, parameter := range parameters {
+// 		keys[i] = parameter
+// 	}
+// 	return this.OmitMap(a, keys)
+// }
+
+
 func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
 	if len(parameters) == 1 {
-		// maybe we got []interface{} as the only variadic argument, handle it
-		if reflect.TypeOf(parameters[0]).Kind() == reflect.Slice {
-			return this.OmitN(a, parameters[0].([]interface{}))
+		// Handle single argument which could be a slice of various types
+		switch keys := parameters[0].(type) {
+		case []interface{}:
+			return this.OmitN(a, keys)
+		case []string:
+			// Convert []string to []interface{}
+			interfaceKeys := make([]interface{}, len(keys))
+			for i, key := range keys {
+				interfaceKeys[i] = key
+			}
+			return this.OmitN(a, interfaceKeys)
 		}
 	}
+
+	// Handle variadic parameters as individual keys
 	keys := make([]interface{}, len(parameters))
 	for i, parameter := range parameters {
 		keys[i] = parameter
@@ -47,13 +72,19 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 
 // omitMap removes specified keys from a map.
 func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
-	if reflect.TypeOf(aa).Kind() == reflect.Slice {
+	// if reflect.TypeOf(aa).Kind() == reflect.Slice {
+	// 	return aa
+	// 	//  if ok {
+	// 	// 	 return res
+	// 	//  }
+	// 	//  return
+	// }
+
+	switch aa.(type) {
+	case []interface{}, []string, []bool, []int, []int64, []float64, []map[string]interface{}:
 		return aa
-		//  if ok {
-		// 	 return res
-		//  }
-		//  return
 	}
+
 
 	var keys []interface{}
 	switch k.(type) {
@@ -101,24 +132,47 @@ func (this *Exchange) Contains(slice []interface{}, elem string) bool {
 }
 
 // toArray converts a map to a slice of its values.
+// func (this *Exchange) ToArray(a interface{}) []interface{} {
+// 	if a == nil {
+// 		return nil
+// 	}
+
+// 	if reflect.TypeOf(a).Kind() == reflect.Slice {
+// 		return a.([]interface{})
+// 	}
+
+// 	if reflect.TypeOf(a).Kind() == reflect.Map {
+// 		b := a.(map[string]interface{})
+// 		outList := make([]interface{}, 0, len(b))
+// 		for _, value := range b {
+// 			outList = append(outList, value)
+// 		}
+// 		return outList
+// 	}
+
+// 	return nil
+// }
+
 func (this *Exchange) ToArray(a interface{}) []interface{} {
 	if a == nil {
 		return nil
 	}
 
-	if reflect.TypeOf(a).Kind() == reflect.Slice {
-		return a.([]interface{})
+	// Check if `a` is a slice of `[]interface{}`
+	if slice, ok := a.([]interface{}); ok {
+		return slice
 	}
 
-	if reflect.TypeOf(a).Kind() == reflect.Map {
-		b := a.(map[string]interface{})
-		outList := make([]interface{}, 0, len(b))
-		for _, value := range b {
+	// Check if `a` is a map of `map[string]interface{}`
+	if m, ok := a.(map[string]interface{}); ok {
+		outList := make([]interface{}, 0, len(m))
+		for _, value := range m {
 			outList = append(outList, value)
 		}
 		return outList
 	}
 
+	// Unsupported type
 	return nil
 }
 
