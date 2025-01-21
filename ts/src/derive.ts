@@ -293,6 +293,7 @@ export default class derive extends Exchange {
                     '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
                     '14014': InvalidOrder, // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
                     '14023': InvalidOrder, // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
+                    '-32603': InvalidOrder, // {"code":"-32603","message":"Internal error","data":"SubAccount matching query does not exist."}
                 },
                 'broad': {
                 },
@@ -301,6 +302,7 @@ export default class derive extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'contractWalletAddress': '', // a contract wallet address "0x"-prefixed hexstring
             },
         });
     }
@@ -986,6 +988,8 @@ export default class derive extends Exchange {
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'hex');
+        let contractWalletAddress = undefined;
+        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
             subaccountId,
@@ -993,7 +997,7 @@ export default class derive extends Exchange {
             TRADE_MODULE_ADDRESS,
             '0x' + tradeModuleDataHash,
             signatureExpiry,
-            this.walletAddress,
+            contractWalletAddress,
             this.walletAddress,
         ], this.privateKey);
         const request: Dict = {
@@ -1136,8 +1140,10 @@ export default class derive extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        let contractWalletAddress = undefined;
+        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'contractWalletAddress');
         const request = {
-            'wallet': this.walletAddress,
+            'wallet': contractWalletAddress,
         };
         const response = await this.privatePostGetAllPortfolios (this.extend (request, params));
         //
@@ -1238,7 +1244,8 @@ export default class derive extends Exchange {
                 this.checkRequiredCredentials ();
                 const now = this.now ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
-                headers['X-LyraWallet'] = this.walletAddress;
+                const contractWalletAddress = this.safeString (this.options, 'contractWalletAddress');
+                headers['X-LyraWallet'] = contractWalletAddress;
                 headers['X-LyraTimestamp'] = now;
                 headers['X-LyraSignature'] = signature;
             }
