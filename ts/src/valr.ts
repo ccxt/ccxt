@@ -1069,7 +1069,7 @@ export default class valr extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name valr#fetchOpenOrders
+         * @name valr#fetchClosedOrders
          * @description fetches information on all closed order made by the user
          * @see https://docs.valr.com/#5f0ef16a-4f9d-40f3-bcdf-b1a63a0b42a4
          * @param {string} [symbol] unified symbol of the market the order was made in
@@ -1456,7 +1456,7 @@ export default class valr extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name valr#fetchTrades
+         * @name valr#fetchMyTrades
          * @see https://docs.valr.com/#68ecbf66-c8ab-4460-a1f3-5b245b15877e
          * @see https://docs.valr.com/#8e9429c0-f43b-4483-a2be-d03cd1bbb230
          * @description get the list of most recent trades for a particular symbol for the profile.
