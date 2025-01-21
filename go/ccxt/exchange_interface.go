@@ -222,4 +222,5 @@ type IDerivedExchange interface {
 	FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
 	FetchCurrencies(optionalArgs ...interface{}) <-chan interface{}
 	FetchAccounts(optionalArgs ...interface{}) <- chan interface{}
+	SetSandboxMode(enabled interface{})
 }

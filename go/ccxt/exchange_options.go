@@ -389,4 +389,5 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
 
 	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
+	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
 }

@@ -113,6 +113,12 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// 	panic(fmt.Sprintf("failed to create request: %v", err))
 		// }
 
+		//set default headers
+		defaultHeaders := this.Headers.(map[string]interface{})
+		for key, value := range defaultHeaders {
+			req.Header.Set(key, value.(string))
+		}
+
 		// Set headers
 		for key, value := range headersStrMap {
 			req.Header.Set(key, value)
