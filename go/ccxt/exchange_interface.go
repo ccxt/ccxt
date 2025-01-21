@@ -220,5 +220,6 @@ type IDerivedExchange interface {
 	FetchDepositsWithdrawals(optionalArgs ...interface{}) <- chan interface{}
 	ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{}
 	FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
-	FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} 
+	FetchCurrencies(optionalArgs ...interface{}) <-chan interface{}
+	FetchAccounts(optionalArgs ...interface{}) <- chan interface{}
 }

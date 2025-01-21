@@ -68,6 +68,7 @@ const VIRTUAL_BASE_METHODS = {
     "createExpiredOptionMarket": false,
     "createOrder": true,
     "editOrder": true,
+    "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
     "fetchDeposits": true,

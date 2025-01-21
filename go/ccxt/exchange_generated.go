@@ -866,9 +866,9 @@ func  (this *Exchange) WatchLiquidations(symbol interface{}, optionalArgs ...int
             _ = params
             if IsTrue(GetValue(this.Has, "watchLiquidationsForSymbols")) {
         
-                    retRes928645 :=  (<-this.WatchLiquidationsForSymbols([]interface{}{symbol}, since, limit, params))
-                    PanicOnError(retRes928645)
-                    ch <- retRes928645
+                    retRes555615 :=  (<-this.WatchLiquidationsForSymbols([]interface{}{symbol}, since, limit, params))
+                    PanicOnError(retRes555615)
+                    ch <- retRes555615
                     return nil
             }
             panic(NotSupported(Add(this.Id, " watchLiquidations() is not supported yet")))
@@ -1453,9 +1453,9 @@ func  (this *Exchange) WatchFundingRatesForSymbols(symbols interface{}, optional
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes680971 :=  (<-this.WatchFundingRates(symbols, params))
-                PanicOnError(retRes680971)
-                ch <- retRes680971
+                retRes821546 :=  (<-this.WatchFundingRates(symbols, params))
+                PanicOnError(retRes821546)
+                ch <- retRes821546
                 return nil
         
             }()
@@ -4000,8 +4000,8 @@ func  (this *Exchange) Fetch2(path interface{}, optionalArgs ...interface{}) <- 
             if IsTrue(this.EnableRateLimit) {
                 var cost interface{} = this.CalculateRateLimiterCost(api, method, path, params, config)
         
-                retRes571848 := (<-this.Throttle(cost))
-                PanicOnError(retRes571848)
+                retRes786184 := (<-this.Throttle(cost))
+                PanicOnError(retRes786184)
             }
             this.LastRestRequestTimestamp = this.Milliseconds()
         
@@ -4035,8 +4035,8 @@ func  (this *Exchange) Fetch2(path interface{}, optionalArgs ...interface{}) <- 
                                     }
                                     if IsTrue(IsTrue((!IsEqual(retryDelay, nil))) && IsTrue((!IsEqual(retryDelay, 0)))) {
                 
-                                        retRes999386 := (<-this.Sleep(retryDelay))
-                                        PanicOnError(retRes999386)
+                                        retRes111728 := (<-this.Sleep(retryDelay))
+                                        PanicOnError(retRes111728)
                                     }
                                 }
                             }
@@ -4049,9 +4049,9 @@ func  (this *Exchange) Fetch2(path interface{}, optionalArgs ...interface{}) <- 
                 		}()
                 		// try block:
                         
-                                retRes719336 :=  (<-this.Fetch(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
-                                PanicOnError(retRes719336)
-                                ch <- retRes719336
+                                retRes742593 :=  (<-this.Fetch(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
+                                PanicOnError(retRes742593)
+                                ch <- retRes742593
                                 return nil
                 		return nil
                 	}(this)
@@ -4085,9 +4085,9 @@ func  (this *Exchange) Request(path interface{}, optionalArgs ...interface{}) <-
             config := GetArg(optionalArgs, 5, map[string]interface{} {})
             _ = config
         
-                retRes842111 :=  (<-this.Fetch2(path, api, method, params, headers, body, config))
-                PanicOnError(retRes842111)
-                ch <- retRes842111
+                retRes141386 :=  (<-this.Fetch2(path, api, method, params, headers, body, config))
+                PanicOnError(retRes141386)
+                ch <- retRes141386
                 return nil
         
             }()
@@ -4104,7 +4104,7 @@ func  (this *Exchange) LoadAccounts(optionalArgs ...interface{}) <- chan interfa
             _ = params
             if IsTrue(reload) {
                 
-        this.Accounts = (<-this.FetchAccounts(params))
+        this.Accounts = <-this.DerivedExchange.FetchAccounts(params)
                 PanicOnError(this.Accounts)
             } else {
                 if IsTrue(this.Accounts) {
@@ -4113,7 +4113,7 @@ func  (this *Exchange) LoadAccounts(optionalArgs ...interface{}) <- chan interfa
                     return nil
                 } else {
                     
-        this.Accounts = (<-this.FetchAccounts(params))
+        this.Accounts = <-this.DerivedExchange.FetchAccounts(params)
                     PanicOnError(this.Accounts)
                 }
             }
@@ -4193,9 +4193,9 @@ func  (this *Exchange) EditLimitBuyOrder(id interface{}, symbol interface{}, amo
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes902170 :=  (<-this.EditLimitOrder(id, symbol, "buy", amount, price, params))
-                PanicOnError(retRes902170)
-                ch <- retRes902170
+                retRes988148 :=  (<-this.EditLimitOrder(id, symbol, "buy", amount, price, params))
+                PanicOnError(retRes988148)
+                ch <- retRes988148
                 return nil
         
             }()
@@ -4211,9 +4211,9 @@ func  (this *Exchange) EditLimitSellOrder(id interface{}, symbol interface{}, am
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes702451 :=  (<-this.EditLimitOrder(id, symbol, "sell", amount, price, params))
-                PanicOnError(retRes702451)
-                ch <- retRes702451
+                retRes689243 :=  (<-this.EditLimitOrder(id, symbol, "sell", amount, price, params))
+                PanicOnError(retRes689243)
+                ch <- retRes689243
                 return nil
         
             }()
@@ -4229,9 +4229,9 @@ func  (this *Exchange) EditLimitOrder(id interface{}, symbol interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes650671 :=  <-this.DerivedExchange.EditOrder(id, symbol, "limit", side, amount, price, params)
-                PanicOnError(retRes650671)
-                ch <- retRes650671
+                retRes321572 :=  <-this.DerivedExchange.EditOrder(id, symbol, "limit", side, amount, price, params)
+                PanicOnError(retRes321572)
+                ch <- retRes321572
                 return nil
         
             }()
@@ -4249,12 +4249,12 @@ func  (this *Exchange) EditOrder(id interface{}, symbol interface{}, typeVar int
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes668459 := <-this.DerivedExchange.CancelOrder(id, symbol)
-            PanicOnError(retRes668459)
+            retRes204887 := <-this.DerivedExchange.CancelOrder(id, symbol)
+            PanicOnError(retRes204887)
         
-                retRes929549 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                PanicOnError(retRes929549)
-                ch <- retRes929549
+                retRes884117 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                PanicOnError(retRes884117)
+                ch <- retRes884117
                 return nil
         
             }()
@@ -4272,12 +4272,12 @@ func  (this *Exchange) EditOrderWs(id interface{}, symbol interface{}, typeVar i
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes853595 := (<-this.CancelOrderWs(id, symbol))
-            PanicOnError(retRes853595)
+            retRes987439 := (<-this.CancelOrderWs(id, symbol))
+            PanicOnError(retRes987439)
         
-                retRes791894 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                PanicOnError(retRes791894)
-                ch <- retRes791894
+                retRes471578 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                PanicOnError(retRes471578)
+                ch <- retRes471578
                 return nil
         
             }()
@@ -4353,9 +4353,9 @@ func  (this *Exchange) WatchPositionForSymbols(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes167218 :=  (<-this.WatchPositions(symbols, since, limit, params))
-                PanicOnError(retRes167218)
-                ch <- retRes167218
+                retRes511181 :=  (<-this.WatchPositions(symbols, since, limit, params))
+                PanicOnError(retRes511181)
+                ch <- retRes511181
                 return nil
         
             }()
@@ -4675,9 +4675,9 @@ func  (this *Exchange) FetchFreeBalance(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes969374 :=  (<-this.FetchPartialBalance("free", params))
-                PanicOnError(retRes969374)
-                ch <- retRes969374
+                retRes200466 :=  (<-this.FetchPartialBalance("free", params))
+                PanicOnError(retRes200466)
+                ch <- retRes200466
                 return nil
         
             }()
@@ -4691,9 +4691,9 @@ func  (this *Exchange) FetchUsedBalance(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes569986 :=  (<-this.FetchPartialBalance("used", params))
-                PanicOnError(retRes569986)
-                ch <- retRes569986
+                retRes822808 :=  (<-this.FetchPartialBalance("used", params))
+                PanicOnError(retRes822808)
+                ch <- retRes822808
                 return nil
         
             }()
@@ -4707,9 +4707,9 @@ func  (this *Exchange) FetchTotalBalance(optionalArgs ...interface{}) <- chan in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes776997 :=  (<-this.FetchPartialBalance("total", params))
-                PanicOnError(retRes776997)
-                ch <- retRes776997
+                retRes976499 :=  (<-this.FetchPartialBalance("total", params))
+                PanicOnError(retRes976499)
+                ch <- retRes976499
                 return nil
         
             }()
@@ -4738,9 +4738,9 @@ func  (this *Exchange) FetchTransactionFee(code interface{}, optionalArgs ...int
                 panic(NotSupported(Add(this.Id, " fetchTransactionFee() is not supported yet")))
             }
         
-                retRes773850 :=  (<-this.FetchTransactionFees([]interface{}{code}, params))
-                PanicOnError(retRes773850)
-                ch <- retRes773850
+                retRes154168 :=  (<-this.FetchTransactionFees([]interface{}{code}, params))
+                PanicOnError(retRes154168)
+                ch <- retRes154168
                 return nil
         
             }()
@@ -4811,8 +4811,8 @@ func  (this *Exchange) FetchCrossBorrowRate(code interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes137657 := (<-this.LoadMarkets())
-            PanicOnError(retRes137657)
+            retRes78613 := (<-this.LoadMarkets())
+            PanicOnError(retRes78613)
             if !IsTrue(GetValue(this.Has, "fetchBorrowRates")) {
                 panic(NotSupported(Add(this.Id, " fetchCrossBorrowRate() is not supported yet")))
             }
@@ -4838,8 +4838,8 @@ func  (this *Exchange) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes757778 := (<-this.LoadMarkets())
-            PanicOnError(retRes757778)
+            retRes516402 := (<-this.LoadMarkets())
+            PanicOnError(retRes516402)
             if !IsTrue(GetValue(this.Has, "fetchBorrowRates")) {
                 panic(NotSupported(Add(this.Id, " fetchIsolatedBorrowRate() is not supported yet")))
             }
@@ -5038,8 +5038,8 @@ func  (this *Exchange) FetchTicker(symbol interface{}, optionalArgs ...interface
             _ = params
             if IsTrue(GetValue(this.Has, "fetchTickers")) {
         
-                retRes383841 := (<-this.LoadMarkets())
-                PanicOnError(retRes383841)
+                retRes35155 := (<-this.LoadMarkets())
+                PanicOnError(retRes35155)
                 var market interface{} = this.Market(symbol)
                 symbol = GetValue(market, "symbol")
         
@@ -5069,8 +5069,8 @@ func  (this *Exchange) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
             _ = params
             if IsTrue(GetValue(this.Has, "fetchMarkPrices")) {
         
-                retRes296307 := (<-this.LoadMarkets())
-                PanicOnError(retRes296307)
+                retRes766271 := (<-this.LoadMarkets())
+                PanicOnError(retRes766271)
                 var market interface{} = this.Market(symbol)
                 symbol = GetValue(market, "symbol")
         
@@ -5100,8 +5100,8 @@ func  (this *Exchange) FetchTickerWs(symbol interface{}, optionalArgs ...interfa
             _ = params
             if IsTrue(GetValue(this.Has, "fetchTickersWs")) {
         
-                retRes57225 := (<-this.LoadMarkets())
-                PanicOnError(retRes57225)
+                retRes136725 := (<-this.LoadMarkets())
+                PanicOnError(retRes136725)
                 var market interface{} = this.Market(symbol)
                 symbol = GetValue(market, "symbol")
         
@@ -5291,9 +5291,9 @@ func  (this *Exchange) FetchUnifiedOrder(order interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes841483 :=  <-this.DerivedExchange.FetchOrder(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
-                PanicOnError(retRes841483)
-                ch <- retRes841483
+                retRes19447 :=  <-this.DerivedExchange.FetchOrder(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
+                PanicOnError(retRes19447)
+                ch <- retRes19447
                 return nil
         
             }()
@@ -5409,9 +5409,9 @@ func  (this *Exchange) CreateTrailingAmountOrder(symbol interface{}, typeVar int
             }
             if IsTrue(GetValue(this.Has, "createTrailingAmountOrder")) {
         
-                    retRes188156 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes188156)
-                    ch <- retRes188156
+                    retRes971385 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes971385)
+                    ch <- retRes971385
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTrailingAmountOrder() is not supported yet")))
@@ -5455,9 +5455,9 @@ func  (this *Exchange) CreateTrailingAmountOrderWs(symbol interface{}, typeVar i
             }
             if IsTrue(GetValue(this.Has, "createTrailingAmountOrderWs")) {
         
-                    retRes888863 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes888863)
-                    ch <- retRes888863
+                    retRes839802 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes839802)
+                    ch <- retRes839802
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTrailingAmountOrderWs() is not supported yet")))
@@ -5501,9 +5501,9 @@ func  (this *Exchange) CreateTrailingPercentOrder(symbol interface{}, typeVar in
             }
             if IsTrue(GetValue(this.Has, "createTrailingPercentOrder")) {
         
-                    retRes254937 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes254937)
-                    ch <- retRes254937
+                    retRes467574 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes467574)
+                    ch <- retRes467574
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTrailingPercentOrder() is not supported yet")))
@@ -5547,9 +5547,9 @@ func  (this *Exchange) CreateTrailingPercentOrderWs(symbol interface{}, typeVar 
             }
             if IsTrue(GetValue(this.Has, "createTrailingPercentOrderWs")) {
         
-                    retRes295788 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes295788)
-                    ch <- retRes295788
+                    retRes293251 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes293251)
+                    ch <- retRes293251
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTrailingPercentOrderWs() is not supported yet")))
@@ -5576,9 +5576,9 @@ func  (this *Exchange) CreateMarketOrderWithCost(symbol interface{}, side interf
             _ = params
             if IsTrue(IsTrue(GetValue(this.Has, "createMarketOrderWithCost")) || IsTrue((IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCost")) && IsTrue(GetValue(this.Has, "createMarketSellOrderWithCost"))))) {
         
-                    retRes472776 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, cost, 1, params)
-                    PanicOnError(retRes472776)
-                    ch <- retRes472776
+                    retRes46689 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, cost, 1, params)
+                    PanicOnError(retRes46689)
+                    ch <- retRes46689
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketOrderWithCost() is not supported yet")))
@@ -5604,9 +5604,9 @@ func  (this *Exchange) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
             _ = params
             if IsTrue(IsTrue(GetValue(this.Options, "createMarketBuyOrderRequiresPrice")) || IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCost"))) {
         
-                    retRes641051 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes641051)
-                    ch <- retRes641051
+                    retRes405720 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes405720)
+                    ch <- retRes405720
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -5632,9 +5632,9 @@ func  (this *Exchange) CreateMarketSellOrderWithCost(symbol interface{}, cost in
             _ = params
             if IsTrue(IsTrue(GetValue(this.Options, "createMarketSellOrderRequiresPrice")) || IsTrue(GetValue(this.Has, "createMarketSellOrderWithCost"))) {
         
-                    retRes857294 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes857294)
-                    ch <- retRes857294
+                    retRes593674 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes593674)
+                    ch <- retRes593674
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -5661,9 +5661,9 @@ func  (this *Exchange) CreateMarketOrderWithCostWs(symbol interface{}, side inte
             _ = params
             if IsTrue(IsTrue(GetValue(this.Has, "createMarketOrderWithCostWs")) || IsTrue((IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCostWs")) && IsTrue(GetValue(this.Has, "createMarketSellOrderWithCostWs"))))) {
         
-                    retRes739374 :=  (<-this.CreateOrderWs(symbol, "market", side, cost, 1, params))
-                    PanicOnError(retRes739374)
-                    ch <- retRes739374
+                    retRes625389 :=  (<-this.CreateOrderWs(symbol, "market", side, cost, 1, params))
+                    PanicOnError(retRes625389)
+                    ch <- retRes625389
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketOrderWithCostWs() is not supported yet")))
@@ -5701,9 +5701,9 @@ func  (this *Exchange) CreateTriggerOrder(symbol interface{}, typeVar interface{
             AddElementToObject(params, "triggerPrice", triggerPrice)
             if IsTrue(GetValue(this.Has, "createTriggerOrder")) {
         
-                    retRes633744 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes633744)
-                    ch <- retRes633744
+                    retRes448720 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes448720)
+                    ch <- retRes448720
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTriggerOrder() is not supported yet")))
@@ -5741,9 +5741,9 @@ func  (this *Exchange) CreateTriggerOrderWs(symbol interface{}, typeVar interfac
             AddElementToObject(params, "triggerPrice", triggerPrice)
             if IsTrue(GetValue(this.Has, "createTriggerOrderWs")) {
         
-                    retRes401751 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes401751)
-                    ch <- retRes401751
+                    retRes560271 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes560271)
+                    ch <- retRes560271
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTriggerOrderWs() is not supported yet")))
@@ -5781,9 +5781,9 @@ func  (this *Exchange) CreateStopLossOrder(symbol interface{}, typeVar interface
             AddElementToObject(params, "stopLossPrice", stopLossPrice)
             if IsTrue(GetValue(this.Has, "createStopLossOrder")) {
         
-                    retRes32174 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes32174)
-                    ch <- retRes32174
+                    retRes297795 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes297795)
+                    ch <- retRes297795
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createStopLossOrder() is not supported yet")))
@@ -5821,9 +5821,9 @@ func  (this *Exchange) CreateStopLossOrderWs(symbol interface{}, typeVar interfa
             AddElementToObject(params, "stopLossPrice", stopLossPrice)
             if IsTrue(GetValue(this.Has, "createStopLossOrderWs")) {
         
-                    retRes114160 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes114160)
-                    ch <- retRes114160
+                    retRes706504 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes706504)
+                    ch <- retRes706504
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createStopLossOrderWs() is not supported yet")))
@@ -5861,9 +5861,9 @@ func  (this *Exchange) CreateTakeProfitOrder(symbol interface{}, typeVar interfa
             AddElementToObject(params, "takeProfitPrice", takeProfitPrice)
             if IsTrue(GetValue(this.Has, "createTakeProfitOrder")) {
         
-                    retRes143022 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes143022)
-                    ch <- retRes143022
+                    retRes14484 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes14484)
+                    ch <- retRes14484
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTakeProfitOrder() is not supported yet")))
@@ -5901,9 +5901,9 @@ func  (this *Exchange) CreateTakeProfitOrderWs(symbol interface{}, typeVar inter
             AddElementToObject(params, "takeProfitPrice", takeProfitPrice)
             if IsTrue(GetValue(this.Has, "createTakeProfitOrderWs")) {
         
-                    retRes395218 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes395218)
-                    ch <- retRes395218
+                    retRes541237 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes541237)
+                    ch <- retRes541237
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createTakeProfitOrderWs() is not supported yet")))
@@ -5949,9 +5949,9 @@ func  (this *Exchange) CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, 
             params = this.SetTakeProfitAndStopLossParams(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
             if IsTrue(GetValue(this.Has, "createOrderWithTakeProfitAndStopLoss")) {
         
-                    retRes962178 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-                    PanicOnError(retRes962178)
-                    ch <- retRes962178
+                    retRes659535 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+                    PanicOnError(retRes659535)
+                    ch <- retRes659535
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")))
@@ -6054,9 +6054,9 @@ func  (this *Exchange) CreateOrderWithTakeProfitAndStopLossWs(symbol interface{}
             params = this.SetTakeProfitAndStopLossParams(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
             if IsTrue(GetValue(this.Has, "createOrderWithTakeProfitAndStopLossWs")) {
         
-                    retRes311834 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes311834)
-                    ch <- retRes311834
+                    retRes695782 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes695782)
+                    ch <- retRes695782
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")))
@@ -6818,9 +6818,9 @@ func  (this *Exchange) CreateLimitOrder(symbol interface{}, side interface{}, am
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes591922 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", side, amount, price, params)
-                PanicOnError(retRes591922)
-                ch <- retRes591922
+                retRes531343 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", side, amount, price, params)
+                PanicOnError(retRes531343)
+                ch <- retRes531343
                 return nil
         
             }()
@@ -6834,9 +6834,9 @@ func  (this *Exchange) CreateLimitOrderWs(symbol interface{}, side interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes530668 :=  (<-this.CreateOrderWs(symbol, "limit", side, amount, price, params))
-                PanicOnError(retRes530668)
-                ch <- retRes530668
+                retRes348107 :=  (<-this.CreateOrderWs(symbol, "limit", side, amount, price, params))
+                PanicOnError(retRes348107)
+                ch <- retRes348107
                 return nil
         
             }()
@@ -6852,9 +6852,9 @@ func  (this *Exchange) CreateMarketOrder(symbol interface{}, side interface{}, a
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes42939 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, amount, price, params)
-                PanicOnError(retRes42939)
-                ch <- retRes42939
+                retRes216703 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, amount, price, params)
+                PanicOnError(retRes216703)
+                ch <- retRes216703
                 return nil
         
             }()
@@ -6870,9 +6870,9 @@ func  (this *Exchange) CreateMarketOrderWs(symbol interface{}, side interface{},
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes886396 :=  (<-this.CreateOrderWs(symbol, "market", side, amount, price, params))
-                PanicOnError(retRes886396)
-                ch <- retRes886396
+                retRes136348 :=  (<-this.CreateOrderWs(symbol, "market", side, amount, price, params))
+                PanicOnError(retRes136348)
+                ch <- retRes136348
                 return nil
         
             }()
@@ -6886,9 +6886,9 @@ func  (this *Exchange) CreateLimitBuyOrder(symbol interface{}, amount interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes762477 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", "buy", amount, price, params)
-                PanicOnError(retRes762477)
-                ch <- retRes762477
+                retRes826992 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", "buy", amount, price, params)
+                PanicOnError(retRes826992)
+                ch <- retRes826992
                 return nil
         
             }()
@@ -6902,9 +6902,9 @@ func  (this *Exchange) CreateLimitBuyOrderWs(symbol interface{}, amount interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes860337 :=  (<-this.CreateOrderWs(symbol, "limit", "buy", amount, price, params))
-                PanicOnError(retRes860337)
-                ch <- retRes860337
+                retRes264102 :=  (<-this.CreateOrderWs(symbol, "limit", "buy", amount, price, params))
+                PanicOnError(retRes264102)
+                ch <- retRes264102
                 return nil
         
             }()
@@ -6918,9 +6918,9 @@ func  (this *Exchange) CreateLimitSellOrder(symbol interface{}, amount interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes766085 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", "sell", amount, price, params)
-                PanicOnError(retRes766085)
-                ch <- retRes766085
+                retRes717729 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", "sell", amount, price, params)
+                PanicOnError(retRes717729)
+                ch <- retRes717729
                 return nil
         
             }()
@@ -6934,9 +6934,9 @@ func  (this *Exchange) CreateLimitSellOrderWs(symbol interface{}, amount interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes846632 :=  (<-this.CreateOrderWs(symbol, "limit", "sell", amount, price, params))
-                PanicOnError(retRes846632)
-                ch <- retRes846632
+                retRes631506 :=  (<-this.CreateOrderWs(symbol, "limit", "sell", amount, price, params))
+                PanicOnError(retRes631506)
+                ch <- retRes631506
                 return nil
         
             }()
@@ -6950,9 +6950,9 @@ func  (this *Exchange) CreateMarketBuyOrder(symbol interface{}, amount interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes396832 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "buy", amount, nil, params)
-                PanicOnError(retRes396832)
-                ch <- retRes396832
+                retRes930265 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "buy", amount, nil, params)
+                PanicOnError(retRes930265)
+                ch <- retRes930265
                 return nil
         
             }()
@@ -6966,9 +6966,9 @@ func  (this *Exchange) CreateMarketBuyOrderWs(symbol interface{}, amount interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes289750 :=  (<-this.CreateOrderWs(symbol, "market", "buy", amount, nil, params))
-                PanicOnError(retRes289750)
-                ch <- retRes289750
+                retRes263765 :=  (<-this.CreateOrderWs(symbol, "market", "buy", amount, nil, params))
+                PanicOnError(retRes263765)
+                ch <- retRes263765
                 return nil
         
             }()
@@ -6982,9 +6982,9 @@ func  (this *Exchange) CreateMarketSellOrder(symbol interface{}, amount interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes382311 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "sell", amount, nil, params)
-                PanicOnError(retRes382311)
-                ch <- retRes382311
+                retRes581824 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", "sell", amount, nil, params)
+                PanicOnError(retRes581824)
+                ch <- retRes581824
                 return nil
         
             }()
@@ -6998,9 +6998,9 @@ func  (this *Exchange) CreateMarketSellOrderWs(symbol interface{}, amount interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes66374 :=  (<-this.CreateOrderWs(symbol, "market", "sell", amount, nil, params))
-                PanicOnError(retRes66374)
-                ch <- retRes66374
+                retRes161141 :=  (<-this.CreateOrderWs(symbol, "market", "sell", amount, nil, params))
+                PanicOnError(retRes161141)
+                ch <- retRes161141
                 return nil
         
             }()
@@ -7194,9 +7194,9 @@ func  (this *Exchange) CreatePostOnlyOrder(symbol interface{}, typeVar interface
                 "postOnly": true,
             })
         
-                retRes306956 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
-                PanicOnError(retRes306956)
-                ch <- retRes306956
+                retRes239611 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
+                PanicOnError(retRes239611)
+                ch <- retRes239611
                 return nil
         
             }()
@@ -7218,9 +7218,9 @@ func  (this *Exchange) CreatePostOnlyOrderWs(symbol interface{}, typeVar interfa
                 "postOnly": true,
             })
         
-                retRes564417 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
-                PanicOnError(retRes564417)
-                ch <- retRes564417
+                retRes212374 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
+                PanicOnError(retRes212374)
+                ch <- retRes212374
                 return nil
         
             }()
@@ -7242,9 +7242,9 @@ func  (this *Exchange) CreateReduceOnlyOrder(symbol interface{}, typeVar interfa
                 "reduceOnly": true,
             })
         
-                retRes854098 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
-                PanicOnError(retRes854098)
-                ch <- retRes854098
+                retRes69361 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
+                PanicOnError(retRes69361)
+                ch <- retRes69361
                 return nil
         
             }()
@@ -7266,9 +7266,9 @@ func  (this *Exchange) CreateReduceOnlyOrderWs(symbol interface{}, typeVar inter
                 "reduceOnly": true,
             })
         
-                retRes62810 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
-                PanicOnError(retRes62810)
-                ch <- retRes62810
+                retRes922622 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
+                PanicOnError(retRes922622)
+                ch <- retRes922622
                 return nil
         
             }()
@@ -7295,9 +7295,9 @@ func  (this *Exchange) CreateStopOrder(symbol interface{}, typeVar interface{}, 
                 "stopPrice": triggerPrice,
             })
         
-                retRes689676 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
-                PanicOnError(retRes689676)
-                ch <- retRes689676
+                retRes828407 :=  <-this.DerivedExchange.CreateOrder(symbol, typeVar, side, amount, price, query)
+                PanicOnError(retRes828407)
+                ch <- retRes828407
                 return nil
         
             }()
@@ -7324,9 +7324,9 @@ func  (this *Exchange) CreateStopOrderWs(symbol interface{}, typeVar interface{}
                 "stopPrice": triggerPrice,
             })
         
-                retRes973197 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
-                PanicOnError(retRes973197)
-                ch <- retRes973197
+                retRes595925 :=  (<-this.CreateOrderWs(symbol, typeVar, side, amount, price, query))
+                PanicOnError(retRes595925)
+                ch <- retRes595925
                 return nil
         
             }()
@@ -7346,9 +7346,9 @@ func  (this *Exchange) CreateStopLimitOrder(symbol interface{}, side interface{}
                 "stopPrice": triggerPrice,
             })
         
-                retRes8886 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", side, amount, price, query)
-                PanicOnError(retRes8886)
-                ch <- retRes8886
+                retRes341271 :=  <-this.DerivedExchange.CreateOrder(symbol, "limit", side, amount, price, query)
+                PanicOnError(retRes341271)
+                ch <- retRes341271
                 return nil
         
             }()
@@ -7368,9 +7368,9 @@ func  (this *Exchange) CreateStopLimitOrderWs(symbol interface{}, side interface
                 "stopPrice": triggerPrice,
             })
         
-                retRes861912 :=  (<-this.CreateOrderWs(symbol, "limit", side, amount, price, query))
-                PanicOnError(retRes861912)
-                ch <- retRes861912
+                retRes32438 :=  (<-this.CreateOrderWs(symbol, "limit", side, amount, price, query))
+                PanicOnError(retRes32438)
+                ch <- retRes32438
                 return nil
         
             }()
@@ -7390,9 +7390,9 @@ func  (this *Exchange) CreateStopMarketOrder(symbol interface{}, side interface{
                 "stopPrice": triggerPrice,
             })
         
-                retRes805772 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, amount, nil, query)
-                PanicOnError(retRes805772)
-                ch <- retRes805772
+                retRes41834 :=  <-this.DerivedExchange.CreateOrder(symbol, "market", side, amount, nil, query)
+                PanicOnError(retRes41834)
+                ch <- retRes41834
                 return nil
         
             }()
@@ -7412,9 +7412,9 @@ func  (this *Exchange) CreateStopMarketOrderWs(symbol interface{}, side interfac
                 "stopPrice": triggerPrice,
             })
         
-                retRes34943 :=  (<-this.CreateOrderWs(symbol, "market", side, amount, nil, query))
-                PanicOnError(retRes34943)
-                ch <- retRes34943
+                retRes708047 :=  (<-this.CreateOrderWs(symbol, "market", side, amount, nil, query))
+                PanicOnError(retRes708047)
+                ch <- retRes708047
                 return nil
         
             }()
@@ -7870,8 +7870,8 @@ func  (this *Exchange) FetchFundingRate(symbol interface{}, optionalArgs ...inte
             _ = params
             if IsTrue(GetValue(this.Has, "fetchFundingRates")) {
         
-                retRes183194 := (<-this.LoadMarkets())
-                PanicOnError(retRes183194)
+                retRes675564 := (<-this.LoadMarkets())
+                PanicOnError(retRes675564)
                 var market interface{} = this.Market(symbol)
                 symbol = GetValue(market, "symbol")
                 if !IsTrue(GetValue(market, "contract")) {
@@ -7904,8 +7904,8 @@ func  (this *Exchange) FetchFundingInterval(symbol interface{}, optionalArgs ...
             _ = params
             if IsTrue(GetValue(this.Has, "fetchFundingIntervals")) {
         
-                retRes64021 := (<-this.LoadMarkets())
-                PanicOnError(retRes64021)
+                retRes480495 := (<-this.LoadMarkets())
+                PanicOnError(retRes480495)
                 var market interface{} = this.Market(symbol)
                 symbol = GetValue(market, "symbol")
                 if !IsTrue(GetValue(market, "contract")) {
@@ -7958,9 +7958,9 @@ func  (this *Exchange) FetchMarkOHLCV(symbol interface{}, optionalArgs ...interf
                     "price": "mark",
                 }
         
-                    retRes883851 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes883851)
-                    ch <- retRes883851
+                    retRes657535 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes657535)
+                    ch <- retRes657535
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchMarkOHLCV () is not supported yet")))
@@ -7998,9 +7998,9 @@ func  (this *Exchange) FetchIndexOHLCV(symbol interface{}, optionalArgs ...inter
                     "price": "index",
                 }
         
-                    retRes817657 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes817657)
-                    ch <- retRes817657
+                    retRes727504 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes727504)
+                    ch <- retRes727504
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchIndexOHLCV () is not supported yet")))
@@ -8038,9 +8038,9 @@ func  (this *Exchange) FetchPremiumIndexOHLCV(symbol interface{}, optionalArgs .
                     "price": "premiumIndex",
                 }
         
-                    retRes195474 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes195474)
-                    ch <- retRes195474
+                    retRes187809 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes187809)
+                    ch <- retRes187809
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPremiumIndexOHLCV () is not supported yet")))
@@ -8285,9 +8285,9 @@ func  (this *Exchange) FetchTransactions(optionalArgs ...interface{}) <- chan in
             _ = params
             if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
         
-                    retRes717040 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
-                    PanicOnError(retRes717040)
-                    ch <- retRes717040
+                    retRes613657 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
+                    PanicOnError(retRes613657)
+                    ch <- retRes613657
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchTransactions () is not supported yet")))
@@ -8524,15 +8524,15 @@ func  (this *Exchange) SafeDeterministicCall(method interface{}, optionalArgs ..
                 		// try block:
                                     if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
                 
-                                    retRes214645 :=  (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
-                                    PanicOnError(retRes214645)
-                                    ch <- retRes214645
+                                    retRes821922 :=  (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
+                                    PanicOnError(retRes821922)
+                                    ch <- retRes821922
                                     return nil
                             } else {
                 
-                                    retRes791039 :=  (<-this.callDynamically(method, symbol, since, limit, params))
-                                    PanicOnError(retRes791039)
-                                    ch <- retRes791039
+                                    retRes950567 :=  (<-this.callDynamically(method, symbol, since, limit, params))
+                                    PanicOnError(retRes950567)
+                                    ch <- retRes950567
                                     return nil
                             }
                 		return nil
