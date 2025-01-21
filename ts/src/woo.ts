@@ -287,6 +287,8 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -370,7 +372,7 @@ export default class woo extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
@@ -503,6 +505,9 @@ export default class woo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const response = await this.v1PublicGetInfo (params);
         //
         // {
@@ -890,7 +895,7 @@ export default class woo extends Exchange {
                 name = this.safeString (network, 'fullname');
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
-                const unifiedNetwork = this.networkIdToCode (splitted[0]);
+                const unifiedNetwork = this.safeString (splitted, 0);
                 const precision = this.parsePrecision (this.safeString (network, 'decimals'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
@@ -2187,6 +2192,22 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
+    getDefaultNetworkForCurrency (code) {
+        const currencyItem = this.currency (code);
+        const networks = currencyItem['networks'];
+        const networkKeys = Object.keys (networks);
+        let defaultNetworkCode = this.safeString (networkKeys, 0);
+        for (let i = 0; i < networkKeys.length; i++) {
+            const network = networkKeys[i];
+            if (network === 'ETH') {
+                defaultNetworkCode = network;
+            }
+        }
+        // if ERC20 was not found according to above options, then use the first network of currency
+        // changes are made according to issue https://github.com/ccxt/ccxt/issues/24919
+        return this.safeDict (networks, defaultNetworkCode);
+    }
+
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         const request: Dict = { };
@@ -2673,7 +2694,7 @@ export default class woo extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2988,8 +3009,7 @@ export default class woo extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'rows', []);
-        const result = this.parseFundingRates (rows);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (rows, symbols);
     }
 
     /**
@@ -3773,22 +3793,6 @@ export default class woo extends Exchange {
             };
         }
         return result;
-    }
-
-    getDefaultNetworkForCurrency (code) {
-        const currencyItem = this.currency (code);
-        const networks = currencyItem['networks'];
-        const networkKeys = Object.keys (networks);
-        let defaultNetworkCode = this.safeString (networkKeys, 0);
-        for (let i = 0; i < networkKeys.length; i++) {
-            const network = networkKeys[i];
-            if (network === 'ERC20') {
-                defaultNetworkCode = network;
-            }
-        }
-        // if ERC20 was not found according to above options, then use the first network of currency
-        // changes are made according to issue https://github.com/ccxt/ccxt/issues/24919
-        return this.safeDict (networks, defaultNetworkCode);
     }
 
     setSandboxMode (enable: boolean) {
