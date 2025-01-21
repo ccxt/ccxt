@@ -261,6 +261,7 @@ export default class valr extends Exchange {
                         'account/transactionhistory',
                         'account/transactionhistory/subaccounts',
                         'account/{pair}/tradehistory', // fetchMyTrades
+                        'account/tradehistory',
                         'account/fees/trade', // fetchTradingFees
                         'marketdata/{pair}/orderbook', // fetchOrderBook
                         'marketdata/{pair}/orderbook/full', // fetchL3OrderBook

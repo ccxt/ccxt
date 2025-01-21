@@ -31,6 +31,7 @@ interface Exchange {
     privateGetAccountTransactionhistory (params?: {}): Promise<implicitReturnType>;
     privateGetAccountTransactionhistorySubaccounts (params?: {}): Promise<implicitReturnType>;
     privateGetAccountPairTradehistory (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountTradehistory (params?: {}): Promise<implicitReturnType>;
     privateGetAccountFeesTrade (params?: {}): Promise<implicitReturnType>;
     privateGetMarketdataPairOrderbook (params?: {}): Promise<implicitReturnType>;
     privateGetMarketdataPairOrderbookFull (params?: {}): Promise<implicitReturnType>;
