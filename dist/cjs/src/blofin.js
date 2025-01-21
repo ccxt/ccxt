@@ -286,7 +286,7 @@ class blofin extends blofin$1 {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'max': 1440,
+                        'limit': 1440,
                     },
                 },
                 'spot': {

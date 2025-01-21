@@ -708,9 +708,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         response = self.publicGetOpenV1CommonTime(params)
         #
+        # {
+        #     "code": 0,
+        #     "msg": "Success",
+        #     "data": null,
+        #     "timestamp": 1737378074159
+        # }
         #
-        #
-        return self.safe_integer(response, 'serverTime')
+        return self.safe_integer(response, 'timestamp')
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

@@ -683,9 +683,14 @@ class tokocrypto extends Exchange {
          */
         $response = $this->publicGetOpenV1CommonTime ($params);
         //
+        // {
+        //     "code" => 0,
+        //     "msg" => "Success",
+        //     "data" => null,
+        //     "timestamp" => 1737378074159
+        // }
         //
-        //
-        return $this->safe_integer($response, 'serverTime');
+        return $this->safe_integer($response, 'timestamp');
     }
 
     public function fetch_markets($params = array ()): array {
