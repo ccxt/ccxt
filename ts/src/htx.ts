@@ -7390,9 +7390,11 @@ export default class htx extends Exchange {
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort (request) as any;
                 if (method !== 'POST') {
-                    request = this.extend (request, query);
+                    const sortedQuery = this.keysort (query) as any;
+                    request = this.extend (request, sortedQuery);
                 }
                 let auth = this.urlencode (request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
