@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
@@ -284,6 +284,11 @@ class krakenfutures extends krakenfutures$1 {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 100,
@@ -305,7 +310,7 @@ class krakenfutures extends krakenfutures$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -694,7 +699,7 @@ class krakenfutures extends krakenfutures$1 {
     }
     /**
      * @method
-     * @name kraken#fetchOHLCV
+     * @name krakenfutures#fetchOHLCV
      * @see https://docs.futures.kraken.com/#http-api-charts-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -2574,21 +2579,24 @@ class krakenfutures extends krakenfutures$1 {
         const marketId = this.safeString(info, 'symbol');
         market = this.safeMarket(marketId, market);
         const tiers = [];
+        if (marginLevels === undefined) {
+            return tiers;
+        }
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString(tier, 'initialMargin');
-            const notionalFloor = this.safeNumber(tier, 'contracts');
+            const minNotional = this.safeNumber(tier, 'numNonContractUnits');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];
-                previousTier['notionalCap'] = notionalFloor;
+                previousTier['maxNotional'] = minNotional;
             }
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market),
                 'currency': market['quote'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': undefined,
+                'minNotional': minNotional,
+                'maxNotional': undefined,
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber(Precise["default"].stringDiv('1', initialMargin)),
                 'info': tier,

@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ export default class htx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -951,6 +952,8 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1253,9 +1256,11 @@ export default class htx extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
                         'iceberg': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
+                        'leverage': true, // todo implement
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1291,7 +1296,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1332,7 +1337,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1768,6 +1773,9 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         let types = undefined;
         [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -7153,8 +7161,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = this.parseFundingRates (data);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     /**
@@ -7284,6 +7291,10 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
@@ -7297,7 +7308,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams (path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7372,7 +7383,7 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -8462,6 +8473,103 @@ export default class htx extends Exchange {
 
     /**
      * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString (symbols, 0);
+                market = this.market (first);
+            }
+        }
+        const request: Dict = {};
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        let response = undefined;
+        if (marketType === 'future') {
+            response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 118850.000000000000000000,
+            //                 "amount": 635.502025211544374189,
+            //                 "symbol": "BTC",
+            //                 "contract_type": "this_week",
+            //                 "contract_code": "BTC220930",
+            //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            //                 "trade_volume": 286286,
+            //                 "trade_turnover": 28628600.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337928805
+            //     }
+            //
+        } else if (subType === 'inverse') {
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 518018.000000000000000000,
+            //                 "amount": 2769.675777407074725180,
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USD",
+            //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            //                 "trade_volume": 1848448,
+            //                 "trade_turnover": 184844800.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337226028
+            //     }
+            //
+        } else {
+            request['contract_type'] = 'swap';
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 7192610.000000000000000000,
+            //                 "amount": 7192.610000000000000000,
+            //                 "symbol": "BTC",
+            //                 "value": 134654290.332000000000000000,
+            //                 "contract_code": "BTC-USDT",
+            //                 "trade_amount": 70692.804,
+            //                 "trade_volume": 70692804,
+            //                 "trade_turnover": 1379302592.9518,
+            //                 "business_type": "swap",
+            //                 "pair": "BTC-USDT",
+            //                 "contract_type": "swap",
+            //                 "trade_partition": "USDT"
+            //             }
+            //         ],
+            //         "ts": 1664336503144
+            //     }
+            //
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
+    }
+
+    /**
+     * @method
      * @name htx#fetchOpenInterest
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -8622,8 +8730,9 @@ export default class htx extends Exchange {
         const timestamp = this.safeInteger (interest, 'ts');
         const amount = this.safeNumber (interest, 'volume');
         const value = this.safeNumber (interest, 'value');
+        const marketId = this.safeString (interest, 'contract_code');
         return this.safeOpenInterest ({
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeSymbol (marketId, market),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,

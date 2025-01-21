@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class blofin extends blofin$1 {
     describe() {
@@ -472,7 +472,7 @@ class blofin extends blofin$1 {
     }
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for

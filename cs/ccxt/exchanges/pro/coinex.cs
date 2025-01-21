@@ -1428,7 +1428,7 @@ public partial class coinex : ccxt.coinex
         object defaultType = this.safeString(this.options, "defaultType");
         object marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
-        object timestamp = this.safeTimestamp(ticker, "updated_at");
+        object timestamp = this.safeInteger(ticker, "updated_at");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, defaultType) },
             { "timestamp", timestamp },

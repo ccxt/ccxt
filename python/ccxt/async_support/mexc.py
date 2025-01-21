@@ -458,6 +458,7 @@ class mexc(Exchange, ImplicitAPI):
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {
@@ -710,10 +711,12 @@ class mexc(Exchange, ImplicitAPI):
                             'PO': True,
                             'GTD': False,
                         },
-                        'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': False,
+                        'hedged': True,  # todo implement
                         'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -747,7 +750,7 @@ class mexc(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': False,
@@ -769,14 +772,14 @@ class mexc(Exchange, ImplicitAPI):
                             'mark': True,
                             'index': True,
                         },
-                        'triggerDirection': True,
+                        'triggerDirection': True,  # todo
                         'stopLossPrice': False,  # todo
-                        'takeProfitPrice': False,
+                        'takeProfitPrice': False,  # todo
                         'hedged': True,
+                        'leverage': True,  # todo
+                        'marketBuyByCost': False,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': None,  # todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
@@ -803,7 +806,7 @@ class mexc(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -1377,6 +1380,7 @@ class mexc(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
+            isLinear = quote == settle
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1394,8 +1398,8 @@ class mexc(Exchange, ImplicitAPI):
                 'option': False,
                 'active': (state == '0'),
                 'contract': True,
-                'linear': True,
-                'inverse': False,
+                'linear': isLinear,
+                'inverse': not isLinear,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
@@ -2187,8 +2191,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', 'buy', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2205,8 +2211,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', 'sell', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'sell', 0, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -4468,7 +4476,7 @@ class mexc(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, currencyId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }

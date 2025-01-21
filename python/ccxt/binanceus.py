@@ -209,4 +209,14 @@ class binanceus(binance, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })

@@ -28,7 +28,7 @@ export default class hyperliquid extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSwapMarkets
      * @description retrieves data on all swap markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -37,7 +37,7 @@ export default class hyperliquid extends Exchange {
     fetchSwapMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
-     * @name calculatePricePrecision
+     * @name hyperliquid#calculatePricePrecision
      * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
      * @param {float} price the price to use in the calculation
      * @param {int} amountPrecision the amountPrecision to use in the calculation
@@ -47,7 +47,7 @@ export default class hyperliquid extends Exchange {
     calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSpotMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -465,6 +465,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
      * @name hyperliquid#withdraw

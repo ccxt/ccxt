@@ -515,6 +515,11 @@ export default class bitstamp extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {

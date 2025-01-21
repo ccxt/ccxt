@@ -41,6 +41,9 @@ public partial class alpaca : Exchange
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createMarketBuyOrder", true },
+                { "createMarketBuyOrderWithCost", true },
+                { "createMarketOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
@@ -153,6 +156,86 @@ public partial class alpaca : Exchange
                 { "exchanges", new List<object>() {"CBSE", "FTX", "GNSS", "ERSX"} },
                 { "defaultTimeInForce", "gtc" },
                 { "clientOrderId", "ccxt_{id}" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", true },
+                            } },
+                            { "price", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -755,6 +838,67 @@ public partial class alpaca : Exchange
 
     /**
      * @method
+     * @name alpaca#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+    }
+
+    /**
+     * @method
+     * @name alpaca#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters));
+    }
+
+    /**
+     * @method
+     * @name alpaca#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
+    }
+
+    /**
+     * @method
      * @name alpaca#createOrder
      * @description create a trade order
      * @see https://docs.alpaca.markets/reference/postorder
@@ -765,6 +909,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -775,7 +920,6 @@ public partial class alpaca : Exchange
         object id = getValue(market, "id");
         object request = new Dictionary<string, object>() {
             { "symbol", id },
-            { "qty", this.amountToPrecision(symbol, amount) },
             { "side", side },
             { "type", type },
         };
@@ -796,6 +940,15 @@ public partial class alpaca : Exchange
         if (isTrue(isGreaterThanOrEqual(getIndexOf(type, "limit"), 0)))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
+        }
+        object cost = this.safeString(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            parameters = this.omit(parameters, "cost");
+            ((IDictionary<string,object>)request)["notional"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
         object defaultTIF = this.safeString(this.options, "defaultTimeInForce");
         ((IDictionary<string,object>)request)["time_in_force"] = this.safeString(parameters, "timeInForce", defaultTIF);

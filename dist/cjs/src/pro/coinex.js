@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinex extends coinex$1 {
     describe() {
@@ -1286,7 +1286,7 @@ class coinex extends coinex$1 {
         const defaultType = this.safeString(this.options, 'defaultType');
         const marketId = this.safeString(ticker, 'market');
         market = this.safeMarket(marketId, market, undefined, defaultType);
-        const timestamp = this.safeTimestamp(ticker, 'updated_at');
+        const timestamp = this.safeInteger(ticker, 'updated_at');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, undefined, defaultType),
             'timestamp': timestamp,

@@ -1384,18 +1384,18 @@ export default class bitget extends Exchange {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 52,
+                        '10m': 30,
                         '15m': 52,
-                        '30m': 52,
+                        '30m': 62,
                         '1h': 83,
                         '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 360,
-                        '1d': 360,
-                        '3d': 1000,
-                        '1w': 1000,
-                        '1M': 1000,
+                        '1d': 300,
+                        '3d': 300,
+                        '1w': 300,
+                        '1M': 300,
                     },
                 },
                 'fetchTrades': {
@@ -1426,16 +1426,102 @@ export default class bitget extends Exchange {
                 },
                 'sandboxMode': false,
                 'networks': {
+                    // 'TRX': 'TRX', // different code for mainnet
                     'TRC20': 'TRC20',
+                    // 'ETH': 'ETH', // different code for mainnet
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
-                    'ARB': 'ArbitrumOne',
+                    // 'BEP20': 'BEP20', // different for BEP20
+                    'BSC': 'BEP20',
+                    'ATOM': 'ATOM',
+                    'ACA': 'AcalaToken',
+                    'APT': 'Aptos',
+                    'ARBONE': 'ArbitrumOne',
+                    'ARBNOVA': 'ArbitrumNova',
+                    'AVAXC': 'C-Chain',
+                    'AVAXX': 'X-Chain',
+                    'AR': 'Arweave',
+                    'BCH': 'BCH',
+                    'BCHA': 'BCHA',
+                    'BITCI': 'BITCI',
+                    'BTC': 'BTC',
+                    'CELO': 'CELO',
+                    'CSPR': 'CSPR',
+                    'ADA': 'Cardano',
+                    'CHZ': 'ChilizChain',
+                    'CRC20': 'CronosChain',
+                    'DOGE': 'DOGE',
+                    'DOT': 'DOT',
+                    'EOS': 'EOS',
+                    'ETHF': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'ETC': 'ETC',
+                    'EGLD': 'Elrond',
+                    'FIL': 'FIL',
+                    'FIO': 'FIO',
+                    'FTM': 'Fantom',
+                    'HRC20': 'HECO',
+                    'ONE': 'Harmony',
+                    'HNT': 'Helium',
+                    'ICP': 'ICP',
+                    'IOTX': 'IoTeX',
+                    'KARDIA': 'KAI',
+                    'KAVA': 'KAVA',
+                    'KDA': 'KDA',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
+                    'LAT': 'LAT',
+                    'LTC': 'LTC',
+                    'MINA': 'MINA',
+                    'MOVR': 'MOVR',
+                    'METIS': 'MetisToken',
+                    'GLMR': 'Moonbeam',
+                    'NEAR': 'NEARProtocol',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OASIS': 'ROSE',
+                    'OMNI': 'OMNI',
+                    'ONT': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'OSMO': 'Osmosis',
+                    'POKT': 'PocketNetwork',
+                    'MATIC': 'Polygon',
+                    'QTUM': 'QTUM',
+                    'REEF': 'REEF',
+                    'SOL': 'SOL',
+                    'SYS': 'SYS',
+                    'SXP': 'Solar',
+                    'XYM': 'Symbol',
+                    'TON': 'TON',
+                    'TT': 'TT',
+                    'TLOS': 'Telos',
+                    'THETA': 'ThetaToken',
+                    'VITE': 'VITE',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAXP',
+                    'WEMIX': 'WEMIXMainnet',
+                    'XDC': 'XDCNetworkXDC',
+                    'XRP': 'XRP',
+                    'FET': 'FETCH',
+                    'NEM': 'NEM',
+                    'REI': 'REINetwork',
+                    'ZIL': 'ZIL',
+                    'ABBC': 'ABBCCoin',
+                    'RSK': 'RSK',
+                    'AZERO': 'AZERO',
+                    'TRC10': 'TRC10',
+                    'JUNO': 'JUNO',
+                    // undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                    // todo: uncomment below after unification
+                    // 'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    // 'CUBENETWORK': 'CUBE',
+                    // 'CADUCEUS': 'CMP',
+                    // 'CONFLUX': 'CFX', // CFXeSpace is different
+                    // 'CERE': 'CERE',
+                    // 'CANTO': 'CANTO',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'APT': 'Aptos',
-                    'MATIC': 'Polygon',
                     'VIC': 'VICTION',
-                    'AVAXC': 'C-Chain',
                 },
                 'networksById': {},
                 'fetchPositions': {
@@ -1463,7 +1549,7 @@ export default class bitget extends Exchange {
                                 'mark': false,
                                 'index': false,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1505,7 +1591,7 @@ export default class bitget extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -1533,7 +1619,7 @@ export default class bitget extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -2341,14 +2427,14 @@ export default class bitget extends Exchange {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         this.checkAddress(address);
-        const chain = this.safeString2(params, 'chain', 'network');
-        params = this.omit(params, 'network');
-        if (chain === undefined) {
-            throw new ArgumentsRequired(this.id + ' withdraw() requires a chain parameter or a network parameter');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired(this.id + ' withdraw() requires a "network" parameter');
         }
         await this.loadMarkets();
         const currency = this.currency(code);
-        const networkId = this.networkCodeToId(chain);
+        const networkId = this.networkCodeToId(networkCode);
         const request = {
             'coin': currency['id'],
             'address': address,
@@ -2372,27 +2458,8 @@ export default class bitget extends Exchange {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        const result = {
-            'id': this.safeString(data, 'orderId'),
-            'info': response,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': 'withdrawal',
-            'currency': undefined,
-            'status': undefined,
-            'updated': undefined,
-            'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
-        };
+        const result = this.parseTransaction(data, currency);
+        result['type'] = 'withdrawal';
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
@@ -2403,7 +2470,7 @@ export default class bitget extends Exchange {
             result['tag'] = tag;
             result['address'] = address;
             result['addressTo'] = address;
-            result['network'] = chain;
+            result['network'] = networkCode;
         }
         return result;
     }
@@ -2571,18 +2638,14 @@ export default class bitget extends Exchange {
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const networkCode = this.safeString2(params, 'chain', 'network');
-        params = this.omit(params, 'network');
-        let networkId = undefined;
-        if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode, code);
-        }
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
-        if (networkId !== undefined) {
-            request['chain'] = networkId;
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId(networkCode, code);
         }
         const response = await this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, params));
         //
@@ -3494,6 +3557,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3506,9 +3570,10 @@ export default class bitget extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint);
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const useHistoryEndpoint = this.safeBool(params, 'useHistoryEndpoint', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox(symbol);
@@ -3538,7 +3603,7 @@ export default class bitget extends Exchange {
         const ohlcOptions = this.safeDict(this.options, 'fetchOHLCV', {});
         const retrievableDaysMap = this.safeDict(ohlcOptions, 'maxDaysPerTimeframe', {});
         const maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
+        const endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay;
         if (limitDefined) {
             limit = Math.min(limit, maxLimitForRecentEndpoint);
             request['limit'] = limit;
@@ -3577,7 +3642,7 @@ export default class bitget extends Exchange {
         // make request
         if (market['spot']) {
             // checks if we need history endpoint
-            if (historicalEndpointNeeded) {
+            if (historicalEndpointNeeded || useHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -3609,7 +3674,7 @@ export default class bitget extends Exchange {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             }
             else {
-                if (historicalEndpointNeeded) {
+                if (historicalEndpointNeeded || useHistoryEndpoint) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 }
                 else {
@@ -4272,8 +4337,10 @@ export default class bitget extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -7044,8 +7111,9 @@ export default class bitget extends Exchange {
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRates(data, market);
+        return this.parseFundingRates(data, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

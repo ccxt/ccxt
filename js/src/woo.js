@@ -288,6 +288,8 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -336,9 +338,11 @@ export default class woo extends Exchange {
                         },
                         'hedged': false,
                         'trailing': true,
-                        // exchange specific params:
-                        // 'iceberg': true,
-                        // 'oco': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -369,7 +373,7 @@ export default class woo extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
@@ -501,6 +505,9 @@ export default class woo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const response = await this.v1PublicGetInfo(params);
         //
         // {
@@ -2641,7 +2648,7 @@ export default class woo extends Exchange {
         };
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
@@ -2955,8 +2962,7 @@ export default class woo extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'rows', []);
-        const result = this.parseFundingRates(rows);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method

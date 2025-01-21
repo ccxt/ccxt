@@ -946,7 +946,7 @@ public partial class okx : Exchange
                     { "BHP", "BHP" },
                     { "APT", "Aptos" },
                     { "ARBONE", "Arbitrum One" },
-                    { "AVAXC", "Avalanche C" },
+                    { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "ARK", "ARK" },
                     { "AR", "Arweave" },
@@ -1042,6 +1042,8 @@ public partial class okx : Exchange
                 { "createOrder", "privatePostTradeBatchOrders" },
                 { "createMarketBuyOrderRequiresPrice", false },
                 { "fetchMarkets", new List<object>() {"spot", "future", "swap", "option"} },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "defaultType", "spot" },
                 { "fetchLedger", new Dictionary<string, object>() {
                     { "method", "privateGetAccountBills" },
@@ -1122,7 +1124,7 @@ public partial class okx : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1131,11 +1133,12 @@ public partial class okx : Exchange
                             { "GTD", false },
                         } },
                         { "hedged", true },
-                        { "selfTradePrevention", true },
                         { "trailing", true },
-                        { "twap", true },
                         { "iceberg", true },
-                        { "oco", true },
+                        { "leverage", false },
+                        { "selfTradePrevention", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 20 },
@@ -1161,7 +1164,7 @@ public partial class okx : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                         { "untilDays", null },
                         { "trigger", true },
@@ -1433,6 +1436,11 @@ public partial class okx : Exchange
         return result;
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1444,6 +1452,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
         object promises = new List<object>() {};
         object result = new List<object>() {};
@@ -1582,7 +1594,7 @@ public partial class okx : Exchange
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strikePrice },
+            { "strike", this.parseNumber(strikePrice) },
             { "optionType", optionType },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
@@ -1772,8 +1784,8 @@ public partial class okx : Exchange
                 object networkId = this.safeString(chain, "chain");
                 if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
                 {
-                    object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object chainPart = this.safeString(parts, 1, networkId);
+                    object parts = slice(((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 1, null);
+                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
                     object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))
@@ -1803,7 +1815,7 @@ public partial class okx : Exchange
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", null },
+                { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
@@ -2860,9 +2872,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2884,9 +2898,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -5986,7 +6002,7 @@ public partial class okx : Exchange
 
     /**
      * @method
-     * @name okx#fetchPositions
+     * @name okx#fetchPositionsForSymbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
@@ -6482,7 +6498,7 @@ public partial class okx : Exchange
                     }
                 }
             }
-            object timestamp = this.iso8601(this.milliseconds());
+            object timestamp = this.iso8601(this.nonce());
             headers = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },

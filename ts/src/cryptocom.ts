@@ -372,10 +372,12 @@ export default class cryptocom extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -408,7 +410,7 @@ export default class cryptocom extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,

@@ -919,7 +919,7 @@ if exchange.has['watchOHLCVForSymbols']:
                 ['LTC/USDT', '5m'],
                 ['ETH/USDT', '1h']
             ]]
-            candles = await exchange.watch_ohlcv(subscriptions, since, limit, params)
+            candles = await exchange.watch_ohlcv_for_symbols(subscriptions, since, limit, params)
             print(exchange.iso8601(exchange.milliseconds()), candles)
         except Exception as e:
             print(e)

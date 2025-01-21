@@ -288,6 +288,8 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
@@ -336,9 +338,11 @@ class woo extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
-                        // exchange specific params:
-                        // 'iceberg' => true,
-                        // 'oco' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -369,7 +373,7 @@ class woo extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => true,
@@ -507,6 +511,9 @@ class woo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $response = Async\await($this->v1PublicGetInfo ($params));
             //
             // {
@@ -2735,7 +2742,7 @@ class woo extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -3057,8 +3064,7 @@ class woo extends Exchange {
             //     }
             //
             $rows = $this->safe_list($response, 'rows', array());
-            $result = $this->parse_funding_rates($rows);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($rows, $symbols);
         }) ();
     }
 

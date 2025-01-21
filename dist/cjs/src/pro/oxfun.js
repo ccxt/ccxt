@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class oxfun extends oxfun$1 {
     describe() {
@@ -980,7 +980,7 @@ class oxfun extends oxfun$1 {
     }
     /**
      * @method
-     * @name okx#cancelOrdersWs
+     * @name oxfun#cancelOrdersWs
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
      * @description cancel multiple orders
      * @param {string[]} ids order ids

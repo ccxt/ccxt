@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.43'
+__version__ = '4.4.49'
 
 # -----------------------------------------------------------------------------
 
@@ -343,7 +343,7 @@ class Exchange(object):
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
     enableLastHttpResponse = True
-    enableLastJsonResponse = True
+    enableLastJsonResponse = False
     enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None
@@ -2876,6 +2876,67 @@ class Exchange(object):
         }
 
     def safe_currency_structure(self, currency: object):
+        # derive data from networks: deposit, withdraw, active, fee, limits, precision
+        networks = self.safe_dict(currency, 'networks', {})
+        keys = list(networks.keys())
+        length = len(keys)
+        if length != 0:
+            for i in range(0, length):
+                network = networks[keys[i]]
+                deposit = self.safe_bool(network, 'deposit')
+                if currency['deposit'] is None or deposit:
+                    currency['deposit'] = deposit
+                withdraw = self.safe_bool(network, 'withdraw')
+                if currency['withdraw'] is None or withdraw:
+                    currency['withdraw'] = withdraw
+                active = self.safe_bool(network, 'active')
+                if currency['active'] is None or active:
+                    currency['active'] = active
+                # find lowest fee(which is more desired)
+                fee = self.safe_string(network, 'fee')
+                feeMain = self.safe_string(currency, 'fee')
+                if feeMain is None or Precise.string_lt(fee, feeMain):
+                    currency['fee'] = self.parse_number(fee)
+                # find lowest precision(which is more desired)
+                precision = self.safe_string(network, 'precision')
+                precisionMain = self.safe_string(currency, 'precision')
+                if precisionMain is None or Precise.string_lt(precision, precisionMain):
+                    currency['precision'] = self.parse_number(precision)
+                # limits
+                limits = self.safe_dict(network, 'limits')
+                limitsMain = self.safe_dict(currency, 'limits')
+                if limitsMain is None:
+                    currency['limits'] = {}
+                # deposits
+                limitsDeposit = self.safe_dict(limits, 'deposit')
+                limitsDepositMain = self.safe_dict(limitsMain, 'deposit')
+                if limitsDepositMain is None:
+                    currency['limits']['deposit'] = {}
+                limitsDepositMin = self.safe_string(limitsDeposit, 'min')
+                limitsDepositMax = self.safe_string(limitsDeposit, 'max')
+                limitsDepositMinMain = self.safe_string(limitsDepositMain, 'min')
+                limitsDepositMaxMain = self.safe_string(limitsDepositMain, 'max')
+                # find min
+                if limitsDepositMinMain is None or Precise.string_lt(limitsDepositMin, limitsDepositMinMain):
+                    currency['limits']['deposit']['min'] = self.parse_number(limitsDepositMin)
+                # find max
+                if limitsDepositMaxMain is None or Precise.string_gt(limitsDepositMax, limitsDepositMaxMain):
+                    currency['limits']['deposit']['max'] = self.parse_number(limitsDepositMax)
+                # withdrawals
+                limitsWithdraw = self.safe_dict(limits, 'withdraw')
+                limitsWithdrawMain = self.safe_dict(limitsMain, 'withdraw')
+                if limitsWithdrawMain is None:
+                    currency['limits']['withdraw'] = {}
+                limitsWithdrawMin = self.safe_string(limitsWithdraw, 'min')
+                limitsWithdrawMax = self.safe_string(limitsWithdraw, 'max')
+                limitsWithdrawMinMain = self.safe_string(limitsWithdrawMain, 'min')
+                limitsWithdrawMaxMain = self.safe_string(limitsWithdrawMain, 'max')
+                # find min
+                if limitsWithdrawMinMain is None or Precise.string_lt(limitsWithdrawMin, limitsWithdrawMinMain):
+                    currency['limits']['withdraw']['min'] = self.parse_number(limitsWithdrawMin)
+                # find max
+                if limitsWithdrawMaxMain is None or Precise.string_gt(limitsWithdrawMax, limitsWithdrawMaxMain):
+                    currency['limits']['withdraw']['max'] = self.parse_number(limitsWithdrawMax)
         return self.extend({
             'info': None,
             'id': None,
@@ -5640,19 +5701,13 @@ class Exchange(object):
     def parse_funding_rate(self, contract: str, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response, market: Market = None):
-        result = {}
+    def parse_funding_rates(self, response, symbols: Strings = None):
+        fundingRates = {}
         for i in range(0, len(response)):
-            parsed = self.parse_funding_rate(response[i], market)
-            result[parsed['symbol']] = parsed
-        return result
-
-    def parse_open_interests(self, response, market: Market = None):
-        result = {}
-        for i in range(0, len(response)):
-            parsed = self.parse_open_interest(response[i], market)
-            result[parsed['symbol']] = parsed
-        return result
+            entry = response[i]
+            parsed = self.parse_funding_rate(entry)
+            fundingRates[parsed['symbol']] = parsed
+        return self.filter_by_array(fundingRates, 'symbol', symbols)
 
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
@@ -5747,6 +5802,14 @@ class Exchange(object):
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
+
+    def parse_open_interests(self, response, symbols: Strings = None):
+        result = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            parsed = self.parse_open_interest(entry)
+            result[parsed['symbol']] = parsed
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_open_interests_history(self, response, market=None, since: Int = None, limit: Int = None):
         interests = []

@@ -224,6 +224,16 @@ public partial class binanceus : binance
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
         });
     }
 }

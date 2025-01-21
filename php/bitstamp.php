@@ -509,6 +509,11 @@ class bitstamp extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(

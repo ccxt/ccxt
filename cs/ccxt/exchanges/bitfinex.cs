@@ -369,6 +369,11 @@ public partial class bitfinex : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 75 },
@@ -394,7 +399,7 @@ public partial class bitfinex : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", false },
@@ -3370,7 +3375,7 @@ public partial class bitfinex : Exchange
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response);
+        return this.parseFundingRates(response, symbols);
     }
 
     /**
@@ -3623,8 +3628,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        object result = this.parseOpenInterests(response);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(response, symbols);
     }
 
     /**

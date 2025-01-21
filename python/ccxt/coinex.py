@@ -480,7 +480,7 @@ class coinex(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -532,11 +532,11 @@ class coinex(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'marketBuyRequiresPrice': True,
-                        # 'marketBuyByCost': True,
-                        # 'selfTradePrevention': True,
-                        # 'iceberg': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo: implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -562,7 +562,7 @@ class coinex(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,
@@ -4588,8 +4588,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
@@ -4609,13 +4608,13 @@ class coinex(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        if tag:
-            address = address + ':' + tag
         request: dict = {
             'ccy': currency['id'],
             'to_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'amount': self.number_to_string(amount),  # the actual amount without fees, https://www.coinex.com/fees
         }
+        if tag is not None:
+            request['memo'] = tag
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:

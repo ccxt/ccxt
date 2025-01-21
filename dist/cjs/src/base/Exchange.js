@@ -104,7 +104,7 @@ class Exchange {
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
-        this.enableLastJsonResponse = true;
+        this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;
@@ -2486,6 +2486,81 @@ class Exchange {
         };
     }
     safeCurrencyStructure(currency) {
+        // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const networks = this.safeDict(currency, 'networks', {});
+        const keys = Object.keys(networks);
+        const length = keys.length;
+        if (length !== 0) {
+            for (let i = 0; i < length; i++) {
+                const network = networks[keys[i]];
+                const deposit = this.safeBool(network, 'deposit');
+                if (currency['deposit'] === undefined || deposit) {
+                    currency['deposit'] = deposit;
+                }
+                const withdraw = this.safeBool(network, 'withdraw');
+                if (currency['withdraw'] === undefined || withdraw) {
+                    currency['withdraw'] = withdraw;
+                }
+                const active = this.safeBool(network, 'active');
+                if (currency['active'] === undefined || active) {
+                    currency['active'] = active;
+                }
+                // find lowest fee (which is more desired)
+                const fee = this.safeString(network, 'fee');
+                const feeMain = this.safeString(currency, 'fee');
+                if (feeMain === undefined || Precise["default"].stringLt(fee, feeMain)) {
+                    currency['fee'] = this.parseNumber(fee);
+                }
+                // find lowest precision (which is more desired)
+                const precision = this.safeString(network, 'precision');
+                const precisionMain = this.safeString(currency, 'precision');
+                if (precisionMain === undefined || Precise["default"].stringLt(precision, precisionMain)) {
+                    currency['precision'] = this.parseNumber(precision);
+                }
+                // limits
+                const limits = this.safeDict(network, 'limits');
+                const limitsMain = this.safeDict(currency, 'limits');
+                if (limitsMain === undefined) {
+                    currency['limits'] = {};
+                }
+                // deposits
+                const limitsDeposit = this.safeDict(limits, 'deposit');
+                const limitsDepositMain = this.safeDict(limitsMain, 'deposit');
+                if (limitsDepositMain === undefined) {
+                    currency['limits']['deposit'] = {};
+                }
+                const limitsDepositMin = this.safeString(limitsDeposit, 'min');
+                const limitsDepositMax = this.safeString(limitsDeposit, 'max');
+                const limitsDepositMinMain = this.safeString(limitsDepositMain, 'min');
+                const limitsDepositMaxMain = this.safeString(limitsDepositMain, 'max');
+                // find min
+                if (limitsDepositMinMain === undefined || Precise["default"].stringLt(limitsDepositMin, limitsDepositMinMain)) {
+                    currency['limits']['deposit']['min'] = this.parseNumber(limitsDepositMin);
+                }
+                // find max
+                if (limitsDepositMaxMain === undefined || Precise["default"].stringGt(limitsDepositMax, limitsDepositMaxMain)) {
+                    currency['limits']['deposit']['max'] = this.parseNumber(limitsDepositMax);
+                }
+                // withdrawals
+                const limitsWithdraw = this.safeDict(limits, 'withdraw');
+                const limitsWithdrawMain = this.safeDict(limitsMain, 'withdraw');
+                if (limitsWithdrawMain === undefined) {
+                    currency['limits']['withdraw'] = {};
+                }
+                const limitsWithdrawMin = this.safeString(limitsWithdraw, 'min');
+                const limitsWithdrawMax = this.safeString(limitsWithdraw, 'max');
+                const limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, 'min');
+                const limitsWithdrawMaxMain = this.safeString(limitsWithdrawMain, 'max');
+                // find min
+                if (limitsWithdrawMinMain === undefined || Precise["default"].stringLt(limitsWithdrawMin, limitsWithdrawMinMain)) {
+                    currency['limits']['withdraw']['min'] = this.parseNumber(limitsWithdrawMin);
+                }
+                // find max
+                if (limitsWithdrawMaxMain === undefined || Precise["default"].stringGt(limitsWithdrawMax, limitsWithdrawMaxMain)) {
+                    currency['limits']['withdraw']['max'] = this.parseNumber(limitsWithdrawMax);
+                }
+            }
+        }
         return this.extend({
             'info': undefined,
             'id': undefined,
@@ -5734,21 +5809,14 @@ class Exchange {
     parseFundingRate(contract, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseFundingRate() is not supported yet');
     }
-    parseFundingRates(response, market = undefined) {
-        const result = {};
+    parseFundingRates(response, symbols = undefined) {
+        const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate(response[i], market);
-            result[parsed['symbol']] = parsed;
+            const entry = response[i];
+            const parsed = this.parseFundingRate(entry);
+            fundingRates[parsed['symbol']] = parsed;
         }
-        return result;
-    }
-    parseOpenInterests(response, market = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseOpenInterest(response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
+        return this.filterByArray(fundingRates, 'symbol', symbols);
     }
     parseLongShortRatio(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
@@ -5858,6 +5926,15 @@ class Exchange {
     }
     parseOpenInterest(interest, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOpenInterest () is not supported yet');
+    }
+    parseOpenInterests(response, symbols = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseOpenInterest(entry);
+            result[parsed['symbol']] = parsed;
+        }
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];

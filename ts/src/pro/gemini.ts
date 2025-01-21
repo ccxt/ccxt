@@ -266,7 +266,7 @@ export default class gemini extends geminiRest {
 
     /**
      * @method
-     * @name gemini#fetchOHLCV
+     * @name gemini#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.gemini.com/websocket-api/#candles-data-feed
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for

@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class okx extends okx$1 {
     describe() {
@@ -253,7 +253,7 @@ class okx extends okx$1 {
     }
     /**
      * @method
-     * @name okx#unWatchTradesForSymbols
+     * @name okx#unWatchTrades
      * @description unWatches from the stream channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint

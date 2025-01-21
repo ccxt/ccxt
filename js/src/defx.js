@@ -253,6 +253,87 @@ export default class defx extends Exchange {
             'options': {
                 'sandboxMode': false,
             },
+            'features': {
+                'spot': undefined,
+                'forDerivatives': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -859,7 +940,7 @@ export default class defx extends Exchange {
     }
     /**
      * @method
-     * @name defx#fetchTrades
+     * @name defx#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -937,10 +1018,10 @@ export default class defx extends Exchange {
         const id = this.safeString(trade, 'id');
         const oid = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeStringLower(trade, 'role');
-        const buyerMaker = this.safeString(trade, 'buyerMaker');
+        const buyerMaker = this.safeBool(trade, 'buyerMaker');
         let side = this.safeStringLower(trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             }
             else {
@@ -1663,8 +1744,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1679,8 +1762,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1695,8 +1780,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method

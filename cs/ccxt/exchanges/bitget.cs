@@ -1339,18 +1339,18 @@ public partial class bitget : Exchange
                         { "1m", 30 },
                         { "3m", 30 },
                         { "5m", 30 },
-                        { "10m", 52 },
+                        { "10m", 30 },
                         { "15m", 52 },
-                        { "30m", 52 },
+                        { "30m", 62 },
                         { "1h", 83 },
                         { "2h", 120 },
                         { "4h", 240 },
                         { "6h", 360 },
                         { "12h", 360 },
-                        { "1d", 360 },
-                        { "3d", 1000 },
-                        { "1w", 1000 },
-                        { "1M", 1000 },
+                        { "1d", 300 },
+                        { "3d", 300 },
+                        { "1w", 300 },
+                        { "1M", 300 },
                     } },
                 } },
                 { "fetchTrades", new Dictionary<string, object>() {
@@ -1384,13 +1384,88 @@ public partial class bitget : Exchange
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "BEP20", "BSC" },
-                    { "ARB", "ArbitrumOne" },
+                    { "BSC", "BEP20" },
+                    { "ATOM", "ATOM" },
+                    { "ACA", "AcalaToken" },
+                    { "APT", "Aptos" },
+                    { "ARBONE", "ArbitrumOne" },
+                    { "ARBNOVA", "ArbitrumNova" },
+                    { "AVAXC", "C-Chain" },
+                    { "AVAXX", "X-Chain" },
+                    { "AR", "Arweave" },
+                    { "BCH", "BCH" },
+                    { "BCHA", "BCHA" },
+                    { "BITCI", "BITCI" },
+                    { "BTC", "BTC" },
+                    { "CELO", "CELO" },
+                    { "CSPR", "CSPR" },
+                    { "ADA", "Cardano" },
+                    { "CHZ", "ChilizChain" },
+                    { "CRC20", "CronosChain" },
+                    { "DOGE", "DOGE" },
+                    { "DOT", "DOT" },
+                    { "EOS", "EOS" },
+                    { "ETHF", "ETHFAIR" },
+                    { "ETHW", "ETHW" },
+                    { "ETC", "ETC" },
+                    { "EGLD", "Elrond" },
+                    { "FIL", "FIL" },
+                    { "FIO", "FIO" },
+                    { "FTM", "Fantom" },
+                    { "HRC20", "HECO" },
+                    { "ONE", "Harmony" },
+                    { "HNT", "Helium" },
+                    { "ICP", "ICP" },
+                    { "IOTX", "IoTeX" },
+                    { "KARDIA", "KAI" },
+                    { "KAVA", "KAVA" },
+                    { "KDA", "KDA" },
+                    { "KLAY", "Klaytn" },
+                    { "KSM", "Kusama" },
+                    { "LAT", "LAT" },
+                    { "LTC", "LTC" },
+                    { "MINA", "MINA" },
+                    { "MOVR", "MOVR" },
+                    { "METIS", "MetisToken" },
+                    { "GLMR", "Moonbeam" },
+                    { "NEAR", "NEARProtocol" },
+                    { "NULS", "NULS" },
+                    { "OASYS", "OASYS" },
+                    { "OASIS", "ROSE" },
+                    { "OMNI", "OMNI" },
+                    { "ONT", "Ontology" },
+                    { "OPTIMISM", "Optimism" },
+                    { "OSMO", "Osmosis" },
+                    { "POKT", "PocketNetwork" },
+                    { "MATIC", "Polygon" },
+                    { "QTUM", "QTUM" },
+                    { "REEF", "REEF" },
+                    { "SOL", "SOL" },
+                    { "SYS", "SYS" },
+                    { "SXP", "Solar" },
+                    { "XYM", "Symbol" },
+                    { "TON", "TON" },
+                    { "TT", "TT" },
+                    { "TLOS", "Telos" },
+                    { "THETA", "ThetaToken" },
+                    { "VITE", "VITE" },
+                    { "WAVES", "WAVES" },
+                    { "WAX", "WAXP" },
+                    { "WEMIX", "WEMIXMainnet" },
+                    { "XDC", "XDCNetworkXDC" },
+                    { "XRP", "XRP" },
+                    { "FET", "FETCH" },
+                    { "NEM", "NEM" },
+                    { "REI", "REINetwork" },
+                    { "ZIL", "ZIL" },
+                    { "ABBC", "ABBCCoin" },
+                    { "RSK", "RSK" },
+                    { "AZERO", "AZERO" },
+                    { "TRC10", "TRC10" },
+                    { "JUNO", "JUNO" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
-                    { "APT", "Aptos" },
-                    { "MATIC", "Polygon" },
                     { "VIC", "VICTION" },
-                    { "AVAXC", "C-Chain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {
@@ -1418,7 +1493,7 @@ public partial class bitget : Exchange
                                 { "mark", false },
                                 { "index", false },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1455,7 +1530,7 @@ public partial class bitget : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 90 },
                         { "trigger", true },
@@ -1483,7 +1558,7 @@ public partial class bitget : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -2362,15 +2437,17 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        object chain = this.safeString2(parameters, "chain", "network");
-        parameters = this.omit(parameters, "network");
-        if (isTrue(isEqual(chain, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a chain parameter or a network parameter")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a \"network\" parameter")) ;
         }
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networkId = this.networkCodeToId(chain);
+        object networkId = this.networkCodeToId(networkCode);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
@@ -2395,27 +2472,8 @@ public partial class bitget : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = new Dictionary<string, object>() {
-            { "id", this.safeString(data, "orderId") },
-            { "info", response },
-            { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "network", null },
-            { "addressFrom", null },
-            { "address", null },
-            { "addressTo", null },
-            { "amount", null },
-            { "type", "withdrawal" },
-            { "currency", null },
-            { "status", null },
-            { "updated", null },
-            { "tagFrom", null },
-            { "tag", null },
-            { "tagTo", null },
-            { "comment", null },
-            { "fee", null },
-        };
+        object result = this.parseTransaction(data, currency);
+        ((IDictionary<string,object>)result)["type"] = "withdrawal";
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
@@ -2427,7 +2485,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)result)["tag"] = tag;
             ((IDictionary<string,object>)result)["address"] = address;
             ((IDictionary<string,object>)result)["addressTo"] = address;
-            ((IDictionary<string,object>)result)["network"] = chain;
+            ((IDictionary<string,object>)result)["network"] = networkCode;
         }
         return result;
     }
@@ -2617,20 +2675,17 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object networkCode = this.safeString2(parameters, "chain", "network");
-        parameters = this.omit(parameters, "network");
-        object networkId = null;
-        if (isTrue(!isEqual(networkCode, null)))
-        {
-            networkId = this.networkCodeToId(networkCode, code);
-        }
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
-        if (isTrue(!isEqual(networkId, null)))
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = networkId;
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, code);
         }
         object response = await this.privateSpotGetV2SpotWalletDepositAddress(this.extend(request, parameters));
         //
@@ -3621,6 +3676,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3639,9 +3695,10 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForRecentEndpoint);
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         object market = null;
         if (isTrue(sandboxMode))
         {
@@ -3672,7 +3729,7 @@ public partial class bitget : Exchange
         object ohlcOptions = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object retrievableDaysMap = this.safeDict(ohlcOptions, "maxDaysPerTimeframe", new Dictionary<string, object>() {});
         object maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        object endpointTsBoundary = subtract(now, multiply(maxRetrievableDaysForRecent, msInDay));
+        object endpointTsBoundary = subtract(now, multiply((subtract(maxRetrievableDaysForRecent, 1)), msInDay));
         if (isTrue(limitDefined))
         {
             limit = mathMin(limit, maxLimitForRecentEndpoint);
@@ -3718,7 +3775,7 @@ public partial class bitget : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             // checks if we need history endpoint
-            if (isTrue(historicalEndpointNeeded))
+            if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
             {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
@@ -3758,7 +3815,7 @@ public partial class bitget : Exchange
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
             {
-                if (isTrue(historicalEndpointNeeded))
+                if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
                 {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 } else
@@ -4457,8 +4514,10 @@ public partial class bitget : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -7521,8 +7580,9 @@ public partial class bitget : Exchange
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, market);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

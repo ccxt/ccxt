@@ -451,6 +451,7 @@ class mexc extends Exchange {
                         '1h' => '60m',
                         '4h' => '4h',
                         '1d' => '1d',
+                        '1w' => '1W',
                         '1M' => '1M',
                     ),
                     'swap' => array(
@@ -703,10 +704,12 @@ class mexc extends Exchange {
                             'PO' => true,
                             'GTD' => false,
                         ),
-                        'hedged' => false,
-                        // exchange-supported features
-                        'selfTradePrevention' => false,
+                        'hedged' => true, // todo implement
                         'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
                     'createOrders' => array(
@@ -740,7 +743,7 @@ class mexc extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 1000,
-                        'daysBackClosed' => 7,
+                        'daysBack' => 7,
                         'daysBackCanceled' => 7,
                         'untilDays' => 7,
                         'trigger' => false,
@@ -762,14 +765,14 @@ class mexc extends Exchange {
                             'mark' => true,
                             'index' => true,
                         ),
-                        'triggerDirection' => true,
+                        'triggerDirection' => true, // todo
                         'stopLossPrice' => false, // todo
-                        'takeProfitPrice' => false,
+                        'takeProfitPrice' => false, // todo
                         'hedged' => true,
+                        'leverage' => true, // todo
+                        'marketBuyByCost' => false,
                     ),
-                    'createOrders' => array(
-                        'max' => 50,
-                    ),
+                    'createOrders' => null, // todo => needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => 100,
@@ -796,7 +799,7 @@ class mexc extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBackClosed' => 90,
+                        'daysBack' => 90,
                         'daysBackCanceled' => null,
                         'untilDays' => 90,
                         'trigger' => true,
@@ -1401,6 +1404,7 @@ class mexc extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = $this->safe_currency_code($settleId);
                 $state = $this->safe_string($market, 'state');
+                $isLinear = $quote === $settle;
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -1418,8 +1422,8 @@ class mexc extends Exchange {
                     'option' => false,
                     'active' => ($state === '0'),
                     'contract' => true,
-                    'linear' => true,
-                    'inverse' => false,
+                    'linear' => $isLinear,
+                    'inverse' => !$isLinear,
                     'taker' => $this->safe_number($market, 'takerFeeRate'),
                     'maker' => $this->safe_number($market, 'makerFeeRate'),
                     'contractSize' => $this->safe_number($market, 'contractSize'),
@@ -2282,8 +2286,10 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2304,8 +2310,10 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -4774,7 +4782,7 @@ class mexc extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $currencyId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );

@@ -665,6 +665,8 @@ class gate(Exchange, ImplicitAPI):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'unifiedAccount': None,
                 'createOrder': {
@@ -723,7 +725,7 @@ class gate(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': True,
@@ -734,7 +736,6 @@ class gate(Exchange, ImplicitAPI):
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -742,9 +743,11 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-specific features
-                        'iceberg': True,
-                        'selfTradePrevention': True,
+                        'iceberg': True,  # todo implement
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 40,  # NOTE! max 10 per symbol
@@ -773,12 +776,15 @@ class gate(Exchange, ImplicitAPI):
                         'trailing': False,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',
@@ -1168,6 +1174,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         rawPromises = [
             self.fetch_contract_markets(params),
@@ -1957,8 +1965,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2372,7 +2379,8 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                result['networks'][chainKey] = {
+                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                         'percentage': False,
@@ -6273,6 +6281,9 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
@@ -6332,7 +6343,8 @@ class gate(Exchange, ImplicitAPI):
                 body = self.json(query)
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
-            timestamp = self.seconds()
+            nonce = self.nonce()
+            timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]

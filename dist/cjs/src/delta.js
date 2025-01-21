@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class delta
@@ -217,6 +217,88 @@ class delta extends delta$1 {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
                     'BEP20': 'BEP20(BSC)',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': true,
+                        },
+                        // todo implementation
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000, // todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -739,7 +821,7 @@ class delta extends delta$1 {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber('1');
             }
-            const linear = (settle === base);
+            const linear = (settle === quote);
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
@@ -1466,12 +1548,13 @@ class delta extends delta$1 {
      * @method
      * @name delta#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.delta.exchange/#get-ohlc-candles
+     * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1482,15 +1565,20 @@ class delta extends delta$1 {
         };
         const duration = this.parseTimeframe(timeframe);
         limit = limit ? limit : 2000; // max 2000
+        let until = this.safeIntegerProduct(params, 'until', 0.001);
+        const untilIsDefined = (until !== undefined);
+        if (untilIsDefined) {
+            until = this.parseToInt(until);
+        }
         if (since === undefined) {
-            const end = this.seconds();
+            const end = untilIsDefined ? until : this.seconds();
             request['end'] = end;
             request['start'] = end - limit * duration;
         }
         else {
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
-            request['end'] = this.sum(start, limit * duration);
+            request['end'] = untilIsDefined ? until : this.sum(start, limit * duration);
         }
         const price = this.safeString(params, 'price');
         if (price === 'mark') {
@@ -1502,7 +1590,7 @@ class delta extends delta$1 {
         else {
             request['symbol'] = market['id'];
         }
-        params = this.omit(params, 'price');
+        params = this.omit(params, ['price', 'until']);
         const response = await this.publicGetHistoryCandles(this.extend(request, params));
         //
         //     {
@@ -2512,8 +2600,7 @@ class delta extends delta$1 {
         //     }
         //
         const rates = this.safeList(response, 'result', []);
-        const result = this.parseFundingRates(rates);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rates, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -3480,7 +3567,7 @@ class delta extends delta$1 {
                 'timestamp': timestamp,
             };
             let auth = method + timestamp + requestPath;
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (method === 'GET') {
                 if (Object.keys(query).length) {
                     const queryString = '?' + this.urlencode(query);
                     auth += queryString;

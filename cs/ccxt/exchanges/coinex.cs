@@ -450,7 +450,7 @@ public partial class coinex : Exchange
                     { "ERC20", "ERC20" },
                     { "BRC20", "BRC20" },
                     { "SOL", "SOL" },
-                    { "TON", "SOL" },
+                    { "TON", "TON" },
                     { "BSV", "BSV" },
                     { "AVAXC", "AVA_C" },
                     { "AVAXX", "AVA" },
@@ -501,6 +501,11 @@ public partial class coinex : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 5 },
@@ -526,7 +531,7 @@ public partial class coinex : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", true },
@@ -3895,8 +3900,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -3921,15 +3925,15 @@ public partial class coinex : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(tag))
-        {
-            address = add(add(address, ":"), tag);
-        }
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
             { "to_address", address },
             { "amount", this.numberToString(amount) },
         };
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["memo"] = tag;
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];

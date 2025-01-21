@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.43';
+$version = '4.4.49';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.43';
+    const VERSION = '4.4.49';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -299,7 +299,7 @@ class Exchange {
     public $restRequestQueue = null;
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
-    public $enableLastJsonResponse = true;
+    public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
     public $last_http_response = null;
@@ -3541,6 +3541,81 @@ class Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
+        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        $networks = $this->safe_dict($currency, 'networks', array());
+        $keys = is_array($networks) ? array_keys($networks) : array();
+        $length = count($keys);
+        if ($length !== 0) {
+            for ($i = 0; $i < $length; $i++) {
+                $network = $networks[$keys[$i]];
+                $deposit = $this->safe_bool($network, 'deposit');
+                if ($currency['deposit'] === null || $deposit) {
+                    $currency['deposit'] = $deposit;
+                }
+                $withdraw = $this->safe_bool($network, 'withdraw');
+                if ($currency['withdraw'] === null || $withdraw) {
+                    $currency['withdraw'] = $withdraw;
+                }
+                $active = $this->safe_bool($network, 'active');
+                if ($currency['active'] === null || $active) {
+                    $currency['active'] = $active;
+                }
+                // find lowest $fee (which is more desired)
+                $fee = $this->safe_string($network, 'fee');
+                $feeMain = $this->safe_string($currency, 'fee');
+                if ($feeMain === null || Precise::string_lt($fee, $feeMain)) {
+                    $currency['fee'] = $this->parse_number($fee);
+                }
+                // find lowest $precision (which is more desired)
+                $precision = $this->safe_string($network, 'precision');
+                $precisionMain = $this->safe_string($currency, 'precision');
+                if ($precisionMain === null || Precise::string_lt($precision, $precisionMain)) {
+                    $currency['precision'] = $this->parse_number($precision);
+                }
+                // $limits
+                $limits = $this->safe_dict($network, 'limits');
+                $limitsMain = $this->safe_dict($currency, 'limits');
+                if ($limitsMain === null) {
+                    $currency['limits'] = array();
+                }
+                // deposits
+                $limitsDeposit = $this->safe_dict($limits, 'deposit');
+                $limitsDepositMain = $this->safe_dict($limitsMain, 'deposit');
+                if ($limitsDepositMain === null) {
+                    $currency['limits']['deposit'] = array();
+                }
+                $limitsDepositMin = $this->safe_string($limitsDeposit, 'min');
+                $limitsDepositMax = $this->safe_string($limitsDeposit, 'max');
+                $limitsDepositMinMain = $this->safe_string($limitsDepositMain, 'min');
+                $limitsDepositMaxMain = $this->safe_string($limitsDepositMain, 'max');
+                // find min
+                if ($limitsDepositMinMain === null || Precise::string_lt($limitsDepositMin, $limitsDepositMinMain)) {
+                    $currency['limits']['deposit']['min'] = $this->parse_number($limitsDepositMin);
+                }
+                // find max
+                if ($limitsDepositMaxMain === null || Precise::string_gt($limitsDepositMax, $limitsDepositMaxMain)) {
+                    $currency['limits']['deposit']['max'] = $this->parse_number($limitsDepositMax);
+                }
+                // withdrawals
+                $limitsWithdraw = $this->safe_dict($limits, 'withdraw');
+                $limitsWithdrawMain = $this->safe_dict($limitsMain, 'withdraw');
+                if ($limitsWithdrawMain === null) {
+                    $currency['limits']['withdraw'] = array();
+                }
+                $limitsWithdrawMin = $this->safe_string($limitsWithdraw, 'min');
+                $limitsWithdrawMax = $this->safe_string($limitsWithdraw, 'max');
+                $limitsWithdrawMinMain = $this->safe_string($limitsWithdrawMain, 'min');
+                $limitsWithdrawMaxMain = $this->safe_string($limitsWithdrawMain, 'max');
+                // find min
+                if ($limitsWithdrawMinMain === null || Precise::string_lt($limitsWithdrawMin, $limitsWithdrawMinMain)) {
+                    $currency['limits']['withdraw']['min'] = $this->parse_number($limitsWithdrawMin);
+                }
+                // find max
+                if ($limitsWithdrawMaxMain === null || Precise::string_gt($limitsWithdrawMax, $limitsWithdrawMaxMain)) {
+                    $currency['limits']['withdraw']['max'] = $this->parse_number($limitsWithdrawMax);
+                }
+            }
+        }
         return $this->extend(array(
             'info' => null,
             'id' => null,
@@ -6930,22 +7005,14 @@ class Exchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates($response, ?array $market = null) {
-        $result = array();
+    public function parse_funding_rates($response, ?array $symbols = null) {
+        $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_funding_rate($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
+            $entry = $response[$i];
+            $parsed = $this->parse_funding_rate($entry);
+            $fundingRates[$parsed['symbol']] = $parsed;
         }
-        return $result;
-    }
-
-    public function parse_open_interests($response, ?array $market = null) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_open_interest($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
-        }
-        return $result;
+        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null) {
@@ -7060,6 +7127,16 @@ class Exchange {
 
     public function parse_open_interest($interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
+    }
+
+    public function parse_open_interests($response, ?array $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parse_open_interest($entry);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {
