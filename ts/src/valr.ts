@@ -1123,7 +1123,7 @@ export default class valr extends Exchange {
             status = 'open';
         } else if (this.inArray (orderStatus, [ 'Failed', 'Cancelled' ])) {
             const failedReason = this.safeString (order, 'failedReason');
-            if (failedReason === 'Insufficient Balance') {
+            if (this.inArray (failedReason, [ 'Insufficient Balance', 'The borrow amount is unavailable currently, please try again later' ])) {
                 status = 'rejected';
             } else {
                 status = 'canceled';
@@ -2261,7 +2261,8 @@ export default class valr extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetFuturesInfo (params);
-        const result = this.parseOpenInterests (response, symbol);
+        const market = this.safeMarket (symbol);
+        const result = this.parseOpenInterests (response, market);
         return this.filterBySymbol (result, symbol);
     }
 
