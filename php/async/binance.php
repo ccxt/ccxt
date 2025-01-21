@@ -5147,12 +5147,14 @@ class binance extends Exchange {
                     $request['endTime'] = $until;
                 }
             }
-            if ($limit !== null) {
-                $isFutureOrSwap = ($market['swap'] || $market['future']);
-                $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
-            }
             $method = $this->safe_string($this->options, 'fetchTradesMethod');
             $method = $this->safe_string_2($params, 'fetchTradesMethod', 'method', $method);
+            if ($limit !== null) {
+                $isFutureOrSwap = ($market['swap'] || $market['future']);
+                $isHistoricalEndpoint = ($method !== null) && (mb_strpos($method, 'GetHistoricalTrades') !== false);
+                $maxLimitForContractHistorical = $isHistoricalEndpoint ? 500 : 1000;
+                $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
+            }
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
             $response = null;
             if ($market['option'] || $method === 'eapiPublicGetTrades') {
