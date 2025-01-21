@@ -2261,8 +2261,7 @@ export default class valr extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetFuturesInfo (params);
-        const market = this.safeMarket (symbol);
-        const result = this.parseOpenInterests (response, market);
+        const result = this.parseOpenInterests (response, [ symbol ]);
         return this.filterBySymbol (result, symbol);
     }
 
