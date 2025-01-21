@@ -58,7 +58,7 @@ public partial class bitfinex1 : ccxt.bitfinex1
 
     /**
      * @method
-     * @name bitfinex#watchTrades
+     * @name bitfinex1#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.bitfinex.com/v1/reference/ws-public-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -82,7 +82,7 @@ public partial class bitfinex1 : ccxt.bitfinex1
 
     /**
      * @method
-     * @name bitfinex#watchTicker
+     * @name bitfinex1#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.bitfinex.com/v1/reference/ws-public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -273,7 +273,7 @@ public partial class bitfinex1 : ccxt.bitfinex1
 
     /**
      * @method
-     * @name bitfinex#watchOrderBook
+     * @name bitfinex1#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.bitfinex.com/v1/reference/ws-public-order-books
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -508,7 +508,7 @@ public partial class bitfinex1 : ccxt.bitfinex1
 
     /**
      * @method
-     * @name bitfinex#watchOrders
+     * @name bitfinex1#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
      * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots

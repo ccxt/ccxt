@@ -1582,6 +1582,95 @@ public partial class Exchange
 
     public virtual object safeCurrencyStructure(object currency)
     {
+        // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        object keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object length = getArrayLength(keys);
+        if (isTrue(!isEqual(length, 0)))
+        {
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            {
+                object network = getValue(networks, getValue(keys, i));
+                object deposit = this.safeBool(network, "deposit");
+                if (isTrue(isTrue(isEqual(getValue(currency, "deposit"), null)) || isTrue(deposit)))
+                {
+                    ((IDictionary<string,object>)currency)["deposit"] = deposit;
+                }
+                object withdraw = this.safeBool(network, "withdraw");
+                if (isTrue(isTrue(isEqual(getValue(currency, "withdraw"), null)) || isTrue(withdraw)))
+                {
+                    ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
+                }
+                object active = this.safeBool(network, "active");
+                if (isTrue(isTrue(isEqual(getValue(currency, "active"), null)) || isTrue(active)))
+                {
+                    ((IDictionary<string,object>)currency)["active"] = active;
+                }
+                // find lowest fee (which is more desired)
+                object fee = this.safeString(network, "fee");
+                object feeMain = this.safeString(currency, "fee");
+                if (isTrue(isTrue(isEqual(feeMain, null)) || isTrue(Precise.stringLt(fee, feeMain))))
+                {
+                    ((IDictionary<string,object>)currency)["fee"] = this.parseNumber(fee);
+                }
+                // find lowest precision (which is more desired)
+                object precision = this.safeString(network, "precision");
+                object precisionMain = this.safeString(currency, "precision");
+                if (isTrue(isTrue(isEqual(precisionMain, null)) || isTrue(Precise.stringLt(precision, precisionMain))))
+                {
+                    ((IDictionary<string,object>)currency)["precision"] = this.parseNumber(precision);
+                }
+                // limits
+                object limits = this.safeDict(network, "limits");
+                object limitsMain = this.safeDict(currency, "limits");
+                if (isTrue(isEqual(limitsMain, null)))
+                {
+                    ((IDictionary<string,object>)currency)["limits"] = new Dictionary<string, object>() {};
+                }
+                // deposits
+                object limitsDeposit = this.safeDict(limits, "deposit");
+                object limitsDepositMain = this.safeDict(limitsMain, "deposit");
+                if (isTrue(isEqual(limitsDepositMain, null)))
+                {
+                    ((IDictionary<string,object>)getValue(currency, "limits"))["deposit"] = new Dictionary<string, object>() {};
+                }
+                object limitsDepositMin = this.safeString(limitsDeposit, "min");
+                object limitsDepositMax = this.safeString(limitsDeposit, "max");
+                object limitsDepositMinMain = this.safeString(limitsDepositMain, "min");
+                object limitsDepositMaxMain = this.safeString(limitsDepositMain, "max");
+                // find min
+                if (isTrue(isTrue(isEqual(limitsDepositMinMain, null)) || isTrue(Precise.stringLt(limitsDepositMin, limitsDepositMinMain))))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "deposit"))["min"] = this.parseNumber(limitsDepositMin);
+                }
+                // find max
+                if (isTrue(isTrue(isEqual(limitsDepositMaxMain, null)) || isTrue(Precise.stringGt(limitsDepositMax, limitsDepositMaxMain))))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "deposit"))["max"] = this.parseNumber(limitsDepositMax);
+                }
+                // withdrawals
+                object limitsWithdraw = this.safeDict(limits, "withdraw");
+                object limitsWithdrawMain = this.safeDict(limitsMain, "withdraw");
+                if (isTrue(isEqual(limitsWithdrawMain, null)))
+                {
+                    ((IDictionary<string,object>)getValue(currency, "limits"))["withdraw"] = new Dictionary<string, object>() {};
+                }
+                object limitsWithdrawMin = this.safeString(limitsWithdraw, "min");
+                object limitsWithdrawMax = this.safeString(limitsWithdraw, "max");
+                object limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, "min");
+                object limitsWithdrawMaxMain = this.safeString(limitsWithdrawMain, "max");
+                // find min
+                if (isTrue(isTrue(isEqual(limitsWithdrawMinMain, null)) || isTrue(Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain))))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "withdraw"))["min"] = this.parseNumber(limitsWithdrawMin);
+                }
+                // find max
+                if (isTrue(isTrue(isEqual(limitsWithdrawMaxMain, null)) || isTrue(Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain))))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "withdraw"))["max"] = this.parseNumber(limitsWithdrawMax);
+                }
+            }
+        }
         return this.extend(new Dictionary<string, object>() {
             { "info", null },
             { "id", null },

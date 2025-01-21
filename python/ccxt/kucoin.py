@@ -1351,8 +1351,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = []
-        promises.append(self.publicGetCurrencies(params))
+        response = self.publicGetCurrencies(params)
         #
         #    {
         #        "code":"200000",
@@ -1378,87 +1377,39 @@ class kucoin(Exchange, ImplicitAPI):
         #                    "isDepositEnabled":false,
         #                    "confirms":12,
         #                    "preConfirms":12,
+        #                    "withdrawPrecision": 8,
+        #                    "maxWithdraw": null,
+        #                    "maxDeposit": null,
+        #                    "needTag": False,
         #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         #                    "depositFeeRate": "0.001",  # present for some currencies/networks
         #                 }
         #              ]
         #           },
-        #    }
-        #
-        promises.append(self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', True))
-        #
-        #    {
-        #        "success": True,
-        #        "code": "200",
-        #        "msg": "success",
-        #        "retry": False,
-        #        "data": [
-        #            {
-        #                "status": "enabled",
-        #                "currency": "BTC",
-        #                "isChainEnabled": "true",
-        #                "chain": "btc",
-        #                "chainName": "BTC",
-        #                "chainFullName": "Bitcoin",
-        #                "walletPrecision": "8",
-        #                "isDepositEnabled": "true",
-        #                "depositMinSize": "0.00005",
-        #                "confirmationCount": "2",
-        #                "isWithdrawEnabled": "true",
-        #                "withdrawMinSize": "0.001",
-        #                "withdrawMinFee": "0.0005",
-        #                "withdrawFeeRate": "0",
-        #                "depositDisabledTip": "Wallet Maintenance",
-        #                "preDepositTipEnabled": "true",
-        #                "preDepositTip": "Do not transfer from ETH network directly",
-        #                "withdrawDisabledTip": "",
-        #                "preWithdrawTipEnabled": "false",
-        #                "preWithdrawTip": "",
-        #                "orgAddress": "",
-        #                "userAddressName": "Memo",
-        #            },
         #        ]
         #    }
         #
-        responses = promises
-        currenciesResponse = self.safe_dict(responses, 0, {})
-        currenciesData = self.safe_list(currenciesResponse, 'data', [])
-        additionalResponse = self.safe_dict(responses, 1, {})
-        additionalData = self.safe_list(additionalResponse, 'data', [])
-        additionalDataGrouped = self.group_by(additionalData, 'currency')
+        currenciesData = self.safe_list(response, 'data', [])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
-            isWithdrawEnabled = None
-            isDepositEnabled = None
             networks: dict = {}
             chains = self.safe_list(entry, 'chains', [])
-            extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
             if not chainsLength:
-                # https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = False
-                isDepositEnabled = False
+                # one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
+                continue
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId, code)
                 chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
-                if isWithdrawEnabled is None:
-                    isWithdrawEnabled = chainWithdrawEnabled
-                else:
-                    isWithdrawEnabled = isWithdrawEnabled or chainWithdrawEnabled
                 chainDepositEnabled = self.safe_bool(chain, 'isDepositEnabled', False)
-                if isDepositEnabled is None:
-                    isDepositEnabled = chainDepositEnabled
-                else:
-                    isDepositEnabled = isDepositEnabled or chainDepositEnabled
-                chainExtraData = self.safe_dict(extraChainsData, chainId, {})
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
@@ -1468,34 +1419,34 @@ class kucoin(Exchange, ImplicitAPI):
                     'fee': self.safe_number(chain, 'withdrawalMinFee'),
                     'deposit': chainDepositEnabled,
                     'withdraw': chainWithdrawEnabled,
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainExtraData, 'walletPrecision'))),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(chain, 'withdrawalMinSize'),
-                            'max': None,
+                            'max': self.safe_number(chain, 'maxWithdraw'),
                         },
                         'deposit': {
                             'min': self.safe_number(chain, 'depositMinSize'),
-                            'max': None,
+                            'max': self.safe_number(chain, 'maxDeposit'),
                         },
                     },
                 }
             # kucoin has determined 'fiat' currencies with below logic
             isFiat = (rawPrecision == '2') and (chainsLength == 0)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'type': 'fiat' if isFiat else 'crypto',
                 'precision': precision,
                 'info': entry,
-                'active': (isDepositEnabled or isWithdrawEnabled),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': None,
-                'limits': self.limits,
                 'networks': networks,
-            }
+                'deposit': None,
+                'withdraw': None,
+                'active': None,
+                'fee': None,
+                'limits': None,
+            })
         return result
 
     def fetch_accounts(self, params={}) -> List[Account]:
@@ -1635,6 +1586,35 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
+        if 'chains' in fee:
+            # if data obtained through `currencies` endpoint
+            resultNew: dict = {
+                'info': fee,
+                'withdraw': {
+                    'fee': None,
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+                'networks': {},
+            }
+            chains = self.safe_list(fee, 'chains', [])
+            for i in range(0, len(chains)):
+                chain = chains[i]
+                networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
+                resultNew['networks'][networkCodeNew] = {
+                    'withdraw': {
+                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'percentage': False,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result: dict = {
             'info': fee,

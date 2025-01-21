@@ -28,7 +28,7 @@ export default class bitvavo extends bitvavoRest {
     handleTicker(client: Client, message: any): void;
     /**
      * @method
-     * @name mexc#watchBidsAsks
+     * @name bitvavo#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for

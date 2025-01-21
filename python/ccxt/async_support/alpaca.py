@@ -60,6 +60,9 @@ class alpaca(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createMarketBuyOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': True,
                 'createOrder': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
@@ -905,6 +908,58 @@ class alpaca(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId', defaultClientId)
         return clientOrderId
 
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+
+        https://docs.alpaca.markets/reference/postorder
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
+
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+
+        https://docs.alpaca.markets/reference/postorder
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
+
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+
+        https://docs.alpaca.markets/reference/postorder
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -918,6 +973,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param float [params.cost]: *market orders only* the cost of the order in units of the quote currency
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -925,7 +981,6 @@ class alpaca(Exchange, ImplicitAPI):
         id = market['id']
         request: dict = {
             'symbol': id,
-            'qty': self.amount_to_precision(symbol, amount),
             'side': side,
             'type': type,  # market, limit, stop_limit
         }
@@ -940,6 +995,12 @@ class alpaca(Exchange, ImplicitAPI):
             request['type'] = newType
         if type.find('limit') >= 0:
             request['limit_price'] = self.price_to_precision(symbol, price)
+        cost = self.safe_string(params, 'cost')
+        if cost is not None:
+            params = self.omit(params, 'cost')
+            request['notional'] = self.cost_to_precision(symbol, cost)
+        else:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         defaultTIF = self.safe_string(self.options, 'defaultTimeInForce')
         request['time_in_force'] = self.safe_string(params, 'timeInForce', defaultTIF)
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
