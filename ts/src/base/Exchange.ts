@@ -6358,17 +6358,21 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerDirectionAndParams (params, exchangeSpecificKey: string) {
+    handleTriggerDirectionAndParams (params, exchangeSpecificKey: string, allowEmpty: Bool = false) {
         /**
          * @ignore
          * @method
          * @returns {[string, object]} the trigger-direction value and omited params
          */
         let triggerDirection = this.safeString (params, 'triggerDirection');
+        const exchangeSpecificDefined = (exchangeSpecificKey in params);
+        if (triggerDirection !== undefined) {
+            params = this.omit (params, 'triggerDirection');
+        }
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down', 'above', 'below' ]) && !(exchangeSpecificKey in params)) {
+        if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down', 'above', 'below' ]) && !exchangeSpecificDefined && !allowEmpty) {
             throw new ArgumentsRequired (this.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
         }
         // if old format was provided, overwrite to new
@@ -6377,7 +6381,6 @@ export default class Exchange {
         } else if (triggerDirection === 'down' || triggerDirection === 'below') {
             triggerDirection = 'descending';
         }
-        params = this.omit (params, 'triggerDirection');
         return [ triggerDirection, params ];
     }
 
