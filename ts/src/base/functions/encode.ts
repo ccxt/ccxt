@@ -8,6 +8,11 @@ import { serialize } from '../../static_dependencies/messagepack/msgpack.js'
 import qs from '../../static_dependencies/qs/index.cjs'
 
 /*  ------------------------------------------------------------------------ */
+const getObjectKeysSortedCaseInsensitive = (obj) => {
+    return Object.keys(obj).sort((a, b) => 
+        a.toLowerCase().localeCompare(b.toLowerCase())
+    );
+};
 
 const json =  (data: any, params = undefined) => JSON.stringify (data)
     , isJsonEncodedObject = (object: any) => (
@@ -28,7 +33,13 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
     , binaryConcat = concatBytes
     , binaryConcatArray = (arr: any[]) => concatBytes (...arr)
 
-    , urlencode = (object: object) => qs.stringify (object)
+    , urlencodeOrdered = (object: object) => {
+        const options = {
+            'filter': getObjectKeysSortedCaseInsensitive (object),
+        };
+        return qs.stringify (object, options);
+    }
+    , urlencode = (object: object) => urlencodeOrdered (object)
     , urlencodeNested =  (object: object) => qs.stringify (object) // implemented only in python
     , urlencodeWithArrayRepeat = (object: object) => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode = (object: object) => qs.stringify (object, { encode: false })
