@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ccxt/ccxt/go/ccxt"
 	"fmt"
 	"tests/base"
 )
@@ -21,5 +22,4 @@ func main() {
 	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
 	base.Print("Got res: " + base.ToString(res))
 	base.PanicOnError(res)
-
 }
