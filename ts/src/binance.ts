@@ -1587,12 +1587,16 @@ export default class binance extends Exchange {
                         },
                         'hedged': true,
                         'leverage': false,
-                        'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true, // todo
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': {
+                            'expire_maker': true,
+                            'expire_taker': true,
+                            'expire_both': true,
+                            'none': true,
+                        },
                         'trailing': true,
-                        'iceberg': true, // todo implementation
+                        'icebergAmount': true,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
