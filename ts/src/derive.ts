@@ -1049,9 +1049,49 @@ export default class derive extends Exchange {
         //     },
         //     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
         // }
+        // {
+        //     "result": {
+        //         "order": {
+        //             "subaccount_id": 130837,
+        //             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737467576257,
+        //             "last_update_timestamp": 1737467576257,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "gtc",
+        //             "order_status": "open",
+        //             "max_fee": "210",
+        //             "signature_expiry_sec": 1737468175989,
+        //             "nonce": 1737467575989,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
+        //             "cancel_reason": "",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": null,
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null
+        //         },
+        //         "trades": []
+        //     },
+        //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
+        // }
         //
         const result = this.safeDict (response, 'result');
-        const rawOrder = this.safeDict (result, 'raw_data');
+        let rawOrder = this.safeDict (result, 'raw_data');
+        if (rawOrder === undefined) {
+            rawOrder = this.safeDict (result, 'order');
+        }
         const order = this.parseOrder (rawOrder, market);
         order['type'] = type;
         return order;
@@ -1078,28 +1118,62 @@ export default class derive extends Exchange {
         //         "trade_id": ""
         //     }
         // }
-        //
-        const order = this.safeDict (rawOrder, 'data');
+        // {
+        //     "subaccount_id": 130837,
+        //     "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
+        //     "instrument_name": "BTC-PERP",
+        //     "direction": "buy",
+        //     "label": "",
+        //     "quote_id": null,
+        //     "creation_timestamp": 1737467576257,
+        //     "last_update_timestamp": 1737467576257,
+        //     "limit_price": "10000",
+        //     "amount": "0.01",
+        //     "filled_amount": "0",
+        //     "average_price": "0",
+        //     "order_fee": "0",
+        //     "order_type": "limit",
+        //     "time_in_force": "gtc",
+        //     "order_status": "open",
+        //     "max_fee": "210",
+        //     "signature_expiry_sec": 1737468175989,
+        //     "nonce": 1737467575989,
+        //     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
+        //     "cancel_reason": "",
+        //     "mmp": false,
+        //     "is_transfer": false,
+        //     "replaced_order_id": null,
+        //     "trigger_type": null,
+        //     "trigger_price_type": null,
+        //     "trigger_price": null,
+        //     "trigger_reject_message": null
+        // }
+        let order = this.safeDict (rawOrder, 'data');
+        if (order === undefined) {
+            order = rawOrder;
+        }
         const timestamp = this.safeInteger (rawOrder, 'nonce');
-        // const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        // const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
-        // const marketId = this.safeString (order, 'symbol');
-        // market = this.safeMarket (marketId, market);
+        const orderId = this.safeString (order, 'order_id');
+        const marketId = this.safeString (order, 'instrument_name');
+        if (marketId !== undefined) {
+            market = this.safeMarket (marketId, market);
+        }
         const symbol = market['symbol'];
         const price = this.safeString (order, 'limit_price');
         const amount = this.safeString (order, 'desired_amount');
-        // const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
-        // const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        // const status = this.safeValue2 (order, 'status', 'algoStatus');
+        const orderType = this.safeStringLower (order, 'order_type');
         const isBid = this.safeBool (order, 'is_bid');
-        let side = undefined;
-        if (isBid) {
-            side = 'buy';
-        } else {
-            side = 'sell';
+        let side = this.safeString (order, 'direction');
+        if (side === undefined) {
+            if (isBid) {
+                side = 'buy';
+            } else {
+                side = 'sell';
+            }
         }
         return this.safeOrder ({
-            'id': undefined,
+            'id': orderId,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1107,8 +1181,8 @@ export default class derive extends Exchange {
             'lastUpdateTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
+            'type': orderType,
+            'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': undefined,
             'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
