@@ -8,8 +8,104 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
 )
+
+// =====================================  Hyperliquid Structs ===================================== //
+// OrderMessage Struct
+// {
+// "brokerCode": 1,
+// "grouping": "na",
+// "orders": [
+//
+//	   {
+//		  "a": 159,
+//		  "b": true,
+//		  "p": "26.25",
+//		  "r": false,
+//		  "s": "1000",
+//		  "t": {
+//			 "limit": {
+//				"tif": "Ioc"
+//			 }
+//		  }
+//	   }
+//
+// ],
+// "type": "order"
+// }
+type TimeInForce struct {
+	TIF string `mapstructure:"tif" msgpack:"tif"`
+}
+
+type Limit struct {
+	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+}
+
+type OrderHyperliquid struct {
+	A int    `mapstructure:"a" msgpack:"a"`
+	B bool   `mapstructure:"b" msgpack:"b"`
+	P string `mapstructure:"p" msgpack:"p"`
+	S string `mapstructure:"s" msgpack:"s"`
+	R bool   `mapstructure:"r" msgpack:"r"`
+	T Limit  `mapstructure:"t" msgpack:"t"`
+}
+
+type OrderMessage struct {
+	Type       string             `mapstructure:"type" msgpack:"type"`
+	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
+	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
+	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+}
+
+// cancel
+// {"type":"cancel","cancels":[{"a":10000,"o":9078231563}]}
+type Cancel struct {
+	A int `mapstructure:"a" msgpack:"a"`
+	O int `mapstructure:"o" msgpack:"o"`
+}
+type CancelMessage struct {
+	Type    string   `mapstructure:"type" msgpack:"type"`
+	Cancels []Cancel `mapstructure:"cancels" msgpack:"cancels"`
+}
+
+// Transfer
+// {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","type":"usdClassTransfer","amount":"100000","toPerp":false,"nonce":1737458035944}
+type TransferMessage struct {
+	HyperliquidChain string `mapstructure:"hyperliquidChain" msgpack:"hyperliquidChain"`
+	SignatureChainID string `mapstructure:"signatureChainId" msgpack:"signatureChainId"`
+	Type             string `mapstructure:"type" msgpack:"type"`
+	Amount           string `mapstructure:"amount" msgpack:"amount"`
+	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
+	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
+}
+
+// withdraw
+// {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
+type WithdrawMessage struct {
+	HyperliquidChain string `mapstructure:"hyperliquidChain" msgpack:"hyperliquidChain"`
+	SignatureChainID string `mapstructure:"signatureChainId" msgpack:"signatureChainId"`
+	Destination      string `mapstructure:"destination" msgpack:"destination"`
+	Amount           string `mapstructure:"amount" msgpack:"amount"`
+	Time             int64  `mapstructure:"time" msgpack:"time"`
+	Type             string `mapstructure:"type" msgpack:"type"`
+}
+
+// editOrder
+// {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
+type Modify struct {
+	OID   int64 `mapstructure:"oid" msgpack:"oid"`
+	Order Order `mapstructure:"order" msgpack:"order"`
+}
+
+// EditOrderMessage represents the batch modification message.
+type EditOrderMessage struct {
+	Type     string   `mapstructure:"type" msgpack:"type"`
+	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+}
+
+// =====================================  Hyperliquid Structs ===================================== //
 
 func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
 	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
@@ -33,26 +129,6 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 		Message:     messageData,
 	}
 
-	// domainMap := map[string]interface{}{
-	// 	"name":              domain.Name,
-	// 	"version":           domain.Version,
-	// 	"chainId":           domain.ChainId,
-	// 	"verifyingContract": domain.VerifyingContract,
-	// }
-
-	// domainType := apitypes.Type{
-	// 	Name: "EIP712Domain",
-	// 	Members: []apitypes.Member{
-	// 		{Name: "name", Type: "string"},
-	// 		{Name: "version", Type: "string"},
-	// 		{Name: "chainId", Type: "uint256"},
-	// 		{Name: "verifyingContract", Type: "address"},
-	// 	},
-	// }
-	// // Encode the structured data
-	// // _, str, err := apitypes.TypedDataAndHash(typedData)
-	// // hashDomain
-
 	encodedDomain, err := typedData.HashStruct("EIP712Domain", domain.Map())
 	if err != nil {
 		return "", err
@@ -63,8 +139,6 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 		return "", err
 	}
 
-	// encodedBytes := append(encodedDomain, encodedData...)
-
 	domainHex := hexutil.Encode(encodedDomain) // comes with 0x, remove
 	domainHex = strings.TrimPrefix(domainHex, "0x")
 	dataHex := hexutil.Encode(encodedData)
@@ -72,21 +146,6 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 
 	encodedHex := "1901" + domainHex + dataHex
 	return encodedHex, nil
-
-	// // Convert to hex
-	// hexData := hex.EncodeToString(encodedData)
-
-	// // Slice the last 132 characters
-	// if len(hexData) < 132 {
-	// 	return nil, fmt.Errorf("encoded data is shorter than 132 characters")
-	// }
-	// slicedHex := hexData[len(hexData)-132:]
-
-	// Convert hex to binary
-	// binaryData, err := hex.DecodeString(hexData)
-	// if err != nil {
-	// 	return nil, err
-	// }
 }
 
 func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2 interface{}, messageData2 interface{}) []uint8 {
@@ -95,12 +154,13 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
 	domain := domain2.(map[string]interface{})
 	messageTypes := messageTypes2.(map[string]interface{})
-	// messageTypesKeys := base.Keys(messageTypes)
 	messageData := messageData2.(map[string]interface{})
-	// messageData := ConvertInt64ToBigInt(messageData2).(map[string]interface{})
-	// fmt.Println("domain", this.Json(domain))
-	// fmt.Println("messageTypes", this.Json(messageTypes))
-	// fmt.Println("messageData", this.Json(messageData))
+
+	val, ok := messageData["nonce"]
+	if ok {
+		// messageData["nonce"] = uint64(val.(int64))
+		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
+	}
 
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              this.SafeString(domain, "name", "").(string),
@@ -124,33 +184,6 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 			}
 		}
 	}
-
-	// domainTypes := map[string]apitypes.Type{
-	// 	"name": apitypes.Type{
-	// 		Name: "name",
-	// 		Type: "string",
-	// 	},
-	// 	"version": apitypes.Type{
-	// 		Name: "version",
-	// 		Type: "string",
-	// 	},
-	// 	"chainId": apitypes.Type{
-	// 		Name: "chainId",
-	// 		Type: "uint256",
-	// 	},
-	// 	"verifyingContract": apitypes.Type{
-	// 		Name: "verifyingContract",
-	// 		Type: "address",
-	// 	},
-	// 	"salt": apitypes.Type{
-	// 		Name: "salt",
-	// 		Type: "bytes32",
-	// 	},
-	// }
-
-	// domainMap := map[string]interface{}{
-	// 	"EIP712Domain": domainTypes,
-	// }
 
 	hexData, err := ethEncodeStructuredData(primaryType, domainTyped, messageTypesTyped, messageData)
 	if err != nil {
@@ -200,11 +233,73 @@ func ConvertInt64ToInt(data interface{}) interface{} {
 }
 
 func (this *Exchange) Packb(data interface{}) []uint8 {
-	// data := data2.(map[string]interface{})
-	converted := ConvertInt64ToBigInt(data) // avoid this error: position 7: int64 marker - cannot parse uint64 to javascript, setting to Infinity
-	packed, err := msgpack.Marshal(converted)
-	if err != nil {
-		panic(err)
+
+	converted := ConvertInt64ToBigInt(data)
+
+	if this.Id != "hyperliquid" {
+		p, err := msgpack.Marshal(converted)
+		if err != nil {
+			panic(err)
+		}
+		return p
 	}
-	return packed
+
+	typeA := this.SafeString(converted, "type", "").(string)
+
+	if typeA == "order" {
+		var orderMsg OrderMessage
+
+		err := mapstructure.Decode(converted, &orderMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(orderMsg)
+
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	} else if typeA == "cancel" {
+		var cancelMsg CancelMessage
+
+		err := mapstructure.Decode(converted, &cancelMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(cancelMsg)
+
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	} else if typeA == "withdraw3" {
+		var withdrawMsg WithdrawMessage
+
+		err := mapstructure.Decode(converted, &withdrawMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(withdrawMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	} else if typeA == "batchModify" {
+		var editMsg EditOrderMessage
+
+		err := mapstructure.Decode(converted, &editMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	}
+	return nil
 }
