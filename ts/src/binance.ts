@@ -1578,7 +1578,7 @@ export default class binance extends Exchange {
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': undefined, // not supported
+                        'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
@@ -6184,7 +6184,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#createOrder
      * @description create a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
@@ -6559,14 +6559,15 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        const tif = this.safeString (params, 'timeInForce');
+        if (timeInForceIsRequired && (tif === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
+            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce', 'GTC'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
             request['timeInForce'] = 'GTX';
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        if (this.safeString (params, 'timeInForce') === 'PO') {
+        if (tif === 'PO') {
             params = this.omit (params, 'timeInForce');
         }
         const hedged = this.safeBool (params, 'hedged', false);
