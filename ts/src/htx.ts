@@ -7390,10 +7390,10 @@ export default class htx extends Exchange {
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
+                request = this.keysort (request) as any;
                 if (method !== 'POST') {
                     request = this.extend (request, query);
                 }
-                request = this.keysort (request) as any;
                 let auth = this.urlencode (request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
