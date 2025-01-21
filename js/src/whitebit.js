@@ -262,6 +262,8 @@ export default class whitebit extends Exchange {
                 },
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
                 'fetchBalance': {
                     'account': 'spot',
@@ -318,6 +320,9 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const markets = await this.v4PublicGetMarkets();
         //
         //    [
@@ -1242,7 +1247,7 @@ export default class whitebit extends Exchange {
         const response = await this.v4PublicGetTime(params);
         //
         //     {
-        //         "time":1635467280514
+        //         "time":1737380046
         //     }
         //
         return this.safeInteger(response, 'time');
@@ -2611,7 +2616,7 @@ export default class whitebit extends Exchange {
         return this.inArray(currency, fiatCurrencies);
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -2626,10 +2631,12 @@ export default class whitebit extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.nonce();
+            const timestamp = this.parseToInt(nonce / 1000);
+            const timestampString = timestamp.toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
+            body = this.json(this.extend({ 'request': request, 'nonce': timestampString }, params));
             const payload = this.stringToBase64(body);
             const signature = this.hmac(this.encode(payload), secret, sha512);
             headers = {

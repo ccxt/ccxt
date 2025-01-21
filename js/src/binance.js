@@ -482,6 +482,7 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-switch': 3,
                         'portfolio/margin-asset-leverage': 5,
                         'portfolio/balance': 2,
+                        'portfolio/negative-balance-exchange-record': 2,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,

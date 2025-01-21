@@ -684,9 +684,14 @@ class tokocrypto extends tokocrypto$1 {
     async fetchTime(params = {}) {
         const response = await this.publicGetOpenV1CommonTime(params);
         //
+        // {
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
+        // }
         //
-        //
-        return this.safeInteger(response, 'serverTime');
+        return this.safeInteger(response, 'timestamp');
     }
     /**
      * @method

@@ -486,6 +486,7 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
+                        'portfolio/negative-balance-exchange-record' => 2,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,

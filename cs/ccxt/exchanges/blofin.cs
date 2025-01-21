@@ -279,7 +279,7 @@ public partial class blofin : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "max", 1440 },
+                        { "limit", 1440 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {

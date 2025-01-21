@@ -152,6 +152,8 @@ public partial class whitebit : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fiatCurrencies", new List<object>() {"EUR", "USD", "RUB", "UAH"} },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "account", "spot" },
@@ -211,6 +213,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object markets = await this.v4PublicGetMarkets();
         //
         //    [
@@ -1198,7 +1204,7 @@ public partial class whitebit : Exchange
         object response = await this.v4PublicGetTime(parameters);
         //
         //     {
-        //         "time":1635467280514
+        //         "time":1737380046
         //     }
         //
         return this.safeInteger(response, "time");
@@ -2720,7 +2726,7 @@ public partial class whitebit : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2743,12 +2749,14 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            object nonce = this.nonce();
+            object timestamp = this.parseToInt(divide(nonce, 1000));
+            object timestampString = ((object)timestamp).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
-                { "nonce", nonce },
+                { "nonce", timestampString },
             }, parameters));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);
