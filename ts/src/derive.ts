@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { BadRequest, InvalidOrder, Precise, ExchangeError } from '../ccxt.js';
+import { BadRequest, InvalidOrder, Precise, ExchangeError, OrderNotFound } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -46,12 +46,12 @@ export default class derive extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
                 'createStopOrder': false,
                 'createTriggerOrder': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -290,6 +290,7 @@ export default class derive extends Exchange {
                     '11013': InvalidOrder, // {"code":"11013","message":"Invalid limit price","data":{"limit":"10000","bandwidth":"92530"}}
                     '11023': InvalidOrder, // {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
                     '11024': InvalidOrder, // {"code":11024,"message":"Reduce only not supported with this time in force"}
+                    '11006': OrderNotFound, // {"code":"11006","message":"Does not exist","data":"Open order with id: 804018f3-b092-40a3-a933-b29574fa1ff8 does not exist."}
                     '14000': BadRequest, // {"code": 14000, "message": "Account not found"}
                     '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
                     '14014': InvalidOrder, // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
@@ -1123,6 +1124,180 @@ export default class derive extends Exchange {
         }
         const order = this.parseOrder (rawOrder, market);
         order['type'] = type;
+        return order;
+    }
+
+    /**
+     * @method
+     * @name derive#editOrder
+     * @description edit a trade order
+     * @see https://docs.derive.xyz/reference/post_private-replace
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const maxFee = this.safeNumber (params, 'max_fee', 0);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
+        const postOnly = this.safeBool (params, 'postOnly');
+        const orderType = type.toLowerCase ();
+        const orderSide = side.toLowerCase ();
+        const nonce = this.now ();
+        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', nonce + 600000); // 10 minutes
+        // TODO: subaccount id / trade module address
+        const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
+        const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
+            'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
+        ], [
+            market['info']['base_asset_address'],
+            market['info']['base_asset_sub_id'],
+            this.parseUnits (price.toString ()),
+            this.parseUnits (this.amountToPrecision (symbol, amount.toString ())),
+            this.parseUnits (maxFee.toString ()),
+            subaccountId,
+            orderSide === 'buy',
+        ]), keccak, 'hex');
+        let contractWalletAddress = undefined;
+        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
+        const signature = this.signOrder ([
+            ACTION_TYPEHASH,
+            subaccountId,
+            nonce,
+            TRADE_MODULE_ADDRESS,
+            '0x' + tradeModuleDataHash,
+            signatureExpiry,
+            contractWalletAddress,
+            this.walletAddress,
+        ], this.privateKey);
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'order_id_to_cancel': id,
+            'direction': orderSide,
+            'order_type': orderType,
+            'nonce': nonce,
+            'amount': amount,
+            'limit_price': price,
+            'max_fee': maxFee,
+            'subaccount_id': subaccountId,
+            'signature_expiry_sec': signatureExpiry,
+            'signer': this.walletAddress,
+        };
+        if (reduceOnly !== undefined) {
+            request['reduce_only'] = reduceOnly;
+            if (reduceOnly && postOnly) {
+                throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
+            }
+        }
+        if (postOnly !== undefined) {
+            request['time_in_force'] = 'post_only';
+        } else if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        if (stopLoss !== undefined) {
+            const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
+            request['trigger_price'] = stopLossPrice;
+            request['trigger_type'] = 'stoploss';
+        } else if (takeProfit !== undefined) {
+            const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
+            request['trigger_price'] = takeProfitPrice;
+            request['trigger_type'] = 'takeprofit';
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['label'] = clientOrderId;
+        }
+        request['signature'] = signature;
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit' ]);
+        const response = await this.privatePostReplace (this.extend (request, params));
+        //
+        //   {
+        //     "result":
+        //       {
+        //         "cancelled_order":
+        //           {
+        //             "subaccount_id": 130837,
+        //             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "test1234",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737539743959,
+        //             "last_update_timestamp": 1737539764234,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "post_only",
+        //             "order_status": "cancelled",
+        //             "max_fee": "211",
+        //             "signature_expiry_sec": 1737540343631,
+        //             "nonce": 1737539743631,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
+        //             "cancel_reason": "user_request",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": null,
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null,
+        //           },
+        //         "order":
+        //           {
+        //             "subaccount_id": 130837,
+        //             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "test1234",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737539764154,
+        //             "last_update_timestamp": 1737539764154,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "post_only",
+        //             "order_status": "open",
+        //             "max_fee": "211",
+        //             "signature_expiry_sec": 1737540363890,
+        //             "nonce": 1737539763890,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
+        //             "cancel_reason": "",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null,
+        //           },
+        //         "trades": [],
+        //         "create_order_error": null,
+        //       },
+        //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
+        //   }
+        //
+        const result = this.safeDict (response, 'result');
+        const rawOrder = this.safeDict (result, 'order');
+        const order = this.parseOrder (rawOrder, market);
         return order;
     }
 
