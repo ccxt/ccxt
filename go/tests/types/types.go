@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ccxt/go/ccxt"
+	"github.com/ccxt/ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
