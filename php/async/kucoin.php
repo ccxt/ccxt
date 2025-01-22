@@ -1614,6 +1614,37 @@ class kucoin extends Exchange {
         //        "chain" => "ERC20"
         //    }
         //
+        if (is_array($fee) && array_key_exists('chains', $fee)) {
+            // if data obtained through `currencies` endpoint
+            $resultNew = array(
+                'info' => $fee,
+                'withdraw' => array(
+                    'fee' => null,
+                    'percentage' => false,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+                'networks' => array(),
+            );
+            $chains = $this->safe_list($fee, 'chains', array());
+            for ($i = 0; $i < count($chains); $i++) {
+                $chain = $chains[$i];
+                $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
+                $resultNew['networks'][$networkCodeNew] = array(
+                    'withdraw' => array(
+                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'percentage' => false,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+            return $resultNew;
+        }
         $minWithdrawFee = $this->safe_number($fee, 'withdrawMinFee');
         $result = array(
             'info' => $fee,

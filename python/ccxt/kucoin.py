@@ -1586,6 +1586,35 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
+        if 'chains' in fee:
+            # if data obtained through `currencies` endpoint
+            resultNew: dict = {
+                'info': fee,
+                'withdraw': {
+                    'fee': None,
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+                'networks': {},
+            }
+            chains = self.safe_list(fee, 'chains', [])
+            for i in range(0, len(chains)):
+                chain = chains[i]
+                networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
+                resultNew['networks'][networkCodeNew] = {
+                    'withdraw': {
+                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'percentage': False,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result: dict = {
             'info': fee,

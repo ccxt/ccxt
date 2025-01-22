@@ -472,6 +472,7 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
+                        'portfolio/negative-balance-exchange-record' => 2,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -5100,12 +5101,14 @@ class binance extends Exchange {
                 $request['endTime'] = $until;
             }
         }
-        if ($limit !== null) {
-            $isFutureOrSwap = ($market['swap'] || $market['future']);
-            $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
-        }
         $method = $this->safe_string($this->options, 'fetchTradesMethod');
         $method = $this->safe_string_2($params, 'fetchTradesMethod', 'method', $method);
+        if ($limit !== null) {
+            $isFutureOrSwap = ($market['swap'] || $market['future']);
+            $isHistoricalEndpoint = ($method !== null) && (mb_strpos($method, 'GetHistoricalTrades') !== false);
+            $maxLimitForContractHistorical = $isHistoricalEndpoint ? 500 : 1000;
+            $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
+        }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
         $response = null;
         if ($market['option'] || $method === 'eapiPublicGetTrades') {
@@ -10621,7 +10624,7 @@ class binance extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'quantity');

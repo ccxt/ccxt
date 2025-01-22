@@ -691,9 +691,14 @@ public partial class tokocrypto : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenV1CommonTime(parameters);
         //
+        // {
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
+        // }
         //
-        //
-        return this.safeInteger(response, "serverTime");
+        return this.safeInteger(response, "timestamp");
     }
 
     /**

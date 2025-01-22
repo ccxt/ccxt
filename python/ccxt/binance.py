@@ -501,6 +501,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance': 2,
+                        'portfolio/negative-balance-exchange-record': 2,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -4994,11 +4995,13 @@ class binance(Exchange, ImplicitAPI):
             until = self.safe_integer(params, 'until')
             if until is not None:
                 request['endTime'] = until
-        if limit is not None:
-            isFutureOrSwap = (market['swap'] or market['future'])
-            request['limit'] = min(limit, 1000) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         method = self.safe_string(self.options, 'fetchTradesMethod')
         method = self.safe_string_2(params, 'fetchTradesMethod', 'method', method)
+        if limit is not None:
+            isFutureOrSwap = (market['swap'] or market['future'])
+            isHistoricalEndpoint = (method is not None) and (method.find('GetHistoricalTrades') >= 0)
+            maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
+            request['limit'] = min(limit, maxLimitForContractHistorical) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
         response = None
         if market['option'] or method == 'eapiPublicGetTrades':
@@ -10133,7 +10136,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'swap')
         symbol = market['symbol']
         side = self.safe_string_lower(position, 'side')
         quantity = self.safe_string(position, 'quantity')

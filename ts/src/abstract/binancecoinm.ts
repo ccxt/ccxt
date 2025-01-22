@@ -227,6 +227,7 @@ interface binance {
     sapiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioMarginAssetLeverage (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioBalance (params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType>;
