@@ -2056,7 +2056,7 @@ public partial class hollaex : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        // { "message": "Invalid token" }
+        // { "message": "Invalid token" } edited
         if (isTrue(isEqual(response, null)))
         {
             return null;
