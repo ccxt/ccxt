@@ -15,8 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
       with:
         token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
+      with:
         fetch-depth: 2
     - name: Skip Automated Push Commits
       id: check_commit
