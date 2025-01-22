@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        # token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 2
     - name: Check commit message
       id: check_commit
@@ -108,13 +108,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       if: github.ref == 'refs/heads/master'
       run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name github-actions[bot]
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add js/ dist/
           git commit -m "[Automated changes] JS files"
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push origin HEAD:master
-
+          git push
   live-tests:
     needs: build
     runs-on: ubuntu-latest
