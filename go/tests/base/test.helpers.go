@@ -1,7 +1,7 @@
 package base
 
 import (
-	"ccxt/go/ccxt"
+	"github.com/ccxt/ccxt/go/ccxt"
 	"fmt"
 	"reflect"
 	"sync"
