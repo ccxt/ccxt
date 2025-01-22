@@ -25,7 +25,7 @@ export default class kraken extends Exchange {
             'version': '0',
             // rate-limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
             // for public: 1 req/s
-            // for private: every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
+            // for private: every second 0.33 weight added to your allowed capacity (some private endpoints add 1 count, some add 2)
             'rateLimit': 1000,
             'certified': false,
             'pro': true,
@@ -178,20 +178,20 @@ export default class kraken extends Exchange {
                 },
                 'private': {
                     'post': {
-                        'AddOrder': 0,
+                        'AddOrder': 1,
                         'AddOrderBatch': 0,
                         'AddExport': 3,
-                        'AmendOrder': 0,
+                        'AmendOrder': 4,
                         'Balance': 3,
                         'CancelAll': 3,
                         'CancelAllOrdersAfter': 3,
-                        'CancelOrder': 0,
+                        'CancelOrder': 8,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 3,
                         'DepositAddresses': 3,
                         'DepositMethods': 3,
                         'DepositStatus': 3,
-                        'EditOrder': 0,
+                        'EditOrder': 7,
                         'ExportStatus': 3,
                         'GetWebSocketsToken': 3,
                         'Ledgers': 6,
