@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { BadRequest, InvalidOrder, Precise, ExchangeError, OrderNotFound } from '../ccxt.js';
+import { BadRequest, InvalidOrder, Precise, ExchangeError, OrderNotFound, ArgumentsRequired } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -38,7 +38,7 @@ export default class derive extends Exchange {
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelOrdersForSymbols': false,
                 'closeAllPositions': false,
@@ -1299,6 +1299,90 @@ export default class derive extends Exchange {
         const rawOrder = this.safeDict (result, 'order');
         const order = this.parseOrder (rawOrder, market);
         return order;
+    }
+
+    /**
+     * @method
+     * @name derive#cancelOrder
+     * @see https://docs.derive.xyz/reference/post_private-cancel
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'subaccount_id': subaccountId,
+        };
+        const clientOrderIdUnified = this.safeString (params, 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (params, 'label', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (isByClientOrder) {
+            request['label'] = clientOrderIdExchangeSpecific;
+            params = this.omit (params, [ 'clientOrderId', 'label' ]);
+            response = await this.privatePostCancelByLabel (this.extend (request, params));
+        } else {
+            request['order_id'] = id;
+            response = await this.privatePostCancel (this.extend (request, params));
+        }
+        //
+        // {
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
+        //         "instrument_name": "BTC-PERP",
+        //         "direction": "buy",
+        //         "label": "test1234",
+        //         "quote_id": null,
+        //         "creation_timestamp": 1737540100989,
+        //         "last_update_timestamp": 1737540574696,
+        //         "limit_price": "10000",
+        //         "amount": "0.01",
+        //         "filled_amount": "0",
+        //         "average_price": "0",
+        //         "order_fee": "0",
+        //         "order_type": "limit",
+        //         "time_in_force": "post_only",
+        //         "order_status": "cancelled",
+        //         "max_fee": "211",
+        //         "signature_expiry_sec": 1737540700726,
+        //         "nonce": 1737540100726,
+        //         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
+        //         "cancel_reason": "user_request",
+        //         "mmp": false,
+        //         "is_transfer": false,
+        //         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
+        //         "trigger_type": null,
+        //         "trigger_price_type": null,
+        //         "trigger_price": null,
+        //         "trigger_reject_message": null
+        //     },
+        //     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
+        // }
+        //
+        // {
+        //     "result": {
+        //         "cancelled_orders": 1
+        //     },
+        //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
+        // }
+        //
+        const extendParams: Dict = { 'symbol': symbol };
+        const order = this.safeDict (response, 'result');
+        if (isByClientOrder) {
+            extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
+        }
+        return this.extend (this.parseOrder (order, market), extendParams);
     }
 
     parseOrder (rawOrder: Dict, market: Market = undefined): Order {
