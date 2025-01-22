@@ -111,7 +111,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add js/
           git commit -m "[Automated changes] JS files"
-          git push origin master
+          git push
 
   live-tests:
     needs: build
