@@ -36,7 +36,7 @@ export default class derive extends Exchange {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -1318,6 +1318,7 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        params = this.omit (params, [ 'subaccount_id' ]);
         const request: Dict = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
@@ -1383,6 +1384,50 @@ export default class derive extends Exchange {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
         return this.extend (this.parseOrder (order, market), extendParams);
+    }
+
+    /**
+     * @method
+     * @name derive#cancelAllOrders
+     * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
+     * @see https://docs.derive.xyz/reference/post_private-cancel-all
+     * @description cancel all open orders in a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        let response = undefined;
+        if (market !== undefined) {
+            request['instrument_name'] = market['id'];
+            response = await this.privatePostCancelByInstrument (this.extend (request, params));
+        } else {
+            response = await this.privatePostCancelAll (this.extend (request, params));
+        }
+        //
+        // {
+        //     "result": {
+        //         "cancelled_orders": 0
+        //     },
+        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f4"
+        // }
+        //
+        // {
+        //     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
+        //     "result": "ok"
+        // }
+        //
+        return response;
     }
 
     parseOrder (rawOrder: Dict, market: Market = undefined): Order {
