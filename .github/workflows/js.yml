@@ -13,11 +13,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 2
     - uses: actions/checkout@v4
       if: github.ref != 'refs/heads/master'
@@ -116,7 +117,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add js/ dist/
-          git commit -m "[Automated changes] JS files"
+          git commit -m "[Automated changes] JS files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push
   live-tests:

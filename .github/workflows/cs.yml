@@ -13,11 +13,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 2
     - uses: actions/checkout@v4
       if: github.ref != 'refs/heads/master'
