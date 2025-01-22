@@ -8,7 +8,7 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -17,6 +17,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+    - name: Check commit message
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -95,6 +102,16 @@ jobs:
       with:
         name: js-files
         path: js/
+    - name: Push JS changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add js/
+          git commit -m "[Automated changes] JS files"
+          git push origin master
 
   live-tests:
     needs: build
