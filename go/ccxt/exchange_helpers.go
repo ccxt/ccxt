@@ -1412,8 +1412,11 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 		return def
 	}
 
-	if res, ok := val.([]interface{}); ok {
-		if len(res) == 0 {
+	if res, ok := val.([]interface{}); ok { // this is not working well with safeList(x, 'key', []) but works for fetchTrade(s, options interface{}...)
+		// if len(res) == 0 {
+		// 	return def
+		// }
+		if res == nil {
 			return def
 		}
 	}
