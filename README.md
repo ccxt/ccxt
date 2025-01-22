@@ -184,7 +184,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
-- [ccxt in **GO**](https://go.dev/ref/mod) (TODO)
+- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -297,6 +297,12 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 ```
 
 ### Go
+
+[ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt)
+
+```shell
+go get github.com/ccxt/ccxt
+```
 
 ```Go
 import "ccxt"
@@ -541,7 +547,7 @@ class Project {
 ```Go
 package main
 import (
-	"ccxt"
+	"github.com/ccxt/ccxt/go/ccxt"
 	"fmt"
 )
 
@@ -554,7 +560,7 @@ func main() {
 		"clientOrderId": "myOrderId68768678",
 	}
 
-    exchange.LoadMarkets()
+    <-exchange.LoadMarkets()
 
 	order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
 	if err != nil {
@@ -567,6 +573,16 @@ func main() {
 		}
 	} else {
 		fmt.Println(*order.Id)
+	}
+
+
+    // fetching OHLCV
+	ohlcv, err := exchange.FetchOHLCV("BTC/USDT", ccxt.WithFetchOHLCVTimeframe("5m"), ccxt.WithFetchOHLCVLimit(100))
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+	} else {
+		fmt.Println("Got OHLCV!")
 	}
 }
 ```
