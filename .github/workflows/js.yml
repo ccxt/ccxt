@@ -104,7 +104,7 @@ jobs:
         path: js/
     - name: Push JS changes to master
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       if: github.ref == 'refs/heads/master'
       run: |
           git config --global user.name "github-actions[bot]"
