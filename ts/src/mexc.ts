@@ -6007,7 +6007,7 @@ export default class mexc extends Exchange {
             } else {
                 url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             }
-            let urlParams = {};
+            let urlParams = params;
             if (access === 'private') {
                 if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
                     urlParams = {
@@ -6016,7 +6016,6 @@ export default class mexc extends Exchange {
                     };
                     body = this.json (params);
                 } else {
-                    urlParams = params;
                     urlParams['timestamp'] = this.nonce ();
                     urlParams['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
                 }
