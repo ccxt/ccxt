@@ -1,4 +1,4 @@
-name: Push Generated [test]
+name: Push Generated [test] # still a draft
 
 on:
   workflow_run:
@@ -18,6 +18,42 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+
+      - name: Download Py Files
+        uses: actions/download-artifact@v4
+        with:
+          name: python-files
+          path: python/
+
+      - name: Download PHP Files
+        uses: actions/download-artifact@v4
+        with:
+          name: php-files
+          path: php/
+
+      - name: Download C# Files
+        uses: actions/download-artifact@v4
+        with:
+          name: cs-files
+          path: cs/
+
+      - name: Check modified js files
+        run: cat js/src/hollaex.js | grep handleErrors -A 5
+
+      - name: Check modified py files
+        run: cat python/ccxt/hollaex.py | grep handle_errors -A 5
+
+      - name: Check modified php files
+        run: cat php/hollaex.php | grep handle_errors -A 5
+
+      - name: Check modified C# files
+        run: cat cs/ccxt/exchanges/hollaex.cs | grep handleErrors -A 5
 
       - name: Run your script
         run: echo "All workflows succeeded. Running on master branch."
