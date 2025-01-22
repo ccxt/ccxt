@@ -385,6 +385,8 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case []int:
 		return len(v)
+	case string:
+		return len(v) // should we do it here?
 	}
 
 	// val := reflect.ValueOf(value)
@@ -1408,6 +1410,12 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 
 	if val == nil {
 		return def
+	}
+
+	if res, ok := val.([]interface{}); ok {
+		if len(res) == 0 {
+			return def
+		}
 	}
 
 	// do we need this??
