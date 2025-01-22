@@ -161,3 +161,4 @@ class ImplicitAPI:
     futuresprivate_delete_orders_orderid = futuresPrivateDeleteOrdersOrderId = Entry('orders/{orderId}', 'futuresPrivate', 'DELETE', {'cost': 1.3953})
     futuresprivate_delete_orders = futuresPrivateDeleteOrders = Entry('orders', 'futuresPrivate', 'DELETE', {'cost': 6.666})
     futuresprivate_delete_stoporders = futuresPrivateDeleteStopOrders = Entry('stopOrders', 'futuresPrivate', 'DELETE', {'cost': 1.3953})
+    futurespublic_get_alltickers = futuresPublicGetAllTickers = Entry('allTickers', 'futuresPublic', 'GET', {'cost': 1})

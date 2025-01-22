@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.kucoin import kucoin
-from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderSide, Strings, Tickers
 from typing import Optional
 from typing import List
 from ccxt.base.errors import PermissionDenied
@@ -755,6 +755,92 @@ class kucoinfutures(kucoin):
         #
         return self.parse_ticker(response['data'], market)
 
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive')
+        response: dict = None
+        if method == 'futuresPublicGetAllTickers':
+            response = self.futuresPublicGetAllTickers(params)
+        else:
+            response = self.futuresPublicGetContractsActive(params)
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "ETHUSDTM",
+        #            "rootSymbol": "USDT",
+        #            "type": "FFWCSX",
+        #            "firstOpenDate": 1591086000000,
+        #            "expireDate": null,
+        #            "settleDate": null,
+        #            "baseCurrency": "ETH",
+        #            "quoteCurrency": "USDT",
+        #            "settleCurrency": "USDT",
+        #            "maxOrderQty": 1000000,
+        #            "maxPrice": 1000000.0000000000,
+        #            "lotSize": 1,
+        #            "tickSize": 0.05,
+        #            "indexPriceTickSize": 0.01,
+        #            "multiplier": 0.01,
+        #            "initialMargin": 0.01,
+        #            "maintainMargin": 0.005,
+        #            "maxRiskLimit": 1000000,
+        #            "minRiskLimit": 1000000,
+        #            "riskStep": 500000,
+        #            "makerFeeRate": 0.00020,
+        #            "takerFeeRate": 0.00060,
+        #            "takerFixFee": 0.0000000000,
+        #            "makerFixFee": 0.0000000000,
+        #            "settlementFee": null,
+        #            "isDeleverage": True,
+        #            "isQuanto": True,
+        #            "isInverse": False,
+        #            "markMethod": "FairPrice",
+        #            "fairMethod": "FundingRate",
+        #            "fundingBaseSymbol": ".ETHINT8H",
+        #            "fundingQuoteSymbol": ".USDTINT8H",
+        #            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        #            "indexSymbol": ".KETHUSDT",
+        #            "settlementSymbol": "",
+        #            "status": "Open",
+        #            "fundingFeeRate": 0.000535,
+        #            "predictedFundingFeeRate": 0.002197,
+        #            "openInterest": "8724443",
+        #            "turnoverOf24h": 341156641.03354263,
+        #            "volumeOf24h": 74833.54000000,
+        #            "markPrice": 4534.07,
+        #            "indexPrice":4531.92,
+        #            "lastTradePrice": 4545.4500000000,
+        #            "nextFundingRateTime": 25481884,
+        #            "maxLeverage": 100,
+        #            "sourceExchanges":  ["huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc"],
+        #            "premiumsSymbol1M": ".ETHUSDTMPI",
+        #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        #            "fundingBaseSymbol1M": ".ETHINT",
+        #            "fundingQuoteSymbol1M": ".USDTINT",
+        #            "lowPrice": 4456.90,
+        #            "highPrice":  4674.25,
+        #            "priceChgPct": 0.0046,
+        #            "priceChg": 21.15
+        #        }
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        tickers = self.parse_tickers(data, symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+
     def parse_ticker(self, ticker, market=None):
         #
         #     {
@@ -774,16 +860,16 @@ class kucoinfutures(kucoin):
         #          }
         #     }
         #
-        last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
+        last = self.safe_string_2(ticker, 'price', 'lastTradePrice')
         timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': None,
-            'low': None,
+            'high': self.safe_string(ticker, 'highPrice'),
+            'low': self.safe_string(ticker, 'lowPrice'),
             'bid': self.safe_string(ticker, 'bestBidPrice'),
             'bidVolume': self.safe_string(ticker, 'bestBidSize'),
             'ask': self.safe_string(ticker, 'bestAskPrice'),
@@ -793,11 +879,13 @@ class kucoinfutures(kucoin):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'change': self.safe_string(ticker, 'priceChg'),
+            'percentage': self.safe_string(ticker, 'priceChgPct'),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': None,
+            'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
+            'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
