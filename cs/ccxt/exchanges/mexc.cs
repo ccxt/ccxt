@@ -6023,15 +6023,26 @@ public partial class mexc : Exchange
             {
                 url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
             }
-            object paramsEncoded = "";
+            object urlParams = parameters;
             if (isTrue(isEqual(access, "private")))
             {
-                ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
-                ((IDictionary<string,object>)parameters)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
+                if (isTrue(isTrue(isEqual(section, "broker")) && isTrue((isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))))
+                {
+                    urlParams = new Dictionary<string, object>() {
+                        { "timestamp", this.nonce() },
+                        { "recvWindow", this.safeInteger(this.options, "recvWindow", 5000) },
+                    };
+                    body = this.json(parameters);
+                } else
+                {
+                    ((IDictionary<string,object>)urlParams)["timestamp"] = this.nonce();
+                    ((IDictionary<string,object>)urlParams)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
+                }
             }
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            object paramsEncoded = "";
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys))))
             {
-                paramsEncoded = this.urlencode(parameters);
+                paramsEncoded = this.urlencode(urlParams);
                 url = add(url, add("?", paramsEncoded));
             }
             if (isTrue(isEqual(access, "private")))

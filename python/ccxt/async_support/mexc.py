@@ -5709,12 +5709,20 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/' + path
             else:
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
-            paramsEncoded = ''
+            urlParams = params
             if access == 'private':
-                params['timestamp'] = self.nonce()
-                params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
-            if params:
-                paramsEncoded = self.urlencode(params)
+                if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
+                    urlParams = {
+                        'timestamp': self.nonce(),
+                        'recvWindow': self.safe_integer(self.options, 'recvWindow', 5000),
+                    }
+                    body = self.json(params)
+                else:
+                    urlParams['timestamp'] = self.nonce()
+                    urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
+            paramsEncoded = ''
+            if urlParams:
+                paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
                 self.check_required_credentials()
