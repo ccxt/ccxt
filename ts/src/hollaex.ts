@@ -1986,7 +1986,7 @@ export default class hollaex extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        // { "message": "Invalid token" } edited
+        // { "message": "Invalid token" } edited2
         if (response === undefined) {
             return undefined;
         }
