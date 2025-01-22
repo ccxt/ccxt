@@ -3323,7 +3323,10 @@ export default class htx extends Exchange {
                 type = 'margin';
             }
         }
-        const marketId = (symbol === undefined) ? undefined : this.marketId (symbol);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            marketId = this.marketId (symbol);
+        }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue (account, 'info');
