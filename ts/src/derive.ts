@@ -59,7 +59,7 @@ export default class derive extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -89,10 +89,10 @@ export default class derive extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -1428,6 +1428,127 @@ export default class derive extends Exchange {
         // }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
+        }
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        } else {
+            request['page_size'] = 500;
+        }
+        const response = await this.privatePostGetOrders (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "orders": [
+        //             {
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "creation_timestamp": 1737551053207,
+        //                 "last_update_timestamp": 1737551053207,
+        //                 "limit_price": "10000",
+        //                 "amount": "0.01",
+        //                 "filled_amount": "0",
+        //                 "average_price": "0",
+        //                 "order_fee": "0",
+        //                 "order_type": "limit",
+        //                 "time_in_force": "post_only",
+        //                 "order_status": "open",
+        //                 "max_fee": "211",
+        //                 "signature_expiry_sec": 1737551652765,
+        //                 "nonce": 1737551052765,
+        //                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
+        //                 "cancel_reason": "",
+        //                 "mmp": false,
+        //                 "is_transfer": false,
+        //                 "replaced_order_id": null,
+        //                 "trigger_type": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_reject_message": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
+        //         }
+        //     },
+        //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
+        // }
+        //
+        const data = this.safeValue (response, 'result', response);
+        const orders = this.safeList (data, 'orders');
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOpenOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'open' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchClosedOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'filled' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
     parseOrder (rawOrder: Dict, market: Market = undefined): Order {
