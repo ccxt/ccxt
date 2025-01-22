@@ -13,18 +13,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
     - uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        # token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 2
-    - name: Skip Automated Push Commits
-      id: check_commit
-      run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
-          echo "This commit was made by the action. Skipping."
-          exit 0
-        fi
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
