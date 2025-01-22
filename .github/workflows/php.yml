@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 2
     - uses: actions/checkout@v4
       if: github.ref != 'refs/heads/master'
