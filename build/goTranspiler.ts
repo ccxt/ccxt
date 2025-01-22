@@ -760,10 +760,6 @@ class NewTranspiler {
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         let params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
-        if (params === 'params') {
-            params = 'params...'
-        }
-
         const one = this.inden(0);
         const two = this.inden(1);
         const three = this.inden(2);
@@ -781,12 +777,18 @@ class NewTranspiler {
             emtpyObject = '""'
         }
 
+        const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters)
+
+        if (stringArgs =='params ...interface{}') {
+            params = 'params...'
+        }
+
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
-            this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
+           `${defaultParams}`,
             `${two}res := <- this.Core.${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
             `${three}return ${emtpyObject}, CreateReturnError(res)`,
