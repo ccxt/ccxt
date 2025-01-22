@@ -16,7 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '7.0.x'
