@@ -6007,13 +6007,23 @@ export default class mexc extends Exchange {
             } else {
                 url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             }
-            let paramsEncoded = '';
+            let urlParams = {};
             if (access === 'private') {
-                params['timestamp'] = this.nonce ();
-                params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
+                if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
+                    urlParams = {
+                        'timestamp': this.nonce (),
+                        'recvWindow': this.safeInteger (this.options, 'recvWindow', 5000),
+                    };
+                    body = this.json (params);
+                } else {
+                    urlParams = params;
+                    urlParams['timestamp'] = this.nonce ();
+                    urlParams['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
+                }
             }
-            if (Object.keys (params).length) {
-                paramsEncoded = this.urlencode (params);
+            let paramsEncoded = '';
+            if (Object.keys (urlParams).length) {
+                paramsEncoded = this.urlencode (urlParams);
                 url += '?' + paramsEncoded;
             }
             if (access === 'private') {
