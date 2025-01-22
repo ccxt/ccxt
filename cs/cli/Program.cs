@@ -47,7 +47,7 @@ public static class Program
             }
             if (File.Exists("./../../keys.local.json"))
             {
-                var jsonText = File.ReadAllText("keys.local.json");
+                var jsonText = File.ReadAllText("./../../keys.local.json");
                 localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
             }
         }
