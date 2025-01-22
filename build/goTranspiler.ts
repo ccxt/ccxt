@@ -758,7 +758,11 @@ class NewTranspiler {
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
+        let params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
+
+        if (params === 'params') {
+            params = 'params...'
+        }
 
         const one = this.inden(0);
         const two = this.inden(1);
