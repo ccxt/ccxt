@@ -289,10 +289,12 @@ export default class derive extends Exchange {
                     '11011': InvalidOrder, // {"code":11011,"message":"Invalid signature expiry","data":"Order must expire in 300 sec or more"}
                     '11013': InvalidOrder, // {"code":"11013","message":"Invalid limit price","data":{"limit":"10000","bandwidth":"92530"}}
                     '11023': InvalidOrder, // {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
+                    '11024': InvalidOrder, // {"code":11024,"message":"Reduce only not supported with this time in force"}
                     '14000': BadRequest, // {"code": 14000, "message": "Account not found"}
                     '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
                     '14014': InvalidOrder, // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
                     '14023': InvalidOrder, // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
+                    '-32602': InvalidOrder, // {"id":"55e66a3d-6a4e-4a36-a23d-5cf8a91ef478","error":{"code":"","message":"Invalid params"}}
                     '-32603': InvalidOrder, // {"code":"-32603","message":"Internal error","data":"SubAccount matching query does not exist."}
                 },
                 'broad': {
@@ -965,11 +967,12 @@ export default class derive extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
         const maxFee = this.safeNumber (params, 'max_fee', 0);
         const test = this.safeBool (params, 'test', false);
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'test' ]);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
+        const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
         const nonce = this.now ();
@@ -1012,8 +1015,34 @@ export default class derive extends Exchange {
             'signature_expiry_sec': signatureExpiry,
             'signer': this.walletAddress,
         };
+        if (reduceOnly !== undefined) {
+            request['reduce_only'] = reduceOnly;
+            if (reduceOnly && postOnly) {
+                throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
+            }
+        }
+        if (postOnly !== undefined) {
+            request['time_in_force'] = 'post_only';
+        } else if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        if (stopLoss !== undefined) {
+            const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
+            request['trigger_price'] = stopLossPrice;
+            request['trigger_type'] = 'stoploss';
+        } else if (takeProfit !== undefined) {
+            const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
+            request['trigger_price'] = takeProfitPrice;
+            request['trigger_type'] = 'takeprofit';
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['label'] = clientOrderId;
+        }
         request['signature'] = signature;
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
         if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
