@@ -581,9 +581,13 @@ export default class valr extends valrRest {
         };
         const currency = this.safeValue (balanceWs, 'currency');
         const code = this.safeCurrencyCode (this.safeString (currency, 'shortName'));
-        const used = Precise.stringAdd (
-            this.safeString (balanceWs, 'reserved'),
+        const lendBorrow = Precise.stringAdd (
+            this.safeString (balanceWs, 'lendReserved'),
             this.safeString (balanceWs, 'borrowReserved')
+        );
+        const used = Precise.stringAdd (
+            lendBorrow,
+            this.safeString (balanceWs, 'reserved')
         );
         const debt = Precise.stringSub (
             this.safeString (balanceWs, 'borrowedAmount'),
@@ -871,7 +875,7 @@ export default class valr extends valrRest {
             status = 'open';
         } else if (this.inArray (orderStatus, [ 'Failed', 'Cancelled' ])) {
             const failedReason = this.safeString (order, 'failedReason');
-            if (failedReason === 'Insufficient Balance') {
+            if (this.inArray (failedReason, [ 'Insufficient Balance', 'The borrow amount is unavailable currently, please try again later' ])) {
                 status = 'rejected';
             } else {
                 status = 'canceled';
