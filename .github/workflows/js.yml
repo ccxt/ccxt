@@ -17,10 +17,17 @@ jobs:
     steps:
     - name: Print vars
       run: |
-          echo "GITHUB_ACTOR: {{ github.actor }}"
-          echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
-          echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
-          echo "GITHUB_REF: {{ github.ref }}"
+        echo "GitHub Actor: $GITHUB_ACTOR"
+        echo "Repository: $GITHUB_REPOSITORY"
+        echo "Event Name: $GITHUB_EVENT_NAME"
+        echo "Workflow Name: $GITHUB_WORKFLOW"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Run Number: $GITHUB_RUN_NUMBER"
+        echo "Job Name: $GITHUB_JOB"
+        echo "Ref: $GITHUB_REF"
+        echo "SHA: $GITHUB_SHA"
+        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
