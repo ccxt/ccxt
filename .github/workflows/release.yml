@@ -38,13 +38,14 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '7.0.x'
           dotnet-quality: 'preview'
           cache: false
-          run: |
-            sudo mkdir -p /usr/share/dotnet
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
