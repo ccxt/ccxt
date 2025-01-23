@@ -45,7 +45,7 @@ jobs:
         with:
           dotnet-version: '7.0.x'
           dotnet-quality: 'preview'
-          cache: false
+          cache: true
           run: |
             sudo mkdir -p /usr/share/dotnet
       - name: Install NPM dependencies

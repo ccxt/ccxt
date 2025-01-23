@@ -35,6 +35,7 @@ jobs:
       with:
         dotnet-version: '7.0.x'
         dotnet-quality: 'preview'
+        cache: true
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
