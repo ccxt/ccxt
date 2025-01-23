@@ -1981,7 +1981,7 @@ class hollaex extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        // array( "message" => "Invalid token" ) edited
+        // array( "message" => "Invalid token" )
         if ($response === null) {
             return null;
         }

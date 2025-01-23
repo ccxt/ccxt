@@ -6130,13 +6130,22 @@ class mexc extends Exchange {
             } else {
                 $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
             }
-            $paramsEncoded = '';
+            $urlParams = $params;
             if ($access === 'private') {
-                $params['timestamp'] = $this->nonce();
-                $params['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
+                if ($section === 'broker' && (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE'))) {
+                    $urlParams = array(
+                        'timestamp' => $this->nonce(),
+                        'recvWindow' => $this->safe_integer($this->options, 'recvWindow', 5000),
+                    );
+                    $body = $this->json($params);
+                } else {
+                    $urlParams['timestamp'] = $this->nonce();
+                    $urlParams['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
+                }
             }
-            if ($params) {
-                $paramsEncoded = $this->urlencode($params);
+            $paramsEncoded = '';
+            if ($urlParams) {
+                $paramsEncoded = $this->urlencode($urlParams);
                 $url .= '?' . $paramsEncoded;
             }
             if ($access === 'private') {

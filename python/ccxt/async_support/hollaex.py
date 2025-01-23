@@ -1912,7 +1912,7 @@ class hollaex(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        # {"message": "Invalid token"} edited
+        # {"message": "Invalid token"}
         if response is None:
             return None
         if (code >= 400) and (code <= 503):

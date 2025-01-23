@@ -13,10 +13,30 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
+    - name: Print vars
+      run: |
+          echo "GITHUB_ACTOR: {{ github.actor }}"
+          echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
+          echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
+          echo "GITHUB_REF: {{ github.ref }}"
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - name: Setup PHP with PECL extension
       uses: shivammathur/setup-php@v2
       with:

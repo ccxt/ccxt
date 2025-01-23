@@ -2196,7 +2196,7 @@ class vertex extends Exchange {
             //       "product_id" => 1,
             //       "orders" => array(
             //         array(
-            //           "product_id" => 1,
+            //           "product_id" => 2,
             //           "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18" => "1000000000000000000",
             //           "amount" => "1000000000000000000",
@@ -2205,7 +2205,7 @@ class vertex extends Exchange {
             //           "order_type" => "default",
             //           "unfilled_amount" => "1000000000000000000",
             //           "digest" => "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at" => 1682437739,
+            //           "placed_at" => 1682437737,
             //           "order_type" => "ioc"
             //         }
             //       )

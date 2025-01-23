@@ -1950,7 +1950,7 @@ class hollaex extends hollaex$1 {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // { "message": "Invalid token" } edited
+        // { "message": "Invalid token" }!
         if (response === undefined) {
             return undefined;
         }

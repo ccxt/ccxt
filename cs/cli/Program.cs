@@ -45,6 +45,11 @@ public static class Program
                 var jsonText = File.ReadAllText("keys.local.json");
                 localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
             }
+            if (File.Exists("./../../keys.local.json"))
+            {
+                var jsonText = File.ReadAllText("./../../keys.local.json");
+                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            }
         }
         catch (JsonException je)
         {
@@ -78,10 +83,9 @@ public static class Program
                 {
                     var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
                     credentialValue = Environment.GetEnvironmentVariable(parsedKey);
-                    if (credentialValue.StartsWith("-----BEGIN"))
+                    if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
                     {
                         credentialValue = credentialValue.Replace("\\n", "\n");
-
                     }
                 }
 

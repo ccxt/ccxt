@@ -13,11 +13,31 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
+    - name: Print vars
+      run: |
+        echo "GitHub Actor: $GITHUB_ACTOR"
+        echo "Repository: $GITHUB_REPOSITORY"
+        echo "Event Name: $GITHUB_EVENT_NAME"
+        echo "Workflow Name: $GITHUB_WORKFLOW"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Run Number: $GITHUB_RUN_NUMBER"
+        echo "Job Name: $GITHUB_JOB"
+        echo "Ref: $GITHUB_REF"
+        echo "SHA: $GITHUB_SHA"
+        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
-    - name: Check commit message
+    - name: Skip Automated Push Commits
       id: check_commit
       run: |
         if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
@@ -109,11 +129,10 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add js/
-          git commit -m "[Automated changes] JS files"
+          git add js/ dist/
+          git commit -m "[Automated changes] JS files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push origin HEAD:master
-
+          git push
   live-tests:
     needs: build
     runs-on: ubuntu-latest
