@@ -7390,11 +7390,13 @@ export default class htx extends Exchange {
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend (request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort (request) as any;
-                let auth = this.urlencode (request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort (query) as any;
+                    request = this.extend (request, sortedQuery);
+                }
+                let auth = this.urlencode (request).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
