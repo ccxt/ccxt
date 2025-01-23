@@ -133,38 +133,6 @@
                 "output": "timestamp=1698772722784&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu857a045c78a148bda82a3b&newOrderRespType=RESULT&type=LIMIT&quantity=0.1&price=55&timeInForce=GTC&recvWindow=10000&signature=ea0c2c8986c05546309cfb5248febc8a551c1a7ccf7252305e26bb60e41a8d60"
             },
             {
-                "description": "Spot limit buy with triggerPrice",
-                "method": "createOrder",
-                "url": "https://api.binance.com/api/v3/order",
-                "input": [
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    0.2,
-                    50,
-                    {
-                        "triggerPrice": 100
-                    }
-                ],
-                "output": "timestamp=1699113377107&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S828025d8ae9f754437aa1bde&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.2&price=50&timeInForce=GTC&stopPrice=100&recvWindow=10000&signature=FFsWE8MefjyN%2BBkm0w4KE4dRJh%2FOeJDbH4nOjhFS7rbmaGb64q9cK2RmRbgLKqMbDcPmgy752h7YnjqhF7wWixXEZmJR0Ks3ap%2BhvhAEr4Cd1bPJ2buEe316rXIHgPiDQBpDbsbipEoX2dQnUdjxGItAgyTVSThxqk0t8BDrqkHlnwv8JF9Yp1ekwFccXYBM5jMz09feygyLPzyiK3bqjPndwohxCLoL%2B6wp0x%2FTM0Vm39XTvOAPUj88FF67C76sFlVReIjzwo94xOj%2BHzynGZs7apVLV227P434MARwyKQM9XsSQ%2FMsSakoxZjOrErH2iwWlsJL60C7HcPl%2B%2BZD%2BQ%3D%3D"
-            },
-            {
-                "description": "Swap limit buy with triggerPrice",
-                "method": "createOrder",
-                "url": "https://testnet.binancefuture.com/fapi/v1/order",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.2,
-                    50,
-                    {
-                        "triggerPrice": 100
-                    }
-                ],
-                "output": "timestamp=1699113425660&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu0a6b33edf43043799149a0&newOrderRespType=RESULT&type=STOP&quantity=0.2&price=50&stopPrice=100&recvWindow=10000&signature=dcbd99666b985518f0bc818d2fdc9c7215f4607b044ad921a025fec70f41ae61"
-            },
-            {
                 "description": "Spot limit buy with test endpoint",
                 "method": "createOrder",
                 "url": "https://api.binance.com/api/v3/order/test",
@@ -323,40 +291,6 @@
                 "output": "timestamp=1707112388003&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientOrderId=x-xcKtGhcu69273341d6114bd8b800aa&type=LIMIT&quantity=1&price=2000&timeInForce=GTC&recvWindow=10000&signature=4e4f549a6358aa1731060e825069022389780706305a60eaa58fbbf0c4a7d03f"
             },
             {
-                "description": "Linear swap portfolio margin conditional limit buy order",
-                "method": "createOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.01,
-                    35000,
-                    {
-                        "portfolioMargin": true,
-                        "triggerPrice": 45000
-                    }
-                ],
-                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
-            },
-            {
-                "description": "Inverse swap portfolio margin conditional limit buy order",
-                "method": "createOrder",
-                "url": "https://papi.binance.com/papi/v1/cm/conditional/order",
-                "input": [
-                    "ETH/USD:ETH",
-                    "limit",
-                    "buy",
-                    1,
-                    2000,
-                    {
-                        "portfolioMargin": true,
-                        "triggerPrice": 3000
-                    }
-                ],
-                "output": "timestamp=1707113097689&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcuc6b86f054bb34933850739&strategyType=STOP&quantity=1&price=2000&stopPrice=3000&recvWindow=10000&signature=aa5ec5fa5eb51372fa68597242bc2ddc31a32e9be5c084f00c2f6999b31cad2b"
-            },
-            {
                 "description": "Spot margin portfolio margin limit buy order",
                 "method": "createOrder",
                 "url": "https://papi.binance.com/papi/v1/margin/order",
@@ -491,23 +425,6 @@
                 "output": "timestamp=1717843341137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcud3bc1226a44e4652b326a8&newOrderRespType=RESULT&type=LIMIT&quantity=0.1&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=0683954e1707e361a26c80395574bbf38829fb35c4a0fa634c7a56f7f2617843"
             },
             {
-                "description": "swap trigger bbo order",
-                "method": "createOrder",
-                "url": "https://testnet.binancefuture.com/fapi/v1/order",
-                "input": [
-                  "LTC/USDT:USDT",
-                  "limit",
-                  "buy",
-                  0.1,
-                  null,
-                  {
-                    "triggerPrice": 100,
-                    "priceMatch": "OPPONENT"
-                  }
-                ],
-                "output": "timestamp=1717843608802&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu918489f4e5334421a68067&newOrderRespType=RESULT&type=STOP&quantity=0.1&stopPrice=100&priceMatch=OPPONENT&recvWindow=10000&signature=1c87a4c108577d3fee3b3081295424c2ffeaf0454ca3cbff46ed7b84a1d62671"
-            },
-            {
                 "description": "swap hedged reduceOnly market sell order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
@@ -540,6 +457,23 @@
                   }
                 ],
                 "output": "timestamp=1727850728450&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu7115017eb3284b84905830&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=SHORT&recvWindow=10000&signature=5709d8de55d46bce7ef997580b9a223d3145772c1d5c22160b53e4539246b9b2"
+            },
+            {
+                "description": "spot buy +limit +triggerPrice +triggerDirection",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "SOL/USDT",
+                  "limit",
+                  "buy",
+                  0.05,
+                  241,
+                  {
+                    "triggerPrice": 246,
+                    "triggerDirection": "descending"
+                  }
+                ],
+                "output": "timestamp=1737623172685&symbol=SOLUSDT&side=BUY&newClientOrderId=x-R4BD3S82c11ac63a17aa43c9841358&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.05&price=241&stopPrice=246&timeInForce=GTC&recvWindow=10000&signature=761e6f89a142049cb0cd12a790e47eb896e141ced4fb54ce9208fdd2b0dfafb7"
             }
         ],
         "createOrders": [
