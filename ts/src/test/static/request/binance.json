@@ -14,6 +14,40 @@
     "methods": {
         "createOrder": [
             {
+                "description": "spot buy +limit +triggerPrice +descending",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    241,
+                    {
+                        "triggerPrice": 242,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "timestamp=1737648195201&symbol=SOLUSDT&side=BUY&newClientOrderId=x-xcKtGhcuc5149930e3854a0d9d0f03&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=241&stopPrice=242&recvWindow=10000&signature=1c0f91f6ba9265c6ecdfe636aafa8f5fc58cf7ee8acc05a096232fc7951bcb38"
+            },
+            {
+                "description": "spot buy +limit +triggerPrice +ascending",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    241,
+                    {
+                        "triggerPrice": 252,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "timestamp=1737648149514&symbol=SOLUSDT&side=BUY&newClientOrderId=x-xcKtGhcuacfb692e64c24499a0c200&newOrderRespType=RESULT&type=STOP&quantity=1&price=241&stopPrice=252&recvWindow=10000&signature=8aa676c149fbcbdf6ac20c21c7e4eec07faf376de6a4e557b31fe9cdb36f3ea0"
+            },
+            {
                 "description": "spot buy +limit +triggerPrice +ascending",
                 "method": "createOrder",
                 "url": "https://api.binance.com/api/v3/order",
