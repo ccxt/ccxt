@@ -46,6 +46,8 @@ jobs:
           dotnet-version: '7.0.x'
           dotnet-quality: 'preview'
           cache: false
+          run: |
+            sudo mkdir -p /usr/share/dotnet
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
