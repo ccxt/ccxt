@@ -2724,7 +2724,6 @@ export default class Exchange {
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
         const value = this.safeString (obj, key);
-        // in some langs (eg. PHP), double/integer comparison should be done separately
         const final = this.parseNumber (this.omitZero (value));
         return (final === undefined) ? defaultValue : final;
     }
