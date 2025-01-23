@@ -122,8 +122,7 @@ jobs:
           git add php/
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git pull origin master
-          git push
+          git push --force
 
   live-tests:
     needs: build

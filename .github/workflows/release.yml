@@ -26,10 +26,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '7.0.x'
-          dotnet-quality: 'preview'
       - uses: actions/setup-python@v2
         with:
           python-version: '3.11'
@@ -43,6 +39,13 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+          cache: false
+          run: |
+            sudo mkdir -p /usr/share/dotnet
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
