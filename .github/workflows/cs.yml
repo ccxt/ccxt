@@ -112,7 +112,7 @@ jobs:
           git commit -m "[Automated changes] C# files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
-          git pull
+          git pull origin master
           git push
 
   live-tests:
