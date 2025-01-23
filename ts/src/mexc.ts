@@ -2367,6 +2367,15 @@ export default class mexc extends Exchange {
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
+        const tif = this.safeString (params, 'timeInForce');
+        if (tif !== undefined) {
+            params = this.omit (params, 'timeInForce');
+            if (tif === 'IOC') {
+                request['type'] = 'IMMEDIATE_OR_CANCEL';
+            } else if (tif === 'FOK') {
+                request['type'] = 'FILL_OR_KILL';
+            }
+        }
         return this.extend (request, params);
     }
 
