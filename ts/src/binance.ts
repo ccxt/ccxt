@@ -1595,7 +1595,7 @@ export default class binance extends Exchange {
                             'expire_both': true,
                             'none': true,
                         },
-                        'trailing': true,
+                        'trailing': false, // todo: this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount': true,
                     },
                     'createOrders': undefined,
@@ -1637,7 +1637,7 @@ export default class binance extends Exchange {
                         'limit': 1000,
                     },
                 },
-                'default': {
+                'forDerivatives': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
@@ -1709,18 +1709,18 @@ export default class binance extends Exchange {
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
             },
