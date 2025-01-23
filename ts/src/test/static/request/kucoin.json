@@ -514,7 +514,8 @@
                 "input": [
                     "LTC/USDT",
                     null,
-                    5
+                    5,
+                    {"hf": true}
                 ],
                 "output": null
             },
