@@ -3164,7 +3164,7 @@ export default class deribit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3176,16 +3176,26 @@ export default class deribit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720);
         }
-        const time = this.milliseconds();
+        let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
             since = time - month;
         }
+        else {
+            time = since + month;
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         };
+        const until = this.safeInteger2(params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_timestamp'] = until;
+        }
+        else {
+            request['end_timestamp'] = time;
+        }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
         //
         //    {
