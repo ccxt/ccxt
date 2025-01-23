@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') }}
     steps:
     - name: Print vars
       run: |
@@ -41,6 +41,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
+        cache: true
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -111,6 +112,18 @@ jobs:
       with:
         name: php-files
         path: php/
+
+    - name: Push PHP changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add php/
+          git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git push --force
 
   live-tests:
     needs: build

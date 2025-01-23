@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') }}
     steps:
     - name: Print vars
       run: |
@@ -129,10 +129,11 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add js/ dist/
+          git add js/ dist/ wiki/ README.md
           git commit -m "[Automated changes] JS files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push
+          git push --force
+
   live-tests:
     needs: build
     runs-on: ubuntu-latest

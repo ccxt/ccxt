@@ -919,7 +919,7 @@ public partial class deribit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.end_timestamp</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : fetch funding rate ending at this timestamp
     /// </description>

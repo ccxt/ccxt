@@ -1821,7 +1821,7 @@ class gate extends gate$1 {
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
             if (this.safeValue(result, code) === undefined) {
                 result[code] = {
-                    'id': code.toLowerCase(),
+                    'id': currency,
                     'code': code,
                     'info': undefined,
                     'name': undefined,

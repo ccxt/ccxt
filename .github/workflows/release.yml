@@ -1,0 +1,73 @@
+name: Release workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input value'
+        required: false
+        default: 'default-value'
+
+permissions:
+  contents: write
+
+jobs:
+  manual-job:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Print Trigger Info
+        run: |
+          echo "This workflow was triggered manually."
+          echo "Input value: ${{ github.event.inputs.example_input }}"
+      - uses: actions/checkout@v4
+        if: github.ref == 'refs/heads/master'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 2
+      - uses: actions/checkout@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          fetch-depth: 2
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+          run: |
+            sudo mkdir -p /usr/share/dotnet
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Composer install
+        run: composer install
+      - name: Install python dependencies
+        run: pip install -r ci-requirements.txt
+      - name: Transpile and Build
+        run: npm run force-build
+      - name: Base tests Rest
+        run: npm run test-base-rest
+      - name: Base tests Ws
+        run: npm run test-base-ws
+      - name: Id tests
+        run: npm run id-tests
+      - name: Request tests
+        run: npm run request-tests
+      - name: Response tests
+        run: npm run response-tests
+      - name: CommonJs tests
+        run: npm run commonjs-test
+      - name: Package Test
+        run: npm run package-test
+      - name: Freshness Test
+        run: npm run test-freshness

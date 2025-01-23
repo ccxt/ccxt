@@ -1792,7 +1792,7 @@ class gate(Exchange, ImplicitAPI):
             active = listed and tradeEnabled and withdrawEnabled and depositEnabled
             if self.safe_value(result, code) is None:
                 result[code] = {
-                    'id': code.lower(),
+                    'id': currency,
                     'code': code,
                     'info': None,
                     'name': None,
