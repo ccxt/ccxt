@@ -96,11 +96,23 @@ jobs:
           name: shared_env
           path: shared_env.txt
 
-    - name: Upload Python Files
+    - name: Upload Cs Files
       uses: actions/upload-artifact@v4
       with:
         name: cs-files
         path: cs/
+    - name: Push C# changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add cs/
+          git commit -m "[Automated changes] C# files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git push
+
 
   live-tests:
     needs: build

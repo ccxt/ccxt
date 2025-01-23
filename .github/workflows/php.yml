@@ -112,6 +112,18 @@ jobs:
         name: php-files
         path: php/
 
+    - name: Push PHP changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add php/
+          git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git push
+
   live-tests:
     needs: build
     runs-on: ubuntu-latest
