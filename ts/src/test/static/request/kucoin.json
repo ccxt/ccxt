@@ -508,6 +508,17 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch trades with limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/v1/hf/fills?symbol=LTC-USDT&limit=5",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    5
+                ],
+                "output": null
+            },
+            {
                 "description": "spot with hf:true",
                 "method": "fetchMyTrades",
                 "url": "https://api.kucoin.com/api/v1/hf/fills?symbol=ETH-USDT",
