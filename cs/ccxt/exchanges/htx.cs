@@ -7893,12 +7893,14 @@ public partial class htx : Exchange
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
+                request = ((object)this.keysort(request));
                 if (isTrue(!isEqual(method, "POST")))
                 {
-                    request = this.extend(request, query);
+                    object sortedQuery = ((object)this.keysort(query));
+                    request = this.extend(request, sortedQuery);
                 }
-                request = ((object)this.keysort(request));
-                object auth = this.urlencode(request);
+                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
