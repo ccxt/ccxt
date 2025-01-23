@@ -15,6 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     steps:
+    - name: Print vars
+      run: |
+          echo "GITHUB_ACTOR: {{ github.actor }}"
+          echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
+          echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
+          echo "GITHUB_REF: {{ github.ref }}"
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
