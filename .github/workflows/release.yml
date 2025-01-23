@@ -1,0 +1,25 @@
+name: Manual Trigger Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input value'
+        required: false
+        default: 'default-value'
+
+jobs:
+  manual-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print Trigger Info
+        run: |
+          echo "This workflow was triggered manually."
+          echo "Input value: ${{ github.event.inputs.example_input }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run your task
+        run: echo "Performing tasks for a manually triggered workflow."
