@@ -8,6 +8,9 @@ on:
         required: false
         default: 'default-value'
 
+permissions:
+  contents: write
+
 jobs:
   manual-job:
     runs-on: ubuntu-latest
