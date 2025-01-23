@@ -6358,14 +6358,14 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerDirectionAndParams (params, exchangeSpecificKey: string, allowEmpty: Bool = false) {
+    handleTriggerDirectionAndParams (params, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false) {
         /**
          * @ignore
          * @method
          * @returns {[string, object]} the trigger-direction value and omited params
          */
         let triggerDirection = this.safeString (params, 'triggerDirection');
-        const exchangeSpecificDefined = (exchangeSpecificKey in params);
+        const exchangeSpecificDefined = (exchangeSpecificKey !== undefined) && (exchangeSpecificKey in params);
         if (triggerDirection !== undefined) {
             params = this.omit (params, 'triggerDirection');
         }
