@@ -6563,15 +6563,14 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const tif = this.safeString (params, 'timeInForce');
-        if (timeInForceIsRequired && (tif === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce', 'GTC'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
+            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
             request['timeInForce'] = 'GTX';
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        if (tif === 'PO') {
+        if (this.safeString (params, 'timeInForce') === 'PO') {
             params = this.omit (params, 'timeInForce');
         }
         const hedged = this.safeBool (params, 'hedged', false);
