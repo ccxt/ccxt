@@ -14,6 +14,74 @@
     "methods": {
         "createOrder": [
             {
+                "description": "spot buy +limit +triggerPrice +ascending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    241,
+                    {
+                        "triggerPrice": 252,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "timestamp=1737624686280&symbol=SOLUSDT&side=BUY&newClientOrderId=x-R4BD3S82d6dfa8e70ee84e35a48925&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.05&price=241&stopPrice=252&timeInForce=GTC&recvWindow=10000&signature=3e4d1929b0c7f1583cd1fe014cdfa6a6b68ea8a6ab7a17b64a78c62c9da65609"
+            },
+            {
+                "description": "spot sell +limit +triggerPrice +ascending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    241,
+                    {
+                        "triggerPrice": 252,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "timestamp=1737624737411&symbol=SOLUSDT&side=SELL&newClientOrderId=x-R4BD3S82838a14eb21864e9fa1a625&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.05&price=241&stopPrice=252&timeInForce=GTC&recvWindow=10000&signature=4d7c9c913fb335a5ff68f3ba8c30443b573a07ed445c7e3941d43cb12ee23f61"
+            },
+            {
+                "description": "spot buy +limit +triggerPrice +descending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "SOL/USDT",
+                  "limit",
+                  "buy",
+                  0.05,
+                  241,
+                  {
+                    "triggerPrice": 246,
+                    "triggerDirection": "descending"
+                  }
+                ],
+                "output": "timestamp=1737623172685&symbol=SOLUSDT&side=BUY&newClientOrderId=x-R4BD3S82c11ac63a17aa43c9841358&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.05&price=241&stopPrice=246&timeInForce=GTC&recvWindow=10000&signature=761e6f89a142049cb0cd12a790e47eb896e141ced4fb54ce9208fdd2b0dfafb7"
+            },
+            {
+                "description": "spot sell +limit +triggerPrice +descending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    241,
+                    {
+                        "triggerPrice": 247,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "timestamp=1737624508789&symbol=SOLUSDT&side=SELL&newClientOrderId=x-R4BD3S82176078f0a17a49669dec33&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.05&price=241&stopPrice=247&timeInForce=GTC&recvWindow=10000&signature=f8b2f047c67eea5ab66bd6bf5a8904e037b56035923604e529d481d3f9487ba7"
+            },
+            {
                 "description": "Spot market buy order",
                 "method": "createOrder",
                 "url": "https://testnet.binance.vision/api/v3/order",
@@ -457,23 +525,6 @@
                   }
                 ],
                 "output": "timestamp=1727850728450&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu7115017eb3284b84905830&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=SHORT&recvWindow=10000&signature=5709d8de55d46bce7ef997580b9a223d3145772c1d5c22160b53e4539246b9b2"
-            },
-            {
-                "description": "spot buy +limit +triggerPrice +triggerDirection",
-                "method": "createOrder",
-                "url": "https://api.binance.com/api/v3/order",
-                "input": [
-                  "SOL/USDT",
-                  "limit",
-                  "buy",
-                  0.05,
-                  241,
-                  {
-                    "triggerPrice": 246,
-                    "triggerDirection": "descending"
-                  }
-                ],
-                "output": "timestamp=1737623172685&symbol=SOLUSDT&side=BUY&newClientOrderId=x-R4BD3S82c11ac63a17aa43c9841358&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.05&price=241&stopPrice=246&timeInForce=GTC&recvWindow=10000&signature=761e6f89a142049cb0cd12a790e47eb896e141ced4fb54ce9208fdd2b0dfafb7"
             }
         ],
         "createOrders": [
