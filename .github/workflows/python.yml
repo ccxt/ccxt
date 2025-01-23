@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, '[Automated changes]')
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
