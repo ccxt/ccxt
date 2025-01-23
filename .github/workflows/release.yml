@@ -38,6 +38,9 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '7.0.x'
