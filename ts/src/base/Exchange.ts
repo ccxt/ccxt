@@ -2723,12 +2723,10 @@ export default class Exchange {
     }
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
-        const value = this.safeNumber (obj, key, defaultValue);
+        const value = this.safeString (obj, key);
         // in some langs (eg. PHP), double/integer comparison should be done separately
-        if (value === 0 || value === 0.0 || (typeof value === 'string' && Precise.stringEq (value, '0'))) {
-            return undefined;
-        }
-        return value;
+        const final = this.parseNumber (this.omitZero (value));
+        return (final === undefined) ? defaultValue : final;
     }
 
     safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
