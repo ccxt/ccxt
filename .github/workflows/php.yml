@@ -41,6 +41,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
+        cache: true
     - uses: actions/setup-node@v4
       with:
         node-version: '20'

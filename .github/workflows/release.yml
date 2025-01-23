@@ -45,7 +45,6 @@ jobs:
         with:
           dotnet-version: '7.0.x'
           dotnet-quality: 'preview'
-          cache: false
           run: |
             sudo mkdir -p /usr/share/dotnet
       - name: Install NPM dependencies
@@ -67,7 +66,7 @@ jobs:
       - name: Response tests
         run: npm run response-tests
       - name: CommonJs tests
-        run: npm run commonjs-tests
+        run: npm run commonjs-test
       - name: Package Test
         run: npm run package-test
       - name: Freshness Test
