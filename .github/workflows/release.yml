@@ -30,6 +30,9 @@ jobs:
         with:
           dotnet-version: '7.0.x'
           dotnet-quality: 'preview'
+          cache: false
+          run: |
+            sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-python@v2
         with:
           python-version: '3.11'
