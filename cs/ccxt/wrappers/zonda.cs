@@ -284,6 +284,7 @@ public partial class zonda
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.zondacrypto.exchange/reference/new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
