@@ -2808,12 +2808,14 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # for spot, default 'hedged' to False
             if marketType == 'spot':
+                # default 'hedged': False
                 featuresObj['createOrder']['hedged'] = False
+                # default 'leverage': False
+                if not ('leverage' in featuresObj['createOrder']):
+                    featuresObj['createOrder']['leverage'] = False
             # default 'GTC' to True
-            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
-            if gtcValue is None:
+            if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
