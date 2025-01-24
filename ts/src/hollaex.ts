@@ -1986,6 +1986,7 @@ export default class hollaex extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;
         }
@@ -1993,7 +1994,7 @@ export default class hollaex extends Exchange {
             //
             //  { "message": "Invalid token" }
             //
-            // different errors return the same code eg:
+            // different errors return the same code eg
             //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //

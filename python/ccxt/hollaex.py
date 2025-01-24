@@ -1912,13 +1912,14 @@ class hollaex(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        # {"message": "Invalid token"}
         if response is None:
             return None
         if (code >= 400) and (code <= 503):
             #
             #  {"message": "Invalid token"}
             #
-            # different errors return the same code eg:
+            # different errors return the same code eg
             #
             #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
             #

@@ -13,14 +13,35 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
+    - name: Print vars
+      run: |
+          echo "GITHUB_ACTOR: {{ github.actor }}"
+          echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
+          echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
+          echo "GITHUB_REF: {{ github.ref }}"
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - name: Setup PHP with PECL extension
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
+        cache: true
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -91,6 +112,20 @@ jobs:
       with:
         name: php-files
         path: php/
+
+    - name: Push PHP changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add php/
+          git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull origin master
+          git push
 
   live-tests:
     needs: build

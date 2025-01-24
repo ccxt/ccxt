@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.49';
+$version = '4.4.50';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.49';
+    const VERSION = '4.4.50';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3458,13 +3458,16 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
+                // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage' => false
+                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage', $featuresObj['createOrder']))) {
+                    $featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
-            if ($gtcValue === null) {
+            if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
                 $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }

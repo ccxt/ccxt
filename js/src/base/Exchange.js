@@ -2295,6 +2295,11 @@ export default class Exchange {
         const res = this.parseToNumeric((value % 1));
         return res === 0;
     }
+    safeNumberOmitZero(obj, key, defaultValue = undefined) {
+        const value = this.safeString(obj, key);
+        const final = this.parseNumber(this.omitZero(value));
+        return (final === undefined) ? defaultValue : final;
+    }
     safeIntegerOmitZero(obj, key, defaultValue = undefined) {
         const timestamp = this.safeInteger(obj, key, defaultValue);
         if (timestamp === undefined || timestamp === 0) {
@@ -2390,13 +2395,16 @@ export default class Exchange {
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
-            // for spot, default 'hedged' to false
             if (marketType === 'spot') {
+                // default 'hedged': false
                 featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage': false
+                if (!('leverage' in featuresObj['createOrder'])) {
+                    featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
-            if (gtcValue === undefined) {
+            if (this.safeBool(featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
                 featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }

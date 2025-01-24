@@ -4543,12 +4543,11 @@ public partial class binance : Exchange
         object type = ((bool) isTrue((isEqual(timestamp, null)))) ? "spot" : "swap";
         object marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
-        object price = this.safeNumber(entry, "price");
         return new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "price", price },
+            { "price", this.safeNumberOmitZero(entry, "price") },
             { "side", null },
             { "info", entry },
         };
@@ -5248,13 +5247,15 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
         }
+        object method = this.safeString(this.options, "fetchTradesMethod");
+        method = this.safeString2(parameters, "fetchTradesMethod", "method", method);
         if (isTrue(!isEqual(limit, null)))
         {
             object isFutureOrSwap = (isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")));
-            ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, 1000) : limit; // default = 500, maximum = 1000
+            object isHistoricalEndpoint = isTrue((!isEqual(method, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(method, "GetHistoricalTrades"), 0)));
+            object maxLimitForContractHistorical = ((bool) isTrue(isHistoricalEndpoint)) ? 500 : 1000;
+            ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
-        object method = this.safeString(this.options, "fetchTradesMethod");
-        method = this.safeString2(parameters, "fetchTradesMethod", "method", method);
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
         object response = null;
         if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))

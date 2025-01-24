@@ -3218,15 +3218,15 @@ export default class kucoin extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
         const method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
         let response = undefined;
         [request, params] = this.handleUntilOption('endAt', request, params);
         if (hf) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;

@@ -3100,14 +3100,14 @@ class kucoin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if limit is not None:
-            request['pageSize'] = limit
         method = self.options['fetchMyTradesMethod']
         parseResponseData = False
         response = None
         request, params = self.handle_until_option('endAt', request, params)
         if hf:
             # does not return trades earlier than 2019-02-18T00:00:00Z
+            if limit is not None:
+                request['limit'] = limit
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since

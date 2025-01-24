@@ -4481,12 +4481,11 @@ export default class binance extends Exchange {
         const type = (timestamp === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString (entry, 'symbol');
         market = this.safeMarket (marketId, market, undefined, type);
-        const price = this.safeNumber (entry, 'price');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'price': price,
+            'price': this.safeNumberOmitZero (entry, 'price'),
             'side': undefined,
             'info': entry,
         };
@@ -5117,12 +5116,14 @@ export default class binance extends Exchange {
                 request['endTime'] = until;
             }
         }
-        if (limit !== undefined) {
-            const isFutureOrSwap = (market['swap'] || market['future']);
-            request['limit'] = isFutureOrSwap ? Math.min (limit, 1000) : limit; // default = 500, maximum = 1000
-        }
         let method = this.safeString (this.options, 'fetchTradesMethod');
         method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
+        if (limit !== undefined) {
+            const isFutureOrSwap = (market['swap'] || market['future']);
+            const isHistoricalEndpoint = (method !== undefined) && (method.indexOf ('GetHistoricalTrades') >= 0);
+            const maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
+            request['limit'] = isFutureOrSwap ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
+        }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
         let response = undefined;
         if (market['option'] || method === 'eapiPublicGetTrades') {

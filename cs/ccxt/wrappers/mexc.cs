@@ -348,6 +348,12 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK', default is 'GTC'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.leverage</term>
     /// <description>
     /// int : *contract only* leverage is necessary on isolated margin

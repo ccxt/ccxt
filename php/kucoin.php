@@ -3212,15 +3212,15 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
         $method = $this->options['fetchMyTradesMethod'];
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);
         if ($hf) {
             // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
             if ($since !== null) {
                 // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;

@@ -4401,12 +4401,11 @@ class binance(Exchange, ImplicitAPI):
         type = 'spot' if (timestamp is None) else 'swap'
         marketId = self.safe_string(entry, 'symbol')
         market = self.safe_market(marketId, market, None, type)
-        price = self.safe_number(entry, 'price')
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'price': price,
+            'price': self.safe_number_omit_zero(entry, 'price'),
             'side': None,
             'info': entry,
         }
@@ -5001,11 +5000,13 @@ class binance(Exchange, ImplicitAPI):
             until = self.safe_integer(params, 'until')
             if until is not None:
                 request['endTime'] = until
-        if limit is not None:
-            isFutureOrSwap = (market['swap'] or market['future'])
-            request['limit'] = min(limit, 1000) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         method = self.safe_string(self.options, 'fetchTradesMethod')
         method = self.safe_string_2(params, 'fetchTradesMethod', 'method', method)
+        if limit is not None:
+            isFutureOrSwap = (market['swap'] or market['future'])
+            isHistoricalEndpoint = (method is not None) and (method.find('GetHistoricalTrades') >= 0)
+            maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
+            request['limit'] = min(limit, maxLimitForContractHistorical) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
         response = None
         if market['option'] or method == 'eapiPublicGetTrades':

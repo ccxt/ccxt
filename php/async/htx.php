@@ -7484,11 +7484,13 @@ class htx extends Exchange {
                     'AccessKeyId' => $this->apiKey,
                     'Timestamp' => $timestamp,
                 );
-                if ($method !== 'POST') {
-                    $request = $this->extend($request, $query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at => https://github.com/ccxt/ccxt/issues/24930 )
                 $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                if ($method !== 'POST') {
+                    $sortedQuery = $this->keysort($query);
+                    $request = $this->extend($request, $sortedQuery);
+                }
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');

@@ -2235,7 +2235,7 @@ class mexc(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
-
+        :param str [params.timeInForce]: 'IOC' or 'FOK', default is 'GTC'
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
         :param long [params.positionId]: *contract only* it is recommended to hasattr(self, fill) parameter when closing a position
@@ -2290,6 +2290,13 @@ class mexc(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
         if postOnly:
             request['type'] = 'LIMIT_MAKER'
+        tif = self.safe_string(params, 'timeInForce')
+        if tif is not None:
+            params = self.omit(params, 'timeInForce')
+            if tif == 'IOC':
+                request['type'] = 'IMMEDIATE_OR_CANCEL'
+            elif tif == 'FOK':
+                request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
     async def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
@@ -5709,12 +5716,20 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/' + path
             else:
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
-            paramsEncoded = ''
+            urlParams = params
             if access == 'private':
-                params['timestamp'] = self.nonce()
-                params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
-            if params:
-                paramsEncoded = self.urlencode(params)
+                if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
+                    urlParams = {
+                        'timestamp': self.nonce(),
+                        'recvWindow': self.safe_integer(self.options, 'recvWindow', 5000),
+                    }
+                    body = self.json(params)
+                else:
+                    urlParams['timestamp'] = self.nonce()
+                    urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
+            paramsEncoded = ''
+            if urlParams:
+                paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
                 self.check_required_credentials()

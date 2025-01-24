@@ -1981,6 +1981,7 @@ class hollaex extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+        // array( "message" => "Invalid token" )
         if ($response === null) {
             return null;
         }
@@ -1988,7 +1989,7 @@ class hollaex extends Exchange {
             //
             //  array( "message" => "Invalid token" )
             //
-            // different errors return the same $code eg:
+            // different errors return the same $code eg
             //
             //  array( "message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order." )
             //
