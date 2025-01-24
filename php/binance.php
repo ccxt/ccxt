@@ -4469,12 +4469,11 @@ class binance extends Exchange {
         $type = ($timestamp === null) ? 'spot' : 'swap';
         $marketId = $this->safe_string($entry, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $type);
-        $price = $this->safe_number($entry, 'price');
         return array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'price' => $price,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
             'side' => null,
             'info' => $entry,
         );

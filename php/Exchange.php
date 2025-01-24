@@ -3362,6 +3362,12 @@ class Exchange {
         return $res === 0;
     }
 
+    public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
+        $value = $this->safe_string($obj, $key);
+        $final = $this->parse_number($this->omit_zero($value));
+        return ($final === null) ? $defaultValue : $final;
+    }
+
     public function safe_integer_omit_zero(array $obj, int|string $key, ?int $defaultValue = null) {
         $timestamp = $this->safe_integer($obj, $key, $defaultValue);
         if ($timestamp === null || $timestamp === 0) {
