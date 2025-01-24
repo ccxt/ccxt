@@ -38,6 +38,8 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.1
       - name: create usr/share/dotnet folder
         run: |
           sudo mkdir -p /usr/share/dotnet
