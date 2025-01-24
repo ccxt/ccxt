@@ -1476,14 +1476,18 @@ public partial class Exchange
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             }
-            // for spot, default 'hedged' to false
             if (isTrue(isEqual(marketType, "spot")))
             {
+                // default 'hedged': false
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
+                // default 'leverage': false
+                if (!isTrue((inOp(getValue(featuresObj, "createOrder"), "leverage"))))
+                {
+                    ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["leverage"] = false;
+                }
             }
             // default 'GTC' to true
-            object gtcValue = this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "gtc");
-            if (isTrue(isEqual(gtcValue, null)))
+            if (isTrue(isEqual(this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "GTC"), null)))
             {
                 ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["GTC"] = true;
             }
