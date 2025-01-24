@@ -4510,12 +4510,11 @@ class binance extends binance$1 {
         const type = (timestamp === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString(entry, 'symbol');
         market = this.safeMarket(marketId, market, undefined, type);
-        const price = this.safeNumber(entry, 'price');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'price': price,
+            'price': this.safeNumberOmitZero(entry, 'price'),
             'side': undefined,
             'info': entry,
         };
