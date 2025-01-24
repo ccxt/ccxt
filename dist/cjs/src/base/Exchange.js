@@ -2407,13 +2407,16 @@ class Exchange {
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
-            // for spot, default 'hedged' to false
             if (marketType === 'spot') {
+                // default 'hedged': false
                 featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage': false
+                if (!('leverage' in featuresObj['createOrder'])) {
+                    featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
-            if (gtcValue === undefined) {
+            if (this.safeBool(featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
                 featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
