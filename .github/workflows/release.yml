@@ -71,3 +71,33 @@ jobs:
         run: npm run package-test
       - name: Freshness Test
         run: npm run test-freshness
+      # Will start the deployment process
+      - name: Set new Version
+        run: |
+          npm config set git-tag-version=false
+          NPM_VERSION=$(npm version patch)
+          echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
+          COMMIT_MESSAGE=${NPM_VERSION:1}
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+      - name: vss and copy python-files
+        run: npm run vss && npm run copy-python-files
+      - name: Create GH Release and git-tag-version
+        run: |
+               git tag -a "${COMMIT_MESSAGE}"
+               echo "Creating github release..."
+               gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
+
+      - name: C# Release Build
+        run: npm run buildCSRelease
+      - name: Deploy C#
+        env:
+          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: ./cs/deploy.sh;
+      - name: Deploy Python
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: cd python && ./deploy.sh && cd ..;
+      - name: Deploy NPM
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
