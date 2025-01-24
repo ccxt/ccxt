@@ -81,9 +81,16 @@ jobs:
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
-      - name: Create GH Release and git-tag-version
+      - name: Commit files
+        run: git add . -A
+      - name: Git status
+        run: git status
+      - name: cleanup old tags
+        run: npm run cleanup-old-tags --limit
+      - name: Create GH Release and git-tag-version and push
         run: |
                git tag -a "${COMMIT_MESSAGE}"
+               git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
 
