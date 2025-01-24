@@ -1364,6 +1364,13 @@ public partial class Exchange
         return isEqual(res, 0);
     }
 
+    public virtual object safeNumberOmitZero(object obj, object key, object defaultValue = null)
+    {
+        object value = this.safeString(obj, key);
+        object final = this.parseNumber(this.omitZero(value));
+        return ((bool) isTrue((isEqual(final, null)))) ? defaultValue : final;
+    }
+
     public virtual object safeIntegerOmitZero(object obj, object key, object defaultValue = null)
     {
         object timestamp = this.safeInteger(obj, key, defaultValue);

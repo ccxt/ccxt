@@ -4543,12 +4543,11 @@ public partial class binance : Exchange
         object type = ((bool) isTrue((isEqual(timestamp, null)))) ? "spot" : "swap";
         object marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
-        object price = this.safeNumber(entry, "price");
         return new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "price", price },
+            { "price", this.safeNumberOmitZero(entry, "price") },
             { "side", null },
             { "info", entry },
         };
