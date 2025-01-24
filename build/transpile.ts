@@ -103,6 +103,7 @@ class Transpiler {
             [ /\.safeDict2/g, '.safe_dict_2'],
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
+            [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
