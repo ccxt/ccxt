@@ -7606,6 +7606,54 @@ export default class Exchange {
             }
         }
     }
+
+    /**
+     * @ignore
+     * @method
+     * @description retrieves the until parameter in ms, given the timeframe, since, and the limit
+     * @param {string} timeframe candlestick timeframe
+     * @param {int} since timestamp
+     * @param {[int]} limit if not passed, default value for until is now
+     * @param {[int]} until user passed value for until, or undefined
+     * @returns {int} the until parameter
+     */
+    untilFromTimeframeSinceLimit (timeframe: string, since: int, limit: Int = undefined, until: Int = undefined): Int {
+        const present = this.milliseconds ();
+        let maxEnd = present;
+        if (limit !== undefined) {
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            const untilByLimit = since + duration * limit;
+            maxEnd = Math.min (untilByLimit, present);
+        }
+        if (until !== undefined) {
+            return Math.min (until, maxEnd);
+        } else {
+            return maxEnd;
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description retrieves the since parameter in ms, given the timeframe, limit and until
+     * @param {string} timeframe candlestick timeframe
+     * @param {int} until timestamp in ms
+     * @param {[int]} limit limit
+     * @param {[int]} since user passed value for since in ms, or undefined
+     * @returns {int} the since parameter
+     */
+    sinceFromTimeframeUntilLimit (timeframe: string, until: int, limit: Int = undefined, since: Int = undefined): Int {
+        if (since !== undefined) {
+            return since;
+        } else {
+            if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                return until - duration * limit;
+            } else {
+                return undefined;
+            }
+        }
+    }
 }
 
 export {
