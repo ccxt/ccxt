@@ -279,7 +279,7 @@ public partial class blofin : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "max", 1440 },
+                        { "limit", 1440 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -2152,7 +2152,7 @@ public partial class blofin : Exchange
 
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols

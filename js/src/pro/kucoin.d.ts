@@ -72,7 +72,7 @@ export default class kucoin extends kucoinRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
-     * @name kucoin#watchTrades
+     * @name kucoin#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
      * @param {string[]} symbols

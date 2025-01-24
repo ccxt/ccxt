@@ -201,6 +201,83 @@ class okcoin extends okcoin$1 {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true, // todo
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1 / 12,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'taker': 0.002,
@@ -611,12 +688,20 @@ class okcoin extends okcoin$1 {
     async fetchTime(params = {}) {
         const response = await this.publicGetPublicTime(params);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601(this.safeString(response, 'iso'));
+        const data = this.safeList(response, 'data');
+        const timestamp = this.safeDict(data, 0);
+        return this.safeInteger(timestamp, 'ts');
     }
     /**
      * @method
@@ -1510,7 +1595,7 @@ class okcoin extends okcoin$1 {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                 }
                 request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
@@ -1523,7 +1608,7 @@ class okcoin extends okcoin$1 {
                     }
                     else if (stopLossLimitOrderType) {
                         if (stopLossLimitPrice === undefined) {
-                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order');
                         }
                         else {
                             request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);

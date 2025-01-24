@@ -952,6 +952,8 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1771,6 +1773,9 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         let types = undefined;
         [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -7286,6 +7291,10 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
@@ -7299,7 +7308,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams (path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7374,18 +7383,20 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend (request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort (request) as any;
-                let auth = this.urlencode (request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort (query) as any;
+                    request = this.extend (request, sortedQuery);
+                }
+                let auth = this.urlencode (request).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');

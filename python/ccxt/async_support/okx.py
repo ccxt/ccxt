@@ -1140,6 +1140,8 @@ class okx(Exchange, ImplicitAPI):
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
                 'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                'timeDifference': 0,  # the difference between system clock and exchange server clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 # 'fetchBalance': {
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
@@ -1504,6 +1506,9 @@ class okx(Exchange, ImplicitAPI):
             })
         return result
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for okx
@@ -1513,6 +1518,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         types = self.safe_list(self.options, 'fetchMarkets', [])
         promises = []
         result = []
@@ -2750,9 +2757,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2769,9 +2778,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return await self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return await self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
@@ -5874,7 +5885,7 @@ class okx(Exchange, ImplicitAPI):
                     if clientOrderId is None:
                         params['clOrdId'] = brokerId + self.uuid16()
                         params['tag'] = brokerId
-            timestamp = self.iso8601(self.milliseconds())
+            timestamp = self.iso8601(self.nonce())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,
                 'OK-ACCESS-PASSPHRASE': self.password,

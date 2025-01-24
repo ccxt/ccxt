@@ -81,6 +81,21 @@ public partial class independentreserve : Exchange
         return await this.callAsync ("publicGetGetCryptoWithdrawalFees",parameters);
     }
 
+    public async Task<object> publicGetGetCryptoWithdrawalFees2 (object parameters = null)
+    {
+        return await this.callAsync ("publicGetGetCryptoWithdrawalFees2",parameters);
+    }
+
+    public async Task<object> publicGetGetNetworks (object parameters = null)
+    {
+        return await this.callAsync ("publicGetGetNetworks",parameters);
+    }
+
+    public async Task<object> publicGetGetPrimaryCurrencyConfig2 (object parameters = null)
+    {
+        return await this.callAsync ("publicGetGetPrimaryCurrencyConfig2",parameters);
+    }
+
     public async Task<object> privatePostGetOpenOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostGetOpenOrders",parameters);
@@ -121,9 +136,19 @@ public partial class independentreserve : Exchange
         return await this.callAsync ("privatePostGetDigitalCurrencyDepositAddress",parameters);
     }
 
+    public async Task<object> privatePostGetDigitalCurrencyDepositAddress2 (object parameters = null)
+    {
+        return await this.callAsync ("privatePostGetDigitalCurrencyDepositAddress2",parameters);
+    }
+
     public async Task<object> privatePostGetDigitalCurrencyDepositAddresses (object parameters = null)
     {
         return await this.callAsync ("privatePostGetDigitalCurrencyDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostGetDigitalCurrencyDepositAddresses2 (object parameters = null)
+    {
+        return await this.callAsync ("privatePostGetDigitalCurrencyDepositAddresses2",parameters);
     }
 
     public async Task<object> privatePostGetTrades (object parameters = null)
@@ -174,6 +199,11 @@ public partial class independentreserve : Exchange
     public async Task<object> privatePostWithdrawDigitalCurrency (object parameters = null)
     {
         return await this.callAsync ("privatePostWithdrawDigitalCurrency",parameters);
+    }
+
+    public async Task<object> privatePostWithdrawCrypto (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawCrypto",parameters);
     }
 
 }

@@ -697,7 +697,7 @@ export default class kraken extends Exchange {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                    if (!(currencyId.indexOf ('.') > 0)) {
+                    if (!(currencyId.indexOf ('.') > 0) && (currencyId !== 'ZEUS')) {
                         currencyId = currencyId.slice (1);
                     }
                 }

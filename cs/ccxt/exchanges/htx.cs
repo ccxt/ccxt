@@ -879,6 +879,8 @@ public partial class htx : Exchange
                         { "inverse", true },
                     } },
                 } },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchOHLCV", new Dictionary<string, object>() {
                     { "useHistoricalEndpointForSpot", true },
                 } },
@@ -1706,6 +1708,10 @@ public partial class htx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = null;
         var typesparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "types", new Dictionary<string, object>() {});
         types = ((IList<object>)typesparametersVariable)[0];
@@ -7761,6 +7767,11 @@ public partial class htx : Exchange
         };
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -7782,7 +7793,7 @@ public partial class htx : Exchange
             if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
             {
                 this.checkRequiredCredentials();
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
@@ -7875,19 +7886,21 @@ public partial class htx : Exchange
                         }
                     }
                 }
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
+                request = ((object)this.keysort(request));
                 if (isTrue(!isEqual(method, "POST")))
                 {
-                    request = this.extend(request, query);
+                    object sortedQuery = ((object)this.keysort(query));
+                    request = this.extend(request, sortedQuery);
                 }
-                request = ((object)this.keysort(request));
-                object auth = this.urlencode(request);
+                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");

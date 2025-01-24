@@ -469,7 +469,7 @@ export default class coinex extends Exchange {
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -4791,14 +4791,14 @@ export default class coinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag) {
-            address = address + ':' + tag;
-        }
         const request: Dict = {
             'ccy': currency['id'],
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {

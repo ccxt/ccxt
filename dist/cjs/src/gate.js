@@ -647,6 +647,8 @@ class gate extends gate$1 {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'unifiedAccount': undefined,
                 'createOrder': {
@@ -1160,6 +1162,9 @@ class gate extends gate$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let rawPromises = [
             this.fetchContractMarkets(params),
@@ -1816,7 +1821,7 @@ class gate extends gate$1 {
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
             if (this.safeValue(result, code) === undefined) {
                 result[code] = {
-                    'id': code.toLowerCase(),
+                    'id': currency,
                     'code': code,
                     'info': undefined,
                     'name': undefined,
@@ -6448,7 +6453,7 @@ class gate extends gate$1 {
     }
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowIsolatedMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
      * @param {string} symbol unified market symbol, required for isolated margin
@@ -6664,6 +6669,9 @@ class gate extends gate$1 {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
@@ -6737,7 +6745,8 @@ class gate extends gate$1 {
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
-            const timestamp = this.seconds();
+            const nonce = this.nonce();
+            const timestamp = this.parseToInt(nonce / 1000);
             const timestampString = timestamp.toString();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [method.toUpperCase(), signaturePath, queryString, bodySignature, timestampString];

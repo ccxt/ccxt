@@ -455,6 +455,7 @@ public partial class binance : Exchange
                         { "portfolio/repay-futures-switch", 3 },
                         { "portfolio/margin-asset-leverage", 5 },
                         { "portfolio/balance", 2 },
+                        { "portfolio/negative-balance-exchange-record", 2 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -4542,12 +4543,11 @@ public partial class binance : Exchange
         object type = ((bool) isTrue((isEqual(timestamp, null)))) ? "spot" : "swap";
         object marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
-        object price = this.safeNumber(entry, "price");
         return new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "price", price },
+            { "price", this.safeNumberOmitZero(entry, "price") },
             { "side", null },
             { "info", entry },
         };
@@ -5247,13 +5247,15 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
         }
+        object method = this.safeString(this.options, "fetchTradesMethod");
+        method = this.safeString2(parameters, "fetchTradesMethod", "method", method);
         if (isTrue(!isEqual(limit, null)))
         {
             object isFutureOrSwap = (isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")));
-            ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, 1000) : limit; // default = 500, maximum = 1000
+            object isHistoricalEndpoint = isTrue((!isEqual(method, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(method, "GetHistoricalTrades"), 0)));
+            object maxLimitForContractHistorical = ((bool) isTrue(isHistoricalEndpoint)) ? 500 : 1000;
+            ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
-        object method = this.safeString(this.options, "fetchTradesMethod");
-        method = this.safeString2(parameters, "fetchTradesMethod", "method", method);
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
         object response = null;
         if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))
@@ -7515,6 +7517,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
@@ -10164,21 +10167,26 @@ public partial class binance : Exchange
         //         "fundingTime": "1621267200000",
         //     }
         //
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object entry = getValue(response, i);
-            object timestamp = this.safeInteger(entry, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", this.safeSymbol(this.safeString(entry, "symbol"), null, null, "swap") },
-                { "fundingRate", this.safeNumber(entry, "fundingRate") },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
-        }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+
+    public override object parseFundingRateHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(this.safeString(contract, "symbol"), null, null, "swap") },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
     }
 
     /**
@@ -11199,7 +11207,7 @@ public partial class binance : Exchange
         //     }
         //
         object marketId = this.safeString(position, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         object symbol = getValue(market, "symbol");
         object side = this.safeStringLower(position, "side");
         object quantity = this.safeString(position, "quantity");

@@ -304,6 +304,105 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': True,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'marketType': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
             'timeframes': {
                 '1m': 'M1',
                 '3m': 'M3',

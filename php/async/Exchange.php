@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.46';
+$version = '4.4.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.46';
+    const VERSION = '4.4.50';
 
     public $browser;
     public $marketsLoading = null;
@@ -1557,13 +1557,16 @@ class Exchange extends \ccxt\Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
+                // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage' => false
+                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage', $featuresObj['createOrder']))) {
+                    $featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
-            if ($gtcValue === null) {
+            if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
                 $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
@@ -1640,6 +1643,81 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
+        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        $networks = $this->safe_dict($currency, 'networks', array());
+        $keys = is_array($networks) ? array_keys($networks) : array();
+        $length = count($keys);
+        if ($length !== 0) {
+            for ($i = 0; $i < $length; $i++) {
+                $network = $networks[$keys[$i]];
+                $deposit = $this->safe_bool($network, 'deposit');
+                if ($currency['deposit'] === null || $deposit) {
+                    $currency['deposit'] = $deposit;
+                }
+                $withdraw = $this->safe_bool($network, 'withdraw');
+                if ($currency['withdraw'] === null || $withdraw) {
+                    $currency['withdraw'] = $withdraw;
+                }
+                $active = $this->safe_bool($network, 'active');
+                if ($currency['active'] === null || $active) {
+                    $currency['active'] = $active;
+                }
+                // find lowest $fee (which is more desired)
+                $fee = $this->safe_string($network, 'fee');
+                $feeMain = $this->safe_string($currency, 'fee');
+                if ($feeMain === null || Precise::string_lt($fee, $feeMain)) {
+                    $currency['fee'] = $this->parse_number($fee);
+                }
+                // find lowest $precision (which is more desired)
+                $precision = $this->safe_string($network, 'precision');
+                $precisionMain = $this->safe_string($currency, 'precision');
+                if ($precisionMain === null || Precise::string_lt($precision, $precisionMain)) {
+                    $currency['precision'] = $this->parse_number($precision);
+                }
+                // $limits
+                $limits = $this->safe_dict($network, 'limits');
+                $limitsMain = $this->safe_dict($currency, 'limits');
+                if ($limitsMain === null) {
+                    $currency['limits'] = array();
+                }
+                // deposits
+                $limitsDeposit = $this->safe_dict($limits, 'deposit');
+                $limitsDepositMain = $this->safe_dict($limitsMain, 'deposit');
+                if ($limitsDepositMain === null) {
+                    $currency['limits']['deposit'] = array();
+                }
+                $limitsDepositMin = $this->safe_string($limitsDeposit, 'min');
+                $limitsDepositMax = $this->safe_string($limitsDeposit, 'max');
+                $limitsDepositMinMain = $this->safe_string($limitsDepositMain, 'min');
+                $limitsDepositMaxMain = $this->safe_string($limitsDepositMain, 'max');
+                // find min
+                if ($limitsDepositMinMain === null || Precise::string_lt($limitsDepositMin, $limitsDepositMinMain)) {
+                    $currency['limits']['deposit']['min'] = $this->parse_number($limitsDepositMin);
+                }
+                // find max
+                if ($limitsDepositMaxMain === null || Precise::string_gt($limitsDepositMax, $limitsDepositMaxMain)) {
+                    $currency['limits']['deposit']['max'] = $this->parse_number($limitsDepositMax);
+                }
+                // withdrawals
+                $limitsWithdraw = $this->safe_dict($limits, 'withdraw');
+                $limitsWithdrawMain = $this->safe_dict($limitsMain, 'withdraw');
+                if ($limitsWithdrawMain === null) {
+                    $currency['limits']['withdraw'] = array();
+                }
+                $limitsWithdrawMin = $this->safe_string($limitsWithdraw, 'min');
+                $limitsWithdrawMax = $this->safe_string($limitsWithdraw, 'max');
+                $limitsWithdrawMinMain = $this->safe_string($limitsWithdrawMain, 'min');
+                $limitsWithdrawMaxMain = $this->safe_string($limitsWithdrawMain, 'max');
+                // find min
+                if ($limitsWithdrawMinMain === null || Precise::string_lt($limitsWithdrawMin, $limitsWithdrawMinMain)) {
+                    $currency['limits']['withdraw']['min'] = $this->parse_number($limitsWithdrawMin);
+                }
+                // find max
+                if ($limitsWithdrawMaxMain === null || Precise::string_gt($limitsWithdrawMax, $limitsWithdrawMaxMain)) {
+                    $currency['limits']['withdraw']['max'] = $this->parse_number($limitsWithdrawMax);
+                }
+            }
+        }
         return $this->extend(array(
             'info' => null,
             'id' => null,

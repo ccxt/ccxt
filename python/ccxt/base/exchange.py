@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.46'
+__version__ = '4.4.50'
 
 # -----------------------------------------------------------------------------
 
@@ -2724,6 +2724,11 @@ class Exchange(object):
         res = self.parse_to_numeric((value % 1))
         return res == 0
 
+    def safe_number_omit_zero(self, obj: object, key: IndexType, defaultValue: Num = None):
+        value = self.safe_string(obj, key)
+        final = self.parse_number(self.omit_zero(value))
+        return defaultValue if (final is None) else final
+
     def safe_integer_omit_zero(self, obj: object, key: IndexType, defaultValue: Int = None):
         timestamp = self.safe_integer(obj, key, defaultValue)
         if timestamp is None or timestamp == 0:
@@ -2808,12 +2813,14 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # for spot, default 'hedged' to False
             if marketType == 'spot':
+                # default 'hedged': False
                 featuresObj['createOrder']['hedged'] = False
+                # default 'leverage': False
+                if not ('leverage' in featuresObj['createOrder']):
+                    featuresObj['createOrder']['leverage'] = False
             # default 'GTC' to True
-            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
-            if gtcValue is None:
+            if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
@@ -2876,6 +2883,67 @@ class Exchange(object):
         }
 
     def safe_currency_structure(self, currency: object):
+        # derive data from networks: deposit, withdraw, active, fee, limits, precision
+        networks = self.safe_dict(currency, 'networks', {})
+        keys = list(networks.keys())
+        length = len(keys)
+        if length != 0:
+            for i in range(0, length):
+                network = networks[keys[i]]
+                deposit = self.safe_bool(network, 'deposit')
+                if currency['deposit'] is None or deposit:
+                    currency['deposit'] = deposit
+                withdraw = self.safe_bool(network, 'withdraw')
+                if currency['withdraw'] is None or withdraw:
+                    currency['withdraw'] = withdraw
+                active = self.safe_bool(network, 'active')
+                if currency['active'] is None or active:
+                    currency['active'] = active
+                # find lowest fee(which is more desired)
+                fee = self.safe_string(network, 'fee')
+                feeMain = self.safe_string(currency, 'fee')
+                if feeMain is None or Precise.string_lt(fee, feeMain):
+                    currency['fee'] = self.parse_number(fee)
+                # find lowest precision(which is more desired)
+                precision = self.safe_string(network, 'precision')
+                precisionMain = self.safe_string(currency, 'precision')
+                if precisionMain is None or Precise.string_lt(precision, precisionMain):
+                    currency['precision'] = self.parse_number(precision)
+                # limits
+                limits = self.safe_dict(network, 'limits')
+                limitsMain = self.safe_dict(currency, 'limits')
+                if limitsMain is None:
+                    currency['limits'] = {}
+                # deposits
+                limitsDeposit = self.safe_dict(limits, 'deposit')
+                limitsDepositMain = self.safe_dict(limitsMain, 'deposit')
+                if limitsDepositMain is None:
+                    currency['limits']['deposit'] = {}
+                limitsDepositMin = self.safe_string(limitsDeposit, 'min')
+                limitsDepositMax = self.safe_string(limitsDeposit, 'max')
+                limitsDepositMinMain = self.safe_string(limitsDepositMain, 'min')
+                limitsDepositMaxMain = self.safe_string(limitsDepositMain, 'max')
+                # find min
+                if limitsDepositMinMain is None or Precise.string_lt(limitsDepositMin, limitsDepositMinMain):
+                    currency['limits']['deposit']['min'] = self.parse_number(limitsDepositMin)
+                # find max
+                if limitsDepositMaxMain is None or Precise.string_gt(limitsDepositMax, limitsDepositMaxMain):
+                    currency['limits']['deposit']['max'] = self.parse_number(limitsDepositMax)
+                # withdrawals
+                limitsWithdraw = self.safe_dict(limits, 'withdraw')
+                limitsWithdrawMain = self.safe_dict(limitsMain, 'withdraw')
+                if limitsWithdrawMain is None:
+                    currency['limits']['withdraw'] = {}
+                limitsWithdrawMin = self.safe_string(limitsWithdraw, 'min')
+                limitsWithdrawMax = self.safe_string(limitsWithdraw, 'max')
+                limitsWithdrawMinMain = self.safe_string(limitsWithdrawMain, 'min')
+                limitsWithdrawMaxMain = self.safe_string(limitsWithdrawMain, 'max')
+                # find min
+                if limitsWithdrawMinMain is None or Precise.string_lt(limitsWithdrawMin, limitsWithdrawMinMain):
+                    currency['limits']['withdraw']['min'] = self.parse_number(limitsWithdrawMin)
+                # find max
+                if limitsWithdrawMaxMain is None or Precise.string_gt(limitsWithdrawMax, limitsWithdrawMaxMain):
+                    currency['limits']['withdraw']['max'] = self.parse_number(limitsWithdrawMax)
         return self.extend({
             'info': None,
             'id': None,

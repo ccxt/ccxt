@@ -274,6 +274,88 @@ class deribit extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => true, // todo
+                        'leverage' => false,
+                        'marketBuyByCost' => true, // todo
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // todo => recheck
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'exceptions' => array(
                 // 0 or absent Success, No error.
                 '9999' => '\\ccxt\\PermissionDenied', // 'api_not_enabled' User didn't enable API for the Account.
@@ -3099,7 +3181,7 @@ class deribit extends Exchange {
          * @param {int} [$since] the earliest $time in ms to fetch funding $rate history for
          * @param {int} [$limit] the maximum number of entries to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->end_timestamp] fetch funding $rate ending at this timestamp
+         * @param {int} [$params->until] fetch funding $rate ending at this timestamp
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
          */
@@ -3114,12 +3196,20 @@ class deribit extends Exchange {
         $month = 30 * 24 * 60 * 60 * 1000;
         if ($since === null) {
             $since = $time - $month;
+        } else {
+            $time = $since . $month;
         }
         $request = array(
             'instrument_name' => $market['id'],
             'start_timestamp' => $since - 1,
-            'end_timestamp' => $time,
         );
+        $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['end_timestamp'] = $until;
+        } else {
+            $request['end_timestamp'] = $time;
+        }
         $response = $this->publicGetGetFundingRateHistory ($this->extend($request, $params));
         //
         //    {

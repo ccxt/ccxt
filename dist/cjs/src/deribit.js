@@ -278,6 +278,88 @@ class deribit extends deribit$1 {
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 // 0 or absent Success, No error.
                 '9999': errors.PermissionDenied,
@@ -3079,7 +3161,7 @@ class deribit extends deribit$1 {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3091,16 +3173,26 @@ class deribit extends deribit$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720);
         }
-        const time = this.milliseconds();
+        let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
             since = time - month;
         }
+        else {
+            time = since + month;
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         };
+        const until = this.safeInteger2(params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_timestamp'] = until;
+        }
+        else {
+            request['end_timestamp'] = time;
+        }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
         //
         //    {

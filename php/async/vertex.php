@@ -325,6 +325,69 @@ class vertex extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'brokerId' => 5930043274845996,
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => true, // todo
+                        'takeProfitPrice' => true, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true, // todo
+                        'marketBuyRequiresPrice' => true, // todo fix implementation
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null, // todo, only for trigger
+                    'fetchClosedOrders' => null, // todo through fetchOrders
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -2240,7 +2303,7 @@ class vertex extends Exchange {
                 //       "product_id" => 1,
                 //       "orders" => array(
                 //         array(
-                //           "product_id" => 1,
+                //           "product_id" => 2,
                 //           "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
                 //           "price_x18" => "1000000000000000000",
                 //           "amount" => "1000000000000000000",
@@ -2249,7 +2312,7 @@ class vertex extends Exchange {
                 //           "order_type" => "default",
                 //           "unfilled_amount" => "1000000000000000000",
                 //           "digest" => "0x0000000000000000000000000000000000000000000000000000000000000000",
-                //           "placed_at" => 1682437739,
+                //           "placed_at" => 1682437737,
                 //           "order_type" => "ioc"
                 //         }
                 //       )

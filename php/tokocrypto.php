@@ -592,6 +592,79 @@ class tokocrypto extends Exchange {
                     'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => true, // todo
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -610,9 +683,14 @@ class tokocrypto extends Exchange {
          */
         $response = $this->publicGetOpenV1CommonTime ($params);
         //
+        // {
+        //     "code" => 0,
+        //     "msg" => "Success",
+        //     "data" => null,
+        //     "timestamp" => 1737378074159
+        // }
         //
-        //
-        return $this->safe_integer($response, 'serverTime');
+        return $this->safe_integer($response, 'timestamp');
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1596,7 +1674,6 @@ class tokocrypto extends Exchange {
          * create a trade order
          *
          * @see https://www.tokocrypto.com/apidocs/#new-order--signed
-         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1774,7 +1851,7 @@ class tokocrypto extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
+         * @see https://www.tokocrypto.com/apidocs/#query-order-signed
          *
          * fetches information on an order made by the user
          * @param {string} $id order $id

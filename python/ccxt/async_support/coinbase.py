@@ -378,6 +378,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'createMarketBuyOrderRequiresPrice': True,
                 'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference': 0,  # the difference between system clock and exchange server clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
@@ -1256,6 +1258,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         if method == 'fetchMarketsV3':
             return await self.fetch_markets_v3(params)
@@ -4683,6 +4687,9 @@ class coinbase(Exchange, ImplicitAPI):
         token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
         return token
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
@@ -4744,7 +4751,9 @@ class coinbase(Exchange, ImplicitAPI):
                     # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
                     authorizationString = 'Bearer ' + token
                 else:
-                    timestampString = str(self.seconds())
+                    nonce = self.nonce()
+                    timestamp = self.parse_to_int(nonce / 1000)
+                    timestampString = str(timestamp)
                     auth = timestampString + method + savedPath + payload
                     signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                     headers = {

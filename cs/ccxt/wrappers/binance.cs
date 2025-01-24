@@ -1035,6 +1035,12 @@ public partial class binance
     /// string : set to true if you would like to fetch portfolio margin account stop or conditional orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch for a portfolio margin account
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

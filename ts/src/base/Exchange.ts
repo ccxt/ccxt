@@ -2727,6 +2727,12 @@ export default class Exchange {
         return res === 0;
     }
 
+    safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
+        const value = this.safeString (obj, key);
+        const final = this.parseNumber (this.omitZero (value));
+        return (final === undefined) ? defaultValue : final;
+    }
+
     safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
         const timestamp = this.safeInteger (obj, key, defaultValue);
         if (timestamp === undefined || timestamp === 0) {
@@ -2823,13 +2829,16 @@ export default class Exchange {
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
-            // for spot, default 'hedged' to false
             if (marketType === 'spot') {
+                // default 'hedged': false
                 featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage': false
+                if (!('leverage' in featuresObj['createOrder'])) {
+                    featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            const gtcValue = this.safeBool (featuresObj['createOrder']['timeInForce'], 'gtc');
-            if (gtcValue === undefined) {
+            if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
                 featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
@@ -2906,6 +2915,81 @@ export default class Exchange {
     }
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
+        // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const networks = this.safeDict (currency, 'networks', {});
+        const keys = Object.keys (networks);
+        const length = keys.length;
+        if (length !== 0) {
+            for (let i = 0; i < length; i++) {
+                const network = networks[keys[i]];
+                const deposit = this.safeBool (network, 'deposit');
+                if (currency['deposit'] === undefined || deposit) {
+                    currency['deposit'] = deposit;
+                }
+                const withdraw = this.safeBool (network, 'withdraw');
+                if (currency['withdraw'] === undefined || withdraw) {
+                    currency['withdraw'] = withdraw;
+                }
+                const active = this.safeBool (network, 'active');
+                if (currency['active'] === undefined || active) {
+                    currency['active'] = active;
+                }
+                // find lowest fee (which is more desired)
+                const fee = this.safeString (network, 'fee');
+                const feeMain = this.safeString (currency, 'fee');
+                if (feeMain === undefined || Precise.stringLt (fee, feeMain)) {
+                    currency['fee'] = this.parseNumber (fee);
+                }
+                // find lowest precision (which is more desired)
+                const precision = this.safeString (network, 'precision');
+                const precisionMain = this.safeString (currency, 'precision');
+                if (precisionMain === undefined || Precise.stringLt (precision, precisionMain)) {
+                    currency['precision'] = this.parseNumber (precision);
+                }
+                // limits
+                const limits = this.safeDict (network, 'limits');
+                const limitsMain = this.safeDict (currency, 'limits');
+                if (limitsMain === undefined) {
+                    currency['limits'] = {};
+                }
+                // deposits
+                const limitsDeposit = this.safeDict (limits, 'deposit');
+                const limitsDepositMain = this.safeDict (limitsMain, 'deposit');
+                if (limitsDepositMain === undefined) {
+                    currency['limits']['deposit'] = {};
+                }
+                const limitsDepositMin = this.safeString (limitsDeposit, 'min');
+                const limitsDepositMax = this.safeString (limitsDeposit, 'max');
+                const limitsDepositMinMain = this.safeString (limitsDepositMain, 'min');
+                const limitsDepositMaxMain = this.safeString (limitsDepositMain, 'max');
+                // find min
+                if (limitsDepositMinMain === undefined || Precise.stringLt (limitsDepositMin, limitsDepositMinMain)) {
+                    currency['limits']['deposit']['min'] = this.parseNumber (limitsDepositMin);
+                }
+                // find max
+                if (limitsDepositMaxMain === undefined || Precise.stringGt (limitsDepositMax, limitsDepositMaxMain)) {
+                    currency['limits']['deposit']['max'] = this.parseNumber (limitsDepositMax);
+                }
+                // withdrawals
+                const limitsWithdraw = this.safeDict (limits, 'withdraw');
+                const limitsWithdrawMain = this.safeDict (limitsMain, 'withdraw');
+                if (limitsWithdrawMain === undefined) {
+                    currency['limits']['withdraw'] = {};
+                }
+                const limitsWithdrawMin = this.safeString (limitsWithdraw, 'min');
+                const limitsWithdrawMax = this.safeString (limitsWithdraw, 'max');
+                const limitsWithdrawMinMain = this.safeString (limitsWithdrawMain, 'min');
+                const limitsWithdrawMaxMain = this.safeString (limitsWithdrawMain, 'max');
+                // find min
+                if (limitsWithdrawMinMain === undefined || Precise.stringLt (limitsWithdrawMin, limitsWithdrawMinMain)) {
+                    currency['limits']['withdraw']['min'] = this.parseNumber (limitsWithdrawMin);
+                }
+                // find max
+                if (limitsWithdrawMaxMain === undefined || Precise.stringGt (limitsWithdrawMax, limitsWithdrawMaxMain)) {
+                    currency['limits']['withdraw']['max'] = this.parseNumber (limitsWithdrawMax);
+                }
+            }
+        }
         return this.extend ({
             'info': undefined,
             'id': undefined,

@@ -473,6 +473,7 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
+                        'portfolio/negative-balance-exchange-record' => 2,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -5106,12 +5107,14 @@ class binance extends Exchange {
                 $request['endTime'] = $until;
             }
         }
-        if ($limit !== null) {
-            $isFutureOrSwap = ($market['swap'] || $market['future']);
-            $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
-        }
         $method = $this->safe_string($this->options, 'fetchTradesMethod');
         $method = $this->safe_string_2($params, 'fetchTradesMethod', 'method', $method);
+        if ($limit !== null) {
+            $isFutureOrSwap = ($market['swap'] || $market['future']);
+            $isHistoricalEndpoint = ($method !== null) && (mb_strpos($method, 'GetHistoricalTrades') !== false);
+            $maxLimitForContractHistorical = $isHistoricalEndpoint ? 500 : 1000;
+            $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
+        }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
         $response = null;
         if ($market['option'] || $method === 'eapiPublicGetTrades') {
@@ -7090,6 +7093,7 @@ class binance extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch for a portfolio margin account
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -9661,10 +9665,10 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -9714,20 +9718,25 @@ class binance extends Exchange {
         //         "fundingTime" => "1621267200000",
         //     }
         //
-        $rates = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $timestamp = $this->safe_integer($entry, 'fundingTime');
-            $rates[] = array(
-                'info' => $entry,
-                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
-                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
-        }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $timestamp = $this->safe_integer($contract, 'fundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($this->safe_string($contract, 'symbol'), null, null, 'swap'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
@@ -10645,7 +10654,7 @@ class binance extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'quantity');

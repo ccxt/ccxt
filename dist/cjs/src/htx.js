@@ -950,6 +950,8 @@ class htx extends htx$1 {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1768,6 +1770,9 @@ class htx extends htx$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         let types = undefined;
         [types, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -7448,6 +7453,9 @@ class htx extends htx$1 {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit(params, this.extractParams(path));
@@ -7462,7 +7470,7 @@ class htx extends htx$1 {
             url += '/' + this.implodeParams(path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials();
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7542,18 +7550,20 @@ class htx extends htx$1 {
                         }
                     }
                 }
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend(request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort(request);
-                let auth = this.urlencode(request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort(query);
+                    request = this.extend(request, sortedQuery);
+                }
+                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
