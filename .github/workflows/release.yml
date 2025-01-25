@@ -91,6 +91,8 @@ jobs:
         run: npm run cleanup-old-tags --limit
       - name: Create GH Release and git-tag-version and push
         run: |
+               git config --global user.name "github-actions[bot]"
+               git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git tag -a "${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
