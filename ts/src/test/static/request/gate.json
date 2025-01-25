@@ -15,7 +15,7 @@
                     "LTC/USDT",
                     "limit",
                     "buy",
-                    0.1,
+                    0.12,
                     50
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"50\"}"
