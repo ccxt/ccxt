@@ -60,7 +60,7 @@ class ProxyConnector implements ConnectorInterface
     public function __construct(
         #[\SensitiveParameter]
         $proxyUrl,
-        ?ConnectorInterface $connector = null,
+        $connector = null,
         array $httpHeaders = array()
     ) {
         // support `http+unix://` scheme for Unix domain socket (UDS) paths
@@ -82,6 +82,10 @@ class ProxyConnector implements ConnectorInterface
         $parts = parse_url($proxyUrl);
         if (!$parts || !isset($parts['scheme'], $parts['host']) || ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https')) {
             throw new InvalidArgumentException('Invalid proxy URL "' . $proxyUrl . '"');
+        }
+
+        if ($connector !== null && !$connector instanceof ConnectorInterface) { // manual type check to support legacy PHP < 7.1
+            throw new \InvalidArgumentException('Argument #2 ($connector) expected null|React\Socket\ConnectorInterface');
         }
 
         // apply default port and TCP/TLS transport for given scheme
@@ -159,6 +163,8 @@ class ProxyConnector implements ConnectorInterface
             // either close active connection or cancel pending connection attempt
             $connecting->then(function (ConnectionInterface $stream) {
                 $stream->close();
+            }, function () {
+                // ignore to avoid reporting unhandled rejection
             });
             $connecting->cancel();
         });
