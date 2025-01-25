@@ -240,7 +240,7 @@
         "react/http": ">=1.6.0",
         "react/async": "^4.0.0",
         "react/promise": "^3.2.0",
-        "react/promise-timer": "^1.10",
+        "react/promise-timer": "^1.11",
         "evenement/evenement": "^3.0",
         "guzzlehttp/psr7": "^2.0"
     },
