@@ -2439,6 +2439,7 @@ class binance extends \ccxt\async\binance {
                 $response = null;
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey ($params));
+                    $params = $this->extend($params, array( 'portfolioMargin' => true ));
                 } elseif ($type === 'future') {
                     $response = Async\await($this->fapiPrivatePostListenKey ($params));
                 } elseif ($type === 'delivery') {
@@ -2491,6 +2492,7 @@ class binance extends \ccxt\async\binance {
             try {
                 if ($isPortfolioMargin) {
                     Async\await($this->papiPutListenKey ($this->extend($request, $params)));
+                    $params = $this->extend($params, array( 'portfolioMargin' => true ));
                 } elseif ($type === 'future') {
                     Async\await($this->fapiPrivatePutListenKey ($this->extend($request, $params)));
                 } elseif ($type === 'delivery') {
