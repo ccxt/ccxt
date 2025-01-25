@@ -1010,6 +1010,7 @@ class probit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->until] timestamp in ms of the earliest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1025,19 +1026,20 @@ class probit extends Exchange {
             'limit' => $requestLimit, // max 1000
         );
         $now = $this->milliseconds();
-        $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until');
+        $durationMilliseconds = $this->parse_timeframe($timeframe) * 1000;
         $startTime = $since;
-        $endTime = $now;
+        $endTime = ($until !== null) ? $until - $durationMilliseconds : $now;
         if ($since === null) {
             if ($limit === null) {
                 $limit = $requestLimit;
             }
-            $startTime = $now - $limit * $duration * 1000;
+            $startLimit = $limit - 1;
+            $startTime = $endTime - $startLimit * $durationMilliseconds;
         } else {
-            if ($limit === null) {
-                $endTime = $now;
-            } else {
-                $endTime = $this->sum($since, $this->sum($limit, 1) * $duration * 1000);
+            if ($limit !== null) {
+                $endByLimit = $this->sum($since, $limit * $durationMilliseconds);
+                $endTime = min ($endTime, $endByLimit);
             }
         }
         $startTimeNormalized = $this->normalize_ohlcv_timestamp($startTime, $timeframe);
