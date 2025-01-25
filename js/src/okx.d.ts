@@ -577,7 +577,7 @@ export default class okx extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     /**
      * @method
-     * @name okx#fetchPositions
+     * @name okx#fetchPositionsForSymbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol

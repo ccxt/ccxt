@@ -475,7 +475,7 @@ export default class blofin extends blofinRest {
     }
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for

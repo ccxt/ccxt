@@ -1831,7 +1831,7 @@ export default class gate extends Exchange {
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
-                    'id': code.toLowerCase (),
+                    'id': currency,
                     'code': code,
                     'info': undefined,
                     'name': undefined,
@@ -6419,7 +6419,7 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowIsolatedMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
      * @param {string} symbol unified market symbol, required for isolated margin

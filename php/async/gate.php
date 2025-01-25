@@ -1849,7 +1849,7 @@ class gate extends Exchange {
                 $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
                 if ($this->safe_value($result, $code) === null) {
                     $result[$code] = array(
-                        'id' => strtolower($code),
+                        'id' => $currency,
                         'code' => $code,
                         'info' => null,
                         'name' => null,

@@ -707,12 +707,20 @@ class okcoin(Exchange, ImplicitAPI):
         """
         response = self.publicGetPublicTime(params)
         #
-        #     {
-        #         "iso": "2015-01-07T23:47:25.201Z",
-        #         "epoch": 1420674445.201
-        #     }
+        # {
+        #     "code": "0",
+        #     "data":
+        #         [
+        #             {
+        #                 "ts": "1737379360033"
+        #             }
+        #         ],
+        #     "msg": ""
+        # }
         #
-        return self.parse8601(self.safe_string(response, 'iso'))
+        data = self.safe_list(response, 'data')
+        timestamp = self.safe_dict(data, 0)
+        return self.safe_integer(timestamp, 'ts')
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

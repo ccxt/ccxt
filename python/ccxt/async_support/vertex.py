@@ -330,6 +330,69 @@ class vertex(Exchange, ImplicitAPI):
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'brokerId': 5930043274845996,
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': True,  # todo
+                        'takeProfitPrice': True,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': True,  # todo fix implementation
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,  # todo, only for trigger
+                    'fetchClosedOrders': None,  # todo through fetchOrders
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def set_sandbox_mode(self, enabled):
@@ -2104,7 +2167,7 @@ class vertex(Exchange, ImplicitAPI):
             #       "product_id": 1,
             #       "orders": [
             #         {
-            #           "product_id": 1,
+            #           "product_id": 2,
             #           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             #           "price_x18": "1000000000000000000",
             #           "amount": "1000000000000000000",
@@ -2113,7 +2176,7 @@ class vertex(Exchange, ImplicitAPI):
             #           "order_type": "default",
             #           "unfilled_amount": "1000000000000000000",
             #           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            #           "placed_at": 1682437739,
+            #           "placed_at": 1682437737,
             #           "order_type": "ioc"
             #         }
             #       ]

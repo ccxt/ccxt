@@ -1707,6 +1707,7 @@ class ellipx extends ellipx$1 {
     }
     /**
      * @method
+     * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
      * @param {string} code Currency code

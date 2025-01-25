@@ -3341,7 +3341,7 @@ public partial class deribit : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3363,12 +3363,23 @@ public partial class deribit : Exchange
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(time, month);
+        } else
+        {
+            time = add(since, month);
         }
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(since, 1) },
-            { "end_timestamp", time },
         };
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        } else
+        {
+            ((IDictionary<string,object>)request)["end_timestamp"] = time;
+        }
         object response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));
         //
         //    {

@@ -253,7 +253,7 @@ class okx extends okx$1 {
     }
     /**
      * @method
-     * @name okx#unWatchTradesForSymbols
+     * @name okx#unWatchTrades
      * @description unWatches from the stream channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint

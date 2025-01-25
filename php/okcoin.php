@@ -678,18 +678,26 @@ class okcoin extends Exchange {
 
     public function fetch_time($params = array ()) {
         /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
+         * fetches the current integer $timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         * @return {int} the current integer $timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetPublicTime ($params);
         //
-        //     {
-        //         "iso" => "2015-01-07T23:47:25.201Z",
-        //         "epoch" => 1420674445.201
-        //     }
+        // {
+        //     "code" => "0",
+        //     "data":
+        //         array(
+        //             {
+        //                 "ts" => "1737379360033"
+        //             }
+        //         ),
+        //     "msg" => ""
+        // }
         //
-        return $this->parse8601($this->safe_string($response, 'iso'));
+        $data = $this->safe_list($response, 'data');
+        $timestamp = $this->safe_dict($data, 0);
+        return $this->safe_integer($timestamp, 'ts');
     }
 
     public function fetch_markets($params = array ()): array {

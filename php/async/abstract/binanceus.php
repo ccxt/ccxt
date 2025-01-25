@@ -661,6 +661,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_get_portfolio_balance($params = array()) {
         return $this->request('portfolio/balance', 'sapi', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function sapi_get_portfolio_negative_balance_exchange_record($params = array()) {
+        return $this->request('portfolio/negative-balance-exchange-record', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3102,6 +3105,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiGetPortfolioBalance($params = array()) {
         return $this->request('portfolio/balance', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function sapiGetPortfolioNegativeBalanceExchangeRecord($params = array()) {
+        return $this->request('portfolio/negative-balance-exchange-record', 'sapi', 'GET', $params, null, null, array("cost" => 2));
     }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));

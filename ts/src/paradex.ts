@@ -967,7 +967,7 @@ export default class paradex extends Exchange {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -1754,7 +1754,7 @@ export default class paradex extends Exchange {
 
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

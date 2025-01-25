@@ -1200,7 +1200,7 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/#create-order
 
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders

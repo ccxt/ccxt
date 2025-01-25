@@ -3256,7 +3256,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest $time in ms to fetch funding $rate history for
              * @param {int} [$limit] the maximum number of entries to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->end_timestamp] fetch funding $rate ending at this timestamp
+             * @param {int} [$params->until] fetch funding $rate ending at this timestamp
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
              */
@@ -3271,12 +3271,20 @@ class deribit extends Exchange {
             $month = 30 * 24 * 60 * 60 * 1000;
             if ($since === null) {
                 $since = $time - $month;
+            } else {
+                $time = $since . $month;
             }
             $request = array(
                 'instrument_name' => $market['id'],
                 'start_timestamp' => $since - 1,
-                'end_timestamp' => $time,
             );
+            $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['end_timestamp'] = $until;
+            } else {
+                $request['end_timestamp'] = $time;
+            }
             $response = Async\await($this->publicGetGetFundingRateHistory ($this->extend($request, $params)));
             //
             //    {

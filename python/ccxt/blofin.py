@@ -295,7 +295,7 @@ class blofin(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOHLCV': {
-                        'max': 1440,
+                        'limit': 1440,
                     },
                 },
                 'spot': {

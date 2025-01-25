@@ -1097,7 +1097,7 @@ export default class kuna extends Exchange {
 
     /**
      * @method
-     * @name kuna#cancelOrder
+     * @name kuna#cancelOrders
      * @description cancels an open order
      * @param {string} ids order ids
      * @param {string} symbol not used by kuna cancelOrder

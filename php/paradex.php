@@ -959,7 +959,7 @@ class paradex extends Exchange {
         //
         //     {
         //         "symbol" => "BTC-USD-PERP",
-        //         "oracle_price" => "68465.17449906",
+        //         "oracle_price" => "68465.17449904",
         //         "mark_price" => "68465.17449906",
         //         "last_traded_price" => "68495.1",
         //         "bid" => "68477.6",

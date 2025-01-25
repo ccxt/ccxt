@@ -3063,7 +3063,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :param int [params.until]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
@@ -3077,11 +3077,18 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
+        else:
+            time = since + month
         request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         }
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_timestamp'] = until
+        else:
+            request['end_timestamp'] = time
         response = self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {
