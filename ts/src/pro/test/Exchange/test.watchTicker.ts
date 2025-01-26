@@ -5,7 +5,6 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 import { ConsumerFunction, Exchange, ExchangeError, Message } from '../../../../ccxt.js';
 
 
-
 async function testWatchTicker (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTicker';
     let now = exchange.milliseconds ();
@@ -19,7 +18,14 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
         }
         // TODO: add payload test
     };
-    await exchange.subscribeTicker (symbol, consumer);
+    try {
+        await exchange.subscribeTicker (symbol, consumer);
+    }
+    catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {

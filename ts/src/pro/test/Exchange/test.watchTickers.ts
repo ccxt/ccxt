@@ -24,7 +24,21 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
         }
         // TODO: add payload test
     };
-    await exchange.subscribeTickers (argSymbols, consumer, true, argParams);
+    try {
+        await exchange.subscribeTickers (argSymbols, consumer, true, argParams);
+    } catch (e) {
+        // for some exchanges, specifically watchTickers method not subscribe
+        // to "all tickers" itself, and it requires symbols to be set
+        // so, in such case, if it's arguments-required exception, we don't
+        // mark tests as failed, but just skip them
+        if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
+            // todo: provide random symbols to try
+            return;
+        }
+        else if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response: Tickers = undefined;
         try {

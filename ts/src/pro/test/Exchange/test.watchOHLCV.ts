@@ -27,7 +27,13 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
         }
         // TODO: add payload test
     };
-    await exchange.subscribeOHLCV (symbol, chosenTimeframeKey, consumer, true);
+    try {
+        await exchange.subscribeOHLCV (symbol, chosenTimeframeKey, consumer, true);
+    } catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {

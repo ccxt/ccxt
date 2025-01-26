@@ -17,7 +17,13 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
         }
         // TODO: add payload test
     };
-    await exchange.subscribeTrades (symbol, consumer);
+    try {
+        await exchange.subscribeTrades (symbol, consumer);
+    } catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {

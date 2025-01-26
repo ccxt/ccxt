@@ -17,7 +17,13 @@ async function testWatchBalance (exchange, skippedProperties, code) {
         }
         // TODO: add payload test
     };
-    await exchange.subscribeBalance (consumer);
+    try {
+        await exchange.subscribeBalance (consumer);
+    } catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {

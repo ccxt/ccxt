@@ -16,7 +16,13 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
         }
         // TODO: add payload test
     };
-    await exchange.subscribeOrders (symbol, consumer);
+    try {
+        await exchange.subscribeOrders (symbol, consumer);
+    } catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {
