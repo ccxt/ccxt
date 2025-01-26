@@ -261,7 +261,7 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
-        // coinex throws a NetworkError when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         const activeCurrencies = this.filterBy (this.currencies_by_id, 'active', true);
         const activeCurrenciesById = this.indexBy (activeCurrencies, 'id');
         let currencies = Object.keys (activeCurrenciesById);
