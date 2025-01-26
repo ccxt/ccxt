@@ -207,7 +207,7 @@ class coinmetro extends Exchange {
             // exchange-specific options
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
-                'currencyIdsListForParseMarket' => null,
+                'currencyIdsListForParseMarket' => array( 'QRDO' ),
             ),
             'features' => array(
                 'spot' => array(
@@ -397,7 +397,12 @@ class coinmetro extends Exchange {
         if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
             $currenciesById = $this->index_by($result, 'id');
             $this->options['currenciesByIdForParseMarket'] = $currenciesById;
-            $this->options['currencyIdsListForParseMarket'] = is_array($currenciesById) ? array_keys($currenciesById) : array();
+            $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
+            $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
+            for ($i = 0; $i < count($currencyIdsList); $i++) {
+                $currentCurrencyIdsList[] = $currencyIdsList[$i];
+            }
+            $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
         }
         return $result;
     }
@@ -501,10 +506,22 @@ class coinmetro extends Exchange {
         $baseId = null;
         $quoteId = null;
         $currencyIds = $this->safe_value($this->options, 'currencyIdsListForParseMarket', array());
+        // Bubble sort by length (longest first)
+        $currencyIdsLength = count($currencyIds);
+        for ($i = 0; $i < $currencyIdsLength; $i++) {
+            for ($j = 0; $j < $currencyIdsLength - $i - 1; $j++) {
+                $a = $currencyIds[$j];
+                $b = $currencyIds[$j + 1];
+                if (strlen($a) < strlen($b)) {
+                    $currencyIds[$j] = $b;
+                    $currencyIds[$j + 1] = $a;
+                }
+            }
+        }
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $entryIndex = mb_strpos($marketId, $currencyId);
-            if ($entryIndex !== -1) {
+            if ($entryIndex === 0) {
                 $restId = str_replace($currencyId, '', $marketId);
                 if ($this->in_array($restId, $currencyIds)) {
                     if ($entryIndex === 0) {
