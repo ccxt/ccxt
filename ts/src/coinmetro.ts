@@ -402,9 +402,9 @@ export default class coinmetro extends Exchange {
             const currenciesById = this.indexBy (result, 'id');
             this.options['currenciesByIdForParseMarket'] = currenciesById;
             const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
-            const currencyIdsList = Object.keys(currenciesById);
+            const currencyIdsList = Object.keys (currenciesById);
             for (let i = 0; i < currencyIdsList.length; i++) {
-                currentCurrencyIdsList.push(currencyIdsList[i]);
+                currentCurrencyIdsList.push (currencyIdsList[i]);
             }
             this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         }
