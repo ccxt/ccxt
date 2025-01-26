@@ -200,7 +200,7 @@ public partial class coinmetro : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
-                { "currencyIdsListForParseMarket", null },
+                { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -399,7 +399,13 @@ public partial class coinmetro : Exchange
         {
             object currenciesById = this.indexBy(result, "id");
             ((IDictionary<string,object>)this.options)["currenciesByIdForParseMarket"] = currenciesById;
-            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            object currentCurrencyIdsList = this.safeList(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+            object currencyIdsList = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(currencyIdsList)); postFixIncrement(ref i))
+            {
+                ((IList<object>)currentCurrencyIdsList).Add(getValue(currencyIdsList, i));
+            }
+            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currentCurrencyIdsList;
         }
         return result;
     }
@@ -508,11 +514,26 @@ public partial class coinmetro : Exchange
         object baseId = null;
         object quoteId = null;
         object currencyIds = this.safeValue(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+        // Bubble sort by length (longest first)
+        object currencyIdsLength = getArrayLength(currencyIds);
+        for (object i = 0; isLessThan(i, currencyIdsLength); postFixIncrement(ref i))
+        {
+            for (object j = 0; isLessThan(j, subtract(subtract(currencyIdsLength, i), 1)); postFixIncrement(ref j))
+            {
+                object a = getValue(currencyIds, j);
+                object b = getValue(currencyIds, add(j, 1));
+                if (isTrue(isLessThan(getArrayLength(a), getArrayLength(b))))
+                {
+                    ((List<object>)currencyIds)[Convert.ToInt32(j)] = b;
+                    ((List<object>)currencyIds)[Convert.ToInt32(add(j, 1))] = a;
+                }
+            }
+        }
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object entryIndex = getIndexOf(marketId, currencyId);
-            if (isTrue(!isEqual(entryIndex, -1)))
+            if (isTrue(isEqual(entryIndex, 0)))
             {
                 object restId = ((string)marketId).Replace((string)currencyId, (string)"");
                 if (isTrue(this.inArray(restId, currencyIds)))
