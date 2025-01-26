@@ -513,10 +513,11 @@ export default class coinmetro extends Exchange {
         // Bubble sort by length (longest first)
         for (let i = 0; i < currencyIds.length; i++) {
             for (let j = 0; j < currencyIds.length - i - 1; j++) {
-                if (currencyIds[j].length < currencyIds[j + 1].length) {
-                    const temp = currencyIds[j];
-                    currencyIds[j] = currencyIds[j + 1];
-                    currencyIds[j + 1] = temp;
+                const a = currencyIds[j];
+                const b = currencyIds[j + 1];
+                if (a.length < b.length) {
+                    currencyIds[j] = b;
+                    currencyIds[j + 1] = a;
                 }
             }
         }
