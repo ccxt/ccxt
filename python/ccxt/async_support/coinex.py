@@ -3767,7 +3767,7 @@ class coinex(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(None, currency),
             'network': None,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositAddress, 'memo', tag),
         }
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

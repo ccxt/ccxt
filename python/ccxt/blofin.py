@@ -326,6 +326,7 @@ class blofin(Exchange, ImplicitAPI):
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
                             'limit': True,
+                            'price': None,
                         },
                         'hedged': True,
                     },
