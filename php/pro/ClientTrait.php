@@ -21,7 +21,7 @@ trait ClientTrait {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
-        'maxMessagesPerTopic' => 10000,
+        'maxMessagesPerTopic' => 100,
     );
 
     public $newUpdates = true;
