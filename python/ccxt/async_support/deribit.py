@@ -3072,7 +3072,8 @@ class deribit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720)
+            # 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '1h', params, 720)
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
