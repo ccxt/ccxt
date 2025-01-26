@@ -38,7 +38,6 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - uses: actions4gh/setup-gh@v1
       - name: create usr/share/dotnet folder
         run: |
           sudo mkdir -p /usr/share/dotnet
