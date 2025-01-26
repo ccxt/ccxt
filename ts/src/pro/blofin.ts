@@ -37,6 +37,14 @@ export default class blofin extends blofinRest {
                         },
                     },
                 },
+                'test': {
+                    'ws': {
+                        'swap': {
+                            'public': 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private': 'wss://demo-trading-openapi.blofin.com/ws/private',
+                        },
+                    },
+                },
             },
             'options': {
                 'defaultType': 'swap',

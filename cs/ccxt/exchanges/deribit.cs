@@ -3356,7 +3356,8 @@ public partial class deribit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 720);
+            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", parameters, 720);
         }
         object time = this.milliseconds();
         object month = multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000);

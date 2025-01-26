@@ -34,6 +34,14 @@ class blofin extends blofin$1 {
                         },
                     },
                 },
+                'test': {
+                    'ws': {
+                        'swap': {
+                            'public': 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private': 'wss://demo-trading-openapi.blofin.com/ws/private',
+                        },
+                    },
+                },
             },
             'options': {
                 'defaultType': 'swap',

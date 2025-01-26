@@ -166,6 +166,9 @@ class blofin(Exchange, ImplicitAPI):
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
                     'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
@@ -323,6 +326,7 @@ class blofin(Exchange, ImplicitAPI):
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
                             'limit': True,
+                            'price': None,
                         },
                         'hedged': True,
                     },
