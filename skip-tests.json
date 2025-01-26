@@ -1692,6 +1692,9 @@
     },
     "coinlist": {
         "skipMethods": {
+            "loadMarkets": {
+                "precision": "ammount is sometimes 0"
+            },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low  is failing",
                 "bid": "invalid"
