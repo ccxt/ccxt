@@ -706,7 +706,7 @@ class kraken(Exchange, ImplicitAPI):
         if currencyId is not None:
             if len(currencyId) > 3:
                 if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                    if not (currencyId.find('.') > 0):
+                    if not (currencyId.find('.') > 0) and (currencyId != 'ZEUS'):
                         currencyId = currencyId[1:]
         return super(kraken, self).safe_currency(currencyId, currency)
 

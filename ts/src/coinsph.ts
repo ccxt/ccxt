@@ -293,6 +293,72 @@ export default class coinsph extends Exchange {
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -808,31 +874,40 @@ export default class coinsph extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
+        const until = this.safeInteger (params, 'until');
         const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
         };
+        if (limit === undefined) {
+            limit = 1000;
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-            request['limit'] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe (timeframe) * 1000;
-                request['endTime'] = this.sum (since, duration * (limit - 1));
+            if (until !== undefined) {
+                request['endTime'] = until;
             } else {
-                request['endTime'] = this.milliseconds ();
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                const endTimeByLimit = this.sum (since, duration * (limit - 1));
+                const now = this.milliseconds ();
+                request['endTime'] = Math.min (endTimeByLimit, now);
             }
-        } else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+        } else if (until !== undefined) {
+            request['endTime'] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            request['startTime'] = until - (duration * (limit - 1));
         }
+        request['limit'] = limit;
+        params = this.omit (params, 'until');
         const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
         //
         //     [
@@ -1245,7 +1320,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve

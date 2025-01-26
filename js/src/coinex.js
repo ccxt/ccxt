@@ -470,7 +470,7 @@ export default class coinex extends Exchange {
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -4785,8 +4785,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -4806,14 +4805,14 @@ export default class coinex extends Exchange {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        if (tag) {
-            address = address + ':' + tag;
-        }
         const request = {
             'ccy': currency['id'],
             'to_address': address,
             'amount': this.numberToString(amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {

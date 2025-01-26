@@ -1383,18 +1383,18 @@ export default class bitget extends Exchange {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 52,
+                        '10m': 30,
                         '15m': 52,
-                        '30m': 52,
+                        '30m': 62,
                         '1h': 83,
                         '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 360,
-                        '1d': 360,
-                        '3d': 1000,
-                        '1w': 1000,
-                        '1M': 1000,
+                        '1d': 300,
+                        '3d': 300,
+                        '1w': 300,
+                        '1M': 300,
                     },
                 },
                 'fetchTrades': {
@@ -3546,6 +3546,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3558,9 +3559,10 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint);
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -3589,7 +3591,7 @@ export default class bitget extends Exchange {
         const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
         const retrievableDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
         const maxRetrievableDaysForRecent = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
+        const endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay;
         if (limitDefined) {
             limit = Math.min (limit, maxLimitForRecentEndpoint);
             request['limit'] = limit;
@@ -3627,7 +3629,7 @@ export default class bitget extends Exchange {
         // make request
         if (market['spot']) {
             // checks if we need history endpoint
-            if (historicalEndpointNeeded) {
+            if (historicalEndpointNeeded || useHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
@@ -3654,7 +3656,7 @@ export default class bitget extends Exchange {
             } else if (priceType === 'index') {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
             } else {
-                if (historicalEndpointNeeded) {
+                if (historicalEndpointNeeded || useHistoryEndpoint) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
                 } else {
                     response = await this.publicMixGetV2MixMarketCandles (extended);
@@ -4313,8 +4315,10 @@ export default class bitget extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -7005,8 +7009,7 @@ export default class bitget extends Exchange {
         // }
         symbols = this.marketSymbols (symbols);
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data, market);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

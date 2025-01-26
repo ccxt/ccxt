@@ -133,6 +133,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -257,6 +258,71 @@ class oxfun(Exchange, ImplicitAPI):
                     'Base': 'BASE',
                     'BNBSmartChain': 'BNB',
                     'Optimism': 'OPTIMISM',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': {
+                        'max': 10,  # todo
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 7,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo?
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -1033,8 +1099,7 @@ class oxfun(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #

@@ -3623,8 +3623,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
         #     ]
         #
-        fundingRates = self.parse_funding_rates(response)
-        return self.filter_by_array(fundingRates, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

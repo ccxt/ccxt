@@ -203,6 +203,14 @@ class ace(Exchange, ImplicitAPI):
                         'limit': 2000,
                     },
                 },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -472,7 +480,7 @@ class ace(Exchange, ImplicitAPI):
         #     }
         #
         orderBook = self.safe_dict(response, 'attachment')
-        return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
+        return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks', 1, 0)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

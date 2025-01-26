@@ -6,6 +6,7 @@ var index = require('../../static_dependencies/scure-base/index.js');
 var sha1 = require('../../static_dependencies/noble-hashes/sha1.js');
 var crypto = require('./crypto.js');
 
+// ----------------------------------------------------------------------------
 function totp(secret) {
     const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round(s).toString(16));
     const hex2dec = (s) => parseInt(s, 16);

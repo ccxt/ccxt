@@ -282,9 +282,6 @@ public partial class bitmex : Exchange
                             { "trailing", true },
                             { "marketBuyRequiresPrice", false },
                             { "marketBuyByCost", false },
-                            { "leverage", false },
-                            { "selfTradePrevention", false },
-                            { "iceberg", true },
                         } },
                         { "createOrders", null },
                         { "fetchMyTrades", new Dictionary<string, object>() {
@@ -315,7 +312,7 @@ public partial class bitmex : Exchange
                         { "fetchClosedOrders", new Dictionary<string, object>() {
                             { "marginMode", false },
                             { "limit", 500 },
-                            { "daysBack", null },
+                            { "daysBackClosed", null },
                             { "daysBackCanceled", null },
                             { "untilDays", 1000000 },
                             { "trigger", false },

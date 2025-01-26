@@ -8,6 +8,17 @@ cache:
   directories:
   - ".cache"
 before_install:
+- |
+    if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+      if [[ "$TRAVIS_COMMIT_MESSAGE" == "[Automated Changes]"* ]]; then
+        echo "Skipping build for automated commit: $TRAVIS_COMMIT_MESSAGE"
+        exit 0
+      fi
+      if [[ "$TRAVIS_COMMIT_MESSAGE" == "Merge branch 'master' of "* ]]; then
+        echo "Skipping build for master merge commit: $TRAVIS_COMMIT_MESSAGE"
+        exit 0
+      fi
+    fi
 - set -e
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls

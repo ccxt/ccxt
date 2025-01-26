@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -285,6 +285,8 @@ class woo extends woo$1 {
                 },
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -500,6 +502,9 @@ class woo extends woo$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const response = await this.v1PublicGetInfo(params);
         //
         // {
@@ -2640,7 +2645,7 @@ class woo extends woo$1 {
         };
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
@@ -2954,8 +2959,7 @@ class woo extends woo$1 {
         //     }
         //
         const rows = this.safeList(response, 'rows', []);
-        const result = this.parseFundingRates(rows);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method

@@ -1403,18 +1403,18 @@ class bitget(Exchange, ImplicitAPI):
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 52,
+                        '10m': 30,
                         '15m': 52,
-                        '30m': 52,
+                        '30m': 62,
                         '1h': 83,
                         '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 360,
-                        '1d': 360,
-                        '3d': 1000,
-                        '1w': 1000,
-                        '1M': 1000,
+                        '1d': 300,
+                        '3d': 300,
+                        '1w': 300,
+                        '1M': 300,
                     },
                 },
                 'fetchTrades': {
@@ -3464,6 +3464,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -3475,8 +3476,9 @@ class bitget(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
         market = None
         if sandboxMode:
             sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
@@ -3504,7 +3506,7 @@ class bitget(Exchange, ImplicitAPI):
         ohlcOptions = self.safe_dict(self.options, 'fetchOHLCV', {})
         retrievableDaysMap = self.safe_dict(ohlcOptions, 'maxDaysPerTimeframe', {})
         maxRetrievableDaysForRecent = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
-        endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay
+        endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay
         if limitDefined:
             limit = min(limit, maxLimitForRecentEndpoint)
             request['limit'] = limit
@@ -3535,7 +3537,7 @@ class bitget(Exchange, ImplicitAPI):
         # make request
         if market['spot']:
             # checks if we need history endpoint
-            if historicalEndpointNeeded:
+            if historicalEndpointNeeded or useHistoryEndpoint:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
@@ -3559,7 +3561,7 @@ class bitget(Exchange, ImplicitAPI):
             elif priceType == 'index':
                 response = await self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
             else:
-                if historicalEndpointNeeded:
+                if historicalEndpointNeeded or useHistoryEndpoint:
                     response = await self.publicMixGetV2MixMarketHistoryCandles(extended)
                 else:
                     response = await self.publicMixGetV2MixMarketCandles(extended)
@@ -4193,8 +4195,10 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+        }
+        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -6680,8 +6684,7 @@ class bitget(Exchange, ImplicitAPI):
         # }
         symbols = self.market_symbols(symbols)
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

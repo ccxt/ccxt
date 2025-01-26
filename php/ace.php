@@ -195,6 +195,14 @@ class ace extends Exchange {
                         'limit' => 2000,
                     ),
                 ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -472,7 +480,7 @@ class ace extends Exchange {
         //     }
         //
         $orderBook = $this->safe_dict($response, 'attachment');
-        return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
+        return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks', 1, 0);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

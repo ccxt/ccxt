@@ -93,13 +93,14 @@ export default class hollaex extends Exchange {
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

@@ -992,8 +992,7 @@ public partial class woofipro : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        object result = this.parseFundingRates(rows);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rows, symbols);
     }
 
     /**

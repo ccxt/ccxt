@@ -296,6 +296,8 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
@@ -508,6 +510,8 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         response = await self.v1PublicGetInfo(params)
         #
         # {
@@ -2536,7 +2540,7 @@ class woo(Exchange, ImplicitAPI):
         }
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
@@ -2825,8 +2829,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'rows', [])
-        result = self.parse_funding_rates(rows)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rows, symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

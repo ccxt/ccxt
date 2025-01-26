@@ -191,6 +191,71 @@ class bitvavo extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '101' => '\\ccxt\\ExchangeError', // Unknown error. Operation may or may not have succeeded.
@@ -1129,7 +1194,7 @@ class bitvavo extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1466,6 +1531,9 @@ class bitvavo extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+         *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1667,7 +1735,7 @@ class bitvavo extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
          *
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol

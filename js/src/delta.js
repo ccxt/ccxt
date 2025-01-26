@@ -222,6 +222,88 @@ export default class delta extends Exchange {
                     'BEP20': 'BEP20(BSC)',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': true,
+                        },
+                        // todo implementation
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000, // todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
@@ -2521,8 +2603,7 @@ export default class delta extends Exchange {
         //     }
         //
         const rates = this.safeList(response, 'result', []);
-        const result = this.parseFundingRates(rates);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rates, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -3489,7 +3570,7 @@ export default class delta extends Exchange {
                 'timestamp': timestamp,
             };
             let auth = method + timestamp + requestPath;
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (method === 'GET') {
                 if (Object.keys(query).length) {
                     const queryString = '?' + this.urlencode(query);
                     auth += queryString;

@@ -1121,6 +1121,8 @@ class okx extends Exchange {
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -1505,6 +1507,10 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1515,6 +1521,9 @@ class okx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $types = $this->safe_list($this->options, 'fetchMarkets', array());
             $promises = array();
             $result = array();
@@ -2848,9 +2857,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2871,9 +2882,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -6256,7 +6269,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $timestamp = $this->iso8601($this->milliseconds());
+            $timestamp = $this->iso8601($this->nonce());
             $headers = array(
                 'OK-ACCESS-KEY' => $this->apiKey,
                 'OK-ACCESS-PASSPHRASE' => $this->password,

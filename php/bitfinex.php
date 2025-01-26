@@ -3156,7 +3156,7 @@ class bitfinex extends Exchange {
         //       )
         //   )
         //
-        return $this->parse_funding_rates($response);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3393,8 +3393,7 @@ class bitfinex extends Exchange {
         //         )
         //     )
         //
-        $result = $this->parse_open_interests($response);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_open_interests($response, $symbols);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

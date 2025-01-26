@@ -103,6 +103,7 @@ class Transpiler {
             [ /\.safeDict2/g, '.safe_dict_2'],
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
+            [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
@@ -853,7 +854,9 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
+            'OpenInterest': /-> OpenInterest:/,
             'FundingRates': /-> FundingRates:/,
+            'OpenInterests': /-> OpenInterests:/,
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
@@ -3049,7 +3052,7 @@ class Transpiler {
 
             this.transpileExamples ()
 
-            this.addGeneratedHeaderToJs ('./js/')
+            // this.addGeneratedHeaderToJs ('./js/')
         }
 
         log.bright.green ('Transpiled successfully.')
@@ -3102,6 +3105,7 @@ if (isMainEntry(import.meta.url)) {
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
+    const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
 
     const phpOnly = process.argv.includes ('--php');
@@ -3122,6 +3126,8 @@ if (isMainEntry(import.meta.url)) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+    } else if (addJsHeaders) {
+        transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

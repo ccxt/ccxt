@@ -4,7 +4,7 @@ var kucoin$1 = require('../kucoin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kucoin extends kucoin$1 {
     describe() {
@@ -493,7 +493,7 @@ class kucoin extends kucoin$1 {
     }
     /**
      * @method
-     * @name kucoin#watchTrades
+     * @name kucoin#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
      * @param {string[]} symbols

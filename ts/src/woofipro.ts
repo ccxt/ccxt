@@ -979,8 +979,7 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        const result = this.parseFundingRates (rows);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (rows, symbols);
     }
 
     /**

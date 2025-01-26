@@ -176,6 +176,14 @@ public partial class ace : Exchange
                         { "limit", 2000 },
                     } },
                 } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -463,7 +471,7 @@ public partial class ace : Exchange
         //     }
         //
         object orderBook = this.safeDict(response, "attachment");
-        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks");
+        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks", 1, 0);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

@@ -830,8 +830,8 @@ class bingx(Exchange, ImplicitAPI):
         #              "symbols": [
         #                  {
         #                    "symbol": "GEAR-USDT",
-        #                    "minQty": 735,
-        #                    "maxQty": 2941177,
+        #                    "minQty": 735,  # deprecated
+        #                    "maxQty": 2941177,  # deprecated
         #                    "minNotional": 5,
         #                    "maxNotional": 20000,
         #                    "status": 1,
@@ -949,6 +949,9 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
+        minAmount = None
+        if not spot:
+            minAmount = self.safe_number_2(market, 'minQty', 'tradeMinQuantity')
         timeOnline = self.safe_integer(market, 'timeOnline')
         if timeOnline == 0:
             timeOnline = None
@@ -989,8 +992,8 @@ class bingx(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),
-                    'max': self.safe_number(market, 'maxQty'),
+                    'min': minAmount,
+                    'max': None,
                 },
                 'price': {
                     'min': minTickSize,
@@ -1538,8 +1541,7 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols, 'swap', True)
         response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -1623,21 +1625,24 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol')
-            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.parse_funding_rate_histories(data, market, since, limit)
+
+    def parse_funding_rate_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "fundingRate": "0.0001",
+        #         "fundingTime": 1585684800000
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(self.safe_string(contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -2276,12 +2281,13 @@ class bingx(Exchange, ImplicitAPI):
         else:
             linearSwapData = self.safe_dict(response, 'data', {})
             linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
-            currencyId = self.safe_string(linearSwapBalance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
-            account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
-            result[code] = account
+            if linearSwapBalance:
+                currencyId = self.safe_string(linearSwapBalance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
@@ -6162,6 +6168,37 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
+    def custom_encode(self, params):
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        adjustedValue = None
+        result = None
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = sortedParams[key]
+            if isinstance(value, list):
+                arrStr = None
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    isString = (isinstance(arrayElement, str))
+                    if isString:
+                        if j > 0:
+                            arrStr += ',' + '"' + str(arrayElement) + '"'
+                        else:
+                            arrStr = '"' + str(arrayElement) + '"'
+                    else:
+                        if j > 0:
+                            arrStr += ',' + str(arrayElement)
+                        else:
+                            arrStr = str(arrayElement)
+                adjustedValue = '[' + arrStr + ']'
+                value = adjustedValue
+            if i == 0:
+                result = key + '=' + value
+            else:
+                result += '&' + key + '=' + value
+        return result
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -6190,16 +6227,22 @@ class bingx(Exchange, ImplicitAPI):
         elif access == 'private':
             self.check_required_credentials()
             isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
-            parsedParams = self.parse_params(params)
-            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
+            parsedParams = None
+            encodeRequest = None
+            if isJsonContentType:
+                encodeRequest = self.custom_encode(params)
+            else:
+                parsedParams = self.parse_params(params)
+                encodeRequest = self.rawencode(parsedParams)
+            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if isJsonContentType:
                 headers['Content-Type'] = 'application/json'
-                parsedParams['signature'] = signature
-                body = self.json(parsedParams)
+                params['signature'] = signature
+                body = self.json(params)
             else:
                 query = self.urlencode(parsedParams)
                 url += '?' + query + '&' + 'signature=' + signature

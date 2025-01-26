@@ -252,6 +252,87 @@ public partial class deribit : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "9999", typeof(PermissionDenied) },
                 { "10000", typeof(AuthenticationError) },
@@ -3260,7 +3341,7 @@ public partial class deribit : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3282,12 +3363,23 @@ public partial class deribit : Exchange
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(time, month);
+        } else
+        {
+            time = add(since, month);
         }
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(since, 1) },
-            { "end_timestamp", time },
         };
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        } else
+        {
+            ((IDictionary<string,object>)request)["end_timestamp"] = time;
+        }
         object response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));
         //
         //    {

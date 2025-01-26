@@ -370,6 +370,8 @@ export default class coinbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
@@ -1278,6 +1280,9 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3(params);
@@ -4884,6 +4889,9 @@ export default class coinbase extends Exchange {
         const token = jwt(request, this.encode(this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         return token;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4956,7 +4964,9 @@ export default class coinbase extends Exchange {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const timestampString = this.seconds().toString();
+                    const nonce = this.nonce();
+                    const timestamp = this.parseToInt(nonce / 1000);
+                    const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                     headers = {

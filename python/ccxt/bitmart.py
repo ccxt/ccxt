@@ -545,6 +545,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -1148,6 +1150,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         spot = self.fetch_spot_markets(params)
         contract = self.fetch_contract_markets(params)
         return self.array_concat(spot, contract)
@@ -5027,7 +5031,7 @@ class bitmart(Exchange, ImplicitAPI):
         return self.filter_by_since_limit(sorted, since, limit)
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         parts = path.split('/')
@@ -5045,7 +5049,7 @@ class bitmart(Exchange, ImplicitAPI):
                 url += '?' + queryString
         if api == 'private':
             self.check_required_credentials()
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXTxBitmart000')
             headers = {
                 'X-BM-KEY': self.apiKey,

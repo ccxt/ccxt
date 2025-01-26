@@ -8,7 +8,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class vertex
@@ -320,6 +320,69 @@ class vertex extends vertex$1 {
                 'sandboxMode': false,
                 'timeDifference': 0,
                 'brokerId': 5930043274845996,
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -2166,7 +2229,7 @@ class vertex extends vertex$1 {
             //       "product_id": 1,
             //       "orders": [
             //         {
-            //           "product_id": 1,
+            //           "product_id": 2,
             //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18": "1000000000000000000",
             //           "amount": "1000000000000000000",
@@ -2175,7 +2238,7 @@ class vertex extends vertex$1 {
             //           "order_type": "default",
             //           "unfilled_amount": "1000000000000000000",
             //           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at": 1682437739,
+            //           "placed_at": 1682437737,
             //           "order_type": "ioc"
             //         }
             //       ]

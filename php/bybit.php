@@ -2768,8 +2768,7 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($tickerList); $i++) {
             $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
         }
-        $result = $this->parse_funding_rates($tickerList);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($tickerList, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3312,7 +3311,17 @@ class bybit extends Exchange {
                             $account['debt'] = Precise::string_add($loan, $interest);
                         }
                         $account['total'] = $this->safe_string($coinEntry, 'walletBalance');
-                        $account['free'] = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        $free = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        if ($free !== null) {
+                            $account['free'] = $free;
+                        } else {
+                            $locked = $this->safe_string($coinEntry, 'locked', '0');
+                            $totalPositionIm = $this->safe_string($coinEntry, 'totalPositionIM', '0');
+                            $totalOrderIm = $this->safe_string($coinEntry, 'totalOrderIM', '0');
+                            $totalUsed = Precise::string_add($locked, $totalPositionIm);
+                            $totalUsed = Precise::string_add($totalUsed, $totalOrderIm);
+                            $account['used'] = $totalUsed;
+                        }
                         // $account['used'] = $this->safe_string($coinEntry, 'locked');
                         $currencyId = $this->safe_string($coinEntry, 'coin');
                         $code = $this->safe_currency_code($currencyId);
@@ -3832,7 +3841,7 @@ class bybit extends Exchange {
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
          * @param {string} [$params->positionIdx] *contracts only* 0 for one-way mode, 1 buy $side of hedged mode, 2 sell $side of hedged mode
          * @param {bool} [$params->hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-         * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {int} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
          * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'

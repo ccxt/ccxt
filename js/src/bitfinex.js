@@ -3139,7 +3139,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response);
+        return this.parseFundingRates(response, symbols);
     }
     /**
      * @method
@@ -3372,8 +3372,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(response, symbols);
     }
     /**
      * @method

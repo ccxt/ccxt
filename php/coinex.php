@@ -463,7 +463,7 @@ class coinex extends Exchange {
                     'ERC20' => 'ERC20',
                     'BRC20' => 'BRC20',
                     'SOL' => 'SOL',
-                    'TON' => 'SOL',
+                    'TON' => 'TON',
                     'BSV' => 'BSV',
                     'AVAXC' => 'AVA_C',
                     'AVAXX' => 'AVA',
@@ -4764,8 +4764,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data, $market);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
@@ -4786,14 +4785,14 @@ class coinex extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        if ($tag) {
-            $address = $address . ':' . $tag;
-        }
         $request = array(
             'ccy' => $currency['id'],
             'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
             'amount' => $this->number_to_string($amount), // the actual $amount without fees, https://www.coinex.com/fees
         );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {

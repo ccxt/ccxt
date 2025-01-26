@@ -8,7 +8,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -205,6 +205,8 @@ class hyperliquid extends hyperliquid$1 {
                     'Order price cannot be more than 80% away from the reference price': errors.InvalidOrder,
                     'Order has zero size.': errors.InvalidOrder,
                     'Insufficient spot balance asset': errors.InsufficientFunds,
+                    'Insufficient balance for withdrawal': errors.InsufficientFunds,
+                    'Insufficient balance for token transfer': errors.InsufficientFunds,
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -395,7 +397,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSwapMarkets
      * @description retrieves data on all swap markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -450,7 +452,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name calculatePricePrecision
+     * @name hyperliquid#calculatePricePrecision
      * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
      * @param {float} price the price to use in the calculation
      * @param {int} amountPrecision the amountPrecision to use in the calculation
@@ -499,7 +501,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSpotMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -691,6 +693,11 @@ class hyperliquid extends hyperliquid$1 {
         const price = this.safeNumber(market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         const pricePrecisionStr = this.numberToString(pricePrecision);
+        const isDelisted = this.safeBool(market, 'isDelisted');
+        let active = true;
+        if (isDelisted !== undefined) {
+            active = !isDelisted;
+        }
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -706,7 +713,7 @@ class hyperliquid extends hyperliquid$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': true,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -968,8 +975,7 @@ class hyperliquid extends hyperliquid$1 {
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
             result.push(data);
         }
-        const funding_rates = this.parseFundingRates(result);
-        return this.filterByArray(funding_rates, 'symbol', symbols);
+        return this.parseFundingRates(result, symbols);
     }
     parseFundingRate(info, market = undefined) {
         //
@@ -1393,7 +1399,7 @@ class hyperliquid extends hyperliquid$1 {
     createOrdersRequest(orders, params = {}) {
         /**
          * @method
-         * @name hyperliquid#createOrders
+         * @name hyperliquid#createOrdersRequest
          * @description create a list of trade orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -1914,6 +1920,9 @@ class hyperliquid extends hyperliquid$1 {
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
@@ -2850,7 +2859,26 @@ class hyperliquid extends hyperliquid$1 {
             'signature': sig,
         };
         const response = await this.privatePostExchange(request);
-        return response;
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return this.parseTransfer(response);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'ok',
+        };
     }
     /**
      * @method
@@ -3269,8 +3297,7 @@ class hyperliquid extends hyperliquid$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const swapMarkets = await this.fetchSwapMarkets();
-        const result = this.parseOpenInterests(swapMarkets);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(swapMarkets, symbols);
     }
     /**
      * @method

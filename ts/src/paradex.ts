@@ -268,6 +268,7 @@ export default class paradex extends Exchange {
                     '40112': PermissionDenied, // Geo IP blocked
                 },
                 'broad': {
+                    'missing or malformed jwt': AuthenticationError,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -276,6 +277,74 @@ export default class paradex extends Exchange {
             'options': {
                 'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
+            },
+            'features': {
+                'spot': undefined,
+                'forSwap': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true, // todo
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined, // todo
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': undefined, // todo
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo by from/to
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -898,7 +967,7 @@ export default class paradex extends Exchange {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -1053,7 +1122,8 @@ export default class paradex extends Exchange {
             }
         }
         const account = await this.retrieveAccount ();
-        const expires = now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
@@ -1684,7 +1754,7 @@ export default class paradex extends Exchange {
 
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

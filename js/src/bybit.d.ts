@@ -212,7 +212,7 @@ export default class bybit extends Exchange {
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-     * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+     * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
@@ -344,7 +344,7 @@ export default class bybit extends Exchange {
     fetchOrderClassic(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
-     * @name bybit#fetchOrderClassic
+     * @name bybit#fetchOrder
      * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
@@ -357,7 +357,7 @@ export default class bybit extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
-     * @name bybit#fetchOrders
+     * @name bybit#fetchOrdersClassic
      * @description fetches information on multiple orders made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} symbol unified market symbol of the market orders were made in

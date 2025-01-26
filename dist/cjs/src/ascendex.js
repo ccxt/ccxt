@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ascendex
@@ -2947,8 +2947,7 @@ class ascendex extends ascendex$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const contracts = this.safeList(data, 'contracts', []);
-        const result = this.parseFundingRates(contracts);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(contracts, symbols);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
         await this.loadMarkets();

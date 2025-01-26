@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class hashkey
@@ -3762,8 +3762,7 @@ class hashkey extends hashkey$1 {
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        const fundingRates = this.parseFundingRates(response);
-        return this.filterByArray(fundingRates, 'symbol', symbols);
+        return this.parseFundingRates(response, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

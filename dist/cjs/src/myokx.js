@@ -2,7 +2,7 @@
 
 var okx = require('./okx.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class myokx extends okx {
     describe() {
@@ -35,6 +35,16 @@ class myokx extends okx {
                 'swap': false,
                 'future': false,
                 'option': false,
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }

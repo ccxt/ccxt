@@ -6,7 +6,7 @@ export default class bitfinex1 extends bitfinex1Rest {
     subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
     /**
      * @method
-     * @name bitfinex#watchTrades
+     * @name bitfinex1#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.bitfinex.com/v1/reference/ws-public-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -18,7 +18,7 @@ export default class bitfinex1 extends bitfinex1Rest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
-     * @name bitfinex#watchTicker
+     * @name bitfinex1#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.bitfinex.com/v1/reference/ws-public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -31,7 +31,7 @@ export default class bitfinex1 extends bitfinex1Rest {
     handleTicker(client: Client, message: any, subscription: any): void;
     /**
      * @method
-     * @name bitfinex#watchOrderBook
+     * @name bitfinex1#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.bitfinex.com/v1/reference/ws-public-order-books
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -49,7 +49,7 @@ export default class bitfinex1 extends bitfinex1Rest {
     watchOrder(id: any, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
-     * @name bitfinex#watchOrders
+     * @name bitfinex1#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
      * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots

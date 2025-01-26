@@ -372,6 +372,8 @@ class coinbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
@@ -1316,6 +1318,9 @@ class coinbase extends Exchange {
              * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
             if ($method === 'fetchMarketsV3') {
                 return Async\await($this->fetch_markets_v3($params));
@@ -5033,6 +5038,10 @@ class coinbase extends Exchange {
         return $token;
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
@@ -5101,7 +5110,9 @@ class coinbase extends Exchange {
                     // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
                     $authorizationString = 'Bearer ' . $token;
                 } else {
-                    $timestampString = (string) $this->seconds();
+                    $nonce = $this->nonce();
+                    $timestamp = $this->parse_to_int($nonce / 1000);
+                    $timestampString = (string) $timestamp;
                     $auth = $timestampString . $method . $savedPath . $payload;
                     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                     $headers = array(

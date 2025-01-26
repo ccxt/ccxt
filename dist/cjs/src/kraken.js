@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -692,7 +692,7 @@ class kraken extends kraken$1 {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf('X') === 0) || (currencyId.indexOf('Z') === 0)) {
-                    if (!(currencyId.indexOf('.') > 0)) {
+                    if (!(currencyId.indexOf('.') > 0) && (currencyId !== 'ZEUS')) {
                         currencyId = currencyId.slice(1);
                     }
                 }

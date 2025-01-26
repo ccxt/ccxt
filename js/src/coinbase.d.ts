@@ -606,6 +606,7 @@ export default class coinbase extends Exchange {
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     createAuthToken(seconds: Int, method?: Str, url?: Str): string;
+    nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

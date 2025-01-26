@@ -2822,8 +2822,7 @@ class ascendex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         contracts = self.safe_list(data, 'contracts', [])
-        result = self.parse_funding_rates(contracts)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(contracts, symbols)
 
     def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         self.load_markets()

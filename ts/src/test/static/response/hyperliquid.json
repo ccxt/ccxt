@@ -1472,7 +1472,29 @@
                 ]
             }
         ],
-        "transfer": [
+    "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    5,
+                    "swap",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                }
+            },
             {
                 "description": "transfer",
                 "method": "transfer",

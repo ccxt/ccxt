@@ -2700,8 +2700,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         for i in range(0, len(tickerList)):
             tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
-        result = self.parse_funding_rates(tickerList)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(tickerList, symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3210,7 +3209,16 @@ class bybit(Exchange, ImplicitAPI):
                         if (loan is not None) and (interest is not None):
                             account['debt'] = Precise.string_add(loan, interest)
                         account['total'] = self.safe_string(coinEntry, 'walletBalance')
-                        account['free'] = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        free = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        if free is not None:
+                            account['free'] = free
+                        else:
+                            locked = self.safe_string(coinEntry, 'locked', '0')
+                            totalPositionIm = self.safe_string(coinEntry, 'totalPositionIM', '0')
+                            totalOrderIm = self.safe_string(coinEntry, 'totalOrderIM', '0')
+                            totalUsed = Precise.string_add(locked, totalPositionIm)
+                            totalUsed = Precise.string_add(totalUsed, totalOrderIm)
+                            account['used'] = totalUsed
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
@@ -3693,7 +3701,7 @@ class bybit(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param str [params.positionIdx]: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
         :param bool [params.hedged]: *contracts only* True for hedged mode, False for one way mode, default is False
-        :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
+        :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
         :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'

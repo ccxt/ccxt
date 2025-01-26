@@ -702,7 +702,7 @@ class kraken extends Exchange {
         if ($currencyId !== null) {
             if (strlen($currencyId) > 3) {
                 if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (!(mb_strpos($currencyId, '.') > 0)) {
+                    if (!(mb_strpos($currencyId, '.') > 0) && ($currencyId !== 'ZEUS')) {
                         $currencyId = mb_substr($currencyId, 1);
                     }
                 }

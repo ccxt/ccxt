@@ -478,6 +478,8 @@ public partial class bitmart : Exchange
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "USDT", "ERC20" },
                 } },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
                     { "SOL", "SOL" },
@@ -1056,6 +1058,10 @@ public partial class bitmart : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object spot = await this.fetchSpotMarkets(parameters);
         object contract = await this.fetchContractMarkets(parameters);
         return this.arrayConcat(spot, contract);
@@ -5509,7 +5515,7 @@ public partial class bitmart : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -5537,7 +5543,7 @@ public partial class bitmart : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.nonce()).ToString();
             object brokerId = this.safeString(this.options, "brokerId", "CCXTxBitmart000");
             headers = new Dictionary<string, object>() {
                 { "X-BM-KEY", this.apiKey },

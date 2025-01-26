@@ -291,6 +291,88 @@ class deribit(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': True,  # todo
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 # 0 or absent Success, No error.
                 '9999': PermissionDenied,  # 'api_not_enabled' User didn't enable API for the Account.
@@ -2981,7 +3063,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :param int [params.until]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
@@ -2995,11 +3077,18 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
+        else:
+            time = since + month
         request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         }
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_timestamp'] = until
+        else:
+            request['end_timestamp'] = time
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {

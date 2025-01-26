@@ -665,7 +665,7 @@ public partial class kraken : Exchange
             {
                 if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
                 {
-                    if (!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))))
+                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
                     {
                         currencyId = slice(currencyId, 1, null);
                     }

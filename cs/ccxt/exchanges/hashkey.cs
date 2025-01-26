@@ -3667,8 +3667,7 @@ public partial class hashkey : Exchange
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        object fundingRates = this.parseFundingRates(response);
-        return this.filterByArray(fundingRates, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

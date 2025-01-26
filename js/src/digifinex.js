@@ -237,6 +237,109 @@ export default class digifinex extends Exchange {
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                        'marginMode': true,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrders': {
+                        'max': 20,
+                        'marginMode': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'daysBack': 100000, // todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -1504,6 +1607,7 @@ export default class digifinex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1520,22 +1624,38 @@ export default class digifinex extends Exchange {
             response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
         else {
+            const until = this.safeInteger(params, 'until');
             request['symbol'] = market['id'];
             request['period'] = this.safeString(this.timeframes, timeframe, timeframe);
-            if (since !== undefined) {
-                const startTime = this.parseToInt(since / 1000);
-                request['start_time'] = startTime;
-                if (limit !== undefined) {
-                    const duration = this.parseTimeframe(timeframe);
-                    request['end_time'] = this.sum(startTime, limit * duration);
+            let startTime = since;
+            const duration = this.parseTimeframe(timeframe);
+            if (startTime === undefined) {
+                if ((limit !== undefined) || (until !== undefined)) {
+                    const endTime = (until !== undefined) ? until : this.milliseconds();
+                    const startLimit = (limit !== undefined) ? limit : 200;
+                    startTime = endTime - (startLimit * duration * 1000);
                 }
             }
-            else if (limit !== undefined) {
-                const endTime = this.seconds();
-                const duration = this.parseTimeframe(timeframe);
-                const auxLimit = limit; // in c# -limit is mutating the arg
-                request['start_time'] = this.sum(endTime, -auxLimit * duration);
+            if (startTime !== undefined) {
+                startTime = this.parseToInt(startTime / 1000);
+                request['start_time'] = startTime;
+                if ((limit !== undefined) || (until !== undefined)) {
+                    if (until !== undefined) {
+                        const endByUntil = this.parseToInt(until / 1000);
+                        if (limit !== undefined) {
+                            const endByLimit = this.sum(startTime, limit * duration);
+                            request['end_time'] = Math.min(endByLimit, endByUntil);
+                        }
+                        else {
+                            request['end_time'] = endByUntil;
+                        }
+                    }
+                    else {
+                        request['end_time'] = this.sum(startTime, limit * duration);
+                    }
+                }
             }
+            params = this.omit(params, 'until');
             response = await this.publicSpotGetKline(this.extend(request, params));
         }
         //
