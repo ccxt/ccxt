@@ -3298,7 +3298,7 @@ class Exchange {
         $stream->add_watch_function('watchOHLCVForSymbols', array( $symbolsAndTimeframes, null, null, $params ));
         $this->watch_ohlcv_for_symbols($symbolsAndTimeframes, null, null, $params);
     }
-    
+
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchOHLCVForSymbols() is not supported yet');
     }
@@ -3330,7 +3330,7 @@ class Exchange {
         $stream->add_watch_function('watchOrderBookForSymbols', array( $symbols, null, $params ));
         $this->watch_order_book_for_symbols($symbols, null, $params);
     }
-    
+
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
     }
