@@ -1604,7 +1604,7 @@ class Transpiler {
                 'OHLCVC': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
-                'Topic': 'string',
+                'Topic': 'str',
                 'ConsumerFunction': 'Any',
             }
             const unwrapLists = (type) => {
