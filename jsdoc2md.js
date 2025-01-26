@@ -58,7 +58,6 @@ console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
 
 const outputByExchange = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
-//const outputByExchange = await jsdoc2md.render ({ template, data: templateData[5], partial: exchangePartial, helper })
 // Group docs by method
 const groupedByMethod = templateData.reduce((acc, arr) => {
   arr.filter(obj => obj.kind === 'function' && !obj.ignore).forEach(obj => {

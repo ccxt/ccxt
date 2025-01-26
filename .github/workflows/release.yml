@@ -90,10 +90,13 @@ jobs:
       - name: cleanup old tags
         run: npm run cleanup-old-tags --limit
       - name: Create GH Release and git-tag-version and push
+        env:
+          COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
         run: |
+               echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git tag -a "${COMMIT_MESSAGE}"
+               git tag -a "${COMMIT_MESSAGE}" -m "${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag

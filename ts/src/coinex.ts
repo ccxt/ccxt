@@ -3902,7 +3902,7 @@ export default class coinex extends Exchange {
             'currency': this.safeCurrencyCode (undefined, currency),
             'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositAddress, 'memo', tag),
         } as DepositAddress;
     }
 
