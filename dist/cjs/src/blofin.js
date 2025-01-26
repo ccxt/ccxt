@@ -157,6 +157,9 @@ class blofin extends blofin$1 {
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
                     'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
@@ -314,6 +317,7 @@ class blofin extends blofin$1 {
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'limit': true,
+                            'price': undefined,
                         },
                         'hedged': true,
                     },
