@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
- * @class huobi
+ * @class htx
  * @augments Exchange
  */
 class htx extends htx$1 {
