@@ -63,7 +63,7 @@ class Exchange extends \ccxt\Exchange {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
-        'maxMessagesPerTopic' => 10000,
+        'maxMessagesPerTopic' => 100,
     );
 
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
@@ -75,7 +75,7 @@ class Exchange extends \ccxt\Exchange {
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
         $this->throttler = new Throttler($this->tokenBucket);
-        $maxMessagesPerTopic = $this->safe_integer($this->streaming, 'maxMessagesPerTopic', 10000);
+        $maxMessagesPerTopic = $this->safe_integer($this->streaming, 'maxMessagesPerTopic', 100);
         $verbose = $this->safe_bool($this->streaming, 'verbose', $this->verbose);
         $this->stream = new Stream ($maxMessagesPerTopic,  $verbose);
     }

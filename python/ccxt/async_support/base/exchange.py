@@ -60,7 +60,7 @@ class Exchange(BaseExchange):
     synchronous = False
     streaming = {
         'maxPingPongMisses': 2,
-        'maxMessagesPerTopic': 10000,
+        'maxMessagesPerTopic': 100,
         'keepAlive': 30000
     }
     ping = None
@@ -83,7 +83,7 @@ class Exchange(BaseExchange):
         self.reloading_markets = False
 
     def init_stream(self):
-        maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 10000)
+        maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 100)
         verbose = self.streaming.get('verbose', self.verbose)
         self.stream = Stream(maxMessagesPerTopic, verbose)
         self.setup_stream()

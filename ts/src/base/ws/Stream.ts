@@ -12,11 +12,11 @@ export class Stream implements BaseStream {
 
     public activeWatchFunctions: any[] = [];
 
-    constructor (maxMessagesPerTopic = 10000, verbose = false) {
+    constructor (maxMessagesPerTopic = 100, verbose = false) {
         this.init (maxMessagesPerTopic, verbose);
     }
 
-    init (maxMessagesPerTopic = 10000, verbose = false) {
+    init (maxMessagesPerTopic = 100, verbose = false) {
         this.maxMessagesPerTopic = maxMessagesPerTopic
         this.verbose = verbose;
         this.topics = {};

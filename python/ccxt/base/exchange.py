@@ -1814,7 +1814,7 @@ class Exchange(object):
         if reconnect:
             stream.subscribe('errors', self.stream_reconnect_on_error(), True)
 
-    def stream_produce(self, topic: string, payload: Any = None, error: Any = None):
+    def stream_produce(self, topic: str, payload: Any = None, error: Any = None):
         """
  @ignore
         produce a message to a topic of the stream

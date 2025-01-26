@@ -248,6 +248,19 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 Note: this feature is in beta and will apreciate any feedback.
 Subscribe functions allow you to listen for updates from a specific stream and use callbacks on every update. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
 
+
+### Subscribe Parameters
+You can change the parameters in exchange.streaming.
+- `maxMessagesPerTopic`: By default 100, it is the maximum number of messages stored in memory for each topic. A higher number allows to access a larger history and buffer in memory, however ocuppies more memory.
+- Example:
+    ```python
+    exchange = ccxt.pro.binance({
+        'streaming': {
+            'maxMessagesPerTopic': 1000  # Store last 1000 messages per topic
+        }
+    })
+    ```
+
 ### Callback Functions
 When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
 
