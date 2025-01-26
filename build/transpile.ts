@@ -1605,7 +1605,7 @@ class Transpiler {
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'Topic': 'string',
-                'ConsumerFunction': 'mixed',
+                'ConsumerFunction': 'Any',
             }
             const unwrapLists = (type) => {
                 let count = 0
