@@ -667,6 +667,12 @@
     },
     "coinmetro": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "some currencies show in fetchMarkets but not in fetchCurrencies"
+            },
+            "fetchCurrencies": {
+                "precision": "not always provided"
+            },
             "fetchTrades": {
                 "side":"side is undefined"
             },
