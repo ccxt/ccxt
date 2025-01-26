@@ -316,6 +316,7 @@ export default class blofin extends Exchange {
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'limit': true,
+                            'price': undefined,
                         },
                         'hedged': true,
                     },
