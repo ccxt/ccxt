@@ -511,8 +511,9 @@ export default class coinmetro extends Exchange {
         let quoteId = undefined;
         const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
         // Bubble sort by length (longest first)
-        for (let i = 0; i < currencyIds.length; i++) {
-            for (let j = 0; j < currencyIds.length - i - 1; j++) {
+        const currencyIdsLength = currencyIds.length;
+        for (let i = 0; i < currencyIdsLength; i++) {
+            for (let j = 0; j < currencyIdsLength - i - 1; j++) {
                 const a = currencyIds[j];
                 const b = currencyIds[j + 1];
                 if (a.length < b.length) {
