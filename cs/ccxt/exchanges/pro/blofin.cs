@@ -34,6 +34,14 @@ public partial class blofin : ccxt.blofin
                         } },
                     } },
                 } },
+                { "test", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "swap", new Dictionary<string, object>() {
+                            { "public", "wss://demo-trading-openapi.blofin.com/ws/public" },
+                            { "private", "wss://demo-trading-openapi.blofin.com/ws/private" },
+                        } },
+                    } },
+                } },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
