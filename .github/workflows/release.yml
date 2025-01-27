@@ -94,6 +94,7 @@ jobs:
       - name: Create GH Release and git-tag-version and push
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          GH_TOKEN: ${{ github.token }}
         run: |
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
