@@ -280,7 +280,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.lbank.info/v2/kline.do?size=100&symbol=btc_usdt&time=1709986989&type=minute1",
+                "url": "https://api.lbank.info/v2/kline.do?size=101&symbol=btc_usdt&time=1709986989&type=minute1",
                 "input": [
                     "BTC/USDT"
                 ]

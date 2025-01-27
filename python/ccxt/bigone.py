@@ -54,7 +54,10 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -89,7 +92,7 @@ class bigone(Exchange, ImplicitAPI):
             },
             'hostname': 'big.one',  # or 'bigone.com'
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
@@ -302,6 +305,105 @@ class bigone(Exchange, ImplicitAPI):
                     # undetermined: XinFin, YAS, Ycash
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo implement
+                        'stopLossPrice': False,  # todo by trigger
+                        'takeProfitPrice': False,  # todo by trigger
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo: implement
+                        'triggerPriceType': {
+                            'mark': True,
+                            'index': True,
+                            'last': True,
+                        },
+                    },
+                    'fetchOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchClosedOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -472,7 +574,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
-        :see: https://open.big.one/docs/spot_asset_pair.html
+
+        https://open.big.one/docs/spot_asset_pair.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -733,7 +837,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://open.big.one/docs/spot_tickers.html
+
+        https://open.big.one/docs/spot_tickers.html
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -772,7 +878,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://open.big.one/docs/spot_tickers.html
+
+        https://open.big.one/docs/spot_tickers.html
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -854,7 +962,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://open.big.one/docs/spot_ping.html
+
+        https://open.big.one/docs/spot_ping.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -873,7 +983,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
+        https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1088,7 +1200,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://open.big.one/docs/spot_asset_pair_trade.html
+
+        https://open.big.one/docs/spot_asset_pair_trade.html
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1150,30 +1264,42 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://open.big.one/docs/spot_asset_pair_candle.html
+
+        https://open.big.one/docs/spot_asset_pair_candle.html
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         if market['contract']:
             raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = (until is not None)
+        sinceIsDefined = (since is not None)
         if limit is None:
-            limit = 100  # default 100, max 500
+            limit = 500 if (sinceIsDefined and untilIsDefined) else 100  # default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         request: dict = {
             'asset_pair_name': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
-        if since is not None:
+        if sinceIsDefined:
             # start = self.parse_to_int(since / 1000)
             duration = self.parse_timeframe(timeframe)
-            end = self.sum(since, limit * duration * 1000)
-            request['time'] = self.iso8601(end)
+            endByLimit = self.sum(since, limit * duration * 1000)
+            if untilIsDefined:
+                request['time'] = self.iso8601(min(endByLimit, until + 1))
+            else:
+                request['time'] = self.iso8601(endByLimit)
+        elif untilIsDefined:
+            request['time'] = self.iso8601(until + 1)
+        params = self.omit(params, 'until')
         response = self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
         #     {
@@ -1221,8 +1347,10 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://open.big.one/docs/fund_accounts.html
-        :see: https://open.big.one/docs/spot_accounts.html
+
+        https://open.big.one/docs/fund_accounts.html
+        https://open.big.one/docs/spot_accounts.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1314,7 +1442,6 @@ class bigone(Exchange, ImplicitAPI):
             'postOnly': self.safe_bool(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
@@ -1329,7 +1456,9 @@ class bigone(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://open.big.one/docs/spot_orders.html#create-order
+
+        https://open.big.one/docs/spot_orders.html#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1345,7 +1474,9 @@ class bigone(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://open.big.one/docs/spot_orders.html#create-order
+
+        https://open.big.one/docs/spot_orders.html#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1356,10 +1487,10 @@ class bigone(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-        :param str operator: *stop order only* GTE or LTE(default)
-        :param str client_order_id: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+
+ EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.operator]: *stop order only* GTE or LTE(default)
+        :param str [params.client_order_id]: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1442,7 +1573,9 @@ class bigone(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://open.big.one/docs/spot_orders.html#cancel-order
+
+        https://open.big.one/docs/spot_orders.html#cancel-order
+
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1469,7 +1602,9 @@ class bigone(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
+        https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1515,7 +1650,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-one-order
+
+        https://open.big.one/docs/spot_orders.html#get-one-order
+
         :param str id: the order id
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1530,7 +1667,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1577,7 +1716,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://open.big.one/docs/spot_trade.html#trades-of-user
+
+        https://open.big.one/docs/spot_trade.html#trades-of-user
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1643,7 +1784,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1658,7 +1801,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1705,7 +1850,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
+        https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1853,7 +2000,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
+        https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1901,7 +2050,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
+        https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1949,7 +2100,9 @@ class bigone(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
+        https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
@@ -2015,10 +2168,12 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
+        https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to

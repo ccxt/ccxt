@@ -256,6 +256,20 @@ public partial class kuna
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// cancels an open order
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
@@ -566,7 +580,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>
@@ -696,7 +710,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>

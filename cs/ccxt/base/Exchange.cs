@@ -41,7 +41,7 @@ public partial class Exchange
 
     private void initHttpClient()
     {
-        var handler = new HttpClientHandler{ AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
@@ -712,6 +712,24 @@ public partial class Exchange
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
+
+        if (array is byte[])
+        {
+            var byteArray = (byte[])array;
+            if (second == null)
+            {
+                if (firstInt < 0)
+                {
+                    var index = byteArray.Length + firstInt;
+                    index = index < 0 ? 0 : index;
+                    return byteArray[index..].ToList();
+                }
+                return byteArray[firstInt..].ToList();
+            }
+            var secondInt2 = Convert.ToInt32(second);
+            return byteArray[firstInt..secondInt2];
+        }
+
         var parsedArray = ((IList<object>)array);
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);

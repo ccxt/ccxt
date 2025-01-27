@@ -54,6 +54,8 @@ python path/to/example.py # substitute for actual filename here
 
 ## See Also
 
+This section includes links to friendly projects, tutorials, articles, videos, courses and other materials related to CCXT.
+
 [Freqtrade](https://www.freqtrade.io) – leading opensource cryptocurrency algorithmic trading software based on CCXT!
 
 [Blockpit](https://www.blockpit.io) – Tax reporting and portfolio tracking for Cryptocurrencies, Cryptoderivates and DeFi.
@@ -65,6 +67,10 @@ python path/to/example.py # substitute for actual filename here
 [The Evolution Of CCXT](https://www.youtube.com/watch?v=KnyduYTFm1c) – A Gource visualization on the development of the CCXT code repository.
 
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
+
+[Ultimate Guide to Mastering Cryptocurrency Trading Orders with Python](https://robottraders.io/blog/guide-ccxt-orders) – A great tutorial on trading orders with CCXT by Robot Traders.
+
+[Mastering Cryptocurrency Trading: From Data to Strategy with Python](https://profitview.net/blog/mastering-cryptocurrency-trading-from-data-to-strategy-with-python) – An in-depth article guiding through trading strategy development with CCXT and Python.
 
 [What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
 
@@ -105,8 +111,6 @@ python path/to/example.py # substitute for actual filename here
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
-
-[tv2bt: Kraken Example, without leverage](https://backtest-rookies.com/2020/04/18/tv2bt-kraken-example-without-leverage/) – an article on using CCXT for backtesting.
 
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 

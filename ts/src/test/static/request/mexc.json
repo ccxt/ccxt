@@ -6,6 +6,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.mexc.com/api/v3/tradeFee?symbol=BTCUSDT&timestamp=1733827597442&recvWindow=5000&signature=672ed957158ae4048761a44c8d04c750fe3d1346bf67c86e3b0d11fe7c160f34",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",

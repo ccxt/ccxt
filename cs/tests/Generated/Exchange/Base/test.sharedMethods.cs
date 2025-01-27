@@ -53,9 +53,9 @@ public partial class testMainClass : BaseTest
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
-        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null)
+        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
         {
-            emptyAllowedFor ??= new List<object>();
+            deep ??= false;
             object logText = logTemplate(exchange, method, entry);
             assert(entry, add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -67,7 +67,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
                 for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
-                    object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     if (isTrue(inOp(skippedProperties, i)))
                     {
@@ -101,7 +101,7 @@ public partial class testMainClass : BaseTest
                     {
                         continue;
                     }
-                    object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -117,6 +117,13 @@ public partial class testMainClass : BaseTest
                     {
                         object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        if (isTrue(deep))
+                        {
+                            if (isTrue((value is IDictionary<string, object>)))
+                            {
+                                assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
+                            }
+                        }
                     }
                 }
             }
@@ -424,6 +431,168 @@ public partial class testMainClass : BaseTest
                 // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
                 assertLessOrEqual(exchange, skippedProperties, method, entry, key, "18"); // should be under 18 decimals
                 assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8"); // in real-world cases, there would not be less than that
+            }
+        }
+        async public Task<object> fetchBestBidAsk(Exchange exchange, object method, object symbol)
+        {
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            // find out best bid/ask price
+            object bestBid = null;
+            object bestAsk = null;
+            object usedMethod = null;
+            if (isTrue(getValue(exchange.has, "fetchOrderBook")))
+            {
+                usedMethod = "fetchOrderBook";
+                object orderbook = await exchange.fetchOrderBook(symbol);
+                object bids = exchange.safeList(orderbook, "bids");
+                object asks = exchange.safeList(orderbook, "asks");
+                object bestBidArray = exchange.safeList(bids, 0);
+                object bestAskArray = exchange.safeList(asks, 0);
+                bestBid = exchange.safeNumber(bestBidArray, 0);
+                bestAsk = exchange.safeNumber(bestAskArray, 0);
+            } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
+            {
+                usedMethod = "fetchBidsAsks";
+                object tickers = await exchange.fetchBidsAsks(new List<object>() {symbol});
+                object ticker = exchange.safeDict(tickers, symbol);
+                bestBid = exchange.safeNumber(ticker, "bid");
+                bestAsk = exchange.safeNumber(ticker, "ask");
+            } else if (isTrue(getValue(exchange.has, "fetchTicker")))
+            {
+                usedMethod = "fetchTicker";
+                object ticker = await exchange.fetchTicker(symbol);
+                bestBid = exchange.safeNumber(ticker, "bid");
+                bestAsk = exchange.safeNumber(ticker, "ask");
+            } else if (isTrue(getValue(exchange.has, "fetchTickers")))
+            {
+                usedMethod = "fetchTickers";
+                object tickers = await exchange.fetchTickers(new List<object>() {symbol});
+                object ticker = exchange.safeDict(tickers, symbol);
+                bestBid = exchange.safeNumber(ticker, "bid");
+                bestAsk = exchange.safeNumber(ticker, "ask");
+            }
+            //
+            assert(isTrue(!isEqual(bestBid, null)) && isTrue(!isEqual(bestAsk, null)), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
+            return new List<object>() {bestBid, bestAsk};
+        }
+        async public Task<object> fetchOrder(Exchange exchange, object symbol, object orderId, object skippedProperties)
+        {
+            object fetchedOrder = null;
+            object originalId = orderId;
+            // set 'since' to 5 minute ago for optimal results
+            object sinceTime = subtract(exchange.milliseconds(), multiply(multiply(1000, 60), 5));
+            // iterate
+            object methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
+            for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
+            {
+                object singularFetchName = getValue(methods_singular, i);
+                if (isTrue(getValue(exchange.has, singularFetchName)))
+                {
+                    object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
+                    // if there is an id inside the order, it means the order was fetched successfully
+                    if (isTrue(isEqual(getValue(currentOrder, "id"), originalId)))
+                    {
+                        fetchedOrder = currentOrder;
+                        break;
+                    }
+                }
+            }
+            //
+            // search through plural methods
+            if (isTrue(isEqual(fetchedOrder, null)))
+            {
+                object methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
+                for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
+                {
+                    object pluralFetchName = getValue(methods_plural, i);
+                    if (isTrue(getValue(exchange.has, pluralFetchName)))
+                    {
+                        object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
+                        object found = false;
+                        for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                        {
+                            object currentOrder = getValue(orders, j);
+                            if (isTrue(isEqual(getValue(currentOrder, "id"), originalId)))
+                            {
+                                fetchedOrder = currentOrder;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (isTrue(found))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            return fetchedOrder;
+        }
+        public void assertOrderState(Exchange exchange, object skippedProperties, object method, object order, object assertedStatus, object strictCheck)
+        {
+            // note, `strictCheck` is `true` only from "fetchOrder" cases
+            object logText = logTemplate(exchange, method, order);
+            object msg = add(add(add("order should be ", assertedStatus), ", but it was not asserted"), logText);
+            object filled = exchange.safeString(order, "filled");
+            object amount = exchange.safeString(order, "amount");
+            // shorthand variables
+            object statusUndefined = (isEqual(getValue(order, "status"), null));
+            object statusOpen = (isEqual(getValue(order, "status"), "open"));
+            object statusClosed = (isEqual(getValue(order, "status"), "closed"));
+            object statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
+            object filledDefined = (!isEqual(filled, null));
+            object amountDefined = (!isEqual(amount, null));
+            object condition = null;
+            //
+            // ### OPEN STATUS
+            //
+            // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
+            object strictOpen = isTrue(statusOpen) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(isLessThan(filled, amount))));
+            // if non-strict check, then accept & ignore undefined values
+            object nonstrictOpen = isTrue((isTrue(statusOpen) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
+            // check
+            if (isTrue(isEqual(assertedStatus, "open")))
+            {
+                condition = ((bool) isTrue(strictCheck)) ? strictOpen : nonstrictOpen;
+                assert(condition, msg);
+                return;
+            }
+            //
+            // ### CLOSED STATUS
+            //
+            // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
+            object closedStrict = isTrue(statusClosed) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringEq(filled, amount))));
+            // if non-strict check, then accept & ignore undefined values
+            object closedNonStrict = isTrue((isTrue(statusClosed) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringEq(filled, amount))));
+            // check
+            if (isTrue(isEqual(assertedStatus, "closed")))
+            {
+                condition = ((bool) isTrue(strictCheck)) ? closedStrict : closedNonStrict;
+                assert(condition, msg);
+                return;
+            }
+            //
+            // ### CANCELED STATUS
+            //
+            // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
+            object canceledStrict = isTrue(statusClanceled) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringLt(filled, amount))));
+            // if non-strict check, then accept & ignore undefined values
+            object canceledNonStrict = isTrue((isTrue(statusClanceled) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
+            // check
+            if (isTrue(isEqual(assertedStatus, "canceled")))
+            {
+                condition = ((bool) isTrue(strictCheck)) ? canceledStrict : canceledNonStrict;
+                assert(condition, msg);
+                return;
+            }
+            //
+            // ### CLOSED_or_CANCELED STATUS
+            //
+            if (isTrue(isEqual(assertedStatus, "closed_or_canceled")))
+            {
+                condition = ((bool) isTrue(strictCheck)) ? (isTrue(closedStrict) || isTrue(canceledStrict)) : (isTrue(closedNonStrict) || isTrue(canceledNonStrict));
+                assert(condition, msg);
+                return;
             }
         }
         public object removeProxyOptions(Exchange exchange, object skippedProperties)

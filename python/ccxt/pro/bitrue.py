@@ -36,15 +36,17 @@ class bitrue(ccxt.async_support.bitrue):
             },
             'api': {
                 'open': {
-                    'private': {
-                        'post': {
-                            'poseidon/api/v1/listenKey': 1,
-                        },
-                        'put': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
-                        },
-                        'delete': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'poseidon/api/v1/listenKey': 1,
+                            },
+                            'put': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
+                            'delete': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
                         },
                     },
                 },
@@ -60,7 +62,9 @@ class bitrue(ccxt.async_support.bitrue):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -166,8 +170,10 @@ class bitrue(ccxt.async_support.bitrue):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on user orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-        :param str[] symbols: unified symbols of the market to watch the orders for
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+
+        :param str symbol:
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum amount of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -401,7 +407,7 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
+            response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
             #
             #     {
             #         "msg": "succ",
@@ -425,7 +431,7 @@ class bitrue(ccxt.async_support.bitrue):
             'listenKey': listenKey,
         }
         try:
-            await self.openPrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
+            await self.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
             #
             # ಠ_ಠ
             #     {

@@ -137,7 +137,7 @@ class bitteam(Exchange, ImplicitAPI):
                 '1d': '1D',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
+                'logo': 'https://github.com/user-attachments/assets/b41b5e0d-98e5-4bd3-8a6e-aeb230a4a135',
                 'api': {
                     'history': 'https://history.bit.team',
                     'public': 'https://bit.team',
@@ -227,6 +227,79 @@ class bitteam(Exchange, ImplicitAPI):
                     'BUSD': True,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '400002': BadSymbol,  # {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
@@ -254,7 +327,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitteam
-        :see: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+
+        https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -420,7 +495,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+
+        https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -697,7 +774,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+
+        https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the bitteam api endpoint
@@ -743,7 +822,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve(default 10)
@@ -852,7 +933,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+
         :param int|str id: order id
         :param str symbol: not used by bitteam fetchOrder()
         :param dict [params]: extra parameters specific to the bitteam api endpoint
@@ -909,7 +992,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve(default 10)
@@ -925,7 +1010,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of closed order structures to retrieve(default 10)
@@ -941,7 +1028,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of canceled order structures to retrieve(default 10)
@@ -957,7 +1046,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+
+        https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1009,7 +1100,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+
+        https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+
         :param str id: order id
         :param str symbol: not used by bitteam cancelOrder()
         :param dict [params]: extra parameters specific to the bitteam api endpoint
@@ -1034,7 +1127,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+
+        https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1163,7 +1258,6 @@ class bitteam(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'side')
         feeRaw = self.safe_value(order, 'fee')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'stopPrice')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed')
         fee = None
@@ -1188,8 +1282,7 @@ class bitteam(Exchange, ImplicitAPI):
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'average': None,
             'amount': amount,
             'cost': None,
@@ -1232,7 +1325,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+
+        https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1282,7 +1377,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+
+        https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1609,7 +1706,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+
+        https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1648,7 +1747,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 10)
@@ -1907,7 +2008,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+
         :param dict [params]: extra parameters specific to the betteam api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -1983,7 +2086,9 @@ class bitteam(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
-        :see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+
+        https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal
         :param int [limit]: max number of deposit/withdrawals to return(default 10)

@@ -101,6 +101,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("publicGetMarginConfig",parameters);
     }
 
+    public async Task<object> publicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAnnouncements",parameters);
+    }
+
     public async Task<object> publicPostBulletPublic (object parameters = null)
     {
         return await this.callAsync ("publicPostBulletPublic",parameters);
@@ -239,6 +244,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> privateGetMarketOrderbookLevel3 (object parameters = null)
     {
         return await this.callAsync ("privateGetMarketOrderbookLevel3",parameters);
+    }
+
+    public async Task<object> privateGetHfAccountsOpened (object parameters = null)
+    {
+        return await this.callAsync ("privateGetHfAccountsOpened",parameters);
     }
 
     public async Task<object> privateGetHfOrdersActive (object parameters = null)
@@ -614,6 +624,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> privatePostPositionUpdateUserLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePostPositionUpdateUserLeverage",parameters);
+    }
+
+    public async Task<object> privatePostDepositAddressCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddressCreate",parameters);
     }
 
     public async Task<object> privateDeleteSubApiKey (object parameters = null)

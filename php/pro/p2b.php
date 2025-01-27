@@ -91,7 +91,9 @@ class p2b extends \ccxt\async\p2b {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> Can only subscribe to one $timeframe at a time for each $symbol
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 15m, 30m, 1h or 1d
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -123,8 +125,10 @@ class p2b extends \ccxt\async\p2b {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#$market-status
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->method] 'state' (default) or 'price'
@@ -147,8 +151,10 @@ class p2b extends \ccxt\async\p2b {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#$market-status
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -182,7 +188,9 @@ class p2b extends \ccxt\async\p2b {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -197,7 +205,9 @@ class p2b extends \ccxt\async\p2b {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -234,7 +244,9 @@ class p2b extends \ccxt\async\p2b {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-$market
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] 1-100, default=100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

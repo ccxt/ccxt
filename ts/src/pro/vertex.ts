@@ -91,18 +91,18 @@ export default class vertex extends vertexRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
+    /**
+     * @method
+     * @name vertex#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name vertex#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade';
@@ -153,19 +153,19 @@ export default class vertex extends vertexRest {
         client.resolve (trades, marketId + '@' + topic);
     }
 
+    /**
+     * @method
+     * @name vertex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name vertex#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol.');
         }
@@ -306,16 +306,16 @@ export default class vertex extends vertexRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name vertex#watchTicker
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name vertex#watchTicker
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const name = 'best_bid_offer';
         const market = this.market (symbol);
@@ -393,17 +393,17 @@ export default class vertex extends vertexRest {
         return message;
     }
 
+    /**
+     * @method
+     * @name vertex#watchOrderBook
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name vertex#watchOrderBook
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return.
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const name = 'book_depth';
         const market = this.market (symbol);
@@ -575,17 +575,19 @@ export default class vertex extends vertexRest {
         return message;
     }
 
+    /**
+     * @method
+     * @name vertex#watchPositions
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name vertex#watchPositions
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
@@ -812,18 +814,18 @@ export default class vertex extends vertexRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
+    /**
+     * @method
+     * @name vertex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name vertex#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol.');
         }

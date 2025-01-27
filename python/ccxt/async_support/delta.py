@@ -229,6 +229,88 @@ class delta(Exchange, ImplicitAPI):
                     'BEP20': 'BEP20(BSC)',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo implement
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': True,
+                        },
+                        # todo implementation
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,  # todo: implement
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                    },
+                    'createOrders': None,  # todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,  # todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': True,
@@ -414,7 +496,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.delta.exchange/#get-list-of-all-assets
+
+        https://docs.delta.exchange/#get-list-of-all-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -510,7 +594,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for delta
-        :see: https://docs.delta.exchange/#get-list-of-products
+
+        https://docs.delta.exchange/#get-list-of-products
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -730,7 +816,7 @@ class delta(Exchange, ImplicitAPI):
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
-            linear = (settle == base)
+            linear = (settle == quote)
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
@@ -956,7 +1042,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1097,7 +1185,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.delta.exchange/#get-tickers-for-products
+
+        https://docs.delta.exchange/#get-tickers-for-products
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1246,7 +1336,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.delta.exchange/#get-l2-orderbook
+
+        https://docs.delta.exchange/#get-l2-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1379,7 +1471,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.delta.exchange/#get-public-trades
+
+        https://docs.delta.exchange/#get-public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1433,12 +1527,15 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.delta.exchange/#get-ohlc-candles
+
+        https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1448,14 +1545,18 @@ class delta(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         limit = limit if limit else 2000  # max 2000
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
+        if untilIsDefined:
+            until = self.parse_to_int(until)
         if since is None:
-            end = self.seconds()
+            end = until if untilIsDefined else self.seconds()
             request['end'] = end
             request['start'] = end - limit * duration
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = self.sum(start, limit * duration)
+            request['end'] = until if untilIsDefined else self.sum(start, limit * duration)
         price = self.safe_string(params, 'price')
         if price == 'mark':
             request['symbol'] = 'MARK:' + market['id']
@@ -1463,7 +1564,7 @@ class delta(Exchange, ImplicitAPI):
             request['symbol'] = market['info']['spot_index']['symbol']
         else:
             request['symbol'] = market['id']
-        params = self.omit(params, 'price')
+        params = self.omit(params, ['price', 'until'])
         response = await self.publicGetHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -1496,7 +1597,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.delta.exchange/#get-wallet-balances
+
+        https://docs.delta.exchange/#get-wallet-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1528,7 +1631,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://docs.delta.exchange/#get-position
+
+        https://docs.delta.exchange/#get-position
+
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1555,7 +1660,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.delta.exchange/#get-margined-positions
+
+        https://docs.delta.exchange/#get-margined-positions
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1749,7 +1856,9 @@ class delta(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.delta.exchange/#place-order
+
+        https://docs.delta.exchange/#place-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1826,7 +1935,9 @@ class delta(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.delta.exchange/#edit-order
+
+        https://docs.delta.exchange/#edit-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1872,7 +1983,9 @@ class delta(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.delta.exchange/#cancel-order
+
+        https://docs.delta.exchange/#cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1929,7 +2042,9 @@ class delta(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://docs.delta.exchange/#cancel-all-open-orders
+
+        https://docs.delta.exchange/#cancel-all-open-orders
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1959,7 +2074,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.delta.exchange/#get-active-orders
+
+        https://docs.delta.exchange/#get-active-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -1971,7 +2088,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
+        https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2034,7 +2153,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.delta.exchange/#get-user-fills-by-filters
+
+        https://docs.delta.exchange/#get-user-fills-by-filters
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -2111,12 +2232,14 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://docs.delta.exchange/#get-wallet-transactions
+
+        https://docs.delta.exchange/#get-wallet-transactions
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         request: dict = {
@@ -2295,7 +2418,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2359,7 +2484,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://docs.delta.exchange/#get-tickers-for-products
+
+        https://docs.delta.exchange/#get-tickers-for-products
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
@@ -2418,8 +2545,7 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         rates = self.safe_list(response, 'result', [])
-        result = self.parse_funding_rates(rates)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rates, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2492,7 +2618,9 @@ class delta(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://docs.delta.exchange/#add-remove-position-margin
+
+        https://docs.delta.exchange/#add-remove-position-margin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2503,7 +2631,9 @@ class delta(Exchange, ImplicitAPI):
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://docs.delta.exchange/#add-remove-position-margin
+
+        https://docs.delta.exchange/#add-remove-position-margin
+
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2587,7 +2717,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a derivative market
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -2721,7 +2853,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://docs.delta.exchange/#get-order-leverage
+
+        https://docs.delta.exchange/#get-order-leverage
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -2762,7 +2896,9 @@ class delta(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://docs.delta.exchange/#change-order-leverage
+
+        https://docs.delta.exchange/#change-order-leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2792,7 +2928,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
-        :see: https://docs.delta.exchange/#get-product-settlement-prices
+
+        https://docs.delta.exchange/#get-product-settlement-prices
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -2945,7 +3083,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
@@ -3091,7 +3231,9 @@ class delta(Exchange, ImplicitAPI):
     async def close_all_positions(self, params={}) -> List[Position]:
         """
         closes all open positions for a market type
-        :see: https://docs.delta.exchange/#close-all-positions
+
+        https://docs.delta.exchange/#close-all-positions
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.user_id]: the users id
         :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
@@ -3112,7 +3254,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of a trading pair
-        :see: https://docs.delta.exchange/#get-user
+
+        https://docs.delta.exchange/#get-user
+
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
@@ -3201,7 +3345,9 @@ class delta(Exchange, ImplicitAPI):
     async def fetch_option(self, symbol: str, params={}) -> Option:
         """
         fetches option data that is commonly found in an option chain
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
@@ -3356,7 +3502,7 @@ class delta(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
             }
             auth = method + timestamp + requestPath
-            if (method == 'GET') or (method == 'DELETE'):
+            if method == 'GET':
                 if query:
                     queryString = '?' + self.urlencode(query)
                     auth += queryString

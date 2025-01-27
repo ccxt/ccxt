@@ -124,7 +124,7 @@
                 "parsedResponse": [
                     {
                         "id": "78151",
-                        "clientOrderId": 1,
+                        "clientOrderId": "1",
                         "timestamp": 1705665118630,
                         "datetime": "2024-01-19T11:51:58.630Z",
                         "lastTradeTimestamp": null,
@@ -148,7 +148,7 @@
                         "cost": 10,
                         "trades": [],
                         "fee": {
-                            "cost": "0.5",
+                            "cost": 0.5,
                             "currency": "USDC"
                         },
                         "info": {
@@ -235,7 +235,7 @@
                         "currency": null
                     },
                     "info": {
-                        "timestamp": "1706704671049",
+                        "timestamp": 1706704671049,
                         "order_id": "5973852953",
                         "order_type": "MARKET",
                         "order_price": null,
@@ -482,7 +482,7 @@
                 "parsedResponse": [
                   {
                     "id": "78151",
-                    "clientOrderId": 1,
+                    "clientOrderId": "1",
                     "timestamp": 1710931373834,
                     "datetime": "2024-03-20T10:42:53.834Z",
                     "lastTradeTimestamp": null,
@@ -578,7 +578,7 @@
                 },
                 "parsedResponse": {
                   "id": "78151",
-                  "clientOrderId": 1,
+                  "clientOrderId": "1",
                   "timestamp": 1705665118630,
                   "datetime": "2024-01-19T11:51:58.630Z",
                   "lastTradeTimestamp": null,
@@ -602,7 +602,7 @@
                   "cost": 10,
                   "trades": [],
                   "fee": {
-                    "cost": "0.5",
+                    "cost": 0.5,
                     "currency": "USDC"
                   },
                   "info": {

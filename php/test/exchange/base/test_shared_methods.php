@@ -53,7 +53,7 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
 }
 
 
-function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = []) {
+function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = null, $deep = false) {
     $log_text = log_template($exchange, $method, $entry);
     assert($entry, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -63,7 +63,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         $expected_length = count($format);
         assert($real_length === $expected_length, 'entry length is not equal to expected length of ' . ((string) $expected_length) . $log_text);
         for ($i = 0; $i < count($format); $i++) {
-            $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
             if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
                 continue;
@@ -91,7 +91,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -105,6 +105,11 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                if ($deep) {
+                    if (is_array($value)) {
+                        assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
+                    }
+                }
             }
         }
     }
@@ -382,6 +387,154 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
         // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
         assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, '18'); // should be under 18 decimals
         assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, '-8'); // in real-world cases, there would not be less than that
+    }
+}
+
+
+function fetch_best_bid_ask($exchange, $method, $symbol) {
+    $log_text = log_template($exchange, $method, array());
+    // find out best bid/ask price
+    $best_bid = null;
+    $best_ask = null;
+    $used_method = null;
+    if ($exchange->has['fetchOrderBook']) {
+        $used_method = 'fetchOrderBook';
+        $orderbook = $exchange->fetch_order_book($symbol);
+        $bids = $exchange->safe_list($orderbook, 'bids');
+        $asks = $exchange->safe_list($orderbook, 'asks');
+        $best_bid_array = $exchange->safe_list($bids, 0);
+        $best_ask_array = $exchange->safe_list($asks, 0);
+        $best_bid = $exchange->safe_number($best_bid_array, 0);
+        $best_ask = $exchange->safe_number($best_ask_array, 0);
+    } elseif ($exchange->has['fetchBidsAsks']) {
+        $used_method = 'fetchBidsAsks';
+        $tickers = $exchange->fetch_bids_asks([$symbol]);
+        $ticker = $exchange->safe_dict($tickers, $symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    } elseif ($exchange->has['fetchTicker']) {
+        $used_method = 'fetchTicker';
+        $ticker = $exchange->fetch_ticker($symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    } elseif ($exchange->has['fetchTickers']) {
+        $used_method = 'fetchTickers';
+        $tickers = $exchange->fetch_tickers([$symbol]);
+        $ticker = $exchange->safe_dict($tickers, $symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    }
+    //
+    assert($best_bid !== null && $best_ask !== null, $log_text . ' ' . $exchange->id . ' could not get best bid/ask for ' . $symbol . ' using ' . $used_method . ' while testing ' . $method);
+    return [$best_bid, $best_ask];
+}
+
+
+function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
+    $fetched_order = null;
+    $original_id = $order_id;
+    // set 'since' to 5 minute ago for optimal results
+    $since_time = $exchange->milliseconds() - 1000 * 60 * 5;
+    // iterate
+    $methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder'];
+    for ($i = 0; $i < count($methods_singular); $i++) {
+        $singular_fetch_name = $methods_singular[$i];
+        if ($exchange->has[$singular_fetch_name]) {
+            $current_order = $exchange[$singular_fetch_name]($original_id, $symbol);
+            // if there is an id inside the order, it means the order was fetched successfully
+            if ($current_order['id'] === $original_id) {
+                $fetched_order = $current_order;
+                break;
+            }
+        }
+    }
+    //
+    // search through plural methods
+    if ($fetched_order === null) {
+        $methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders'];
+        for ($i = 0; $i < count($methods_plural); $i++) {
+            $plural_fetch_name = $methods_plural[$i];
+            if ($exchange->has[$plural_fetch_name]) {
+                $orders = $exchange[$plural_fetch_name]($symbol, $since_time);
+                $found = false;
+                for ($j = 0; $j < count($orders); $j++) {
+                    $current_order = $orders[$j];
+                    if ($current_order['id'] === $original_id) {
+                        $fetched_order = $current_order;
+                        $found = true;
+                        break;
+                    }
+                }
+                if ($found) {
+                    break;
+                }
+            }
+        }
+    }
+    return $fetched_order;
+}
+
+
+function assert_order_state($exchange, $skipped_properties, $method, $order, $asserted_status, $strict_check) {
+    // note, `strictCheck` is `true` only from "fetchOrder" cases
+    $log_text = log_template($exchange, $method, $order);
+    $msg = 'order should be ' . $asserted_status . ', but it was not asserted' . $log_text;
+    $filled = $exchange->safe_string($order, 'filled');
+    $amount = $exchange->safe_string($order, 'amount');
+    // shorthand variables
+    $status_undefined = ($order['status'] === null);
+    $status_open = ($order['status'] === 'open');
+    $status_closed = ($order['status'] === 'closed');
+    $status_clanceled = ($order['status'] === 'canceled');
+    $filled_defined = ($filled !== null);
+    $amount_defined = ($amount !== null);
+    $condition = null;
+    //
+    // ### OPEN STATUS
+    //
+    // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
+    $strict_open = $status_open && ($filled_defined && $amount_defined && $filled < $amount);
+    // if non-strict check, then accept & ignore undefined values
+    $nonstrict_open = ($status_open || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_lt($filled, $amount));
+    // check
+    if ($asserted_status === 'open') {
+        $condition = $strict_check ? $strict_open : $nonstrict_open;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CLOSED STATUS
+    //
+    // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
+    $closed_strict = $status_closed && ($filled_defined && $amount_defined && Precise::string_eq($filled, $amount));
+    // if non-strict check, then accept & ignore undefined values
+    $closed_non_strict = ($status_closed || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_eq($filled, $amount));
+    // check
+    if ($asserted_status === 'closed') {
+        $condition = $strict_check ? $closed_strict : $closed_non_strict;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CANCELED STATUS
+    //
+    // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
+    $canceled_strict = $status_clanceled && ($filled_defined && $amount_defined && Precise::string_lt($filled, $amount));
+    // if non-strict check, then accept & ignore undefined values
+    $canceled_non_strict = ($status_clanceled || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_lt($filled, $amount));
+    // check
+    if ($asserted_status === 'canceled') {
+        $condition = $strict_check ? $canceled_strict : $canceled_non_strict;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CLOSED_or_CANCELED STATUS
+    //
+    if ($asserted_status === 'closed_or_canceled') {
+        $condition = $strict_check ? ($closed_strict || $canceled_strict) : ($closed_non_strict || $canceled_non_strict);
+        assert($condition, $msg);
+        return;
     }
 }
 

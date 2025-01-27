@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now);
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, getValue(trades, i), "takerOrMaker", new List<object>() {"taker", null});
         }
         if (!isTrue((inOp(skippedProperties, "timestamp"))))
         {

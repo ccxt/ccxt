@@ -85,9 +85,11 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def authenticate(self, params={}):
         """
-         * @ignore
+ @ignore
         authenticates the user to access private web socket channels
-        :see: https://api-docs.poloniex.com/spot/websocket/authentication
+
+        https://api-docs.poloniex.com/spot/websocket/authentication
+
         :returns dict: response from exchange
         """
         self.check_required_credentials()
@@ -138,11 +140,12 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel
+        :param str messageHash: unique identifier for the message
         :param boolean isPrivate: True for the authenticated url, False for the public url
-        :param str[]|None symbols: CCXT market symbols
+        :param str[] [symbols]: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
@@ -167,10 +170,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def trade_request(self, name: str, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param str[]|None symbols: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
@@ -185,7 +187,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
-        :see: https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -196,8 +200,8 @@ class poloniex(ccxt.async_support.poloniex):
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
         :param boolean [params.allowBorrow]: allow order to be placed by borrowing funds(Default: False)
         :param str [params.stpMode]: self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
@@ -244,7 +248,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
         cancel multiple orders
         :param str id: order id
         :param str [symbol]: unified market symbol
@@ -260,7 +266,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
-        :see: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
@@ -277,7 +285,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
-        :see: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the poloniex api endpoint
@@ -311,7 +321,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -332,7 +344,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -345,8 +359,10 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+
+        :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -361,7 +377,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -373,7 +391,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -407,7 +427,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -423,7 +445,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://api-docs.poloniex.com/spot/websocket/order
+
+        https://api-docs.poloniex.com/spot/websocket/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchOrders
         :param int [limit]: not used by poloniex watchOrders
@@ -444,7 +468,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user using orders stream
-        :see: https://api-docs.poloniex.com/spot/websocket/order
+
+        https://api-docs.poloniex.com/spot/websocket/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
@@ -466,7 +492,9 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://api-docs.poloniex.com/spot/websocket/balance
+
+        https://api-docs.poloniex.com/spot/websocket/balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """

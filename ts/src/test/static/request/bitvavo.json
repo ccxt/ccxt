@@ -1,6 +1,6 @@
 {
     "exchange": "bitvavo",
-    "skipKeys": [],
+    "skipKeys": ["clientOrderId"],
     "outputType": "json",
     "methods": {
         "fetchDeposits": [

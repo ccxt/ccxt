@@ -252,6 +252,72 @@ class coinbaseinternational extends Exchange {
                     'bitcoin' => 'BTC',
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false, // todo implementation
+                        'takeProfitPrice' => false, // todo implementation
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                            'GTC' => true, // has 30 days max
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => true, // todo => implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -302,7 +368,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -355,7 +423,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -429,12 +499,15 @@ class coinbaseinternational extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -517,7 +590,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         *
          * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -594,7 +669,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
+         *
          * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
          * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
@@ -684,8 +761,10 @@ class coinbaseinternational extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
          * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
@@ -814,7 +893,9 @@ class coinbaseinternational extends Exchange {
     public function set_margin(string $symbol, float $amount, $params = array ()): mixed {
         /**
          * Either adds or reduces margin in order to set the margin to a specific value
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
+         *
          * @param {string} $symbol unified market $symbol of the market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the exchange API endpoint
@@ -835,7 +916,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+         *
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -910,7 +993,9 @@ class coinbaseinternational extends Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         /**
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
+         *
          * fetch data on an open $position
          * @param {string} $symbol unified market $symbol of the market the $position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -996,11 +1081,12 @@ class coinbaseinternational extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
+         *
          * fetch all open $positions
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
@@ -1038,7 +1124,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1177,7 +1265,9 @@ class coinbaseinternational extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+         *
          * retrieves data on all markets for coinbaseinternational
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -1352,7 +1442,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getassets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
@@ -1406,7 +1498,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1428,7 +1522,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1490,7 +1586,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -1556,7 +1654,9 @@ class coinbaseinternational extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * Transfer an $amount of asset from one portfolio to another.
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -1590,14 +1690,16 @@ class coinbaseinternational extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/createorder
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] $price to trigger stop orders
+         * @param {float} [$params->stopPrice] alias for $triggerPrice
          * @param {float} [$params->triggerPrice] $price to trigger stop orders
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {bool} [$params->postOnly] true or false
@@ -1609,7 +1711,7 @@ class coinbaseinternational extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $typeId = strtoupper($type);
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
@@ -1619,13 +1721,13 @@ class coinbaseinternational extends Exchange {
             'instrument' => $market['id'],
             'size' => $this->amount_to_precision($market['symbol'], $amount),
         );
-        if ($stopPrice !== null) {
+        if ($triggerPrice !== null) {
             if ($type === 'limit') {
                 $typeId = 'STOP_LIMIT';
             } else {
                 $typeId = 'STOP';
             }
-            $request['stop_price'] = $stopPrice;
+            $request['stop_price'] = $triggerPrice;
         }
         $request['type'] = $typeId;
         if ($type === 'limit') {
@@ -1728,7 +1830,6 @@ class coinbaseinternational extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $this->safe_string($order, 'size'),
             'filled' => $this->safe_string($order, 'exec_qty'),
@@ -1773,7 +1874,9 @@ class coinbaseinternational extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinbaseinternational cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1842,7 +1945,9 @@ class coinbaseinternational extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade $order
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+         *
          * @param {string} $id cancel $order $id
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1869,9 +1974,9 @@ class coinbaseinternational extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-        if ($stopPrice !== null) {
-            $request['stop_price'] = $stopPrice;
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $triggerPrice;
         }
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
@@ -1885,7 +1990,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+         *
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $market $symbol that the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1934,7 +2041,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on all currently open orders
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getorders
+         *
          * @param {string} $symbol unified $market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -2016,7 +2125,9 @@ class coinbaseinternational extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+         *
          * @param {string} $symbol unified $market $symbol of the $trades
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of trade structures to fetch
@@ -2101,11 +2212,13 @@ class coinbaseinternational extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
          * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to

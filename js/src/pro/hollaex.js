@@ -54,17 +54,17 @@ export default class hollaex extends hollaexRest {
             },
         });
     }
+    /**
+     * @method
+     * @name hollaex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://apidocs.hollaex.com/#sending-receiving-messages
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
@@ -113,18 +113,18 @@ export default class hollaex extends hollaexRest {
         const messageHash = channel + ':' + marketId;
         client.resolve(orderbook, messageHash);
     }
+    /**
+     * @method
+     * @name hollaex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://apidocs.hollaex.com/#sending-receiving-messages
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -170,18 +170,18 @@ export default class hollaex extends hollaexRest {
         client.resolve(stored, messageHash);
         client.resolve(stored, channel);
     }
+    /**
+     * @method
+     * @name hollaex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://apidocs.hollaex.com/#sending-receiving-messages
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         let messageHash = 'usertrade';
         let market = undefined;
@@ -251,18 +251,18 @@ export default class hollaex extends hollaexRest {
             client.resolve(this.myTrades, messageHash);
         }
     }
+    /**
+     * @method
+     * @name hollaex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://apidocs.hollaex.com/#sending-receiving-messages
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let messageHash = 'order';
         let market = undefined;
@@ -373,15 +373,15 @@ export default class hollaex extends hollaexRest {
             client.resolve(this.orders, messageHash);
         }
     }
+    /**
+     * @method
+     * @name hollaex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://apidocs.hollaex.com/#sending-receiving-messages
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         const messageHash = 'wallet';
         return await this.watchPrivate(messageHash, params);
     }

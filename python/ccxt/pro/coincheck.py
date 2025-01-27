@@ -51,7 +51,9 @@ class coincheck(ccxt.async_support.coincheck):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://coincheck.com/documents/exchange/api#websocket-order-book
+
+        https://coincheck.com/documents/exchange/api#websocket-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -107,7 +109,9 @@ class coincheck(ccxt.async_support.coincheck):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://coincheck.com/documents/exchange/api#websocket-trades
+
+        https://coincheck.com/documents/exchange/api#websocket-trades
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve

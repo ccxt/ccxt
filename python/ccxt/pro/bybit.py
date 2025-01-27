@@ -117,6 +117,12 @@ class bybit(ccxt.async_support.bybit):
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
+                'watchMyTrades': {
+                    # filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -208,8 +214,10 @@ class bybit(ccxt.async_support.bybit):
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
+        https://bybit-exchange.github.io/docs/v5/order/create-order
+        https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -256,8 +264,10 @@ class bybit(ccxt.async_support.bybit):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
+        https://bybit-exchange.github.io/docs/v5/order/amend-order
+        https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -298,12 +308,14 @@ class bybit(ccxt.async_support.bybit):
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
+        https://bybit-exchange.github.io/docs/v5/order/cancel-order
+        https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *spot only* whether the order is a stop order
+        :param boolean [params.trigger]: *spot only* whether the order is a trigger order
         :param str [params.orderFilter]: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -330,8 +342,10 @@ class bybit(ccxt.async_support.bybit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -353,8 +367,10 @@ class bybit(ccxt.async_support.bybit):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -382,8 +398,10 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
         """
         unWatches a price ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -408,9 +426,11 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_ticker(self, symbols: str, params={}) -> Any:
         """
         unWatches a price ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -563,7 +583,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -605,8 +627,10 @@ class bybit(ccxt.async_support.bybit):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -621,8 +645,10 @@ class bybit(ccxt.async_support.bybit):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
@@ -651,11 +677,13 @@ class bybit(ccxt.async_support.bybit):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
@@ -686,12 +714,12 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -774,7 +802,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -785,7 +815,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -821,8 +853,11 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
         """
         unsubscribe from the orderbook channel
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
         :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -853,8 +888,11 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the orderbook channel
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-        :param str[] symbols: unified symbol of the market to unwatch the trades for
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        :param str symbol: symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -940,7 +978,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -952,7 +992,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -985,8 +1027,11 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
         """
         unsubscribe from the trades channel
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
         :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -1008,8 +1053,11 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the trades channel
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+
         :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -1134,7 +1182,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1164,7 +1214,9 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
         """
         unWatches information on multiple trades made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+
         :param str symbol: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
@@ -1260,12 +1312,17 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols: dict = {}
+        filterExecTypes = self.handle_option('watchMyTrades', 'filterExecTypes', [])
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = None
             if spot:
                 parsed = self.parse_ws_trade(rawTrade)
             else:
+                # filter unified trades
+                execType = self.safe_string(rawTrade, 'execType', '')
+                if not self.in_array(execType, filterExecTypes):
+                    continue
                 parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
@@ -1280,9 +1337,13 @@ class bybit(ccxt.async_support.bybit):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/position
+
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -1418,7 +1479,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -1494,7 +1557,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/order
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1523,7 +1588,9 @@ class bybit(ccxt.async_support.bybit):
     async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
         """
         unWatches information on multiple orders made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/order
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
@@ -1817,7 +1884,9 @@ class bybit(ccxt.async_support.bybit):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """

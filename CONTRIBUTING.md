@@ -155,12 +155,12 @@ This way you can keep the build tools and processes isolated, not having to work
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
     - Ubuntu Linux: `apt-get install tox`
-- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 8.1+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+  - gmp
 - [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps

@@ -174,7 +174,7 @@ public partial class delta
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.delta.exchange/#get-ohlc-candles"/>  <br/>
+    /// See <see href="https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,6 +192,12 @@ public partial class delta
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// string : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
     /// </list>
@@ -506,7 +512,7 @@ public partial class delta
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

@@ -42,7 +42,9 @@ class luno(ccxt.async_support.luno):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
+
+        https://www.luno.com/en/developers/api#tag/Streaming-API
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch

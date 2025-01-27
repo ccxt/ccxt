@@ -15,7 +15,7 @@ function equals($a, $b) {
 
 use Exception; // a common import
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 ini_set('memory_limit', '512M');
 
@@ -265,7 +265,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 function get_test_files_sync ($properties, $ws = false) {
     $func = function() use ($properties, $ws){
         $tests = array();
-        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME]);
+        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME, 'features']);
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($methodName);

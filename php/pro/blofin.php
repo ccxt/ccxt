@@ -40,6 +40,14 @@ class blofin extends \ccxt\async\blofin {
                         ),
                     ),
                 ),
+                'test' => array(
+                    'ws' => array(
+                        'swap' => array(
+                            'public' => 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private' => 'wss://demo-trading-openapi.blofin.com/ws/private',
+                        ),
+                    ),
+                ),
             ),
             'options' => array(
                 'defaultType' => 'swap',
@@ -76,7 +84,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.blofin.com/index.html#ws-trades-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -92,7 +102,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://docs.blofin.com/index.html#ws-$trades-channel
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -153,7 +165,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.blofin.com/index.html#ws-order-book-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -168,7 +182,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.blofin.com/index.html#ws-order-book-channel
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -239,7 +255,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.blofin.com/index.html#ws-tickers-channel
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -256,7 +274,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://docs.blofin.com/index.html#ws-$tickers-channel
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -309,7 +329,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://docs.blofin.com/index.html#ws-$tickers-$channel
+             *
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -391,7 +413,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
              * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
@@ -455,7 +479,9 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.blofin.com/index.html#ws-account-channel
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -518,8 +544,10 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user across multiple $symbols
+             *
              * @see https://docs.blofin.com/index.html#ws-order-channel
-             * @param {string} symbol unified market symbol of the market $orders were made in
+             *
+             * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -572,9 +600,13 @@ class blofin extends \ccxt\async\blofin {
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.blofin.com/index.html#ws-positions-channel
+             *
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -720,7 +752,8 @@ class blofin extends \ccxt\async\blofin {
             if ($event === 'subscribe') {
                 return;
             } elseif ($event === 'login') {
-                $client->resolve ($message, 'authenticate_hash');
+                $future = $this->safe_value($client->futures, 'authenticate_hash');
+                $future->resolve (true);
                 return;
             } elseif ($event === 'error') {
                 throw new ExchangeError($this->id . ' error => ' . $this->json($message));

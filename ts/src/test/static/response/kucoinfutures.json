@@ -562,6 +562,157 @@
                     }
                 }
             }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "isolated"
+                }
+            },
+            {
+                "description": "fetch inverse swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "symbol": "XBTUSDM",
+                    "marginMode": "ISOLATED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "XBTUSDM",
+                    "marginMode": "ISOLATED"
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "isolated"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "linear swap create limit buy order",
+                "method": "createOrder",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  25000
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "orderId": "246795204516917248",
+                    "clientOid": "f07423af-a3b7-4ed5-8382-4a73d9d4a0fc"
+                  }
+                },
+                "parsedResponse": {
+                  "id": "246795204516917248",
+                  "clientOrderId": "f07423af-a3b7-4ed5-8382-4a73d9d4a0fc",
+                  "symbol": "BTC/USDT:USDT",
+                  "type": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "reduceOnly": null,
+                  "side": null,
+                  "amount": null,
+                  "price": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "cost": null,
+                  "filled": null,
+                  "remaining": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "fee": null,
+                  "status": null,
+                  "info": {
+                    "orderId": "246795204516917248",
+                    "clientOid": "f07423af-a3b7-4ed5-8382-4a73d9d4a0fc"
+                  },
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "average": null,
+                  "trades": [],
+                  "fees": [],
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear swap create order with a cost param",
+                "method": "createOrder",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  25,
+                  25000,
+                  {
+                    "cost": "25"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "orderId": "246794658389233664",
+                    "clientOid": "73a41cf8-68d3-4fde-b12b-42ed9dc68760"
+                  }
+                },
+                "parsedResponse": {
+                  "id": "246794658389233664",
+                  "clientOrderId": "73a41cf8-68d3-4fde-b12b-42ed9dc68760",
+                  "symbol": "BTC/USDT:USDT",
+                  "type": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "reduceOnly": null,
+                  "side": null,
+                  "amount": null,
+                  "price": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "cost": null,
+                  "filled": null,
+                  "remaining": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "fee": null,
+                  "status": null,
+                  "info": {
+                    "orderId": "246794658389233664",
+                    "clientOid": "73a41cf8-68d3-4fde-b12b-42ed9dc68760"
+                  },
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "average": null,
+                  "trades": [],
+                  "fees": [],
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            }
         ]
     }
 }
