@@ -3227,10 +3227,6 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
-        }
         object method = getValue(this.options, "fetchMyTradesMethod");
         object parseResponseData = false;
         object response = null;
@@ -3240,6 +3236,10 @@ public partial class kucoin : Exchange
         if (isTrue(hf))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
             if (isTrue(!isEqual(since, null)))
             {
                 // only returns trades up to one week after the since param

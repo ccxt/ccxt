@@ -3020,7 +3020,7 @@ public partial class coinex : Exchange
             { "currency", this.safeCurrencyCode(null, currency) },
             { "network", null },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "memo", tag) },
         };
     }
 

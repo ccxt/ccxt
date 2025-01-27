@@ -1826,7 +1826,7 @@ public partial class gate : Exchange
             if (isTrue(isEqual(this.safeValue(result, code), null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", ((string)code).ToLower() },
+                    { "id", currency },
                     { "code", code },
                     { "info", null },
                     { "name", null },

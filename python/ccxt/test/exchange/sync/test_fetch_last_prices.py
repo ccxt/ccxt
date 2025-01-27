@@ -28,6 +28,9 @@ def test_fetch_last_prices(exchange, skipped_properties, symbol):
     assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return an object. ' + exchange.json(response)
     values = list(response.values())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
+    at_least_one_passed = False
     for i in range(0, len(values)):
         # todo: symbol check here
         test_last_price(exchange, skipped_properties, method, values[i], checked_symbol)
+        at_least_one_passed = at_least_one_passed or (exchange.safe_number(values[i], 'price') > 0)
+    assert at_least_one_passed, exchange.id + ' ' + method + ' ' + checked_symbol + ' at least one symbol should pass the test'

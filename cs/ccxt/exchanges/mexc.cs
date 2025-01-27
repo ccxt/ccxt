@@ -2140,7 +2140,7 @@ public partial class mexc : Exchange
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
-     *
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK', default is 'GTC'
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
      * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
@@ -2226,6 +2226,18 @@ public partial class mexc : Exchange
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
+        }
+        object tif = this.safeString(parameters, "timeInForce");
+        if (isTrue(!isEqual(tif, null)))
+        {
+            parameters = this.omit(parameters, "timeInForce");
+            if (isTrue(isEqual(tif, "IOC")))
+            {
+                ((IDictionary<string,object>)request)["type"] = "IMMEDIATE_OR_CANCEL";
+            } else if (isTrue(isEqual(tif, "FOK")))
+            {
+                ((IDictionary<string,object>)request)["type"] = "FILL_OR_KILL";
+            }
         }
         return this.extend(request, parameters);
     }

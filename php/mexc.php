@@ -2297,7 +2297,7 @@ class mexc extends Exchange {
          * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode, default is false
-         *
+         * @param {string} [$params->timeInForce] 'IOC' or 'FOK', default is 'GTC'
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [$params->leverage] *contract only* leverage is necessary on isolated margin
          * @param {long} [$params->positionId] *contract only* it is recommended to property_exists($this, fill) parameter when closing a position
@@ -2361,6 +2361,15 @@ class mexc extends Exchange {
         list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
         if ($postOnly) {
             $request['type'] = 'LIMIT_MAKER';
+        }
+        $tif = $this->safe_string($params, 'timeInForce');
+        if ($tif !== null) {
+            $params = $this->omit($params, 'timeInForce');
+            if ($tif === 'IOC') {
+                $request['type'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($tif === 'FOK') {
+                $request['type'] = 'FILL_OR_KILL';
+            }
         }
         return $this->extend($request, $params);
     }
