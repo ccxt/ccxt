@@ -3075,8 +3075,7 @@ class deribit(Exchange, ImplicitAPI):
         eachItemDuration = '1h'
         if paginate:
             # fix for: https://github.com/ccxt/ccxt/issues/25040
-            params['isDeribitPaginationCall'] = True
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, params, maxEntriesPerRequest)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
         duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
