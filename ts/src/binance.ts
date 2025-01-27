@@ -6323,7 +6323,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
-            if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+            if (isSpotMargin) {
                 params = this.omit (params, 'reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
