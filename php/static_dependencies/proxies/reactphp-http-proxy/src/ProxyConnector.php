@@ -2,6 +2,8 @@
 
 namespace Clue\React\HttpProxy;
 
+require_once dirname(dirname(dirname(__DIR__))) . '/ringcentral-psr7/loader.php';
+
 use Exception;
 use InvalidArgumentException;
 use RuntimeException;
