@@ -6228,11 +6228,10 @@ export default class binance extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString (params, 'type', market['type']);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const marginMode = this.safeString (params, 'marginMode');
+        const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', false);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -6309,6 +6308,7 @@ export default class binance extends Exchange {
          */
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
+        const isSpotMargin = this.isSpotMargin (params, 'createOrder', market);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -6414,7 +6414,7 @@ export default class binance extends Exchange {
         let postOnly = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || marketType === 'margin') {
+            if (market['spot'] || isSpotMargin) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
                     uppercaseType = 'LIMIT_MAKER';
@@ -6434,7 +6434,7 @@ export default class binance extends Exchange {
             }
         }
         // handle newOrderRespType response type
-        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+        if (((marketType === 'spot') || isSpotMargin) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // swap, futures and options
