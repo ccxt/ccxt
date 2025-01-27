@@ -3071,9 +3071,13 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
+        eachItemDuration = '1h'
         if paginate:
-            # 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '1h', params, 720)
+            # fix for: https://github.com/ccxt/ccxt/issues/25040
+            params['isDeribitPaginationCall'] = True
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, params, maxEntriesPerRequest)
+        duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
@@ -3090,6 +3094,10 @@ class deribit(Exchange, ImplicitAPI):
             request['end_timestamp'] = until
         else:
             request['end_timestamp'] = time
+        if 'isDeribitPaginationCall' in params:
+            params = self.omit(params, 'isDeribitPaginationCall')
+            maxUntil = self.sum(since, limit * duration)
+            request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {
