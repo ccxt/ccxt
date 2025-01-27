@@ -2361,6 +2361,7 @@ export default class binance extends binanceRest {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 response = await this.fapiPrivatePostListenKey(params);
@@ -2416,6 +2417,7 @@ export default class binance extends binanceRest {
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, params));
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 await this.fapiPrivatePutListenKey(this.extend(request, params));

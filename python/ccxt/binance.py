@@ -1599,7 +1599,7 @@ class binance(Exchange, ImplicitAPI):
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
-                        'attachedStopLossTakeProfit': None,  # not supported
+                        'attachedStopLossTakeProfit': None,
                         'timeInForce': {
                             'IOC': True,
                             'FOK': True,
@@ -1608,12 +1608,16 @@ class binance(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         'leverage': False,
-                        'marketBuyRequiresPrice': False,
                         'marketBuyByCost': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,  # todo
-                        'trailing': True,
-                        'iceberg': True,  # todo implementation
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': {
+                            'expire_maker': True,
+                            'expire_taker': True,
+                            'expire_both': True,
+                            'none': True,
+                        },
+                        'trailing': False,  # todo: self is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
+                        'icebergAmount': True,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -1654,7 +1658,7 @@ class binance(Exchange, ImplicitAPI):
                         'limit': 1000,
                     },
                 },
-                'default': {
+                'forDerivatives': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': False,
@@ -1726,18 +1730,18 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
             },
@@ -6020,7 +6024,7 @@ class binance(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
@@ -6049,6 +6053,8 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
+        :param str [params.selfTradePrevention]: set unified value for stp(see .features for available values)
+        :param float [params.icebergAmount]: set iceberg amount for limit orders
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
@@ -6342,7 +6348,7 @@ class binance(Exchange, ImplicitAPI):
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = self.safe_string(self.options, 'defaultTimeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if not isPortfolioMargin and market['contract'] and postOnly:
             request['timeInForce'] = 'GTX'
         # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
@@ -6354,7 +6360,17 @@ class binance(Exchange, ImplicitAPI):
                 params = self.omit(params, 'reduceOnly')
                 side = 'sell' if (side == 'buy') else 'buy'
             request['positionSide'] = 'LONG' if (side == 'buy') else 'SHORT'
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged'])
+        # unified stp
+        selfTradePrevention = self.safe_string(params, 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if market['spot']:
+                request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
+        # unified iceberg
+        icebergAmount = self.safe_number(params, 'icebergAmount')
+        if icebergAmount is not None:
+            if market['spot']:
+                request['icebergQty'] = self.amount_to_precision(symbol, icebergAmount)
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount'])
         return self.extend(request, requestParams)
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):

@@ -3928,7 +3928,7 @@ class coinex extends coinex$1 {
             'currency': this.safeCurrencyCode(undefined, currency),
             'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'memo', tag),
         };
     }
     /**

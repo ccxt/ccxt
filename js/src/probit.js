@@ -1002,6 +1002,7 @@ export default class probit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1018,21 +1019,21 @@ export default class probit extends Exchange {
             'limit': requestLimit, // max 1000
         };
         const now = this.milliseconds();
-        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const durationMilliseconds = this.parseTimeframe(timeframe) * 1000;
         let startTime = since;
-        let endTime = now;
+        let endTime = (until !== undefined) ? until - durationMilliseconds : now;
         if (since === undefined) {
             if (limit === undefined) {
                 limit = requestLimit;
             }
-            startTime = now - limit * duration * 1000;
+            const startLimit = limit - 1;
+            startTime = endTime - startLimit * durationMilliseconds;
         }
         else {
-            if (limit === undefined) {
-                endTime = now;
-            }
-            else {
-                endTime = this.sum(since, this.sum(limit, 1) * duration * 1000);
+            if (limit !== undefined) {
+                const endByLimit = this.sum(since, limit * durationMilliseconds);
+                endTime = Math.min(endTime, endByLimit);
             }
         }
         const startTimeNormalized = this.normalizeOHLCVTimestamp(startTime, timeframe);
