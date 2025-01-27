@@ -53,6 +53,8 @@ jobs:
         run: composer install
       - name: Install python dependencies
         run: pip install -r ci-requirements.txt
+      - name: Install Wheel
+        run: pip install wheel
       - name: Transpile and Build
         run: npm run force-build
       - name: Base tests Rest
@@ -99,16 +101,18 @@ jobs:
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git tag -a "${COMMIT_MESSAGE}" -m "${COMMIT_MESSAGE}"
+               git commit -m "${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
+               git push
 
-      - name: C# Release Build
-        run: npm run buildCSRelease
-      - name: Deploy C#
-        env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-        run: ./cs/deploy.sh;
+      # - name: C# Release Build
+      #   run: npm run buildCSRelease
+      # - name: Deploy C#
+      #   env:
+      #     NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+      #   run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
