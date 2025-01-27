@@ -2871,6 +2871,14 @@ export default class Exchange {
         return cleanStructure;
     }
 
+    /**
+     * @method
+     * @description checks whether the market is spot and the requested params refer to margin
+     * @param {object} params
+     * @param {string} methodName unified method name
+     * @param {Market} market
+     * @returns {boolean} true or false
+     */
     isSpotMargin (params, methodName, market): boolean {
         // this method should be used in the top of unified methods, before using "this.handleX" methods
         // because we need to have access to the `params` data before omitting
