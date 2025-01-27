@@ -79,6 +79,10 @@ jobs:
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+      - name: Pull changes
+        run: |
+            git config --global pull.rebase false
+            git pull origin master
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
       - name: Commit files
