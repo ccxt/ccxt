@@ -160,6 +160,9 @@ class blofin extends Exchange {
                 'api' => array(
                     'rest' => 'https://openapi.blofin.com',
                 ),
+                'test' => array(
+                    'rest' => 'https://demo-trading-openapi.blofin.com',
+                ),
                 'referral' => array(
                     'url' => 'https://blofin.com/register?referral_code=f79EsS',
                     'discount' => 0.05,
@@ -317,6 +320,7 @@ class blofin extends Exchange {
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
                             'limit' => true,
+                            'price' => null,
                         ),
                         'hedged' => true,
                     ),
