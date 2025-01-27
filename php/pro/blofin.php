@@ -40,6 +40,14 @@ class blofin extends \ccxt\async\blofin {
                         ),
                     ),
                 ),
+                'test' => array(
+                    'ws' => array(
+                        'swap' => array(
+                            'public' => 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private' => 'wss://demo-trading-openapi.blofin.com/ws/private',
+                        ),
+                    ),
+                ),
             ),
             'options' => array(
                 'defaultType' => 'swap',

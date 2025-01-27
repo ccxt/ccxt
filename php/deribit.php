@@ -3190,7 +3190,8 @@ class deribit extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 720);
+            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '1h', $params, 720);
         }
         $time = $this->milliseconds();
         $month = 30 * 24 * 60 * 60 * 1000;

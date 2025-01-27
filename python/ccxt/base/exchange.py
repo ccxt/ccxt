@@ -2724,6 +2724,11 @@ class Exchange(object):
         res = self.parse_to_numeric((value % 1))
         return res == 0
 
+    def safe_number_omit_zero(self, obj: object, key: IndexType, defaultValue: Num = None):
+        value = self.safe_string(obj, key)
+        final = self.parse_number(self.omit_zero(value))
+        return defaultValue if (final is None) else final
+
     def safe_integer_omit_zero(self, obj: object, key: IndexType, defaultValue: Int = None):
         timestamp = self.safe_integer(obj, key, defaultValue)
         if timestamp is None or timestamp == 0:
@@ -2808,12 +2813,14 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # for spot, default 'hedged' to False
             if marketType == 'spot':
+                # default 'hedged': False
                 featuresObj['createOrder']['hedged'] = False
+                # default 'leverage': False
+                if not ('leverage' in featuresObj['createOrder']):
+                    featuresObj['createOrder']['leverage'] = False
             # default 'GTC' to True
-            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
-            if gtcValue is None:
+            if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 

@@ -219,7 +219,7 @@ class coinmetro(Exchange, ImplicitAPI):
             # exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': None,
-                'currencyIdsListForParseMarket': None,
+                'currencyIdsListForParseMarket': ['QRDO'],
             },
             'features': {
                 'spot': {
@@ -407,7 +407,11 @@ class coinmetro(Exchange, ImplicitAPI):
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
             currenciesById = self.index_by(result, 'id')
             self.options['currenciesByIdForParseMarket'] = currenciesById
-            self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
+            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+            currencyIdsList = list(currenciesById.keys())
+            for i in range(0, len(currencyIdsList)):
+                currentCurrencyIdsList.append(currencyIdsList[i])
+            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -506,10 +510,19 @@ class coinmetro(Exchange, ImplicitAPI):
         baseId = None
         quoteId = None
         currencyIds = self.safe_value(self.options, 'currencyIdsListForParseMarket', [])
+        # Bubble sort by length(longest first)
+        currencyIdsLength = len(currencyIds)
+        for i in range(0, currencyIdsLength):
+            for j in range(0, currencyIdsLength - i - 1):
+                a = currencyIds[j]
+                b = currencyIds[j + 1]
+                if len(a) < len(b):
+                    currencyIds[j] = b
+                    currencyIds[j + 1] = a
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             entryIndex = marketId.find(currencyId)
-            if entryIndex != -1:
+            if entryIndex == 0:
                 restId = marketId.replace(currencyId, '')
                 if self.in_array(restId, currencyIds):
                     if entryIndex == 0:

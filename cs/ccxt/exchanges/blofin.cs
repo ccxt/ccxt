@@ -150,6 +150,9 @@ public partial class blofin : Exchange
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://openapi.blofin.com" },
                 } },
+                { "test", new Dictionary<string, object>() {
+                    { "rest", "https://demo-trading-openapi.blofin.com" },
+                } },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://blofin.com/register?referral_code=f79EsS" },
                     { "discount", 0.05 },
@@ -307,6 +310,7 @@ public partial class blofin : Exchange
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
                             { "limit", true },
+                            { "price", null },
                         } },
                         { "hedged", true },
                     } },

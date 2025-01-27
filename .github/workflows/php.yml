@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') }}
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - name: Print vars
       run: |
@@ -123,7 +123,9 @@ jobs:
           git add php/
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push --force
+          git config --global pull.rebase false
+          git pull origin master
+          git push
 
   live-tests:
     needs: build

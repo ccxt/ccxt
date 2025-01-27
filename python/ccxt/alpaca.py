@@ -445,7 +445,7 @@ class alpaca(Exchange, ImplicitAPI):
         #         "status": "active",
         #         "tradable": True,
         #         "marginable": False,
-        #         "maintenance_margin_requirement": 100,
+        #         "maintenance_margin_requirement": 101,
         #         "shortable": False,
         #         "easy_to_borrow": False,
         #         "fractionable": True,

@@ -3362,6 +3362,12 @@ class Exchange {
         return $res === 0;
     }
 
+    public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
+        $value = $this->safe_string($obj, $key);
+        $final = $this->parse_number($this->omit_zero($value));
+        return ($final === null) ? $defaultValue : $final;
+    }
+
     public function safe_integer_omit_zero(array $obj, int|string $key, ?int $defaultValue = null) {
         $timestamp = $this->safe_integer($obj, $key, $defaultValue);
         if ($timestamp === null || $timestamp === 0) {
@@ -3458,13 +3464,16 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
+                // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
+                // default 'leverage' => false
+                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage', $featuresObj['createOrder']))) {
+                    $featuresObj['createOrder']['leverage'] = false;
+                }
             }
             // default 'GTC' to true
-            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
-            if ($gtcValue === null) {
+            if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
                 $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }

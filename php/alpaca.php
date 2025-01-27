@@ -436,7 +436,7 @@ class alpaca extends Exchange {
         //         "status" => "active",
         //         "tradable" => true,
         //         "marginable" => false,
-        //         "maintenance_margin_requirement" => 100,
+        //         "maintenance_margin_requirement" => 101,
         //         "shortable" => false,
         //         "easy_to_borrow" => false,
         //         "fractionable" => true,

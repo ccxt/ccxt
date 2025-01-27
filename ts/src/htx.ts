@@ -11,7 +11,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Fun
 //  ---------------------------------------------------------------------------
 
 /**
- * @class huobi
+ * @class htx
  * @augments Exchange
  */
 export default class htx extends Exchange {

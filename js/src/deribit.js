@@ -3174,7 +3174,8 @@ export default class deribit extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720);
+            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '1h', params, 720);
         }
         let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;

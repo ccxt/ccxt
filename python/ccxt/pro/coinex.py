@@ -263,7 +263,10 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        currencies = list(self.currencies_by_id.keys())
+        # coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        activeCurrencies = self.filter_by(self.currencies_by_id, 'active', True)
+        activeCurrenciesById = self.index_by(activeCurrencies, 'id')
+        currencies = list(activeCurrenciesById.keys())
         if currencies is None:
             currencies = []
         messageHash = 'balances'

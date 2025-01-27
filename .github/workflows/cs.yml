@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') }}
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
@@ -111,7 +111,9 @@ jobs:
           git add cs/
           git commit -m "[Automated changes] C# files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git push --force
+          git config --global pull.rebase false
+          git pull origin master
+          git push
 
   live-tests:
     needs: build
@@ -122,7 +124,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - name: Download Py Files
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+      - name: Download CS Files
         uses: actions/download-artifact@v4
         with:
           name: cs-files

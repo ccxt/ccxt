@@ -1577,7 +1577,7 @@ class binance extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
-                        'attachedStopLossTakeProfit' => null, // not supported
+                        'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
                             'IOC' => true,
                             'FOK' => true,
@@ -1586,12 +1586,16 @@ class binance extends Exchange {
                         ),
                         'hedged' => true,
                         'leverage' => false,
-                        'marketBuyRequiresPrice' => false,
                         'marketBuyByCost' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true, // todo
-                        'trailing' => true,
-                        'iceberg' => true, // todo implementation
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => array(
+                            'expire_maker' => true,
+                            'expire_taker' => true,
+                            'expire_both' => true,
+                            'none' => true,
+                        ),
+                        'trailing' => false, // todo => this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
+                        'icebergAmount' => true,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -1632,7 +1636,7 @@ class binance extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
-                'default' => array(
+                'forDerivatives' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => false,
@@ -1704,18 +1708,18 @@ class binance extends Exchange {
                 ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'default',
+                        'extends' => 'forDerivatives',
                     ),
                     'inverse' => array(
-                        'extends' => 'default',
+                        'extends' => 'forDerivatives',
                     ),
                 ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'default',
+                        'extends' => 'forDerivatives',
                     ),
                     'inverse' => array(
-                        'extends' => 'default',
+                        'extends' => 'forDerivatives',
                     ),
                 ),
             ),
@@ -4494,12 +4498,11 @@ class binance extends Exchange {
         $type = ($timestamp === null) ? 'spot' : 'swap';
         $marketId = $this->safe_string($entry, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $type);
-        $price = $this->safe_number($entry, 'price');
         return array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'price' => $price,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
             'side' => null,
             'info' => $entry,
         );
@@ -6203,8 +6206,8 @@ class binance extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$test-new-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$test-new-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
              * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
@@ -6232,6 +6235,8 @@ class binance extends Exchange {
              * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+             * @param {string} [$params->selfTradePrevention] set unified value for stp (see .features for available values)
+             * @param {float} [$params->icebergAmount] set iceberg $amount for limit orders
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
@@ -6577,7 +6582,7 @@ class binance extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
@@ -6594,7 +6599,21 @@ class binance extends Exchange {
             }
             $request['positionSide'] = ($side === 'buy') ? 'LONG' : 'SHORT';
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged' ));
+        // unified stp
+        $selfTradePrevention = $this->safe_string($params, 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            if ($market['spot']) {
+                $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            }
+        }
+        // unified iceberg
+        $icebergAmount = $this->safe_number($params, 'icebergAmount');
+        if ($icebergAmount !== null) {
+            if ($market['spot']) {
+                $request['icebergQty'] = $this->amount_to_precision($symbol, $icebergAmount);
+            }
+        }
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount' ));
         return $this->extend($request, $requestParams);
     }
 

@@ -211,7 +211,7 @@ export default class coinmetro extends Exchange {
             // exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': undefined,
-                'currencyIdsListForParseMarket': undefined,
+                'currencyIdsListForParseMarket': [ 'QRDO' ],
             },
             'features': {
                 'spot': {
@@ -401,7 +401,12 @@ export default class coinmetro extends Exchange {
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
             const currenciesById = this.indexBy (result, 'id');
             this.options['currenciesByIdForParseMarket'] = currenciesById;
-            this.options['currencyIdsListForParseMarket'] = Object.keys (currenciesById);
+            const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
+            const currencyIdsList = Object.keys (currenciesById);
+            for (let i = 0; i < currencyIdsList.length; i++) {
+                currentCurrencyIdsList.push (currencyIdsList[i]);
+            }
+            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         }
         return result;
     }
@@ -505,10 +510,22 @@ export default class coinmetro extends Exchange {
         let baseId = undefined;
         let quoteId = undefined;
         const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
+        // Bubble sort by length (longest first)
+        const currencyIdsLength = currencyIds.length;
+        for (let i = 0; i < currencyIdsLength; i++) {
+            for (let j = 0; j < currencyIdsLength - i - 1; j++) {
+                const a = currencyIds[j];
+                const b = currencyIds[j + 1];
+                if (a.length < b.length) {
+                    currencyIds[j] = b;
+                    currencyIds[j + 1] = a;
+                }
+            }
+        }
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const entryIndex = marketId.indexOf (currencyId);
-            if (entryIndex !== -1) {
+            if (entryIndex === 0) {
                 const restId = marketId.replace (currencyId, '');
                 if (this.inArray (restId, currencyIds)) {
                     if (entryIndex === 0) {
