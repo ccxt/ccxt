@@ -52,7 +52,6 @@ class testMainClass {
     requestTests: boolean = false;
     wsTests: boolean = false;
     responseTests: boolean = false;
-    staticTests: boolean = false;
     info: boolean = false;
     verbose: boolean = false;
     debug: boolean = false;
