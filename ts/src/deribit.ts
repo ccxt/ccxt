@@ -3195,8 +3195,10 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const duration = this.parseTimeframe ('1h') * 1000;
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxEntriesPerRequest) as FundingRateHistory[];
         }
         let time = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
