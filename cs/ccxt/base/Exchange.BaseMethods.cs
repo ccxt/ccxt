@@ -6044,6 +6044,38 @@ public partial class Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    public virtual object handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, object allowEmpty = null)
+    {
+        /**
+        * @ignore
+        * @method
+        * @returns {[string, object]} the trigger-direction value and omited params
+        */
+        allowEmpty ??= false;
+        object triggerDirection = this.safeString(parameters, "triggerDirection");
+        object exchangeSpecificDefined = isTrue((!isEqual(exchangeSpecificKey, null))) && isTrue((inOp(parameters, exchangeSpecificKey)));
+        if (isTrue(!isEqual(triggerDirection, null)))
+        {
+            parameters = this.omit(parameters, "triggerDirection");
+        }
+        // throw exception if:
+        // A) if provided value is not unified (support old "up/down" strings too)
+        // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
+        if (isTrue(isTrue(!isTrue(this.inArray(triggerDirection, new List<object>() {"ascending", "descending", "up", "down", "above", "below"})) && !isTrue(exchangeSpecificDefined)) && !isTrue(allowEmpty)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"")) ;
+        }
+        // if old format was provided, overwrite to new
+        if (isTrue(isTrue(isEqual(triggerDirection, "up")) || isTrue(isEqual(triggerDirection, "above"))))
+        {
+            triggerDirection = "ascending";
+        } else if (isTrue(isTrue(isEqual(triggerDirection, "down")) || isTrue(isEqual(triggerDirection, "below"))))
+        {
+            triggerDirection = "descending";
+        }
+        return new List<object>() {triggerDirection, parameters};
+    }
+
     public virtual object handleTriggerAndParams(object parameters)
     {
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
