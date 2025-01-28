@@ -2843,6 +2843,7 @@ export default class Exchange {
         }
         // other methods
         const keys = Object.keys (featuresObj);
+        // eslint-disable-next-line
         for (const key of keys) {
             const featureBlock = featuresObj[key];
             // default "symbolRequired" to false to all methods (except `createOrder`)
