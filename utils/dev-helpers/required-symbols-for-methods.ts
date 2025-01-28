@@ -7,14 +7,13 @@ import ccxt from '../../ts/ccxt.js';
 
 const methodsDict = {
     'rest': {
-      'symbol':  ['fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'fetchOrderTrades', 'cancelOrder', 'cancelOrders', 'cancelAllOrders'],
+      'symbol':  ['fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'fetchOrderTrades', 'cancelOrder', 'cancelAllOrders'], // 'cancelOrders'
       'code': ['fetchDeposits', 'fetchWithdrawals', 'fetchTransactions', 'fetchDepositsWithdrawals', 'fetchDepositWithdrawFees']
     },
     'ws': {}
   };
   const marketTypes = ['spot', 'future', 'swap'];
   const subTypes = ['linear', 'inverse'];
-
 
   async function runCheck() {
     const proms: Promise<any>[] = [];

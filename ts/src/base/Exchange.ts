@@ -5728,19 +5728,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
-    /**
-     * @method
-     * @name bitget#cancelOrders
-     * @description cancel multiple orders
-     * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpointorders
-     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<{}> {
-        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
-    }
-
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
