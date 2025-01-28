@@ -286,11 +286,14 @@ export default class derive extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '11006': OrderNotFound, // {"code":"11006","message":"Does not exist","data":"Open order with id: 804018f3-b092-40a3-a933-b29574fa1ff8 does not exist."}
                     '11011': InvalidOrder, // {"code":11011,"message":"Invalid signature expiry","data":"Order must expire in 300 sec or more"}
+                    '11012': InvalidOrder, // {"code":"11012","message":"Invalid amount","data":"Amount must be a multiple of 0.01"}
                     '11013': InvalidOrder, // {"code":"11013","message":"Invalid limit price","data":{"limit":"10000","bandwidth":"92530"}}
                     '11023': InvalidOrder, // {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
                     '11024': InvalidOrder, // {"code":11024,"message":"Reduce only not supported with this time in force"}
-                    '11006': OrderNotFound, // {"code":"11006","message":"Does not exist","data":"Open order with id: 804018f3-b092-40a3-a933-b29574fa1ff8 does not exist."}
+                    '11051': InvalidOrder, // {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
+                    '11054': InvalidOrder, // {"code":"11054","message":"Trigger orders cannot replace or be replaced"}
                     '14000': BadRequest, // {"code": 14000, "message": "Account not found"}
                     '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
                     '14014': InvalidOrder, // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
@@ -977,7 +980,8 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
         const nonce = this.now ();
-        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', nonce + 600000); // 10 minutes
+        // Order signature expiry must be between 2592000 and 7776000 sec from now
+        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
@@ -1029,21 +1033,24 @@ export default class derive extends Exchange {
         }
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
+        const triggerPriceType = this.safeString (params, 'trigger_price_type', 'mark');
         if (stopLoss !== undefined) {
             const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
             request['trigger_price'] = stopLossPrice;
             request['trigger_type'] = 'stoploss';
+            request['trigger_price_type'] = triggerPriceType;
         } else if (takeProfit !== undefined) {
             const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
             request['trigger_price'] = takeProfitPrice;
             request['trigger_type'] = 'takeprofit';
+            request['trigger_price_type'] = triggerPriceType;
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['label'] = clientOrderId;
         }
         request['signature'] = signature;
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
         let response = undefined;
         if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
@@ -1152,7 +1159,7 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
         const nonce = this.now ();
-        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', nonce + 600000); // 10 minutes
+        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
@@ -1203,23 +1210,12 @@ export default class derive extends Exchange {
         } else if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        if (stopLoss !== undefined) {
-            const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
-            request['trigger_price'] = stopLossPrice;
-            request['trigger_type'] = 'stoploss';
-        } else if (takeProfit !== undefined) {
-            const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
-            request['trigger_price'] = takeProfitPrice;
-            request['trigger_type'] = 'takeprofit';
-        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['label'] = clientOrderId;
         }
         request['signature'] = signature;
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ]);
         const response = await this.privatePostReplace (this.extend (request, params));
         //
         //   {
@@ -1626,6 +1622,18 @@ export default class derive extends Exchange {
                 side = 'sell';
             }
         }
+        const triggerType = this.safeString (order, 'trigger_type');
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        let triggerPrice = undefined;
+        if (triggerType !== undefined) {
+            triggerPrice = this.safeString (order, 'trigger_price');
+            if (triggerType === 'stoploss') {
+                stopLossPrice = triggerPrice;
+            } else {
+                takeProfitPrice = triggerPrice;
+            }
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': undefined,
@@ -1641,9 +1649,9 @@ export default class derive extends Exchange {
             'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': undefined,
             'amount': amount,
             'filled': undefined,
