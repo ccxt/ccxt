@@ -1129,6 +1129,7 @@ export default class Exchange {
     parseFundingRates(response: any, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: any, since?: Int, limit?: Int): LongShortRatio[];
+    handleTriggerDirectionAndParams(params: any, exchangeSpecificKey?: Str, allowEmpty?: Bool): any[];
     handleTriggerAndParams(params: any): any[];
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
