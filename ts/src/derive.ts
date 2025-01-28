@@ -93,7 +93,7 @@ export default class derive extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': true,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -780,6 +780,30 @@ export default class derive extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // {
+        //     "subaccount_id": 130837,
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+        //     "instrument_name": "BTC-PERP",
+        //     "direction": "sell",
+        //     "label": "test1234",
+        //     "quote_id": null,
+        //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //     "timestamp": 1738065303708,
+        //     "mark_price": "102740.137375457314192317",
+        //     "index_price": "102741.553409299981533184",
+        //     "trade_price": "102700.6",
+        //     "trade_amount": "0.01",
+        //     "liquidity_role": "taker",
+        //     "realized_pnl": "0",
+        //     "realized_pnl_excl_fees": "0",
+        //     "is_transfer": false,
+        //     "tx_status": "settled",
+        //     "trade_fee": "1.127415534092999815",
+        //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        // }
+        //
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -790,7 +814,7 @@ export default class derive extends Exchange {
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
-            'order': undefined,
+            'order': this.safeString (trade, 'order_id'),
             'symbol': symbol,
             'side': this.safeStringLower (trade, 'direction'),
             'type': undefined,
@@ -1713,10 +1737,83 @@ export default class derive extends Exchange {
             'trades': undefined,
             'fee': {
                 'cost': fee,
-                'currency': undefined,
+                'currency': 'USDC',
             },
             'info': order,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'order_id': id,
+            'subaccount_id': subaccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
+        }
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetTradeHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "trades": [
+        //             {
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "sell",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //                 "timestamp": 1738065303708,
+        //                 "mark_price": "102740.137375457314192317",
+        //                 "index_price": "102741.553409299981533184",
+        //                 "trade_price": "102700.6",
+        //                 "trade_amount": "0.01",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "0",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "is_transfer": false,
+        //                 "tx_status": "settled",
+        //                 "trade_fee": "1.127415534092999815",
+        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
+        //         }
+        //     },
+        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const trades = this.safeList (result, 'trades', []);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     /**
