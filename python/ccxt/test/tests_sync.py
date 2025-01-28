@@ -9,7 +9,6 @@ class testMainClass:
     request_tests = False
     ws_tests = False
     response_tests = False
-    static_tests = False
     info = False
     verbose = False
     debug = False
