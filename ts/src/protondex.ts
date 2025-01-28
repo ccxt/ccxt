@@ -1577,9 +1577,9 @@ export default class protondex extends Exchange {
                 //         }
                 //     ]
                 // }
-                orderDetails['ordinal_order_id'] = data.orders[0].ordinal_order_id;
-                orderDetails['order_id'] = data.orders[0].order_id;
-                orderDetails['status'] = data.orders[0].status;
+                orderDetails['ordinal_order_id'] = this.safeString (data.orders[0], 'ordinal_order_id');
+                orderDetails['order_id'] = this.safeValue (data.orders[0], 'order_id');
+                orderDetails['status'] = this.safeString (data.orders[0], 'status');
                 orderDetails['block_time'] = data['block_time'];
                 orderDetails['symbol'] = symbol;
                 orderDetails['order_type'] = orderType;
