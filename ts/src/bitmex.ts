@@ -355,7 +355,7 @@ export default class bitmex extends Exchange {
                         },
                     },
                 },
-                'forDeriv': {
+                'derivatives': {
                     'extends': 'default',
                     'createOrder': {
                         'triggerPriceType': {
@@ -365,18 +365,18 @@ export default class bitmex extends Exchange {
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'forDeriv',
+                        'extends': 'derivatives',
                     },
                     'inverse': {
-                        'extends': 'forDeriv',
+                        'extends': 'derivatives',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'forDeriv',
+                        'extends': 'derivatives',
                     },
                     'inverse': {
-                        'extends': 'forDeriv',
+                        'extends': 'derivatives',
                     },
                 },
             },
