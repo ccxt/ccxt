@@ -122,12 +122,6 @@ jobs:
       #   env:
       #     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       #   run: cd python && ./deploy.sh && cd ..;
-      - name: Auth NPM
-        # run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-        run: |
-            sed -i.bak '/^\/\/registry\.npmjs\.org\/:_authToken=/d' ~/.npmrc
-            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-      - name: Deploy NPM
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
