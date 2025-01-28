@@ -2821,14 +2821,13 @@ export default class Exchange {
             featuresObj = this.deepExtend (extendObj, featuresObj);
         }
         //
-        // corrections
+        // ### corrections ###
         //
+        // createOrder
         if ('createOrder' in featuresObj) {
             const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            if (value !== undefined) {
-                featuresObj['createOrder']['stopLoss'] = value;
-                featuresObj['createOrder']['takeProfit'] = value;
-            }
+            featuresObj['createOrder']['stopLoss'] = value;
+            featuresObj['createOrder']['takeProfit'] = value;
             if (marketType === 'spot') {
                 // default 'hedged': false
                 featuresObj['createOrder']['hedged'] = false;
@@ -2840,6 +2839,17 @@ export default class Exchange {
             // default 'GTC' to true
             if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
                 featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            }
+        }
+        // other methods
+        const keys = Object.keys (featuresObj);
+        for (const key of keys) {
+            const featureBlock = featuresObj[key];
+            // add "symbolRequired" default to true
+            if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
+                if (!('symbolRequired' in featureBlock)) {
+                    featureBlock['symbolRequired'] = true;
+                }
             }
         }
         return featuresObj;
@@ -5714,6 +5724,19 @@ export default class Exchange {
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name bitget#cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpointorders
+     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
     }
 
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
