@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ export default class derive extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1896,6 +1896,134 @@ export default class derive extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetPositions (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "positions": [
+        //             {
+        //                 "instrument_type": "perp",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "amount": "-0.02",
+        //                 "average_price": "102632.9105389869500088",
+        //                 "realized_pnl": "0",
+        //                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+        //                 "total_fees": "2.255789220260999824",
+        //                 "average_price_excl_fees": "102745.7",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+        //                 "net_settlements": "-4.032902047219498639",
+        //                 "cumulative_funding": "-0.004677736347850093",
+        //                 "pending_funding": "0",
+        //                 "mark_price": "102765.190337908177752979099750518798828125",
+        //                 "index_price": "102767.657193800017641472",
+        //                 "delta": "1",
+        //                 "gamma": "0",
+        //                 "vega": "0",
+        //                 "theta": "0",
+        //                 "mark_value": "1.38730606879471451975405216217041015625",
+        //                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
+        //                 "initial_margin": "-132.2074413704858670826070010662078857421875",
+        //                 "open_orders_margin": "264.116085900726830004714429378509521484375",
+        //                 "leverage": "8.6954476205089299495699106539379941746377322586618",
+        //                 "liquidation_price": "109125.705451984322280623018741607666015625",
+        //                 "creation_timestamp": 1738065303840
+        //             }
+        //         ]
+        //     },
+        //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const positions = this.safeList (result, 'positions', []);
+        return this.parsePositions (positions, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // {
+        //     "instrument_type": "perp",
+        //     "instrument_name": "BTC-PERP",
+        //     "amount": "-0.02",
+        //     "average_price": "102632.9105389869500088",
+        //     "realized_pnl": "0",
+        //     "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+        //     "total_fees": "2.255789220260999824",
+        //     "average_price_excl_fees": "102745.7",
+        //     "realized_pnl_excl_fees": "0",
+        //     "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+        //     "net_settlements": "-4.032902047219498639",
+        //     "cumulative_funding": "-0.004677736347850093",
+        //     "pending_funding": "0",
+        //     "mark_price": "102765.190337908177752979099750518798828125",
+        //     "index_price": "102767.657193800017641472",
+        //     "delta": "1",
+        //     "gamma": "0",
+        //     "vega": "0",
+        //     "theta": "0",
+        //     "mark_value": "1.38730606879471451975405216217041015625",
+        //     "maintenance_margin": "-101.37788426911356509663164615631103515625",
+        //     "initial_margin": "-132.2074413704858670826070010662078857421875",
+        //     "open_orders_margin": "264.116085900726830004714429378509521484375",
+        //     "leverage": "8.6954476205089299495699106539379941746377322586618",
+        //     "liquidation_price": "109125.705451984322280623018741607666015625",
+        //     "creation_timestamp": 1738065303840
+        // }
+        //
+        const contract = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (contract, market);
+        let size = this.safeString (position, 'amount');
+        let side: Str = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else {
+            side = 'short';
+        }
+        const contractSize = this.safeString (market, 'contractSize');
+        const markPrice = this.safeString (position, 'mark_price');
+        const timestamp = this.safeTimestamp (position, 'creation_timestamp');
+        const unrealisedPnl = this.safeString (position, 'unrealized_pnl');
+        size = Precise.stringAbs (size);
+        const notional = Precise.stringMul (size, markPrice);
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': this.safeString (position, 'initial_margin'),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': this.safeString (position, 'maintenance_margin'),
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': undefined,
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     /**
