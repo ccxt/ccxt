@@ -7,8 +7,13 @@ import ccxt from '../../ts/ccxt.js';
 
 const methodsDict = {
     'rest': {
-      'symbol':  ['fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'fetchOrderTrades', 'cancelOrder', 'cancelAllOrders'], // 'cancelOrders'
-      'code': ['fetchDeposits', 'fetchWithdrawals', 'fetchTransactions', 'fetchDepositsWithdrawals', 'fetchDepositWithdrawFees']
+      'symbol':  [
+        'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades',
+        // 'fetchOrderTrades', 'cancelOrders', 'cancelOrder', 'cancelAllOrders'
+      ], 
+      'code': [
+        // 'fetchDeposits', 'fetchWithdrawals', 'fetchTransactions', 'fetchDepositsWithdrawals', 'fetchDepositWithdrawFees'
+     ]
     },
     'ws': {}
   };
