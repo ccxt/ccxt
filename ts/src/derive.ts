@@ -58,7 +58,7 @@ export default class derive extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': false,
-                'fetchCanceledOrders': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -1436,6 +1436,7 @@ export default class derive extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1445,8 +1446,9 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
         }
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
-        params = this.omit (params, [ 'subaccount_id' ]);
+        params = this.omit (params, [ 'subaccount_id', 'trigger', 'stop' ]);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1459,6 +1461,9 @@ export default class derive extends Exchange {
             request['page_size'] = limit;
         } else {
             request['page_size'] = 500;
+        }
+        if (isTrigger) {
+            request['status'] = 'untriggered';
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
         //
@@ -1547,6 +1552,48 @@ export default class derive extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
+    /**
+     * @method
+     * @name derive#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://docs.derive.xyz/reference/post_private-get-orders
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'cancelled' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'gtc': 'GTC',
+            'post_only': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, undefined);
+    }
+
+    parseOrderStatus (status: Str) {
+        if (status !== undefined) {
+            const statuses: Dict = {
+                'open': 'open',
+                'untriggered': 'open',
+                'filled': 'closed',
+                'cancelled': 'canceled',
+                'expired': 'rejected',
+            };
+            return this.safeString (statuses, status, status);
+        }
+        return status;
+    }
+
     parseOrder (rawOrder: Dict, market: Market = undefined): Order {
         //
         // {
@@ -1611,7 +1658,10 @@ export default class derive extends Exchange {
         }
         const symbol = market['symbol'];
         const price = this.safeString (order, 'limit_price');
+        const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'desired_amount');
+        const filled = this.safeString (order, 'filled_amount');
+        const fee = this.safeString (order, 'order_fee');
         const orderType = this.safeStringLower (order, 'order_type');
         const isBid = this.safeBool (order, 'is_bid');
         let side = this.safeString (order, 'direction');
@@ -1634,32 +1684,35 @@ export default class derive extends Exchange {
                 takeProfitPrice = triggerPrice;
             }
         }
+        const lastUpdateTimestamp = this.safeInteger (rawOrder, 'last_update_timestamp');
+        const status = this.safeString (order, 'order_status');
+        const timeInForce = this.safeString (order, 'time_in_force');
         return this.safeOrder ({
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'label'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
-            'status': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': this.safeString (order, 'time_in_force'),
-            'postOnly': undefined,
+            'timeInForce': this.parseTimeInForce (timeInForce),
+            'postOnly': undefined, // handled in safeOrder
             'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'average': undefined,
+            'average': average,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
             'cost': undefined,
             'trades': undefined,
             'fee': {
-                'cost': undefined,
+                'cost': fee,
                 'currency': undefined,
             },
             'info': order,
