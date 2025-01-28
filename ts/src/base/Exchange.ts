@@ -2845,10 +2845,12 @@ export default class Exchange {
         const keys = Object.keys (featuresObj);
         for (const key of keys) {
             const featureBlock = featuresObj[key];
-            // add "symbolRequired" default to true
+            // default "symbolRequired" to false to all methods (except `createOrder`)
             if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
-                if (!('symbolRequired' in featureBlock)) {
+                if (key === 'createOrder') {
                     featureBlock['symbolRequired'] = true;
+                } else if (!('symbolRequired' in featureBlock)) {
+                    featureBlock['symbolRequired'] = false;
                 }
             }
         }
