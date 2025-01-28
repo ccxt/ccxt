@@ -129,7 +129,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchTicker
+     * @name htx#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
@@ -199,7 +199,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchTrades
+     * @name htx#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
@@ -265,7 +265,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchOHLCV
+     * @name htx#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
@@ -328,7 +328,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchOrderBook
+     * @name htx#watchOrderBook
      * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
@@ -674,7 +674,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchMyTrades
+     * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
      * @param {string} symbol unified market symbol of the market trades were made in
@@ -778,7 +778,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchOrders
+     * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -1232,7 +1232,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchPositions
+     * @name htx#watchPositions
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
@@ -1355,7 +1355,7 @@ class htx extends htx$1 {
     }
     /**
      * @method
-     * @name huobi#watchBalance
+     * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003

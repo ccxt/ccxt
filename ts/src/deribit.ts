@@ -3195,9 +3195,13 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const eachItemDuration = '1h';
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720) as FundingRateHistory[];
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest) as FundingRateHistory[];
         }
+        const duration = this.parseTimeframe (eachItemDuration) * 1000;
         let time = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
@@ -3215,6 +3219,11 @@ export default class deribit extends Exchange {
             request['end_timestamp'] = until;
         } else {
             request['end_timestamp'] = time;
+        }
+        if ('isDeribitPaginationCall' in params) {
+            params = this.omit (params, 'isDeribitPaginationCall');
+            const maxUntil = this.sum (since, limit * duration);
+            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
         //

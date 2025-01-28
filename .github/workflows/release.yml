@@ -38,8 +38,6 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - name: Install GH CLI
-        uses: dev-hanz-ops/install-gh-cli-action@v0.2.1
       - name: create usr/share/dotnet folder
         run: |
           sudo mkdir -p /usr/share/dotnet
@@ -55,6 +53,8 @@ jobs:
         run: composer install
       - name: Install python dependencies
         run: pip install -r ci-requirements.txt
+      - name: Install Wheel
+        run: pip install wheel twine
       - name: Transpile and Build
         run: npm run force-build
       - name: Base tests Rest
@@ -81,6 +81,10 @@ jobs:
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+      - name: Pull changes
+        run: |
+            git config --global pull.rebase false
+            git pull origin master
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
       - name: Commit files
@@ -90,13 +94,19 @@ jobs:
       - name: cleanup old tags
         run: npm run cleanup-old-tags --limit
       - name: Create GH Release and git-tag-version and push
+        env:
+          COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+               echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git tag -a "${COMMIT_MESSAGE}"
+               git tag -a "${COMMIT_MESSAGE}" -m "${COMMIT_MESSAGE}"
+               git commit -m "[Automated Changes] ${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
+               git push
 
       - name: C# Release Build
         run: npm run buildCSRelease
@@ -108,6 +118,8 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: cd python && ./deploy.sh && cd ..;
+      - name: Auth NPM
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Deploy NPM
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

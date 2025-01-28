@@ -3896,7 +3896,7 @@ class coinex extends Exchange {
             'currency' => $this->safe_currency_code(null, $currency),
             'network' => null,
             'address' => $address,
-            'tag' => $tag,
+            'tag' => $this->safe_string($depositAddress, 'memo', $tag),
         );
     }
 

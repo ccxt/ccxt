@@ -3354,10 +3354,16 @@ public partial class deribit : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
+        object maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        object eachItemDuration = "1h";
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.extend(parameters, new Dictionary<string, object>() {
+                { "isDeribitPaginationCall", true },
+            }), maxEntriesPerRequest);
         }
+        object duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();
         object month = multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000);
         if (isTrue(isEqual(since, null)))
@@ -3379,6 +3385,12 @@ public partial class deribit : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["end_timestamp"] = time;
+        }
+        if (isTrue(inOp(parameters, "isDeribitPaginationCall")))
+        {
+            parameters = this.omit(parameters, "isDeribitPaginationCall");
+            object maxUntil = this.sum(since, multiply(limit, duration));
+            ((IDictionary<string,object>)request)["end_timestamp"] = mathMin(getValue(request, "end_timestamp"), maxUntil);
         }
         object response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));
         //
