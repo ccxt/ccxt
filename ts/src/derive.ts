@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
+import type { Dict, Currencies, Transaction, Currency, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export default class derive extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
@@ -2211,6 +2211,101 @@ export default class derive extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.derive.xyz/reference/post_private-get-deposit-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetDepositHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "events": [
+        //             {
+        //                 "timestamp": 1736860533599,
+        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //                 "asset": "ETH",
+        //                 "amount": "0.1",
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //                 "error_log": {}
+        //             }
+        //         ]
+        //     },
+        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        // }
+        //
+        const currency = this.safeCurrency (code);
+        const result = this.safeDict (response, 'result', {});
+        const events = this.safeList (result, 'events');
+        return this.parseTransactions (events, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // {
+        //     "timestamp": 1736860533599,
+        //     "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //     "asset": "ETH",
+        //     "amount": "0.1",
+        //     "tx_status": "settled",
+        //     "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //     "error_log": {}
+        // }
+        //
+        const code = this.safeString (transaction, 'asset');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': this.safeString (transaction, 'tx_hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'tx_status')),
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+            'network': undefined,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            // 'NEW': 'pending',
+            // 'CONFIRMING': 'pending',
+            // 'PROCESSING': 'pending',
+            'settled': 'ok',
+            // 'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
