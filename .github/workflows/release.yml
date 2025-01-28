@@ -77,7 +77,7 @@ jobs:
         run: npm run package-test
       - name: Freshness Test
         run: npm run test-freshness
-      Will start the deployment process
+      # Will start the deployment process
       - name: Set new Version
         run: |
           npm config set git-tag-version=false
