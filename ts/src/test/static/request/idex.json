@@ -5,40 +5,67 @@
     ],
     "outputType": "json",
     "methods": {
-        "fetchDeposits": [
+        "fetchFundingRateHistory": [
             {
-                "description": "Fetch Deposits",
-                "method": "fetchDeposits",
-                "url": "https://api-matic.idex.io/v1/deposits?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.idex.io/v4/fundingRates?market=ETH-USD",
                 "input": [
-                    "USDT"
-                ]
+                    "ETH/USD"
+                ],
+                "output": null
             }
         ],
-        "fetchWithdrawals": [
+        "fetchOrderBook": [
             {
-                "description": "Fetch Withdrawals",
-                "method": "fetchWithdrawals",
-                "url": "https://api-matic.idex.io/v1/withdrawals?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.idex.io/v4/orderbook?market=ETH-USD&level=2",
                 "input": [
-                    "USDT"
-                ]
+                    "ETH/USD"
+                ],
+                "output": null
             }
         ],
-        "fetchDepositAddress": [
+        "fetchTrades": [
             {
-                "description": "Fetch Deposit Address",
-                "method": "fetchDepositAddress",
-                "url": "https://api-matic.idex.io/v1/wallets?nonce=1ab69e90cbbc11ee9696ffffffffffff",
-                "input": []
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.idex.io/v4/trades?market=ETH-USD",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.idex.io/v4/candles?market=ETH-USD&interval=1m",
+                "input": [
+                    "ETH/USD",
+                    "1m"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.idex.io/v4/tickers",
+                "input": [],
+                "output": null
             }
         ],
         "fetchTime": [
             {
-                "description": "fetchTime",
+                "description": "Fetch time",
                 "method": "fetchTime",
-                "url": "https://api-matic.idex.io/v1/time",
-                "input": []
+                "url": "https://api.idex.io/v4/time",
+                "input": [],
+                "output": null
             }
         ]
     }
