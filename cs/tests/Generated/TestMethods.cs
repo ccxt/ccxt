@@ -12,7 +12,6 @@ public partial class testMainClass
     public bool requestTests = false;
     public bool wsTests = false;
     public bool responseTests = false;
-    public bool staticTests = false;
     public bool info = false;
     public bool verbose = false;
     public bool debug = false;

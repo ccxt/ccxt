@@ -7,7 +7,6 @@ declare class testMainClass {
     requestTests: boolean;
     wsTests: boolean;
     responseTests: boolean;
-    staticTests: boolean;
     info: boolean;
     verbose: boolean;
     debug: boolean;

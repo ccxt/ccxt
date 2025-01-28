@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.51'
+__version__ = '4.4.52'
 
 # -----------------------------------------------------------------------------
 
@@ -5727,6 +5727,27 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def handle_trigger_direction_and_params(self, params, exchangeSpecificKey: Str = None, allowEmpty: Bool = False):
+        """
+ @ignore
+        :returns [str, dict]: the trigger-direction value and omited params
+        """
+        triggerDirection = self.safe_string(params, 'triggerDirection')
+        exchangeSpecificDefined = (exchangeSpecificKey is not None) and (exchangeSpecificKey in params)
+        if triggerDirection is not None:
+            params = self.omit(params, 'triggerDirection')
+        # raise exception if:
+        # A) if provided value is not unified(support old "up/down" strings too)
+        # B) if exchange specific "trigger direction key"(eg. "stopPriceSide") was not provided
+        if not self.in_array(triggerDirection, ['ascending', 'descending', 'up', 'down', 'above', 'below']) and not exchangeSpecificDefined and not allowEmpty:
+            raise ArgumentsRequired(self.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"')
+        # if old format was provided, overwrite to new
+        if triggerDirection == 'up' or triggerDirection == 'above':
+            triggerDirection = 'ascending'
+        elif triggerDirection == 'down' or triggerDirection == 'below':
+            triggerDirection = 'descending'
+        return [triggerDirection, params]
 
     def handle_trigger_and_params(self, params):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')

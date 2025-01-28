@@ -21,7 +21,6 @@ class testMainClass {
         this.requestTests = false;
         this.wsTests = false;
         this.responseTests = false;
-        this.staticTests = false;
         this.info = false;
         this.verbose = false;
         this.debug = false;

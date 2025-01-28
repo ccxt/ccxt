@@ -30,6 +30,10 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: "https://registry.npmjs.org"
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
@@ -118,9 +122,6 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: cd python && ./deploy.sh && cd ..;
-      - name: Auth NPM
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-      - name: Deploy NPM
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
