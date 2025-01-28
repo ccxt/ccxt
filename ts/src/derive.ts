@@ -68,7 +68,7 @@ export default class derive extends Exchange {
                 'fetchDeposits': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -2024,6 +2024,104 @@ export default class derive extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name derive#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.derive.xyz/reference/post_private-get-funding-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
+        }
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetFundingHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "events": [
+        //             {
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738066618272,
+        //                 "funding": "-0.004677736347850093",
+        //                 "pnl": "-0.944081615774632967"
+        //             },
+        //             {
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738066617964,
+        //                 "funding": "0",
+        //                 "pnl": "-0.437556413479249408"
+        //             },
+        //             {
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738065307565,
+        //                 "funding": "0",
+        //                 "pnl": "-0.39547479770461644"
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 3
+        //         }
+        //     },
+        //     "id": "524b817f-2108-467f-8795-511066f4acec"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const events = this.safeList (result, 'events', []);
+        return this.parseIncomes (events, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        // {
+        //     "instrument_name": "BTC-PERP",
+        //     "timestamp": 1738065307565,
+        //     "funding": "0",
+        //     "pnl": "-0.39547479770461644"
+        // }
+        //
+        const marketId = this.safeString (income, 'instrument_name');
+        const symbol = this.safeSymbol (marketId, market);
+        let amount = this.safeString (income, 'funding');
+        const code = this.safeCurrencyCode ('USDC');
+        const timestamp = this.safeInteger (income, 'timestamp');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.parseNumber (amount),
+            'rate': undefined,
+        };
     }
 
     /**
