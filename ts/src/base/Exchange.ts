@@ -2945,6 +2945,7 @@ export default class Exchange {
             'baseId': undefined,
             'quoteId': undefined,
             'settleId': undefined,
+            'period': undefined,
             'type': undefined,
             'spot': undefined,
             'margin': undefined,
@@ -3024,6 +3025,7 @@ export default class Exchange {
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
+        this.market_symbol_aliases = [];
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
@@ -3044,6 +3046,12 @@ export default class Exchange {
                 market['subType'] = 'inverse';
             } else {
                 market['subType'] = undefined;
+            }
+            if (value['period'] !== undefined) {
+                const symbol = market['symbol'];
+                const removedCharacters = '-' + value['period']
+                const alias = symbol.replace (removedCharacters, '');
+                this.market_symbol_aliases.push (alias);
             }
             values.push (market);
         }
@@ -5888,7 +5896,6 @@ export default class Exchange {
                     return markets[currentSymbol] as MarketInterface;
                 }
             }
-            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }

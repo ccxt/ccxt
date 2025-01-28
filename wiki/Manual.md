@@ -929,6 +929,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'quote':   'USD',         // uppercase string, unified quote currency code, 3 or more letters
     'baseId':  'btc',         // any string, exchange-specific base currency id
     'quoteId': 'usd',         // any string, exchange-specific quote currency id
+    'period':  'Q',           // for expiry future and option contracts only, the period for the contract, one of D, W, M, Q, S, Y
     'active':   true,         // boolean, market status
     'type':    'spot',        // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
     'spot':     true,         // whether the market is a spot market
