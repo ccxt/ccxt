@@ -84,7 +84,7 @@ export default class derive extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -1760,6 +1760,83 @@ export default class derive extends Exchange {
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
         const request: Dict = {
             'order_id': id,
+            'subaccount_id': subaccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
+        }
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetTradeHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "trades": [
+        //             {
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "sell",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //                 "timestamp": 1738065303708,
+        //                 "mark_price": "102740.137375457314192317",
+        //                 "index_price": "102741.553409299981533184",
+        //                 "trade_price": "102700.6",
+        //                 "trade_amount": "0.01",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "0",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "is_transfer": false,
+        //                 "tx_status": "settled",
+        //                 "trade_fee": "1.127415534092999815",
+        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
+        //         }
+        //     },
+        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const trades = this.safeList (result, 'trades', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+        }
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
             'subaccount_id': subaccountId,
         };
         let market: Market = undefined;
