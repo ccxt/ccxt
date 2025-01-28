@@ -264,7 +264,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
-        'type': exchange.dex ? 'dex' : 'cex',
+        'type': exchange.dex ? '![DEX](https://img.shields.io/badge/DEX-blue.svg)' : '![CEX](https://img.shields.io/badge/CEX-green.svg)',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
