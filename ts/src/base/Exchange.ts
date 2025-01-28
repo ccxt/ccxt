@@ -3049,7 +3049,7 @@ export default class Exchange {
             }
             if (value['period'] !== undefined) {
                 const symbol = market['symbol'];
-                const removedCharacters = '-' + value['period']
+                const removedCharacters = '-' + value['period'];
                 const alias = symbol.replace (removedCharacters, '');
                 this.market_symbol_aliases.push (alias);
             }
