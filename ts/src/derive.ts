@@ -1329,6 +1329,7 @@ export default class derive extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1337,8 +1338,9 @@ export default class derive extends Exchange {
         }
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
-        params = this.omit (params, [ 'subaccount_id' ]);
+        params = this.omit (params, [ 'subaccount_id', 'trigger', 'stop' ]);
         const request: Dict = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
@@ -1353,7 +1355,11 @@ export default class derive extends Exchange {
             response = await this.privatePostCancelByLabel (this.extend (request, params));
         } else {
             request['order_id'] = id;
-            response = await this.privatePostCancel (this.extend (request, params));
+            if (isTrigger) {
+                response = await this.privatePostCancelTriggerOrder (this.extend (request, params));
+            } else {
+                response = await this.privatePostCancel (this.extend (request, params));
+            }
         }
         //
         // {
@@ -1414,7 +1420,6 @@ export default class derive extends Exchange {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
