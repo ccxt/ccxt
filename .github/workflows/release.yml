@@ -82,6 +82,8 @@ jobs:
         run: npm run package-test
       - name: Freshness Test
         run: npm run test-freshness
+      - name: Go Types Test
+        run: npm run test-types-go
       # Will start the deployment process
       - name: Set new Version
         run: |
