@@ -1346,7 +1346,7 @@ public partial class bitmart
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : timestamp in ms of the earliest funding rate to fetch
+    /// int : not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
     /// </description>
     /// </item>
     /// <item>

@@ -183,6 +183,7 @@ export default class ace extends Exchange {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,

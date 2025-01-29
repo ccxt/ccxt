@@ -1555,14 +1555,13 @@ class Exchange extends \ccxt\Exchange {
             $featuresObj = $this->deep_extend($extendObj, $featuresObj);
         }
         //
-        // corrections
+        // ### corrections ###
         //
+        // createOrder
         if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
             $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            if ($value !== null) {
-                $featuresObj['createOrder']['stopLoss'] = $value;
-                $featuresObj['createOrder']['takeProfit'] = $value;
-            }
+            $featuresObj['createOrder']['stopLoss'] = $value;
+            $featuresObj['createOrder']['takeProfit'] = $value;
             if ($marketType === 'spot') {
                 // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
@@ -1574,6 +1573,20 @@ class Exchange extends \ccxt\Exchange {
             // default 'GTC' to true
             if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
                 $featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            }
+        }
+        // other methods
+        $keys = is_array($featuresObj) ? array_keys($featuresObj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $featureBlock = $featuresObj[$key];
+            // default "symbolRequired" to false to all methods (except `createOrder`)
+            if (!$this->in_array($key, array( 'sandbox' )) && $featureBlock !== null) {
+                if ($key === 'createOrder') {
+                    $featureBlock['symbolRequired'] = true;
+                } elseif (!(is_array($featureBlock) && array_key_exists('symbolRequired', $featureBlock))) {
+                    $featureBlock['symbolRequired'] = false;
+                }
             }
         }
         return $featuresObj;

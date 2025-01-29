@@ -177,6 +177,7 @@ class ace extends Exchange {
                         'limit' => 500,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,

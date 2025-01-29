@@ -158,6 +158,7 @@ public partial class ace : Exchange
                         { "limit", 500 },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
