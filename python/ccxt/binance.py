@@ -1356,6 +1356,7 @@ class binance(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
+                    'SPL': 'SOL',  # temporarily keep support for SPL(old name)
                     'SOL': 'SOL',  # we shouldn't rename SOL
                 },
                 # keeping self object for backward-compatibility
@@ -1454,6 +1455,7 @@ class binance(Exchange, ImplicitAPI):
                     'explorer.zensystem.io': 'ZEN',
                 },
                 'networksById': {
+                    'SOL': 'SOL',  # temporary fix for SPL definition
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
