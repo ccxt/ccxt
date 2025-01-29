@@ -228,17 +228,20 @@ class coinone(Exchange, ImplicitAPI):
                         'limit': 100,  # todo implement
                         'daysBack': 100000,  # todo implement
                         'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo implement
