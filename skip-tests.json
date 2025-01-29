@@ -178,6 +178,7 @@
     },
     "bitfinex1": {
         "skipMethods": {
+            "features": "not implemented for this old ex",
             "loadMarkets": "linear and inverse values are same",
             "ticker": {
                 "symbol": "something broken with symbol",
