@@ -12,35 +12,32 @@ public partial class testMainClass : BaseTest
         object marketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
         object features = exchange.features;
-        if (isTrue(!isEqual(features, null)))
+        object keys = new List<object>(((IDictionary<string,object>)features).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object keys = new List<object>(((IDictionary<string,object>)features).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            testSharedMethods.assertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
+            object marketType = getValue(keys, i);
+            object value = getValue(features, marketType);
+            // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
+            if (isTrue(isEqual(value, null)))
             {
-                testSharedMethods.assertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
-                object marketType = getValue(keys, i);
-                object value = getValue(features, marketType);
-                // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-                if (isTrue(isEqual(value, null)))
+                continue;
+            }
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                testFeaturesInner(exchange, skippedProperties, value);
+            } else
+            {
+                object subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(subKeys)); postFixIncrement(ref j))
                 {
-                    continue;
-                }
-                if (isTrue(isEqual(marketType, "spot")))
-                {
-                    testFeaturesInner(exchange, skippedProperties, value);
-                } else
-                {
-                    object subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(subKeys)); postFixIncrement(ref j))
+                    object subKey = getValue(subKeys, j);
+                    testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
+                    object subValue = getValue(value, subKey);
+                    // sometimes it might not be available for exchange, eg. future>inverse)
+                    if (isTrue(!isEqual(subValue, null)))
                     {
-                        object subKey = getValue(subKeys, j);
-                        testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
-                        object subValue = getValue(value, subKey);
-                        // sometimes it might not be available for exchange, eg. future>inverse)
-                        if (isTrue(!isEqual(subValue, null)))
-                        {
-                            testFeaturesInner(exchange, skippedProperties, subValue);
-                        }
+                        testFeaturesInner(exchange, skippedProperties, subValue);
                     }
                 }
             }

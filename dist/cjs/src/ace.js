@@ -180,6 +180,7 @@ class ace extends ace$1 {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,

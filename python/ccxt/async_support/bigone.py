@@ -337,6 +337,7 @@ class bigone(Exchange, ImplicitAPI):
                         'limit': 200,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
@@ -348,6 +349,7 @@ class bigone(Exchange, ImplicitAPI):
                         'limit': 200,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -356,6 +358,7 @@ class bigone(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -365,6 +368,7 @@ class bigone(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
