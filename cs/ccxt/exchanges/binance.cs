@@ -1353,7 +1353,7 @@ public partial class binance : Exchange
                     { "BEP20", "BSC" },
                     { "OMNI", "OMNI" },
                     { "EOS", "EOS" },
-                    { "SPL", "SOL" },
+                    { "SOL", "SOL" },
                 } },
                 { "reverseNetworks", new Dictionary<string, object>() {
                     { "tronscan.org", "TRC20" },
