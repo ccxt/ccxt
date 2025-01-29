@@ -314,17 +314,20 @@ export default class bitmex extends Exchange {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': 1000000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -333,6 +336,7 @@ export default class bitmex extends Exchange {
                         'untilDays': 1000000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -342,6 +346,7 @@ export default class bitmex extends Exchange {
                         'untilDays': 1000000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 10000,
