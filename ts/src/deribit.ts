@@ -945,32 +945,31 @@ export default class deribit extends Exchange {
                 }
                 let inverse = undefined;
                 let linear = undefined;
+                let period = undefined;
                 if (isSpot) {
                     symbol = base + '/' + quote;
                 } else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
                         symbol = symbol + '-' + this.yymmdd (expiry, '');
-                        let expiryLetter = undefined;
                         if (settlementPeriod === 'month') {
-                            expiryLetter = 'M';
+                            period = 'M';
                         } else if (settlementPeriod === 'week') {
-                            expiryLetter = 'W';
+                            period = 'W';
                         } else if (settlementPeriod === 'day') {
-                            expiryLetter = 'D';
-                        } else {
-                            expiryLetter = '';
+                            period = 'D';
                         }
                         if (option) {
                             strike = this.safeNumber (market, 'strike');
                             optionType = this.safeString (market, 'option_type');
                             const letter = (optionType === 'call') ? 'C' : 'P';
-                            const oldSymbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
-                            this.market_symbol_aliases.push (oldSymbol);
-                            symbol = symbol + expiryLetter + '-' + this.numberToString (strike) + '-' + letter;
+                            if (period !== undefined) {
+                                symbol = symbol + '-' + period + '-' + this.numberToString (strike) + '-' + letter;
+                            } else {
+                                symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                            }
                         } else {
-                            this.market_symbol_aliases.push (symbol);
-                            symbol = symbol + expiryLetter;
+                            symbol = symbol + period;
                         }
                     }
                     inverse = (quote !== settle);
@@ -992,6 +991,7 @@ export default class deribit extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'settleId': settleId,
+                    'period': period,
                     'type': type,
                     'spot': isSpot,
                     'margin': false,
