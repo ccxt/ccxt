@@ -135,7 +135,6 @@ jobs:
           git config --global pull.rebase false
           git pull origin master
           git push
-          push to wiki
     - name: Push To CCXT.WIKI
       if: github.ref == 'refs/heads/master'
       env:
