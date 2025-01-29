@@ -340,6 +340,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'trigger': False,
                         'trailing': False,
                         'marketType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
@@ -347,6 +348,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'trigger': False,
                         'trailing': False,
                         'marketType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,

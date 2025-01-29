@@ -1210,17 +1210,20 @@ class bybit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 365 * 2,  # 2 years
                         'untilDays': 7,  # days between start-end
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 50,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -1231,6 +1234,7 @@ class bybit(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,

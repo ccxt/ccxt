@@ -2741,36 +2741,17 @@ class Exchange(object):
 
     def features_generator(self):
         #
-        # the exchange-specific features can be something like self, where we support 'string' aliases too:
+        # in the exchange-specific features can be something like self, where we support 'string' aliases too:
         #
         #     {
-        #         'myItem' : {
+        #         'my' : {
         #             'createOrder' : {...},
-        #             'fetchOrders' : {...},
         #         },
         #         'swap': {
-        #             'linear': 'myItem',
-        #             'inverse': 'myItem',
+        #             'linear': {
+        #                 'extends': my',
+        #             },
         #         },
-        #         'future': {
-        #             'linear': 'myItem',
-        #             'inverse': 'myItem',
-        #         }
-        #     }
-        #
-        #
-        #
-        # self method would regenerate the blank features tree, eg:
-        #
-        #     {
-        #         "spot": {
-        #             "createOrder": None,
-        #             "fetchBalance": None,
-        #             ...
-        #         },
-        #         "swap": {
-        #             ...
-        #         }
         #     }
         #
         if self.features is None:
@@ -2827,12 +2808,10 @@ class Exchange(object):
         for i in range(0, len(keys)):
             key = keys[i]
             featureBlock = featuresObj[key]
-            # default "symbolRequired" to False to all methods(except `createOrder`)
             if not self.in_array(key, ['sandbox']) and featureBlock is not None:
-                if key == 'createOrder':
-                    featureBlock['symbolRequired'] = True
-                elif not ('symbolRequired' in featureBlock):
-                    featureBlock['symbolRequired'] = False
+                # default "symbolRequired" to False to all methods(except `createOrder`)
+                if not ('symbolRequired' in featureBlock):
+                    featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):

@@ -323,17 +323,20 @@ class bitmex(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': None,
                         'untilDays': 1000000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 500,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -342,6 +345,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'untilDays': 1000000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -351,6 +355,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'untilDays': 1000000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 10000,
