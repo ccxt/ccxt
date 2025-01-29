@@ -1356,7 +1356,7 @@ class binance(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'SOL': 'SOL',  # we shouldn't rename SOL
                 },
                 # keeping self object for backward-compatibility
                 'reverseNetworks': {
