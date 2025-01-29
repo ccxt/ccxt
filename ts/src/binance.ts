@@ -1338,9 +1338,6 @@ export default class binance extends Exchange {
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                 },
-                'networksById': {
-                    'SOL': 'SOL',
-                },
                 // keeping this object for backward-compatibility
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
@@ -1437,6 +1434,7 @@ export default class binance extends Exchange {
                     'explorer.zensystem.io': 'ZEN',
                 },
                 'networksById': {
+                    'SOL': 'SOL', // temporary fix for SPL definition
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
