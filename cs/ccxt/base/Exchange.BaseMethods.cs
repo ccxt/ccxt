@@ -1390,36 +1390,17 @@ public partial class Exchange
     public virtual void featuresGenerator()
     {
         //
-        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
         //     {
-        //         'myItem' : {
+        //         'my' : {
         //             'createOrder' : {...},
-        //             'fetchOrders' : {...},
         //         },
         //         'swap': {
-        //             'linear': 'myItem',
-        //             'inverse': 'myItem',
+        //             'linear': {
+        //                 'extends': my',
+        //             },
         //         },
-        //         'future': {
-        //             'linear': 'myItem',
-        //             'inverse': 'myItem',
-        //         }
-        //     }
-        //
-        //
-        //
-        // this method would regenerate the blank features tree, eg:
-        //
-        //     {
-        //         "spot": {
-        //             "createOrder": undefined,
-        //             "fetchBalance": undefined,
-        //             ...
-        //         },
-        //         "swap": {
-        //             ...
-        //         }
         //     }
         //
         if (isTrue(isEqual(this.features, null)))
@@ -1503,15 +1484,12 @@ public partial class Exchange
         {
             object key = getValue(keys, i);
             object featureBlock = getValue(featuresObj, key);
-            // default "symbolRequired" to false to all methods (except `createOrder`)
             if (isTrue(!isTrue(this.inArray(key, new List<object>() {"sandbox"})) && isTrue(!isEqual(featureBlock, null))))
             {
-                if (isTrue(isEqual(key, "createOrder")))
+                // default "symbolRequired" to false to all methods (except `createOrder`)
+                if (!isTrue((inOp(featureBlock, "symbolRequired"))))
                 {
-                    ((IDictionary<string,object>)featureBlock)["symbolRequired"] = true;
-                } else if (!isTrue((inOp(featureBlock, "symbolRequired"))))
-                {
-                    ((IDictionary<string,object>)featureBlock)["symbolRequired"] = false;
+                    ((IDictionary<string,object>)featureBlock)["symbolRequired"] = this.inArray(key, new List<object>() {"createOrder", "createOrders", "fetchOHLCV"});
                 }
             }
         }

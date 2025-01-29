@@ -1625,11 +1625,13 @@ public partial class binance : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 1 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -1644,6 +1646,7 @@ public partial class binance : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -1653,6 +1656,7 @@ public partial class binance : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1693,17 +1697,20 @@ public partial class binance : Exchange
                         { "daysBack", null },
                         { "limit", 1000 },
                         { "untilDays", 7 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 500 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -1712,6 +1719,7 @@ public partial class binance : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -1721,6 +1729,7 @@ public partial class binance : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1500 },
