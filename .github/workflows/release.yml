@@ -51,6 +51,11 @@ jobs:
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21.x"
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
@@ -111,7 +116,11 @@ jobs:
                echo "Creating github release..."
                gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
                git push
-
+      - name: Publish Go node_modules
+        env:
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt@$VERSION
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: Deploy C#
