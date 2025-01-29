@@ -446,11 +446,13 @@ public partial class coincatch : Exchange
                         { "limit", 500 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -458,6 +460,7 @@ public partial class coincatch : Exchange
                         { "trigger", true },
                         { "trailing", false },
                         { "marketType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },

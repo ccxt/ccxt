@@ -175,6 +175,7 @@ class coinspot(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': 100000,
                         'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': None,  # todo implement

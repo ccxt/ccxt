@@ -589,17 +589,20 @@ class bingx(Exchange, ImplicitAPI):
                         'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -608,6 +611,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -617,6 +621,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -629,19 +634,7 @@ class bingx(Exchange, ImplicitAPI):
                         'daysBack': None,
                         'untilDays': None,
                     },
-                    'fetchOHLCV': {
-                        'limit': 1440,
-                    },
                     'fetchOrders': None,
-                    'fetchClosedOrders': {
-                        'marginMode': False,
-                        'limit': 1000,
-                        'daysBack': None,
-                        'daysBackCanceled': None,
-                        'untilDays': 7,
-                        'trigger': False,
-                        'trailing': False,
-                    },
                 },
                 #
                 'spot': {
@@ -670,12 +663,16 @@ class bingx(Exchange, ImplicitAPI):
                         'extends': 'defaultForInverse',
                     },
                 },
+                'defaultForFuture': {
+                    'extends': 'defaultForLinear',
+                    'fetchOrders': None,
+                },
                 'future': {
                     'linear': {
-                        'extends': 'defaultForLinear',
+                        'extends': 'defaultForFuture',
                     },
                     'inverse': {
-                        'extends': 'defaultForInverse',
+                        'extends': 'defaultForFuture',
                     },
                 },
             },

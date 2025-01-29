@@ -567,17 +567,20 @@ public partial class bingx : Exchange
                         { "limit", 512 },
                         { "daysBack", 30 },
                         { "untilDays", 30 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -586,6 +589,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -595,6 +599,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1440 },
@@ -607,19 +612,7 @@ public partial class bingx : Exchange
                         { "daysBack", null },
                         { "untilDays", null },
                     } },
-                    { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 1440 },
-                    } },
                     { "fetchOrders", null },
-                    { "fetchClosedOrders", new Dictionary<string, object>() {
-                        { "marginMode", false },
-                        { "limit", 1000 },
-                        { "daysBack", null },
-                        { "daysBackCanceled", null },
-                        { "untilDays", 7 },
-                        { "trigger", false },
-                        { "trailing", false },
-                    } },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
@@ -647,12 +640,16 @@ public partial class bingx : Exchange
                         { "extends", "defaultForInverse" },
                     } },
                 } },
+                { "defaultForFuture", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "fetchOrders", null },
+                } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "defaultForLinear" },
+                        { "extends", "defaultForFuture" },
                     } },
                     { "inverse", new Dictionary<string, object>() {
-                        { "extends", "defaultForInverse" },
+                        { "extends", "defaultForFuture" },
                     } },
                 } },
             } },
