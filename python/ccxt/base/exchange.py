@@ -2806,13 +2806,13 @@ class Exchange(object):
             extendObj = self.features_mapper(initialFeatures, extendsStr)
             featuresObj = self.deep_extend(extendObj, featuresObj)
         #
-        # corrections
+        #  ### corrections  ###
         #
+        # createOrder
         if 'createOrder' in featuresObj:
             value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
-            if value is not None:
-                featuresObj['createOrder']['stopLoss'] = value
-                featuresObj['createOrder']['takeProfit'] = value
+            featuresObj['createOrder']['stopLoss'] = value
+            featuresObj['createOrder']['takeProfit'] = value
             if marketType == 'spot':
                 # default 'hedged': False
                 featuresObj['createOrder']['hedged'] = False
@@ -2822,6 +2822,17 @@ class Exchange(object):
             # default 'GTC' to True
             if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
+        # other methods
+        keys = list(featuresObj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            featureBlock = featuresObj[key]
+            # default "symbolRequired" to False to all methods(except `createOrder`)
+            if not self.in_array(key, ['sandbox']) and featureBlock is not None:
+                if key == 'createOrder':
+                    featureBlock['symbolRequired'] = True
+                elif not ('symbolRequired' in featureBlock):
+                    featureBlock['symbolRequired'] = False
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
