@@ -2821,14 +2821,13 @@ export default class Exchange {
             featuresObj = this.deepExtend (extendObj, featuresObj);
         }
         //
-        // corrections
+        // ### corrections ###
         //
+        // createOrder
         if ('createOrder' in featuresObj) {
             const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            if (value !== undefined) {
-                featuresObj['createOrder']['stopLoss'] = value;
-                featuresObj['createOrder']['takeProfit'] = value;
-            }
+            featuresObj['createOrder']['stopLoss'] = value;
+            featuresObj['createOrder']['takeProfit'] = value;
             if (marketType === 'spot') {
                 // default 'hedged': false
                 featuresObj['createOrder']['hedged'] = false;
@@ -2840,6 +2839,20 @@ export default class Exchange {
             // default 'GTC' to true
             if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
                 featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            }
+        }
+        // other methods
+        const keys = Object.keys (featuresObj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const featureBlock = featuresObj[key];
+            // default "symbolRequired" to false to all methods (except `createOrder`)
+            if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
+                if (key === 'createOrder') {
+                    featureBlock['symbolRequired'] = true;
+                } else if (!('symbolRequired' in featureBlock)) {
+                    featureBlock['symbolRequired'] = false;
+                }
             }
         }
         return featuresObj;
