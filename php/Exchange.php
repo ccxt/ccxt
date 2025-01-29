@@ -3383,36 +3383,17 @@ class Exchange {
 
     public function features_generator() {
         //
-        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
         //     {
-        //         'myItem' : array(
+        //         'my' : array(
         //             'createOrder' : array(...),
-        //             'fetchOrders' : array(...),
         //         ),
         //         'swap' => array(
-        //             'linear' => 'myItem',
-        //             'inverse' => 'myItem',
+        //             'linear' => array(
+        //                 'extends' => my',
+        //             ),
         //         ),
-        //         'future' => {
-        //             'linear' => 'myItem',
-        //             'inverse' => 'myItem',
-        //         }
-        //     }
-        //
-        //
-        //
-        // this method would regenerate the blank features tree, eg:
-        //
-        //     {
-        //         "spot" => array(
-        //             "createOrder" => null,
-        //             "fetchBalance" => null,
-        //             ...
-        //         ),
-        //         "swap" => {
-        //             ...
-        //         }
         //     }
         //
         if ($this->features === null) {
@@ -3481,12 +3462,10 @@ class Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $featureBlock = $featuresObj[$key];
-            // default "symbolRequired" to false to all methods (except `createOrder`)
             if (!$this->in_array($key, array( 'sandbox' )) && $featureBlock !== null) {
-                if ($key === 'createOrder') {
-                    $featureBlock['symbolRequired'] = true;
-                } elseif (!(is_array($featureBlock) && array_key_exists('symbolRequired', $featureBlock))) {
-                    $featureBlock['symbolRequired'] = false;
+                // default "symbolRequired" to false to all methods (except `createOrder`)
+                if (!(is_array($featureBlock) && array_key_exists('symbolRequired', $featureBlock))) {
+                    $featureBlock['symbolRequired'] = $this->in_array($key, array( 'createOrder', 'createOrders', 'fetchOHLCV' ));
                 }
             }
         }

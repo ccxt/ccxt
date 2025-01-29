@@ -1580,17 +1580,20 @@ class bitget extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 90,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1601,6 +1604,7 @@ class bitget extends Exchange {
                         'untilDays' => 90,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
