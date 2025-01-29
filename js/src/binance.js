@@ -1336,7 +1336,7 @@ export default class binance extends Exchange {
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'SOL': 'SOL', // we shouldn't rename SOL
                 },
                 // keeping this object for backward-compatibility
                 'reverseNetworks': {
