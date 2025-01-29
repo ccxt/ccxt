@@ -565,12 +565,13 @@ export default class kucoinfutures extends kucoin {
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
+            let period = undefined;
             if (future) {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
                 // add legacy symbol to aliases
-                this.market_symbol_aliases.push (symbol);
-                symbol = symbol + 'Q';
+                period = 'Q';
+                symbol = symbol + '-' + period;
             }
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
@@ -600,6 +601,7 @@ export default class kucoinfutures extends kucoin {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
+                'period': period,
                 'type': type,
                 'spot': false,
                 'margin': false,
