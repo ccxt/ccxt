@@ -1473,16 +1473,14 @@ public partial class Exchange
             featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
-        // corrections
+        // ### corrections ###
         //
+        // createOrder
         if (isTrue(inOp(featuresObj, "createOrder")))
         {
             object value = this.safeDict(getValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
-            if (isTrue(!isEqual(value, null)))
-            {
-                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
-                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
-            }
+            ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
+            ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             if (isTrue(isEqual(marketType, "spot")))
             {
                 // default 'hedged': false
@@ -1497,6 +1495,24 @@ public partial class Exchange
             if (isTrue(isEqual(this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "GTC"), null)))
             {
                 ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["GTC"] = true;
+            }
+        }
+        // other methods
+        object keys = new List<object>(((IDictionary<string,object>)featuresObj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object featureBlock = getValue(featuresObj, key);
+            // default "symbolRequired" to false to all methods (except `createOrder`)
+            if (isTrue(!isTrue(this.inArray(key, new List<object>() {"sandbox"})) && isTrue(!isEqual(featureBlock, null))))
+            {
+                if (isTrue(isEqual(key, "createOrder")))
+                {
+                    ((IDictionary<string,object>)featureBlock)["symbolRequired"] = true;
+                } else if (!isTrue((inOp(featureBlock, "symbolRequired"))))
+                {
+                    ((IDictionary<string,object>)featureBlock)["symbolRequired"] = false;
+                }
             }
         }
         return featuresObj;
