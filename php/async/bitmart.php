@@ -4695,7 +4695,7 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$since] not sent to exchange api, exchange api always returns the most recent $data, only used to filter exchange $response
              * @param {int} [$limit] the maximum amount of funding rate structures to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~

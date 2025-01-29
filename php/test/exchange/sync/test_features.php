@@ -13,28 +13,26 @@ function test_features($exchange, $skipped_properties) {
     $market_types = ['spot', 'swap', 'future', 'option'];
     $sub_types = ['linear', 'inverse'];
     $features = $exchange->features;
-    if ($features !== null) {
-        $keys = is_array($features) ? array_keys($features) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            assert_in_array($exchange, $skipped_properties, 'features', $keys, $i, $market_types);
-            $market_type = $keys[$i];
-            $value = $features[$market_type];
-            // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-            if ($value === null) {
-                continue;
-            }
-            if ($market_type === 'spot') {
-                test_features_inner($exchange, $skipped_properties, $value);
-            } else {
-                $sub_keys = is_array($value) ? array_keys($value) : array();
-                for ($j = 0; $j < count($sub_keys); $j++) {
-                    $sub_key = $sub_keys[$j];
-                    assert_in_array($exchange, $skipped_properties, 'features', $sub_keys, $j, $sub_types);
-                    $sub_value = $value[$sub_key];
-                    // sometimes it might not be available for exchange, eg. future>inverse)
-                    if ($sub_value !== null) {
-                        test_features_inner($exchange, $skipped_properties, $sub_value);
-                    }
+    $keys = is_array($features) ? array_keys($features) : array();
+    for ($i = 0; $i < count($keys); $i++) {
+        assert_in_array($exchange, $skipped_properties, 'features', $keys, $i, $market_types);
+        $market_type = $keys[$i];
+        $value = $features[$market_type];
+        // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
+        if ($value === null) {
+            continue;
+        }
+        if ($market_type === 'spot') {
+            test_features_inner($exchange, $skipped_properties, $value);
+        } else {
+            $sub_keys = is_array($value) ? array_keys($value) : array();
+            for ($j = 0; $j < count($sub_keys); $j++) {
+                $sub_key = $sub_keys[$j];
+                assert_in_array($exchange, $skipped_properties, 'features', $sub_keys, $j, $sub_types);
+                $sub_value = $value[$sub_key];
+                // sometimes it might not be available for exchange, eg. future>inverse)
+                if ($sub_value !== null) {
+                    test_features_inner($exchange, $skipped_properties, $sub_value);
                 }
             }
         }
