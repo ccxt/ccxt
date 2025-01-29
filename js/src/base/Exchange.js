@@ -2313,36 +2313,17 @@ export default class Exchange {
     }
     featuresGenerator() {
         //
-        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
         //     {
-        //         'myItem' : {
+        //         'my' : {
         //             'createOrder' : {...},
-        //             'fetchOrders' : {...},
         //         },
         //         'swap': {
-        //             'linear': 'myItem',
-        //             'inverse': 'myItem',
+        //             'linear': {
+        //                 'extends': my',
+        //             },
         //         },
-        //         'future': {
-        //             'linear': 'myItem',
-        //             'inverse': 'myItem',
-        //         }
-        //     }
-        //
-        //
-        //
-        // this method would regenerate the blank features tree, eg:
-        //
-        //     {
-        //         "spot": {
-        //             "createOrder": undefined,
-        //             "fetchBalance": undefined,
-        //             ...
-        //         },
-        //         "swap": {
-        //             ...
-        //         }
         //     }
         //
         if (this.features === undefined) {
@@ -2412,13 +2393,10 @@ export default class Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const featureBlock = featuresObj[key];
-            // default "symbolRequired" to false to all methods (except `createOrder`)
             if (!this.inArray(key, ['sandbox']) && featureBlock !== undefined) {
-                if (key === 'createOrder') {
-                    featureBlock['symbolRequired'] = true;
-                }
-                else if (!('symbolRequired' in featureBlock)) {
-                    featureBlock['symbolRequired'] = false;
+                // default "symbolRequired" to false to all methods (except `createOrder`)
+                if (!('symbolRequired' in featureBlock)) {
+                    featureBlock['symbolRequired'] = this.inArray(key, ['createOrder', 'createOrders', 'fetchOHLCV']);
                 }
             }
         }

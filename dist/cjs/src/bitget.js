@@ -1572,17 +1572,20 @@ class bitget extends bitget$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 90,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1593,6 +1596,7 @@ class bitget extends bitget$1 {
                         'untilDays': 90,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // variable timespans for recent endpoint, 200 for historical
