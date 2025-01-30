@@ -83,7 +83,9 @@ class FastClient(AiohttpClient):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, new_size)
 
         ws_reader = connection.protocol._payload_parser
-        ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        # direct assignment does not work, as it's read-only, so we have to user setattr
+        # ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        object.__setattr__(ws_reader, 'parse_frame', wrapper(ws_reader.parse_frame))
         ws_reader.queue.feed_data = feed_data
         ws_reader.queue.feed_eof = feed_eof
         self.connection.close = close

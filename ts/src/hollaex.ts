@@ -199,17 +199,20 @@ export default class hollaex extends Exchange {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000, // todo implement
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -218,6 +221,7 @@ export default class hollaex extends Exchange {
                         'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -227,6 +231,7 @@ export default class hollaex extends Exchange {
                         'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: no limit in request

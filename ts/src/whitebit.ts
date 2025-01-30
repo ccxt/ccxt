@@ -311,6 +311,7 @@ export default class whitebit extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -318,6 +319,7 @@ export default class whitebit extends Exchange {
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
@@ -328,6 +330,7 @@ export default class whitebit extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,

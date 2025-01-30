@@ -322,6 +322,7 @@ export default class zonda extends Exchange {
                         'limit': undefined,
                         'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -329,6 +330,7 @@ export default class zonda extends Exchange {
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined, // todo

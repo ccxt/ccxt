@@ -1019,18 +1019,21 @@ class kucoin extends kucoin$1 {
                         'marginMode': true,
                         'limit': undefined,
                         'daysBack': undefined,
-                        'untilDays': 7, // per  implementation comments
+                        'untilDays': 7,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1041,6 +1044,7 @@ class kucoin extends kucoin$1 {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,

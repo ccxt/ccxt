@@ -1039,17 +1039,20 @@ class kucoin(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': None,
                         'untilDays': 7,  # per  implementation comments
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 500,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -1060,6 +1063,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,

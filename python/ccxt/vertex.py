@@ -361,17 +361,20 @@ class vertex(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 100000,  # todo
                         'untilDays': None,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 500,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo, only for trigger
                     'fetchClosedOrders': None,  # todo through fetchOrders

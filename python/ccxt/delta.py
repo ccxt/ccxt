@@ -269,6 +269,7 @@ class delta(Exchange, ImplicitAPI):
                         'limit': 100,  # todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -276,6 +277,7 @@ class delta(Exchange, ImplicitAPI):
                         'limit': 100,  # todo: revise
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -286,6 +288,7 @@ class delta(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 2000,  # todo: recheck

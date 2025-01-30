@@ -205,17 +205,20 @@ class hollaex(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -224,6 +227,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -233,6 +237,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo: no limit in request
