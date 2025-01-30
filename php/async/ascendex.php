@@ -289,7 +289,6 @@ class ascendex extends Exchange {
                     'AVAX' => 'avalanche C chain',
                     'OMNI' => 'Omni',
                     // 'TRC' => 'TRC20',
-                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'ERC20' => 'ERC20',
                     'GO20' => 'GO20',

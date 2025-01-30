@@ -1267,7 +1267,7 @@ class phemex(Exchange, ImplicitAPI):
         return self.to_en(price, market['priceScale'])
 
     def from_en(self, en, scale):
-        if en is None:
+        if en is None or scale is None:
             return None
         precise = Precise(en)
         precise.decimals = self.sum(precise.decimals, scale)
@@ -2172,8 +2172,9 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.parse_swap_balance(response) if (type == 'swap') else self.parse_spot_balance(response)
-        return result
+        if type == 'swap':
+            return self.parse_swap_balance(response)
+        return self.parse_spot_balance(response)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -2795,7 +2796,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
 

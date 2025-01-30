@@ -2101,7 +2101,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 

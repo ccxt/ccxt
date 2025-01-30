@@ -2173,7 +2173,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          *

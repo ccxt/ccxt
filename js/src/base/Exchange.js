@@ -1895,10 +1895,22 @@ export default class Exchange {
                     if (limit > arrayLength) {
                         limit = arrayLength;
                     }
-                    array = ascending ? this.arraySlice(array, 0, limit) : this.arraySlice(array, -limit);
+                    // array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
+                    if (ascending) {
+                        array = this.arraySlice(array, 0, limit);
+                    }
+                    else {
+                        array = this.arraySlice(array, -limit);
+                    }
                 }
                 else {
-                    array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
+                    // array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                    if (ascending) {
+                        array = this.arraySlice(array, -limit);
+                    }
+                    else {
+                        array = this.arraySlice(array, 0, limit);
+                    }
                 }
             }
         }
@@ -2665,7 +2677,9 @@ export default class Exchange {
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
-                this.markets_by_id[value['id']].push(value);
+                const marketsByIdArray = this.markets_by_id[value['id']];
+                marketsByIdArray.push(value);
+                this.markets_by_id[value['id']] = marketsByIdArray;
             }
             else {
                 this.markets_by_id[value['id']] = [value];
@@ -3098,7 +3112,8 @@ export default class Exchange {
         let results = [];
         if (Array.isArray(orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend(this.parseOrder(orders[i], market), params);
+                const parsed = this.parseOrder(orders[i], market); // don't inline this call
+                const order = this.extend(parsed, params);
                 results.push(order);
             }
         }
@@ -3106,7 +3121,9 @@ export default class Exchange {
             const ids = Object.keys(orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend(this.parseOrder(this.extend({ 'id': id }, orders[id]), market), params);
+                const idExtended = this.extend({ 'id': id }, orders[id]);
+                const parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
+                const order = this.extend(parsedOrder, params);
                 results.push(order);
             }
         }
@@ -3506,12 +3523,18 @@ export default class Exchange {
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ts = ms ? ohlcvs[i][0] : this.parseToInt(ohlcvs[i][0] / 1000);
-            result[timestamp].push(ts);
-            result[open].push(ohlcvs[i][1]);
-            result[high].push(ohlcvs[i][2]);
-            result[low].push(ohlcvs[i][3]);
-            result[close].push(ohlcvs[i][4]);
-            result[volume].push(ohlcvs[i][5]);
+            const resultTimestamp = result[timestamp];
+            resultTimestamp.push(ts);
+            const resultOpen = result[open];
+            resultOpen.push(ohlcvs[i][1]);
+            const resultHigh = result[high];
+            resultHigh.push(ohlcvs[i][2]);
+            const resultLow = result[low];
+            resultLow.push(ohlcvs[i][3]);
+            const resultClose = result[close];
+            resultClose.push(ohlcvs[i][4]);
+            const resultVolume = result[volume];
+            resultVolume.push(ohlcvs[i][5]);
         }
         return result;
     }
@@ -3527,9 +3550,11 @@ export default class Exchange {
             const maxRetries = this.safeValue(options, 'webApiRetries', 10);
             let response = undefined;
             let retry = 0;
+            let shouldBreak = false;
             while (retry < maxRetries) {
                 try {
                     response = await this[endpointMethod]({});
+                    shouldBreak = true;
                     break;
                 }
                 catch (e) {
@@ -3537,6 +3562,9 @@ export default class Exchange {
                     if (retry === maxRetries) {
                         throw e;
                     }
+                }
+                if (shouldBreak) {
+                    break; // this is needed because of GO
                 }
             }
             let content = response;
@@ -4120,7 +4148,13 @@ export default class Exchange {
         objects = this.toArray(objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
-            return indexed ? this.indexBy(objects, key) : objects;
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
         }
         const results = [];
         for (let i = 0; i < objects.length; i++) {
@@ -4128,7 +4162,11 @@ export default class Exchange {
                 results.push(objects[i]);
             }
         }
-        return indexed ? this.indexBy(results, key) : results;
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
     }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
@@ -4157,10 +4195,12 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep(retryDelay);
                         }
-                        continue;
+                        // continue; //check this
                     }
                 }
-                throw e;
+                if (i >= retries) {
+                    throw e;
+                }
             }
         }
         return undefined; // this line is never reached, but exists for c# value return requirement
@@ -4338,7 +4378,7 @@ export default class Exchange {
             'precision': undefined,
         });
     }
-    safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = this.safeMarketStructure({
             'symbol': marketId,
             'marketId': marketId,
@@ -4536,9 +4576,8 @@ export default class Exchange {
         return [value2, params];
     }
     handleOption(methodName, optionName, defaultValue = undefined) {
-        // eslint-disable-next-line no-unused-vars
-        const [result, empty] = this.handleOptionAndParams({}, methodName, optionName, defaultValue);
-        return result;
+        const res = this.handleOptionAndParams({}, methodName, optionName, defaultValue);
+        return this.safeValue(res, 0);
     }
     handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
         /**
@@ -4738,6 +4777,18 @@ export default class Exchange {
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
+    }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        throw new NotSupported(this.id + ' createConvertTrade() is not supported yet');
+    }
+    async fetchConvertTrade(id, code = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchConvertTrade() is not supported yet');
+    }
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchConvertTradeHistory() is not supported yet');
+    }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchPositionMode() is not supported yet');
     }
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
@@ -5431,10 +5482,16 @@ export default class Exchange {
         return await this.createOrderWs(symbol, 'market', 'sell', amount, undefined, params);
     }
     costToPrecision(symbol, cost) {
+        if (cost === undefined) {
+            return undefined;
+        }
         const market = this.market(symbol);
         return this.decimalToPrecision(cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
     priceToPrecision(symbol, price) {
+        if (price === undefined) {
+            return undefined;
+        }
         const market = this.market(symbol);
         const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -5443,6 +5500,9 @@ export default class Exchange {
         return result;
     }
     amountToPrecision(symbol, amount) {
+        if (amount === undefined) {
+            return undefined;
+        }
         const market = this.market(symbol);
         const result = this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -5451,6 +5511,9 @@ export default class Exchange {
         return result;
     }
     feeToPrecision(symbol, fee) {
+        if (fee === undefined) {
+            return undefined;
+        }
         const market = this.market(symbol);
         return this.decimalToPrecision(fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
@@ -5714,7 +5777,8 @@ export default class Exchange {
         const results = [];
         if (Array.isArray(tickers)) {
             for (let i = 0; i < tickers.length; i++) {
-                const ticker = this.extend(this.parseTicker(tickers[i]), params);
+                const parsedTicker = this.parseTicker(tickers[i]);
+                const ticker = this.extend(parsedTicker, params);
                 results.push(ticker);
             }
         }
@@ -5723,7 +5787,8 @@ export default class Exchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket(marketId);
-                const ticker = this.extend(this.parseTicker(tickers[marketId], market), params);
+                const parsed = this.parseTicker(tickers[marketId], market);
+                const ticker = this.extend(parsed, params);
                 results.push(ticker);
             }
         }

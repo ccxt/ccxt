@@ -853,16 +853,32 @@ class coinbaseinternational extends Exchange {
             $currency = $this->currency($code);
             $networks = $this->safe_dict($currency, 'networks');
             if ($networks !== null) {
-                return;
+                return false;
             }
             $request = array(
                 'asset' => $currency['id'],
             );
             $rawNetworks = Async\await($this->v1PublicGetAssetsAssetNetworks ($request));
             //
-            //    [
-            //        {
-            //            "asset_id" = $this->parse_networks($rawNetworks);
+            //    array(
+            //        array(
+            //            "asset_id":"1",
+            //            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+            //            "asset_name":"USDC",
+            //            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+            //            "min_withdrawal_amt":"1",
+            //            "max_withdrawal_amt":"100000000",
+            //            "network_confirms":35,
+            //            "processing_time":485,
+            //            "is_default":true,
+            //            "network_name":"ethereum",
+            //            "display_name":"Ethereum"
+            //        ),
+            //        ....
+            //    )
+            //
+            $currency['networks'] = $this->parse_networks($rawNetworks);
+            return true;
         }) ();
     }
 

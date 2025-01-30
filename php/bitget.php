@@ -1955,10 +1955,10 @@ class bitget extends Exchange {
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
-            $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
-            $precisePrice->reduce ();
-            $priceString = (string) $precisePrice;
+            $precise = new Precise ($priceStep);
+            $precise->decimals = max ($precise->decimals, $priceDecimals);
+            $precise->reduce ();
+            $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
             $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);

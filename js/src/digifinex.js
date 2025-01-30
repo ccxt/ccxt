@@ -555,11 +555,12 @@ export default class digifinex extends Exchange {
                 },
             };
             if (code in result) {
-                if (Array.isArray(result[code]['info'])) {
-                    result[code]['info'].push(currency);
+                let resultCodeInfo = result[code]['info'];
+                if (Array.isArray(resultCodeInfo)) {
+                    resultCodeInfo.push(currency);
                 }
                 else {
-                    result[code]['info'] = [result[code]['info'], currency];
+                    resultCodeInfo = [resultCodeInfo, currency];
                 }
                 if (withdraw) {
                     result[code]['withdraw'] = true;
@@ -4231,7 +4232,8 @@ export default class digifinex extends Exchange {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                     depositWithdrawFees[code]['info'] = [];
                 }
-                depositWithdrawFees[code]['info'].push(entry);
+                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
                 const withdrawResult = {

@@ -3087,12 +3087,20 @@ class okx extends Exchange {
             }
             if ($takeProfitPrice !== null) {
                 $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                $request['tpOrdPx'] = ($tpOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $tpOrdPx);
+                $tpOrdPxReq = '-1';
+                if ($tpOrdPx !== null) {
+                    $tpOrdPxReq = $this->price_to_precision($symbol, $tpOrdPx);
+                }
+                $request['tpOrdPx'] = $tpOrdPxReq;
                 $request['tpTriggerPxType'] = $tpTriggerPxType;
             }
             if ($stopLossPrice !== null) {
                 $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossPrice);
-                $request['slOrdPx'] = ($slOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $slOrdPx);
+                $slOrdPxReq = '-1';
+                if ($slOrdPx !== null) {
+                    $slOrdPxReq = $this->price_to_precision($symbol, $slOrdPx);
+                }
+                $request['slOrdPx'] = $slOrdPxReq;
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
@@ -6773,7 +6781,8 @@ class okx extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrrowRateCode = $borrowRateHistories[$code];
+                $borrrowRateCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();

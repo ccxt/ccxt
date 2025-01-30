@@ -2674,7 +2674,8 @@ class lbank(Exchange, ImplicitAPI):
                         if resultValue is None:
                             result[code] = self.deposit_withdraw_fee([fee])
                         else:
-                            result[code]['info'].append(fee)
+                            resultCodeInfo = result[code]['info']
+                            resultCodeInfo.append(fee)
                         chain = self.safe_string(fee, 'chain')
                         networkCode = self.safe_string(self.options['inverse-networks'], chain, chain)
                         if networkCode is not None:

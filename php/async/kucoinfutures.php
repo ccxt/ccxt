@@ -2226,7 +2226,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user

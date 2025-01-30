@@ -1851,7 +1851,7 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
-    public function fetch_deposit_address(?string $code = null, $params = array ()): array {
+    public function fetch_deposit_address(?string $code, $params = array ()): array {
         /**
          * fetch the Polygon address of the wallet
          *

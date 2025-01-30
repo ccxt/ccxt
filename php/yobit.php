@@ -555,7 +555,7 @@ class yobit extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
         /**
          *
          * @see https://yobit.net/en/api

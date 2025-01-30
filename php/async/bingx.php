@@ -821,7 +821,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->spotV1PublicGetCommonSymbols ($params));
             //
@@ -3035,7 +3035,11 @@ class bingx extends Exchange {
                 $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
-            $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
+            $amountReq = $amount;
+            if (!$market['inverse']) {
+                $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            }
+            $request['quantity'] = $amountReq; // precision not available for inverse contracts
         }
         $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);

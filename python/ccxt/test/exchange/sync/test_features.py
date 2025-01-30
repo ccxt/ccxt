@@ -37,6 +37,7 @@ def test_features(exchange, skipped_properties):
                 # sometimes it might not be available for exchange, eg. future>inverse)
                 if sub_value is not None:
                     test_features_inner(exchange, skipped_properties, sub_value)
+    return True
 
 
 def test_features_inner(exchange, skipped_properties, feature_obj):

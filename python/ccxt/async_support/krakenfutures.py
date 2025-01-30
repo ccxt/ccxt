@@ -1491,13 +1491,13 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.parse_orders(canceledAndRejected, market, since, limit)
 
     def parse_order_type(self, orderType):
-        map: dict = {
+        typesMap: dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
             'ioc': 'market',
         }
-        return self.safe_string(map, orderType, orderType)
+        return self.safe_string(typesMap, orderType, orderType)
 
     def verify_order_action_success(self, status, method, omit=[]):
         errors: dict = {

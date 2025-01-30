@@ -132,7 +132,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address that made trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     amountToPrecision(symbol: any, amount: any): string;
     priceToPrecision(symbol: string, price: any): string;
     hashMessage(message: any): string;

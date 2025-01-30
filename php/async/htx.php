@@ -3369,7 +3369,10 @@ class htx extends Exchange {
                     $type = 'margin';
                 }
             }
-            $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+            $marketId = null;
+            if ($symbol !== null) {
+                $marketId = $this->market_id($symbol);
+            }
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
                 $info = $this->safe_value($account, 'info');

@@ -1294,9 +1294,9 @@ class coinmetro extends coinmetro$1 {
         const market = this.market(symbol);
         let request = {};
         request['orderType'] = type;
-        let precisedAmount = undefined;
+        let formattedAmount = undefined;
         if (amount !== undefined) {
-            precisedAmount = this.amountToPrecision(symbol, amount);
+            formattedAmount = this.amountToPrecision(symbol, amount);
         }
         let cost = this.safeValue(params, 'cost');
         params = this.omit(params, 'cost');
@@ -1305,7 +1305,7 @@ class coinmetro extends coinmetro$1 {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order');
             }
             else if ((price !== undefined) && (amount !== undefined)) {
-                const costString = Precise["default"].stringMul(this.numberToString(price), this.numberToString(precisedAmount));
+                const costString = Precise["default"].stringMul(this.numberToString(price), this.numberToString(formattedAmount));
                 cost = this.parseToNumeric(costString);
             }
         }
@@ -1314,10 +1314,10 @@ class coinmetro extends coinmetro$1 {
             precisedCost = this.costToPrecision(symbol, cost);
         }
         if (side === 'sell') {
-            request = this.handleCreateOrderSide(market['baseId'], market['quoteId'], precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide(market['baseId'], market['quoteId'], formattedAmount, precisedCost, request);
         }
         else if (side === 'buy') {
-            request = this.handleCreateOrderSide(market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide(market['quoteId'], market['baseId'], precisedCost, formattedAmount, request);
         }
         const timeInForce = this.safeValue(params, 'timeInForce');
         if (timeInForce !== undefined) {

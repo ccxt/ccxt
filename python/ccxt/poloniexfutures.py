@@ -1449,7 +1449,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 

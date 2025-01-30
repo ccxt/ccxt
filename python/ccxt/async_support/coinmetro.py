@@ -1265,24 +1265,24 @@ class coinmetro(Exchange, ImplicitAPI):
         request: dict = {
         }
         request['orderType'] = type
-        precisedAmount = None
+        formattedAmount = None
         if amount is not None:
-            precisedAmount = self.amount_to_precision(symbol, amount)
+            formattedAmount = self.amount_to_precision(symbol, amount)
         cost = self.safe_value(params, 'cost')
         params = self.omit(params, 'cost')
         if type == 'limit':
             if (price is None) and (cost is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order')
             elif (price is not None) and (amount is not None):
-                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(precisedAmount))
+                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(formattedAmount))
                 cost = self.parse_to_numeric(costString)
         precisedCost = None
         if cost is not None:
             precisedCost = self.cost_to_precision(symbol, cost)
         if side == 'sell':
-            request = self.handle_create_order_side(market['baseId'], market['quoteId'], precisedAmount, precisedCost, request)
+            request = self.handle_create_order_side(market['baseId'], market['quoteId'], formattedAmount, precisedCost, request)
         elif side == 'buy':
-            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, precisedAmount, request)
+            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, formattedAmount, request)
         timeInForce = self.safe_value(params, 'timeInForce')
         if timeInForce is not None:
             params = self.omit(params, 'timeInForce')

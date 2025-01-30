@@ -766,6 +766,7 @@ class wavesexchange extends wavesexchange$1 {
         if (hexSecretKeyBytes.length !== 64) {
             throw new errors.AuthenticationError(this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

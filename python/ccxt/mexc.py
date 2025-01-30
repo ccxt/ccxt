@@ -4632,7 +4632,7 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
             if rawNetwork is not None:
                 params = self.omit(params, 'network')
-                request['coin'] += '-' + rawNetwork
+                request['coin'] = request['coin'] + '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:

@@ -1841,7 +1841,7 @@ class poloniex extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
-            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             $params = $this->omit($params, 'network');
         } else {
             if ($currency['id'] === 'USDT') {
@@ -1892,7 +1892,7 @@ class poloniex extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
-            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             $params = $this->omit($params, 'network');
         } else {
             if ($currency['id'] === 'USDT') {
@@ -2005,7 +2005,7 @@ class poloniex extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
-            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWalletsWithdraw ($this->extend($request, $params));

@@ -818,7 +818,7 @@ class coinex(Exchange, ImplicitAPI):
         swapMarkets = promises[1]
         return self.array_concat(spotMarkets, swapMarkets)
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params) -> List[Market]:
         response = await self.v2PublicGetSpotMarket(params)
         #
         #     {

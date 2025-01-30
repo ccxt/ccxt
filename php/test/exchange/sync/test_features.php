@@ -37,6 +37,7 @@ function test_features($exchange, $skipped_properties) {
             }
         }
     }
+    return true;
 }
 
 

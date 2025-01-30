@@ -2397,14 +2397,15 @@ class vertex(Exchange, ImplicitAPI):
             'digests': ids,
             'nonce': nonce,
         }
+        productIds = cancels['productIds']
         marketIdNum = self.parse_to_numeric(marketId)
         for i in range(0, len(ids)):
-            cancels['productIds'].append(marketIdNum)
+            productIds.append(marketIdNum)
         request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': self.number_to_string(cancels['nonce']),
                 },

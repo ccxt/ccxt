@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -560,7 +560,7 @@ class yobit(Exchange, ImplicitAPI):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
 
         https://yobit.net/en/api

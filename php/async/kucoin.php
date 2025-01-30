@@ -1333,11 +1333,13 @@ class kucoin extends Exchange {
              *
              * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
              *
+             * @return {any} ignore
              */
             if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
                 $result = Async\await($this->privateGetHfAccountsOpened ());
                 $this->options['hf'] = $this->safe_bool($result, 'data');
             }
+            return true;
         }) ();
     }
 
@@ -4125,7 +4127,10 @@ class kucoin extends Exchange {
                     }
                 }
             }
-            $returnType = $isolated ? $result : $this->safe_balance($result);
+            $returnType = $result;
+            if (!$isolated) {
+                $returnType = $this->safe_balance($result);
+            }
             return $returnType;
         }) ();
     }
@@ -4890,7 +4895,8 @@ class kucoin extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrowRateHistoriesCode = $borrowRateHistories[$code];
+                $borrowRateHistoriesCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();

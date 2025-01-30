@@ -319,7 +319,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
