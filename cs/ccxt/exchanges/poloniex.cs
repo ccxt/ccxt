@@ -1938,7 +1938,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         } else
         {
@@ -1996,7 +1996,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         } else
         {
@@ -2122,7 +2122,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWalletsWithdraw(this.extend(request, parameters));

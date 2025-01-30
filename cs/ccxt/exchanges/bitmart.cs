@@ -878,7 +878,7 @@ public partial class bitmart : Exchange
             object minSellCost = this.safeString(market, "min_sell_amount");
             object minCost = Precise.stringMax(minBuyCost, minSellCost);
             object baseMinSize = this.safeNumber(market, "base_min_size");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
                 { "symbol", symbol },
@@ -927,7 +927,7 @@ public partial class bitmart : Exchange
                 } },
                 { "created", null },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -997,7 +997,7 @@ public partial class bitmart : Exchange
             {
                 expiry = null;
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", null },
                 { "symbol", symbol },
@@ -1046,7 +1046,7 @@ public partial class bitmart : Exchange
                 } },
                 { "created", this.safeInteger(market, "open_timestamp") },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -3829,7 +3829,7 @@ public partial class bitmart : Exchange
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
             {
-                ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], add("-", network)); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                ((IDictionary<string,object>)request)["currency"] = add(add(getValue(request, "currency"), "-"), network); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 ((IDictionary<string,object>)currency)["code"] = getValue(request, "currency"); // update currency code to filter
                 parameters = this.omit(parameters, "network");
             }

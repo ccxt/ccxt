@@ -777,7 +777,7 @@ public partial class deribit : Exchange
             { "info", account },
             { "id", this.safeString(account, "id") },
             { "type", this.safeString(account, "type") },
-            { "code", this.safeCurrencyCode(null, currency) },
+            { "code", null },
         };
     }
 

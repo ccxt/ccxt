@@ -2721,7 +2721,7 @@ public partial class exmo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async virtual Task<object> fetchDeposit(object id = null, object code = null, object parameters = null)
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

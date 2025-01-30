@@ -2593,16 +2593,17 @@ public partial class vertex : Exchange
             { "digests", ids },
             { "nonce", nonce },
         };
+        object productIds = getValue(cancels, "productIds");
         object marketIdNum = this.parseToNumeric(marketId);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((IList<object>)getValue(cancels, "productIds")).Add(marketIdNum);
+            ((IList<object>)productIds).Add(marketIdNum);
         }
         object request = new Dictionary<string, object>() {
             { "cancel_orders", new Dictionary<string, object>() {
                 { "tx", new Dictionary<string, object>() {
                     { "sender", getValue(cancels, "sender") },
-                    { "productIds", getValue(cancels, "productIds") },
+                    { "productIds", productIds },
                     { "digests", getValue(cancels, "digests") },
                     { "nonce", this.numberToString(getValue(cancels, "nonce")) },
                 } },

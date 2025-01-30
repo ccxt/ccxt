@@ -1091,17 +1091,19 @@ public partial class paradex : Exchange
         object systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
-            return new Dictionary<string, object>() {
+            object l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
                 { "chainId", getValue(systemConfig, "l1_chain_id") },
                 { "version", "1" },
             };
+            return l1D;
         }
-        return new Dictionary<string, object>() {
+        object domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
             { "chainId", getValue(systemConfig, "starknet_chain_id") },
             { "version", 1 },
         };
+        return domain;
     }
 
     public async virtual Task<object> retrieveAccount()

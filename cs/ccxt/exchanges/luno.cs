@@ -565,7 +565,7 @@ public partial class luno : Exchange
         return this.parseOrder(response);
     }
 
-    public async virtual Task<object> fetchOrdersByState(object state = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersByState(object state, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -1202,7 +1202,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] wallet address that made trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<object> fetchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;

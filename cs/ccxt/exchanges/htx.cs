@@ -3359,7 +3359,11 @@ public partial class htx : Exchange
                 type = "margin";
             }
         }
-        object marketId = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.marketId(symbol);
+        object marketId = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            marketId = this.marketId(symbol);
+        }
         for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);

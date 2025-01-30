@@ -4809,7 +4809,7 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(rawNetwork, null)))
             {
                 parameters = this.omit(parameters, "network");
-                ((IDictionary<string,object>)request)["coin"] = add(((IDictionary<string,object>)request)["coin"], add("-", rawNetwork));
+                ((IDictionary<string,object>)request)["coin"] = add(add(getValue(request, "coin"), "-"), rawNetwork);
             }
         }
         if (isTrue(!isEqual(since, null)))
@@ -5555,7 +5555,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.contractPrivateGetPositionPositionMode(parameters);

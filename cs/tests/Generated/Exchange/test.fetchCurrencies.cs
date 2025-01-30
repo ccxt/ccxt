@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchCurrencies(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchCurrencies(Exchange exchange, object skippedProperties)
     {
         object method = "fetchCurrencies";
         // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
@@ -22,6 +22,7 @@ public partial class testMainClass : BaseTest
                 testCurrency(exchange, skippedProperties, method, getValue(values, i));
             }
         }
+        return true;
     }
 
 }

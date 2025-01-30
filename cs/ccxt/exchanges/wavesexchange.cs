@@ -593,7 +593,7 @@ public partial class wavesexchange : Exchange
         return result;
     }
 
-    public virtual void checkRequiredKeys()
+    public virtual object checkRequiredKeys()
     {
         if (isTrue(isEqual(this.apiKey, null)))
         {
@@ -629,6 +629,7 @@ public partial class wavesexchange : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " secret must be a base58 encoded private key")) ;
         }
+        return true;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

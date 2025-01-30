@@ -1485,6 +1485,10 @@ public partial class bybit : Exchange
 
     public virtual object getPrice(object symbol, object price)
     {
+        if (isTrue(isEqual(price, null)))
+        {
+            return price;
+        }
         object market = this.market(symbol);
         object emptyPrecisionPrice = (isEqual(getValue(getValue(market, "precision"), "price"), null));
         if (!isTrue(emptyPrecisionPrice))
@@ -9436,7 +9440,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9471,7 +9475,7 @@ public partial class bybit : Exchange
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9543,7 +9547,7 @@ public partial class bybit : Exchange
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

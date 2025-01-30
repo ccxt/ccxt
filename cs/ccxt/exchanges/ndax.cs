@@ -671,7 +671,8 @@ public partial class ndax : Exchange
             object bidask = this.parseBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
-            ((IList<object>)getValue(result, side)).Add(bidask);
+            object resultSide = getValue(result, side);
+            ((IList<object>)resultSide).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);

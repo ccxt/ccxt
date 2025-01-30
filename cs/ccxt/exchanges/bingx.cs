@@ -2985,7 +2985,12 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
+            object amountReq = amount;
+            if (!isTrue(getValue(market, "inverse")))
+            {
+                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            }
+            ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
@@ -5733,7 +5738,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV1PrivateGetPositionSideDual(parameters);

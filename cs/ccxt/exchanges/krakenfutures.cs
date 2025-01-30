@@ -1604,13 +1604,13 @@ public partial class krakenfutures : Exchange
 
     public virtual object parseOrderType(object orderType)
     {
-        object map = new Dictionary<string, object>() {
+        object typesMap = new Dictionary<string, object>() {
             { "lmt", "limit" },
             { "mkt", "market" },
             { "post", "limit" },
             { "ioc", "market" },
         };
-        return this.safeString(map, orderType, orderType);
+        return this.safeString(typesMap, orderType, orderType);
     }
 
     public virtual void verifyOrderActionSuccess(object status, object method, object omit = null)

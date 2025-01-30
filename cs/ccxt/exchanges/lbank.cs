@@ -2939,7 +2939,8 @@ public partial class lbank : Exchange
                             ((IDictionary<string,object>)result)[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            ((IList<object>)getValue(getValue(result, code), "info")).Add(fee);
+                            object resultCodeInfo = getValue(getValue(result, code), "info");
+                            ((IList<object>)resultCodeInfo).Add(fee);
                         }
                         object chain = this.safeString(fee, "chain");
                         object networkCode = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);

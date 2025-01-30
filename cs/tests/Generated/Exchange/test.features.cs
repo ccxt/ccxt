@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFeatures(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFeatures(Exchange exchange, object skippedProperties)
     {
         object marketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
@@ -42,6 +42,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
+        return true;
     }
     public static void testFeaturesInner(Exchange exchange, object skippedProperties, object featureObj)
     {

@@ -1284,7 +1284,7 @@ public partial class phemex : Exchange
 
     public virtual object fromEn(object en, object scale)
     {
-        if (isTrue(isEqual(en, null)))
+        if (isTrue(isTrue(isEqual(en, null)) || isTrue(isEqual(scale, null))))
         {
             return null;
         }
@@ -2325,8 +2325,11 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = ((bool) isTrue((isEqual(type, "swap")))) ? this.parseSwapBalance(response) : this.parseSpotBalance(response);
-        return result;
+        if (isTrue(isEqual(type, "swap")))
+        {
+            return this.parseSwapBalance(response);
+        }
+        return this.parseSpotBalance(response);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -3075,7 +3078,7 @@ public partial class phemex : Exchange
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type = null, object side = null, object amount = null, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

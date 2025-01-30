@@ -1737,7 +1737,7 @@ public partial class ellipx : Exchange
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    public async override Task<object> fetchTradingFee(object symbol = null, object parameters = null)
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1973,10 +1973,11 @@ public partial class ellipx : Exchange
         {
             return null;
         }
-        var preciseAmount = new Precise(v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce();
-        return ((object)preciseAmount).ToString();
+        var precise = new Precise(v);
+        precise.decimals = e;
+        precise.reduce();
+        object amountString = ((object)precise).ToString();
+        return amountString;
     }
 
     public virtual object toAmount(object amount, object precision)

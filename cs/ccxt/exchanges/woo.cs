@@ -1223,6 +1223,7 @@ public partial class woo : Exchange
                 { "algoType", "POSITIONAL_TP_SL" },
                 { "childOrders", new List<object>() {} },
             };
+            object childOrders = getValue(outterOrder, "childOrders");
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(!isEqual(stopLoss, null)))
             {
@@ -1234,7 +1235,7 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)getValue(outterOrder, "childOrders")).Add(stopLossOrder);
+                ((IList<object>)childOrders).Add(stopLossOrder);
             }
             if (isTrue(!isEqual(takeProfit, null)))
             {
@@ -1246,7 +1247,7 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)getValue(outterOrder, "childOrders")).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
             ((IDictionary<string,object>)request)["childOrders"] = new List<object>() {outterOrder};
         }
@@ -2371,9 +2372,9 @@ public partial class woo : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, parameters);
-        var currency = ((IList<object>) currencyrowsVariable)[0];
-        var rows = ((IList<object>) currencyrowsVariable)[1];
+        object currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        object currency = this.safeValue(currencyRows, 0);
+        object rows = this.safeList(currencyRows, 1);
         return this.parseLedger(rows, currency, since, limit, parameters);
     }
 
@@ -2493,9 +2494,9 @@ public partial class woo : Exchange
         object request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
         };
-        var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        var currency = ((IList<object>) currencyrowsVariable)[0];
-        var rows = ((IList<object>) currencyrowsVariable)[1];
+        object currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        object currency = this.safeValue(currencyRows, 0);
+        object rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -3472,7 +3473,7 @@ public partial class woo : Exchange
         return await this.v1PrivatePostClientIsolatedMargin(this.extend(request, parameters));
     }
 
-    public async override Task<object> fetchPosition(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3729,7 +3730,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3761,7 +3762,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3811,7 +3812,7 @@ public partial class woo : Exchange
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

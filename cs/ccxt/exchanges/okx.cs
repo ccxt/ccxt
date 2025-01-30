@@ -3195,13 +3195,23 @@ public partial class okx : Exchange
             if (isTrue(!isEqual(takeProfitPrice, null)))
             {
                 ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitPrice);
-                ((IDictionary<string,object>)request)["tpOrdPx"] = ((bool) isTrue((isEqual(tpOrdPx, null)))) ? "-1" : this.priceToPrecision(symbol, tpOrdPx);
+                object tpOrdPxReq = "-1";
+                if (isTrue(!isEqual(tpOrdPx, null)))
+                {
+                    tpOrdPxReq = this.priceToPrecision(symbol, tpOrdPx);
+                }
+                ((IDictionary<string,object>)request)["tpOrdPx"] = tpOrdPxReq;
                 ((IDictionary<string,object>)request)["tpTriggerPxType"] = tpTriggerPxType;
             }
             if (isTrue(!isEqual(stopLossPrice, null)))
             {
                 ((IDictionary<string,object>)request)["slTriggerPx"] = this.priceToPrecision(symbol, stopLossPrice);
-                ((IDictionary<string,object>)request)["slOrdPx"] = ((bool) isTrue((isEqual(slOrdPx, null)))) ? "-1" : this.priceToPrecision(symbol, slOrdPx);
+                object slOrdPxReq = "-1";
+                if (isTrue(!isEqual(slOrdPx, null)))
+                {
+                    slOrdPxReq = this.priceToPrecision(symbol, slOrdPx);
+                }
+                ((IDictionary<string,object>)request)["slOrdPx"] = slOrdPxReq;
                 ((IDictionary<string,object>)request)["slTriggerPxType"] = slTriggerPxType;
             }
         }
@@ -6847,7 +6857,7 @@ public partial class okx : Exchange
      * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.fetchAccounts();
@@ -7090,7 +7100,8 @@ public partial class okx : Exchange
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
                 object borrowRateStructure = this.parseBorrowRate(item);
-                ((IList<object>)getValue(borrowRateHistories, code)).Add(borrowRateStructure);
+                object borrrowRateCode = getValue(borrowRateHistories, code);
+                ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }
         }
         object keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
@@ -8561,7 +8572,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -8615,7 +8626,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -8673,7 +8684,7 @@ public partial class okx : Exchange
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

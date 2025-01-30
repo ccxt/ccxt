@@ -397,7 +397,7 @@ public partial class ellipx
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<TradingFeeInterface> FetchTradingFee(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);

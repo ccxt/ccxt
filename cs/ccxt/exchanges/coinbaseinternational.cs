@@ -829,14 +829,14 @@ public partial class coinbaseinternational : Exchange
         return getValue(networksArray, 0);
     }
 
-    public async virtual Task loadCurrencyNetworks(object code, object parameters = null)
+    public async virtual Task<object> loadCurrencyNetworks(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.currency(code);
         object networks = this.safeDict(currency, "networks");
         if (isTrue(!isEqual(networks, null)))
         {
-            return;
+            return false;
         }
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -861,6 +861,7 @@ public partial class coinbaseinternational : Exchange
         //    ]
         //
         ((IDictionary<string,object>)currency)["networks"] = this.parseNetworks(rawNetworks);
+        return true;
     }
 
     public virtual object parseNetworks(object networks, object parameters = null)
