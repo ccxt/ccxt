@@ -429,8 +429,8 @@ func  (this *huobijp) FetchTradingLimits(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes131166 := (<-this.LoadMarkets())
-            PanicOnError(retRes131166)
+            retRes857916 := (<-this.LoadMarkets())
+            PanicOnError(retRes857916)
             if IsTrue(IsEqual(symbols, nil)) {
                 symbols = this.Symbols
             }
@@ -749,8 +749,8 @@ func  (this *huobijp) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes532261 := (<-this.LoadMarkets())
-            PanicOnError(retRes532261)
+            retRes278730 := (<-this.LoadMarkets())
+            PanicOnError(retRes278730)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -813,8 +813,8 @@ func  (this *huobijp) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes603032 := (<-this.LoadMarkets())
-            PanicOnError(retRes603032)
+            retRes511985 := (<-this.LoadMarkets())
+            PanicOnError(retRes511985)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -871,8 +871,8 @@ func  (this *huobijp) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes107707 := (<-this.LoadMarkets())
-            PanicOnError(retRes107707)
+            retRes288755 := (<-this.LoadMarkets())
+            PanicOnError(retRes288755)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.MarketGetTickers(params))
@@ -1005,8 +1005,8 @@ func  (this *huobijp) FetchOrderTrades(id interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes560647 := (<-this.LoadMarkets())
-            PanicOnError(retRes560647)
+            retRes328571 := (<-this.LoadMarkets())
+            PanicOnError(retRes328571)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1044,8 +1044,8 @@ func  (this *huobijp) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes136068 := (<-this.LoadMarkets())
-            PanicOnError(retRes136068)
+            retRes740095 := (<-this.LoadMarkets())
+            PanicOnError(retRes740095)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1090,8 +1090,8 @@ func  (this *huobijp) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes987095 := (<-this.LoadMarkets())
-            PanicOnError(retRes987095)
+            retRes742736 := (<-this.LoadMarkets())
+            PanicOnError(retRes742736)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1185,8 +1185,8 @@ func  (this *huobijp) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes65724 := (<-this.LoadMarkets())
-            PanicOnError(retRes65724)
+            retRes56344 := (<-this.LoadMarkets())
+            PanicOnError(retRes56344)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1233,8 +1233,8 @@ func  (this *huobijp) FetchAccounts(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes638236 := (<-this.LoadMarkets())
-            PanicOnError(retRes638236)
+            retRes850523 := (<-this.LoadMarkets())
+            PanicOnError(retRes850523)
         
             response:= (<-this.PrivateGetAccountAccounts(params))
             PanicOnError(response)
@@ -1393,11 +1393,11 @@ func  (this *huobijp) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes968378 := (<-this.LoadMarkets())
-            PanicOnError(retRes968378)
+            retRes774329 := (<-this.LoadMarkets())
+            PanicOnError(retRes774329)
         
-            retRes352391 := (<-this.LoadAccounts())
-            PanicOnError(retRes352391)
+            retRes35601 := (<-this.LoadAccounts())
+            PanicOnError(retRes35601)
             var method interface{} = GetValue(this.Options, "fetchBalanceMethod")
             var request interface{} = map[string]interface{} {
                 "id": GetValue(GetValue(this.Accounts, 0), "id"),
@@ -1426,8 +1426,8 @@ func  (this *huobijp) FetchOrdersByStates(states interface{}, optionalArgs ...in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes548641 := (<-this.LoadMarkets())
-            PanicOnError(retRes548641)
+            retRes284586 := (<-this.LoadMarkets())
+            PanicOnError(retRes284586)
             var request interface{} = map[string]interface{} {
                 "states": states,
             }
@@ -1483,8 +1483,8 @@ func  (this *huobijp) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes544988 := (<-this.LoadMarkets())
-            PanicOnError(retRes544988)
+            retRes136472 := (<-this.LoadMarkets())
+            PanicOnError(retRes136472)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1523,9 +1523,9 @@ func  (this *huobijp) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes531037 :=  (<-this.FetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
-                PanicOnError(retRes531037)
-                ch <- retRes531037
+                retRes609778 :=  (<-this.FetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+                PanicOnError(retRes609778)
+                ch <- retRes609778
                 return nil
         
             }()
@@ -1556,9 +1556,9 @@ func  (this *huobijp) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             _ = params
             var method interface{} = this.SafeString(this.Options, "fetchOpenOrdersMethod", "fetch_open_orders_v1")
         
-                retRes16331 :=  (<-this.callDynamically(method, symbol, since, limit, params))
-                PanicOnError(retRes16331)
-                ch <- retRes16331
+                retRes839398 :=  (<-this.callDynamically(method, symbol, since, limit, params))
+                PanicOnError(retRes839398)
+                ch <- retRes839398
                 return nil
         
             }()
@@ -1581,9 +1581,9 @@ func  (this *huobijp) FetchOpenOrdersV1(optionalArgs ...interface{}) <- chan int
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrdersV1() requires a symbol argument")))
             }
         
-                retRes136568 :=  (<-this.FetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, params))
-                PanicOnError(retRes136568)
-                ch <- retRes136568
+                retRes148231 :=  (<-this.FetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, params))
+                PanicOnError(retRes148231)
+                ch <- retRes148231
                 return nil
         
             }()
@@ -1613,9 +1613,9 @@ func  (this *huobijp) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes887562 :=  (<-this.FetchOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, params))
-                PanicOnError(retRes887562)
-                ch <- retRes887562
+                retRes832485 :=  (<-this.FetchOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, params))
+                PanicOnError(retRes832485)
+                ch <- retRes832485
                 return nil
         
             }()
@@ -1635,8 +1635,8 @@ func  (this *huobijp) FetchOpenOrdersV2(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes37810 := (<-this.LoadMarkets())
-            PanicOnError(retRes37810)
+            retRes198105 := (<-this.LoadMarkets())
+            PanicOnError(retRes198105)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1647,8 +1647,8 @@ func  (this *huobijp) FetchOpenOrdersV2(optionalArgs ...interface{}) <- chan int
             if IsTrue(IsEqual(accountId, nil)) {
                 // pick the first account
         
-                retRes152506 := (<-this.LoadAccounts())
-                PanicOnError(retRes152506)
+                retRes715172 := (<-this.LoadAccounts())
+                PanicOnError(retRes715172)
                 for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
                     var account interface{} = GetValue(this.Accounts, i)
                     if IsTrue(IsEqual(GetValue(account, "type"), "spot")) {
@@ -1808,17 +1808,17 @@ func  (this *huobijp) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes917054 := (<-this.LoadMarkets())
-            PanicOnError(retRes917054)
+            retRes984646 := (<-this.LoadMarkets())
+            PanicOnError(retRes984646)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
         
-                retRes749093 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-                PanicOnError(retRes749093)
-                ch <- retRes749093
+                retRes359120 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+                PanicOnError(retRes359120)
+                ch <- retRes359120
                 return nil
         
             }()
@@ -1846,11 +1846,11 @@ func  (this *huobijp) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes797807 := (<-this.LoadMarkets())
-            PanicOnError(retRes797807)
+            retRes61159 := (<-this.LoadMarkets())
+            PanicOnError(retRes61159)
         
-            retRes588938 := (<-this.LoadAccounts())
-            PanicOnError(retRes588938)
+            retRes996766 := (<-this.LoadAccounts())
+            PanicOnError(retRes996766)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "account-id": GetValue(GetValue(this.Accounts, 0), "id"),
@@ -1989,8 +1989,8 @@ func  (this *huobijp) CancelOrders(ids interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes658009 := (<-this.LoadMarkets())
-            PanicOnError(retRes658009)
+            retRes373913 := (<-this.LoadMarkets())
+            PanicOnError(retRes373913)
             var clientOrderIds interface{} = this.SafeValue2(params, "clientOrderIds", "client-order-ids")
             params = this.Omit(params, []interface{}{"clientOrderIds", "client-order-ids"})
             var request interface{} = map[string]interface{} {}
@@ -2116,8 +2116,8 @@ func  (this *huobijp) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes828735 := (<-this.LoadMarkets())
-            PanicOnError(retRes828735)
+            retRes308162 := (<-this.LoadMarkets())
+            PanicOnError(retRes308162)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -2204,8 +2204,8 @@ func  (this *huobijp) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
                 limit = 100
             }
         
-            retRes501972 := (<-this.LoadMarkets())
-            PanicOnError(retRes501972)
+            retRes817604 := (<-this.LoadMarkets())
+            PanicOnError(retRes817604)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2258,8 +2258,8 @@ func  (this *huobijp) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
                 limit = 100
             }
         
-            retRes287823 := (<-this.LoadMarkets())
-            PanicOnError(retRes287823)
+            retRes876178 := (<-this.LoadMarkets())
+            PanicOnError(retRes876178)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2411,8 +2411,8 @@ func  (this *huobijp) Withdraw(code interface{}, amount interface{}, address int
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes209059 := (<-this.LoadMarkets())
-            PanicOnError(retRes209059)
+            retRes152240 := (<-this.LoadMarkets())
+            PanicOnError(retRes152240)
             this.CheckAddress(address)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
