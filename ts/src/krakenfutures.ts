@@ -1554,13 +1554,13 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const map: Dict = {
+        const typesMap: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
             'ioc': 'market',
         };
-        return this.safeString (map, orderType, orderType);
+        return this.safeString (typesMap, orderType, orderType);
     }
 
     verifyOrderActionSuccess (status, method, omit = []) {

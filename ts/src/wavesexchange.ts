@@ -772,6 +772,7 @@ export default class wavesexchange extends Exchange {
         if (hexSecretKeyBytes.length !== 64) {
             throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

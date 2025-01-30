@@ -2260,10 +2260,8 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, this.extend (req, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
     }
 
     /**
@@ -2282,10 +2280,8 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, this.extend (req, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
     }
 
     /**
@@ -4866,7 +4862,7 @@ export default class mexc extends Exchange {
             const rawNetwork = this.safeString (params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit (params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {

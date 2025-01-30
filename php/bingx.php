@@ -2742,10 +2742,8 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        $req = array(
-            'quoteOrderQty' => $cost,
-        );
-        return $this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params));
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -2756,10 +2754,8 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        $req = array(
-            'quoteOrderQty' => $cost,
-        );
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -2770,10 +2766,8 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        $req = array(
-            'quoteOrderQty' => $cost,
-        );
-        return $this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params));
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

@@ -1539,10 +1539,8 @@ export default class kraken extends Exchange {
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
         // only buy orders are supported by the endpoint
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', side, 1, undefined, this.extend (req, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
     /**

@@ -1295,11 +1295,9 @@ public partial class whitebit : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         // only buy side is supported
-        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+        return await this.createOrder(symbol, "market", side, 0, null, parameters);
     }
 
     /**

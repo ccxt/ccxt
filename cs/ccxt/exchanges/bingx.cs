@@ -2690,10 +2690,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
     /**
@@ -2708,10 +2706,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
     /**
@@ -2726,10 +2722,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
