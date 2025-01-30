@@ -356,17 +356,20 @@ export default class vertex extends Exchange {
                         'limit': 500,
                         'daysBack': 100000, // todo
                         'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined, // todo, only for trigger
                     'fetchClosedOrders': undefined, // todo through fetchOrders
