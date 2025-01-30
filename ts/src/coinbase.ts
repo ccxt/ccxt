@@ -1533,11 +1533,12 @@ export default class coinbase extends Exchange {
 
     market (symbol: string): MarketInterface {
         // as they are aliases, we need to return the original market
-        const originalMarketId = symbol.replace ('/', '-');
-        if (originalMarketId in this.options['aliasCbMarketIds']) {
-            symbol = this.options['aliasCbMarketIds'][originalMarketId];
+        const originalInput = symbol.replace ('/', '-');
+        if (originalInput in this.options['aliasCbMarketIds']) {
+            const newInput = this.options['aliasCbMarketIds'][originalInput];
+            return super.market (newInput);
         }
-        return super.market (symbol);
+        return super.market (originalInput);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
