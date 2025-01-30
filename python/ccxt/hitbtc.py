@@ -335,12 +335,14 @@ class hitbtc(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': False,
                         'marketType': True,
                     },
                     'fetchOrder': {
                         'marginMode': True,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                         'marketType': True,
                     },
                     'fetchOpenOrders': {
@@ -348,6 +350,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                         'marketType': True,
                     },
                     'fetchOrders': None,
@@ -359,6 +362,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                         'marketType': True,
                     },
                     'fetchOHLCV': {

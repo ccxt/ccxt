@@ -411,17 +411,20 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 7,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 1000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -432,6 +435,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'untilDays': None,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 500,

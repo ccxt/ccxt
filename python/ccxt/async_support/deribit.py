@@ -327,17 +327,20 @@ class deribit(Exchange, ImplicitAPI):
                         'limit': 100,  # todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -348,6 +351,7 @@ class deribit(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo: recheck

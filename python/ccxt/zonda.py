@@ -334,6 +334,7 @@ class zonda(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -341,6 +342,7 @@ class zonda(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo
