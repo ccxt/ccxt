@@ -296,17 +296,20 @@ export default class ndax extends Exchange {
                         'limit': 100, // todo
                         'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -315,6 +318,7 @@ export default class ndax extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
