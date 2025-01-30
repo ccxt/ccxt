@@ -280,17 +280,20 @@ class huobijp extends huobijp$1 {
                         'limit': 100,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -299,6 +302,7 @@ class huobijp extends huobijp$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -308,6 +312,7 @@ class huobijp extends huobijp$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 2000,

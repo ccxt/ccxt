@@ -398,17 +398,20 @@ class kucoinfutures extends kucoinfutures$1 {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 7,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -419,6 +422,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 500,

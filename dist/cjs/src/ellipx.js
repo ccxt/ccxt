@@ -261,12 +261,14 @@ class ellipx extends ellipx$1 {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -275,6 +277,7 @@ class ellipx extends ellipx$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {

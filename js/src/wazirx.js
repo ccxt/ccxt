@@ -242,6 +242,7 @@ export default class wazirx extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -250,6 +251,7 @@ export default class wazirx extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {

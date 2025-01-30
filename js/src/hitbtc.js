@@ -321,12 +321,14 @@ export default class hitbtc extends Exchange {
                         'limit': 1000,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                         'marketType': true,
                     },
                     'fetchOrder': {
                         'marginMode': true,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                         'marketType': true,
                     },
                     'fetchOpenOrders': {
@@ -334,6 +336,7 @@ export default class hitbtc extends Exchange {
                         'limit': 1000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                         'marketType': true,
                     },
                     'fetchOrders': undefined,
@@ -345,6 +348,7 @@ export default class hitbtc extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                         'marketType': true,
                     },
                     'fetchOHLCV': {
