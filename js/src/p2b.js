@@ -216,6 +216,7 @@ export default class p2b extends Exchange {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 1,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -223,6 +224,7 @@ export default class p2b extends Exchange {
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -233,6 +235,7 @@ export default class p2b extends Exchange {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
