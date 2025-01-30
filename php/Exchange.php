@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.50';
+$version = '4.4.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.50';
+    const VERSION = '4.4.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3383,36 +3383,17 @@ class Exchange {
 
     public function features_generator() {
         //
-        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
         //     {
-        //         'myItem' : array(
+        //         'my' : array(
         //             'createOrder' : array(...),
-        //             'fetchOrders' : array(...),
         //         ),
         //         'swap' => array(
-        //             'linear' => 'myItem',
-        //             'inverse' => 'myItem',
+        //             'linear' => array(
+        //                 'extends' => my',
+        //             ),
         //         ),
-        //         'future' => {
-        //             'linear' => 'myItem',
-        //             'inverse' => 'myItem',
-        //         }
-        //     }
-        //
-        //
-        //
-        // this method would regenerate the blank features tree, eg:
-        //
-        //     {
-        //         "spot" => array(
-        //             "createOrder" => null,
-        //             "fetchBalance" => null,
-        //             ...
-        //         ),
-        //         "swap" => {
-        //             ...
-        //         }
         //     }
         //
         if ($this->features === null) {
@@ -3456,14 +3437,13 @@ class Exchange {
             $featuresObj = $this->deep_extend($extendObj, $featuresObj);
         }
         //
-        // corrections
+        // ### corrections ###
         //
+        // createOrder
         if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
             $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            if ($value !== null) {
-                $featuresObj['createOrder']['stopLoss'] = $value;
-                $featuresObj['createOrder']['takeProfit'] = $value;
-            }
+            $featuresObj['createOrder']['stopLoss'] = $value;
+            $featuresObj['createOrder']['takeProfit'] = $value;
             if ($marketType === 'spot') {
                 // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
@@ -3475,6 +3455,18 @@ class Exchange {
             // default 'GTC' to true
             if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
                 $featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            }
+        }
+        // other methods
+        $keys = is_array($featuresObj) ? array_keys($featuresObj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $featureBlock = $featuresObj[$key];
+            if (!$this->in_array($key, array( 'sandbox' )) && $featureBlock !== null) {
+                // default "symbolRequired" to false to all methods (except `createOrder`)
+                if (!(is_array($featureBlock) && array_key_exists('symbolRequired', $featureBlock))) {
+                    $featureBlock['symbolRequired'] = $this->in_array($key, array( 'createOrder', 'createOrders', 'fetchOHLCV' ));
+                }
             }
         }
         return $featuresObj;
@@ -7037,6 +7029,31 @@ class Exchange {
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function handle_trigger_direction_and_params($params, ?string $exchangeSpecificKey = null, Bool $allowEmpty = false) {
+        /**
+         * @ignore
+         * @return array([string, object]) the trigger-direction value and omited $params
+         */
+        $triggerDirection = $this->safe_string($params, 'triggerDirection');
+        $exchangeSpecificDefined = ($exchangeSpecificKey !== null) && (is_array($params) && array_key_exists($exchangeSpecificKey, $params));
+        if ($triggerDirection !== null) {
+            $params = $this->omit($params, 'triggerDirection');
+        }
+        // throw exception if:
+        // A) if provided value is not unified (support old "up/down" strings too)
+        // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
+        if (!$this->in_array($triggerDirection, array( 'ascending', 'descending', 'up', 'down', 'above', 'below' )) && !$exchangeSpecificDefined && !$allowEmpty) {
+            throw new ArgumentsRequired($this->id . ' createOrder() : trigger orders require $params["triggerDirection"] to be either "ascending" or "descending"');
+        }
+        // if old format was provided, overwrite to new
+        if ($triggerDirection === 'up' || $triggerDirection === 'above') {
+            $triggerDirection = 'ascending';
+        } elseif ($triggerDirection === 'down' || $triggerDirection === 'below') {
+            $triggerDirection = 'descending';
+        }
+        return array( $triggerDirection, $params );
     }
 
     public function handle_trigger_and_params($params) {

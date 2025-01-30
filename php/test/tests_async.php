@@ -21,7 +21,6 @@ class testMainClass {
     public $request_tests = false;
     public $ws_tests = false;
     public $response_tests = false;
-    public $static_tests = false;
     public $info = false;
     public $verbose = false;
     public $debug = false;

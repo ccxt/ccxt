@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.50'
+__version__ = '4.4.52'
 
 # -----------------------------------------------------------------------------
 
@@ -2741,36 +2741,17 @@ class Exchange(object):
 
     def features_generator(self):
         #
-        # the exchange-specific features can be something like self, where we support 'string' aliases too:
+        # in the exchange-specific features can be something like self, where we support 'string' aliases too:
         #
         #     {
-        #         'myItem' : {
+        #         'my' : {
         #             'createOrder' : {...},
-        #             'fetchOrders' : {...},
         #         },
         #         'swap': {
-        #             'linear': 'myItem',
-        #             'inverse': 'myItem',
+        #             'linear': {
+        #                 'extends': my',
+        #             },
         #         },
-        #         'future': {
-        #             'linear': 'myItem',
-        #             'inverse': 'myItem',
-        #         }
-        #     }
-        #
-        #
-        #
-        # self method would regenerate the blank features tree, eg:
-        #
-        #     {
-        #         "spot": {
-        #             "createOrder": None,
-        #             "fetchBalance": None,
-        #             ...
-        #         },
-        #         "swap": {
-        #             ...
-        #         }
         #     }
         #
         if self.features is None:
@@ -2806,13 +2787,13 @@ class Exchange(object):
             extendObj = self.features_mapper(initialFeatures, extendsStr)
             featuresObj = self.deep_extend(extendObj, featuresObj)
         #
-        # corrections
+        #  ### corrections  ###
         #
+        # createOrder
         if 'createOrder' in featuresObj:
             value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
-            if value is not None:
-                featuresObj['createOrder']['stopLoss'] = value
-                featuresObj['createOrder']['takeProfit'] = value
+            featuresObj['createOrder']['stopLoss'] = value
+            featuresObj['createOrder']['takeProfit'] = value
             if marketType == 'spot':
                 # default 'hedged': False
                 featuresObj['createOrder']['hedged'] = False
@@ -2822,6 +2803,15 @@ class Exchange(object):
             # default 'GTC' to True
             if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
+        # other methods
+        keys = list(featuresObj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            featureBlock = featuresObj[key]
+            if not self.in_array(key, ['sandbox']) and featureBlock is not None:
+                # default "symbolRequired" to False to all methods(except `createOrder`)
+                if not ('symbolRequired' in featureBlock):
+                    featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
@@ -5727,6 +5717,27 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def handle_trigger_direction_and_params(self, params, exchangeSpecificKey: Str = None, allowEmpty: Bool = False):
+        """
+ @ignore
+        :returns [str, dict]: the trigger-direction value and omited params
+        """
+        triggerDirection = self.safe_string(params, 'triggerDirection')
+        exchangeSpecificDefined = (exchangeSpecificKey is not None) and (exchangeSpecificKey in params)
+        if triggerDirection is not None:
+            params = self.omit(params, 'triggerDirection')
+        # raise exception if:
+        # A) if provided value is not unified(support old "up/down" strings too)
+        # B) if exchange specific "trigger direction key"(eg. "stopPriceSide") was not provided
+        if not self.in_array(triggerDirection, ['ascending', 'descending', 'up', 'down', 'above', 'below']) and not exchangeSpecificDefined and not allowEmpty:
+            raise ArgumentsRequired(self.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"')
+        # if old format was provided, overwrite to new
+        if triggerDirection == 'up' or triggerDirection == 'above':
+            triggerDirection = 'ascending'
+        elif triggerDirection == 'down' or triggerDirection == 'below':
+            triggerDirection = 'descending'
+        return [triggerDirection, params]
 
     def handle_trigger_and_params(self, params):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')

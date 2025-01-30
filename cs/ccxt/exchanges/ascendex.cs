@@ -316,6 +316,7 @@ public partial class ascendex : Exchange
                         { "trigger", false },
                         { "trailing", false },
                         { "marketType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -323,6 +324,7 @@ public partial class ascendex : Exchange
                         { "trigger", false },
                         { "trailing", false },
                         { "marketType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },

@@ -278,106 +278,111 @@ export default class bitmex extends Exchange {
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
-                'features': {
-                    'default': {
-                        'sandbox': true,
-                        'createOrder': {
-                            'marginMode': true,
-                            'triggerPrice': true,
-                            'triggerPriceType': {
-                                'last': true,
-                                'mark': true,
-                            },
-                            'triggerDirection': true,
-                            'stopLossPrice': false,
-                            'takeProfitPrice': false,
-                            'attachedStopLossTakeProfit': undefined,
-                            'timeInForce': {
-                                'IOC': true,
-                                'FOK': true,
-                                'PO': true,
-                                'GTD': false,
-                            },
-                            'hedged': false,
-                            'trailing': true,
-                            'marketBuyRequiresPrice': false,
-                            'marketBuyByCost': false,
-                            // exchange-supported features
-                            // 'selfTradePrevention': true,
-                            // 'twap': false,
-                            // 'iceberg': false,
-                            // 'oco': false,
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
                         },
-                        'createOrders': undefined,
-                        'fetchMyTrades': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': undefined,
-                            'untilDays': 1000000,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
                         },
-                        'fetchOrder': {
-                            'marginMode': false,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': undefined,
-                            'untilDays': 1000000,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchClosedOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBackClosed': undefined,
-                            'daysBackCanceled': undefined,
-                            'untilDays': 1000000,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOHLCV': {
-                            'limit': 10000,
+                        'hedged': false,
+                        'trailing': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 1000000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': false,
                         },
                     },
-                    'spot': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': false,
-                            },
+                },
+                'derivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': true,
                         },
                     },
-                    'forDeriv': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': true,
-                            },
-                        },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'derivatives',
                     },
-                    'swap': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
-                    'future': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
                 },
             },

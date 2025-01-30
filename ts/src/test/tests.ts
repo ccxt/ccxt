@@ -52,7 +52,6 @@ class testMainClass {
     requestTests: boolean = false;
     wsTests: boolean = false;
     responseTests: boolean = false;
-    staticTests: boolean = false;
     info: boolean = false;
     verbose: boolean = false;
     debug: boolean = false;
@@ -850,7 +849,7 @@ class testMainClass {
             const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump ('[TEST_WARNING]' + errorMessage.toString ());
+            dump ('[TEST_WARNING]' + errorMessage);
         }
     }
 
@@ -1200,7 +1199,7 @@ class testMainClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage (e);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1219,7 +1218,7 @@ class testMainClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage (e);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse (exchange, undefined); // reset state
@@ -1427,7 +1426,7 @@ class testMainClass {
             } else {
                 this.responseTestsFailed = true;
             }
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + exceptionMessage (e);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         if (this.requestTestsFailed || this.responseTestsFailed) {

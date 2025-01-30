@@ -174,6 +174,7 @@ export default class coinspot extends Exchange {
                         'limit': undefined,
                         'daysBack': 100000,
                         'untilDays': 100000, // todo implement
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': undefined, // todo implement
