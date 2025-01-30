@@ -820,7 +820,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->v2PublicGetSpotMarket ($params));
             //

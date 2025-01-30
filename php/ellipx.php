@@ -1667,7 +1667,7 @@ class ellipx extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(?string $symbol = null, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * Fetches the current trading fees ($maker and $taker) applicable to the user.
          *
@@ -1908,10 +1908,11 @@ class ellipx extends Exchange {
         if ($v === null || $e === null) {
             return null;
         }
-        $preciseAmount = new Precise ($v);
-        $preciseAmount->decimals = $e;
-        $preciseAmount->reduce ();
-        return (string) $preciseAmount;
+        $precise = new Precise ($v);
+        $precise->decimals = $e;
+        $precise->reduce ();
+        $amountString = (string) $precise;
+        return $amountString;
     }
 
     public function to_amount(float $amount, float $precision): array {

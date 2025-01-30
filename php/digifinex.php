@@ -549,10 +549,11 @@ class digifinex extends Exchange {
                 ),
             );
             if (is_array($result) && array_key_exists($code, $result)) {
-                if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
-                    $result[$code]['info'][] = $currency;
+                $resultCodeInfo = $result[$code]['info'];
+                if (gettype($resultCodeInfo) === 'array' && array_keys($resultCodeInfo) === array_keys(array_keys($resultCodeInfo))) {
+                    $resultCodeInfo[] = $currency;
                 } else {
-                    $result[$code]['info'] = [ $result[$code]['info'], $currency ];
+                    $resultCodeInfo = array( $resultCodeInfo, $currency );
                 }
                 if ($withdraw) {
                     $result[$code]['withdraw'] = true;
@@ -4182,7 +4183,8 @@ class digifinex extends Exchange {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                     $depositWithdrawFees[$code]['info'] = array();
                 }
-                $depositWithdrawFees[$code]['info'][] = $entry;
+                $depositWithdrawInfo = $depositWithdrawFees[$code]['info'];
+                $depositWithdrawInfo[] = $entry;
                 $networkId = $this->safe_string($entry, 'chain');
                 $withdrawFee = $this->safe_value($entry, 'min_withdraw_fee');
                 $withdrawResult = array(

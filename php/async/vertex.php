@@ -2553,15 +2553,16 @@ class vertex extends Exchange {
                 'digests' => $ids,
                 'nonce' => $nonce,
             );
+            $productIds = $cancels['productIds'];
             $marketIdNum = $this->parse_to_numeric($marketId);
             for ($i = 0; $i < count($ids); $i++) {
-                $cancels['productIds'][] = $marketIdNum;
+                $productIds[] = $marketIdNum;
             }
             $request = array(
                 'cancel_orders' => array(
                     'tx' => array(
                         'sender' => $cancels['sender'],
-                        'productIds' => $cancels['productIds'],
+                        'productIds' => $productIds,
                         'digests' => $cancels['digests'],
                         'nonce' => $this->number_to_string($cancels['nonce']),
                     ),

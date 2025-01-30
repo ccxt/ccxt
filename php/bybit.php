@@ -1519,6 +1519,9 @@ class bybit extends Exchange {
     }
 
     public function get_price(string $symbol, string $price) {
+        if ($price === null) {
+            return $price;
+        }
         $market = $this->market($symbol);
         $emptyPrecisionPrice = ($market['precision']['price'] === null);
         if (!$emptyPrecisionPrice) {
@@ -1740,7 +1743,7 @@ class bybit extends Exchange {
         return $this->array_concat($spotMarkets, $derivativeMarkets);
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): array {
         $request = array(
             'category' => 'spot',
         );
@@ -1858,7 +1861,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_future_markets($params) {
+    public function fetch_future_markets($params): array {
         $params = $this->extend($params);
         $params['limit'] = 1000; // minimize number of requests
         $preLaunchMarkets = array();
@@ -2053,7 +2056,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_option_markets($params) {
+    public function fetch_option_markets($params): array {
         $request = array(
             'category' => 'option',
         );

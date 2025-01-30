@@ -1334,7 +1334,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_markets_v2($params = array ()) {
+    public function fetch_markets_v2($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->fetch_currencies_from_cache($params));
             $currencies = $this->safe_dict($response, 'currencies', array());
@@ -1354,7 +1354,7 @@ class coinbase extends Exchange {
                         $quoteCurrency = $data[$j];
                         $quoteId = $this->safe_string($quoteCurrency, 'id');
                         $quote = $this->safe_currency_code($quoteId);
-                        $result[] = array(
+                        $result[] = $this->safe_market_structure(array(
                             'id' => $baseId . '-' . $quoteId,
                             'symbol' => $base . '/' . $quote,
                             'base' => $base,
@@ -1401,7 +1401,7 @@ class coinbase extends Exchange {
                                 ),
                             ),
                             'info' => $quoteCurrency,
-                        );
+                        ));
                     }
                 }
             }
@@ -1409,7 +1409,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_markets_v3($params = array ()) {
+    public function fetch_markets_v3($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             $usePrivate = false;
             list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
@@ -2014,7 +2014,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers_v2(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v2(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2051,7 +2051,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers_v3(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v3(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

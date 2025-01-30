@@ -1048,17 +1048,19 @@ class paradex extends Exchange {
     public function prepare_paradex_domain($l1 = false) {
         $systemConfig = $this->get_system_config();
         if ($l1 === true) {
-            return array(
+            $l1D = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['l1_chain_id'],
                 'version' => '1',
             );
+            return $l1D;
         }
-        return array(
+        $domain = array(
             'name' => 'Paradex',
             'chainId' => $systemConfig['starknet_chain_id'],
             'version' => 1,
         );
+        return $domain;
     }
 
     public function retrieve_account() {

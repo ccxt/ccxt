@@ -921,7 +921,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_spot_markets($params = array ()) {
+    public function fetch_spot_markets($params = array ()): array {
         $response = $this->publicGetSpotV1SymbolsDetails ($params);
         //
         //     {
@@ -965,7 +965,7 @@ class bitmart extends Exchange {
             $minSellCost = $this->safe_string($market, 'min_sell_amount');
             $minCost = Precise::string_max($minBuyCost, $minSellCost);
             $baseMinSize = $this->safe_number($market, 'base_min_size');
-            $result[] = array(
+            $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
@@ -1014,12 +1014,12 @@ class bitmart extends Exchange {
                 ),
                 'created' => null,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
 
-    public function fetch_contract_markets($params = array ()) {
+    public function fetch_contract_markets($params = array ()): array {
         $response = $this->publicGetContractPublicDetails ($params);
         //
         //     {
@@ -1080,7 +1080,7 @@ class bitmart extends Exchange {
             if (!$isFutures && ($expiry === 0)) {
                 $expiry = null;
             }
-            $result[] = array(
+            $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'numericId' => null,
                 'symbol' => $symbol,
@@ -1129,7 +1129,7 @@ class bitmart extends Exchange {
                 ),
                 'created' => $this->safe_integer($market, 'open_timestamp'),
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -3073,7 +3073,7 @@ class bitmart extends Exchange {
         return $order;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple orders
          *
@@ -3703,7 +3703,7 @@ class bitmart extends Exchange {
             $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
             if ($network !== null) {
-                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                $request['currency'] = $request['currency'] . '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 $currency['code'] = $request['currency']; // update $currency $code to filter
                 $params = $this->omit($params, 'network');
             }

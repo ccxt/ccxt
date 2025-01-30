@@ -4676,12 +4676,12 @@ class binance extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
+         * @param {string} [$params->price] "mark" or "index" for mark $price and index $price $candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $paginate = false;
@@ -4691,7 +4691,7 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
-        // the reality is that the time range wider than 500 candles won't work right
+        // the reality is that the time range wider than 500 $candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
         $price = $this->safe_string($params, 'price');
@@ -4786,7 +4786,8 @@ class binance extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $candles = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $candles;
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

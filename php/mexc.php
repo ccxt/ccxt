@@ -4857,7 +4857,7 @@ class mexc extends Exchange {
             $rawNetwork = $this->safe_string($params, 'network');
             if ($rawNetwork !== null) {
                 $params = $this->omit($params, 'network');
-                $request['coin'] .= '-' . $rawNetwork;
+                $request['coin'] = $request['coin'] . '-' . $rawNetwork;
             }
         }
         if ($since !== null) {

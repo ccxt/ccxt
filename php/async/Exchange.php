@@ -979,9 +979,19 @@ class Exchange extends \ccxt\Exchange {
                     if ($limit > $arrayLength) {
                         $limit = $arrayLength;
                     }
-                    $array = $ascending ? $this->array_slice($array, 0, $limit) : $this->array_slice($array, -$limit);
+                    // $array = $ascending ? $this->array_slice($array, 0, $limit) : $this->array_slice($array, -$limit);
+                    if ($ascending) {
+                        $array = $this->array_slice($array, 0, $limit);
+                    } else {
+                        $array = $this->array_slice($array, -$limit);
+                    }
                 } else {
-                    $array = $ascending ? $this->array_slice($array, -$limit) : $this->array_slice($array, 0, $limit);
+                    // $array = $ascending ? $this->array_slice($array, -$limit) : $this->array_slice($array, 0, $limit);
+                    if ($ascending) {
+                        $array = $this->array_slice($array, -$limit);
+                    } else {
+                        $array = $this->array_slice($array, 0, $limit);
+                    }
                 }
             }
         }
@@ -1839,7 +1849,9 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                ($this->markets_by_id[$value['id']])[] = $value;
+                $marketsByIdArray = ($this->markets_by_id[$value['id']]);
+                $marketsByIdArray[] = $value;
+                $this->markets_by_id[$value['id']] = $marketsByIdArray;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }
@@ -2261,14 +2273,17 @@ class Exchange extends \ccxt\Exchange {
         $results = array();
         if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
             for ($i = 0; $i < count($orders); $i++) {
-                $order = $this->extend($this->parse_order($orders[$i], $market), $params);
+                $parsed = $this->parse_order($orders[$i], $market); // don't inline this call
+                $order = $this->extend($parsed, $params);
                 $results[] = $order;
             }
         } else {
             $ids = is_array($orders) ? array_keys($orders) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
-                $order = $this->extend($this->parse_order($this->extend(array( 'id' => $id ), $orders[$id]), $market), $params);
+                $idExtended = $this->extend(array( 'id' => $id ), $orders[$id]);
+                $parsedOrder = $this->parse_order($idExtended, $market); // don't  inline these calls
+                $order = $this->extend($parsedOrder, $params);
                 $results[] = $order;
             }
         }
@@ -2682,12 +2697,18 @@ class Exchange extends \ccxt\Exchange {
         $result[$volume] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $ts = $ms ? $ohlcvs[$i][0] : $this->parse_to_int($ohlcvs[$i][0] / 1000);
-            $result[$timestamp][] = $ts;
-            $result[$open][] = $ohlcvs[$i][1];
-            $result[$high][] = $ohlcvs[$i][2];
-            $result[$low][] = $ohlcvs[$i][3];
-            $result[$close][] = $ohlcvs[$i][4];
-            $result[$volume][] = $ohlcvs[$i][5];
+            $resultTimestamp = $result[$timestamp];
+            $resultTimestamp[] = $ts;
+            $resultOpen = $result[$open];
+            $resultOpen[] = $ohlcvs[$i][1];
+            $resultHigh = $result[$high];
+            $resultHigh[] = $ohlcvs[$i][2];
+            $resultLow = $result[$low];
+            $resultLow[] = $ohlcvs[$i][3];
+            $resultClose = $result[$close];
+            $resultClose[] = $ohlcvs[$i][4];
+            $resultVolume = $result[$volume];
+            $resultVolume[] = $ohlcvs[$i][5];
         }
         return $result;
     }
@@ -2705,15 +2726,20 @@ class Exchange extends \ccxt\Exchange {
                 $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
                 $response = null;
                 $retry = 0;
+                $shouldBreak = false;
                 while ($retry < $maxRetries) {
                     try {
                         $response = Async\await($this->$endpointMethod (array()));
+                        $shouldBreak = true;
                         break;
                     } catch (Exception $e) {
                         $retry = $retry + 1;
                         if ($retry === $maxRetries) {
                             throw $e;
                         }
+                    }
+                    if ($shouldBreak) {
+                        break; // this is needed because of GO
                     }
                 }
                 $content = $response;
@@ -3328,7 +3354,12 @@ class Exchange extends \ccxt\Exchange {
         $objects = $this->to_array($objects);
         // return all of them if no $values were passed
         if ($values === null || !$values) {
-            return $indexed ? $this->index_by($objects, $key) : $objects;
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
         }
         $results = array();
         for ($i = 0; $i < count($objects); $i++) {
@@ -3336,7 +3367,11 @@ class Exchange extends \ccxt\Exchange {
                 $results[] = $objects[$i];
             }
         }
-        return $indexed ? $this->index_by($results, $key) : $results;
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
     }
 
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
@@ -3366,10 +3401,12 @@ class Exchange extends \ccxt\Exchange {
                             if (($retryDelay !== null) && ($retryDelay !== 0)) {
                                 Async\await($this->sleep($retryDelay));
                             }
-                            continue;
+                            // continue; //check this
                         }
                     }
-                    throw $e;
+                    if ($i >= $retries) {
+                        throw $e;
+                    }
                 }
             }
             return null; // this line is never reached, but exists for c# value return requirement
@@ -3583,7 +3620,7 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
         $result = $this->safe_market_structure(array(
             'symbol' => $marketId,
             'marketId' => $marketId,
@@ -3809,9 +3846,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function handle_option(string $methodName, string $optionName, $defaultValue = null) {
-        // eslint-disable-next-line no-unused-vars
-        list($result, $empty) = $this->handle_option_and_params(array(), $methodName, $optionName, $defaultValue);
-        return $result;
+        $res = $this->handle_option_and_params(array(), $methodName, $optionName, $defaultValue);
+        return $this->safe_value($res, 0);
     }
 
     public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null) {
@@ -4033,6 +4069,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
+        throw new NotSupported($this->id . ' createConvertTrade() is not supported yet');
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertTrade() is not supported yet');
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertTradeHistory() is not supported yet');
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionMode() is not supported yet');
     }
 
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
@@ -4827,11 +4879,17 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function cost_to_precision(string $symbol, $cost) {
+        if ($cost === null) {
+            return null;
+        }
         $market = $this->market($symbol);
         return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function price_to_precision(string $symbol, $price) {
+        if ($price === null) {
+            return null;
+        }
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
@@ -4841,6 +4899,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function amount_to_precision(string $symbol, $amount) {
+        if ($amount === null) {
+            return null;
+        }
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
@@ -4850,6 +4911,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fee_to_precision(string $symbol, $fee) {
+        if ($fee === null) {
+            return null;
+        }
         $market = $this->market($symbol);
         return $this->decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
@@ -5159,7 +5223,8 @@ class Exchange extends \ccxt\Exchange {
         $results = array();
         if (gettype($tickers) === 'array' && array_keys($tickers) === array_keys(array_keys($tickers))) {
             for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $this->extend($this->parse_ticker($tickers[$i]), $params);
+                $parsedTicker = $this->parse_ticker($tickers[$i]);
+                $ticker = $this->extend($parsedTicker, $params);
                 $results[] = $ticker;
             }
         } else {
@@ -5167,7 +5232,8 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
-                $ticker = $this->extend($this->parse_ticker($tickers[$marketId], $market), $params);
+                $parsed = $this->parse_ticker($tickers[$marketId], $market);
+                $ticker = $this->extend($parsed, $params);
                 $results[] = $ticker;
             }
         }

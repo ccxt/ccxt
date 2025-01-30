@@ -1307,9 +1307,9 @@ class coinmetro extends Exchange {
         $request = array(
         );
         $request['orderType'] = $type;
-        $precisedAmount = null;
+        $formattedAmount = null;
         if ($amount !== null) {
-            $precisedAmount = $this->amount_to_precision($symbol, $amount);
+            $formattedAmount = $this->amount_to_precision($symbol, $amount);
         }
         $cost = $this->safe_value($params, 'cost');
         $params = $this->omit($params, 'cost');
@@ -1317,7 +1317,7 @@ class coinmetro extends Exchange {
             if (($price === null) && ($cost === null)) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price or $params->cost argument for a ' . $type . ' order');
             } elseif (($price !== null) && ($amount !== null)) {
-                $costString = Precise::string_mul($this->number_to_string($price), $this->number_to_string($precisedAmount));
+                $costString = Precise::string_mul($this->number_to_string($price), $this->number_to_string($formattedAmount));
                 $cost = $this->parse_to_numeric($costString);
             }
         }
@@ -1326,9 +1326,9 @@ class coinmetro extends Exchange {
             $precisedCost = $this->cost_to_precision($symbol, $cost);
         }
         if ($side === 'sell') {
-            $request = $this->handle_create_order_side($market['baseId'], $market['quoteId'], $precisedAmount, $precisedCost, $request);
+            $request = $this->handle_create_order_side($market['baseId'], $market['quoteId'], $formattedAmount, $precisedCost, $request);
         } elseif ($side === 'buy') {
-            $request = $this->handle_create_order_side($market['quoteId'], $market['baseId'], $precisedCost, $precisedAmount, $request);
+            $request = $this->handle_create_order_side($market['quoteId'], $market['baseId'], $precisedCost, $formattedAmount, $request);
         }
         $timeInForce = $this->safe_value($params, 'timeInForce');
         if ($timeInForce !== null) {

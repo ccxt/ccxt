@@ -2790,7 +2790,8 @@ class lbank extends Exchange {
                         if ($resultValue === null) {
                             $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
                         } else {
-                            $result[$code]['info'][] = $fee;
+                            $resultCodeInfo = $result[$code]['info'];
+                            $resultCodeInfo[] = $fee;
                         }
                         $chain = $this->safe_string($fee, 'chain');
                         $networkCode = $this->safe_string($this->options['inverse-networks'], $chain, $chain);

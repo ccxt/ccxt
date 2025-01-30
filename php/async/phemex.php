@@ -1290,7 +1290,7 @@ class phemex extends Exchange {
     }
 
     public function from_en($en, $scale) {
-        if ($en === null) {
+        if ($en === null || $scale === null) {
             return null;
         }
         $precise = new Precise ($en);
@@ -2253,8 +2253,10 @@ class phemex extends Exchange {
             //         }
             //     }
             //
-            $result = ($type === 'swap') ? $this->parse_swap_balance($response) : $this->parse_spot_balance($response);
-            return $result;
+            if ($type === 'swap') {
+                return $this->parse_swap_balance($response);
+            }
+            return $this->parse_spot_balance($response);
         }) ();
     }
 
@@ -2936,7 +2938,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, string $symbol, ?string $type = null, ?string $side = null, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

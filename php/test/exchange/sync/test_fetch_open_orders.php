@@ -20,4 +20,5 @@ function test_fetch_open_orders($exchange, $skipped_properties, $symbol) {
         assert_in_array($exchange, $skipped_properties, $method, $order, 'status', ['open']);
     }
     assert_timestamp_order($exchange, $method, $symbol, $orders);
+    return true;
 }
