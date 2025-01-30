@@ -1268,17 +1268,20 @@ class htx extends htx$1 {
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                         'limit': 500,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -1287,6 +1290,7 @@ class htx extends htx$1 {
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -1296,6 +1300,7 @@ class htx extends htx$1 {
                         'limit': 500,
                         'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical

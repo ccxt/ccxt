@@ -261,25 +261,27 @@ class digifinex extends digifinex$1 {
                     },
                     'createOrders': {
                         'max': 10,
-                        'marginMode': true,
                     },
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 500,
                         'daysBack': 100000,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                         'marketType': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -288,6 +290,7 @@ class digifinex extends digifinex$1 {
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
