@@ -10,6 +10,7 @@ export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export type SubType = 'linear' | 'inverse' | undefined;
+export type Period = 'D' | 'W' | 'M' | 'Q' | 'S' | 'Y' | undefined;
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -61,6 +62,7 @@ export interface MarketInterface {
     quote: Str;
     baseId: Str;
     quoteId: Str;
+    period?: Period,
     active: Bool;
     type: MarketType;
     subType?: SubType;

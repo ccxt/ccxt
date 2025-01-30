@@ -1922,6 +1922,7 @@ export default class bitget extends Exchange {
         const symbolType = this.safeString (market, 'symbolType');
         let marginModes = undefined;
         let isMarginTradingAllowed = false;
+        let period = undefined;
         if (symbolType === undefined) {
             type = 'spot';
             spot = true;
@@ -1952,6 +1953,12 @@ export default class bitget extends Exchange {
                 type = 'future';
                 future = true;
                 symbol = symbol + ':' + settle + '-' + expiryString;
+                const periodCheck = this.safeString (market, 'deliveryPeriod');
+                if ((periodCheck === 'this_quarter') || (periodCheck === 'next_quarter')) {
+                    // add legacy symbol to aliases\
+                    period = 'Q';
+                    symbol = symbol + '-' + period;
+                }
             }
             contract = true;
             inverse = (base === settle);
@@ -1994,6 +2001,7 @@ export default class bitget extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
+            'period': period,
             'type': type,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
