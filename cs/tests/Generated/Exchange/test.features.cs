@@ -83,17 +83,20 @@ public partial class testMainClass : BaseTest
                 { "daysBack", 0 },
                 { "limit", 0 },
                 { "untilDays", 0 },
+                { "symbolRequired", false },
             } },
             { "fetchOrder", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOpenOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "limit", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
@@ -102,6 +105,7 @@ public partial class testMainClass : BaseTest
                 { "untilDays", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchClosedOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
@@ -111,6 +115,7 @@ public partial class testMainClass : BaseTest
                 { "untilDays", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOHLCV", new Dictionary<string, object>() {
                 { "limit", 0 },

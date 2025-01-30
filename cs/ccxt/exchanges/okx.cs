@@ -1148,17 +1148,20 @@ public partial class okx : Exchange
                         { "daysBack", 90 },
                         { "limit", 100 },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -1169,6 +1172,7 @@ public partial class okx : Exchange
                         { "untilDays", null },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },

@@ -331,17 +331,20 @@ public partial class woo : Exchange
                         { "limit", 500 },
                         { "daysBack", 90 },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 500 },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -350,6 +353,7 @@ public partial class woo : Exchange
                         { "untilDays", 100000 },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -359,6 +363,7 @@ public partial class woo : Exchange
                         { "untilDays", 100000 },
                         { "trigger", true },
                         { "trailing", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },

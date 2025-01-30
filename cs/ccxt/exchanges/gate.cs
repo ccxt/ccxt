@@ -729,17 +729,20 @@ public partial class gate : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", true },
                         { "trailing", false },
                         { "limit", 100 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -750,6 +753,7 @@ public partial class gate : Exchange
                         { "untilDays", 30 },
                         { "daysBack", null },
                         { "daysBackCanceled", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },

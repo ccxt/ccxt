@@ -158,25 +158,27 @@ public partial class digifinex : Exchange
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
-                        { "marginMode", true },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 500 },
                         { "daysBack", 100000 },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                         { "marketType", true },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -185,6 +187,7 @@ public partial class digifinex : Exchange
                         { "untilDays", 30 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
