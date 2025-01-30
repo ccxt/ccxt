@@ -566,7 +566,11 @@ export default class kucoinfutures extends kucoin {
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             let period = undefined;
+            let parsedExpiry = undefined;
+            let parsedExpiryDatetime = undefined;
             if (future) {
+                parsedExpiry = expiry;
+                parsedExpiryDatetime = this.iso8601 (expiry);
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
                 // add legacy symbol to aliases
@@ -615,8 +619,8 @@ export default class kucoinfutures extends kucoin {
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
+                'expiry': parsedExpiry,
+                'expiryDatetime': parsedExpiryDatetime,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
