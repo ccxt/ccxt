@@ -610,7 +610,7 @@ class testMainClass:
             error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception)
             # temporary comment the below, because c# transpilation failure
             # throw new Exchange Error (errorMessage.toString ());
-            dump('[TEST_WARNING]' + str(error_message))
+            dump('[TEST_WARNING]' + error_message)
 
     async def start_test(self, exchange, symbol):
         # we do not need to test aliases
@@ -889,7 +889,7 @@ class testMainClass:
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
             dump('[TEST_FAILURE]' + error_message)
 
     async def test_response_statically(self, exchange, method, skip_keys, data):
@@ -904,7 +904,7 @@ class testMainClass:
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
         except Exception as e:
             self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
             dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
 
@@ -1095,7 +1095,7 @@ class testMainClass:
                 self.request_tests_failed = True
             else:
                 self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST]' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + exception_message(e)
             dump('[TEST_FAILURE]' + error_message)
         if self.request_tests_failed or self.response_tests_failed:
             exit_script(1)

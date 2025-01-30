@@ -280,25 +280,27 @@ class digifinex(Exchange, ImplicitAPI):
                     },
                     'createOrders': {
                         'max': 10,
-                        'marginMode': True,
                     },
                     'fetchMyTrades': {
                         'marginMode': True,
                         'limit': 500,
                         'daysBack': 100000,  # todo
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                         'marketType': True,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -307,6 +309,7 @@ class digifinex(Exchange, ImplicitAPI):
                         'untilDays': 30,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': None,
                     'fetchOHLCV': {
