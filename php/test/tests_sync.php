@@ -741,7 +741,7 @@ class testMainClass {
             $error_message = '[TEST_FAILURE] Failed ' . $proxy_test_name . ' : ' . exception_message($exception);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump('[TEST_WARNING]' . ((string) $error_message));
+            dump('[TEST_WARNING]' . $error_message);
         }
     }
 
@@ -1083,7 +1083,7 @@ class testMainClass {
             $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
         } catch(\Throwable $e) {
             $this->request_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
             dump('[TEST_FAILURE]' . $error_message);
         }
     }
@@ -1101,7 +1101,7 @@ class testMainClass {
             }
         } catch(\Throwable $e) {
             $this->response_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_RESPONSE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_RESPONSE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
             dump('[TEST_FAILURE]' . $error_message);
         }
         set_fetch_response($exchange, null); // reset state
@@ -1330,7 +1330,7 @@ class testMainClass {
             } else {
                 $this->response_tests_failed = true;
             }
-            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . exception_message($e);
             dump('[TEST_FAILURE]' . $error_message);
         }
         if ($this->request_tests_failed || $this->response_tests_failed) {

@@ -301,6 +301,7 @@ class krakenfutures extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -308,6 +309,7 @@ class krakenfutures extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -318,6 +320,7 @@ class krakenfutures extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 5000,

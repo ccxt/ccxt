@@ -356,17 +356,20 @@ class vertex extends Exchange {
                         'limit' => 500,
                         'daysBack' => 100000, // todo
                         'untilDays' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // todo, only for trigger
                     'fetchClosedOrders' => null, // todo through fetchOrders

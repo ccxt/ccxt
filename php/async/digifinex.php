@@ -271,25 +271,27 @@ class digifinex extends Exchange {
                     ),
                     'createOrders' => array(
                         'max' => 10,
-                        'marginMode' => true,
                     ),
                     'fetchMyTrades' => array(
                         'marginMode' => true,
                         'limit' => 500,
                         'daysBack' => 100000, // todo
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                         'marketType' => true,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => true,
@@ -298,6 +300,7 @@ class digifinex extends Exchange {
                         'untilDays' => 30,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => null,
                     'fetchOHLCV' => array(

@@ -286,17 +286,20 @@ class huobijp extends Exchange {
                         'limit' => 100,
                         'daysBack' => 120,
                         'untilDays' => 2,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -305,6 +308,7 @@ class huobijp extends Exchange {
                         'untilDays' => null, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -314,6 +318,7 @@ class huobijp extends Exchange {
                         'untilDays' => null, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 2000,

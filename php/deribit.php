@@ -310,17 +310,20 @@ class deribit extends Exchange {
                         'limit' => 100, // todo => revise
                         'daysBack' => 100000,
                         'untilDays' => 100000,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -331,6 +334,7 @@ class deribit extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // todo => recheck
