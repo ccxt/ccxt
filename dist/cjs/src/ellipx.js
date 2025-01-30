@@ -1677,7 +1677,7 @@ class ellipx extends ellipx$1 {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    async fetchTradingFee(symbol = undefined, params = {}) {
+    async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
         const response = await this.privateGetMarketTradeFeeQuery(params);
         //
@@ -1897,10 +1897,11 @@ class ellipx extends ellipx$1 {
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const preciseAmount = new Precise["default"](v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce();
-        return preciseAmount.toString();
+        const precise = new Precise["default"](v);
+        precise.decimals = e;
+        precise.reduce();
+        const amountString = precise.toString();
+        return amountString;
     }
     toAmount(amount, precision) {
         const v = amount.toString();

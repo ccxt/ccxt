@@ -216,7 +216,7 @@ export default class ellipx extends Exchange {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    fetchTradingFee(symbol?: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
      * @method
      * @name ellipx#withdraw

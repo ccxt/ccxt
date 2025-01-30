@@ -658,7 +658,8 @@ class ndax extends ndax$1 {
             const bidask = this.parseBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
             const side = levelSide ? asksKey : bidsKey;
-            result[side].push(bidask);
+            const resultSide = result[side];
+            resultSide.push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);

@@ -1332,11 +1332,9 @@ class whitebit extends whitebit$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        const req = {
-            'cost': cost,
-        };
+        params['cost'] = cost;
         // only buy side is supported
-        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
+        return await this.createOrder(symbol, 'market', side, 0, undefined, params);
     }
     /**
      * @method

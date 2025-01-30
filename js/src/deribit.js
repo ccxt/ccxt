@@ -762,7 +762,7 @@ export default class deribit extends Exchange {
         const result = this.safeValue(response, 'result', []);
         return this.parseAccounts(result);
     }
-    parseAccount(account, currency = undefined) {
+    parseAccount(account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -781,7 +781,7 @@ export default class deribit extends Exchange {
             'info': account,
             'id': this.safeString(account, 'id'),
             'type': this.safeString(account, 'type'),
-            'code': this.safeCurrencyCode(undefined, currency),
+            'code': undefined,
         };
     }
     /**
