@@ -881,7 +881,7 @@ public partial class testMainClass
             object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump(add("[TEST_WARNING]", ((object)errorMessage).ToString()));
+            dump(add("[TEST_WARNING]", errorMessage));
         }
     }
 
@@ -1307,7 +1307,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
     }
@@ -1330,7 +1330,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -1608,7 +1608,7 @@ public partial class testMainClass
             {
                 this.responseTestsFailed = true;
             }
-            object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), ((object)e).ToString());
+            object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
