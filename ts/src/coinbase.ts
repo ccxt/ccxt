@@ -1508,8 +1508,17 @@ export default class coinbase extends Exchange {
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList (spot, 'products', []);
         const result = [];
+        this.options['aliasCbMarketIds'] = {};
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parseSpotMarket (data[i], feeTier));
+            const parsed = this.parseSpotMarket (data[i], feeTier);
+            const marketId = parsed['id'];
+            const aliasedIds = this.safeList (parsed['info'], 'alias_to', []);
+            const length = aliasedIds.length;
+            if (length > 0) {
+                this.options['aliasCbMarketIds'][marketId] = aliasedIds[0];
+            } else {
+                result.push (parsed);
+            }
         }
         const futureData = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
@@ -1520,6 +1529,22 @@ export default class coinbase extends Exchange {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
         return result;
+    }
+
+    market (symbol: string): MarketInterface {
+        // as they are aliases, we need to return the original market
+        const originalMarketId = symbol.replace ('/', '-');
+        if (originalMarketId in this.options['aliasCbMarketIds']) {
+            symbol = this.options['aliasCbMarketIds'][originalMarketId];
+        }
+        return super.market (symbol);
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (marketId in this.options['aliasCbMarketIds']) {
+            marketId = this.options['aliasCbMarketIds'][marketId];
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
