@@ -680,32 +680,34 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const updates = this.safeValue (event, 'updates', []);
-            const marketId = this.safeString (event, 'product_id');
-            const messageHash = 'level2::' + marketId;
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
-            const limit = this.safeInteger (subscription, 'limit');
-            const symbol = this.safeSymbol (marketId);
-            const type = this.safeString (event, 'type');
-            if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-                const orderbook = this.orderbooks[symbol];
-                this.handleOrderBookHelper (orderbook, updates);
-                orderbook['timestamp'] = this.parse8601 (datetime);
-                orderbook['datetime'] = datetime;
-                orderbook['symbol'] = symbol;
-                client.resolve (orderbook, messageHash);
-                if (messageHash.endsWith ('USD')) {
-                    client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            } else if (type === 'update') {
-                const orderbook = this.orderbooks[symbol];
-                this.handleOrderBookHelper (orderbook, updates);
-                orderbook['datetime'] = datetime;
-                orderbook['timestamp'] = this.parse8601 (datetime);
-                orderbook['symbol'] = symbol;
-                client.resolve (orderbook, messageHash);
-                if (messageHash.endsWith ('USD')) {
-                    client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            const initialMarketId = this.safeString (event, 'product_id');
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
+            const market = this.safeMarket (initialMarketId);
+            const marketIdsToCheck = [ initialMarketId ];
+            const alias = this.safeList (market['info'], 'alias_to', []);
+            const checkForMarketIds = marketIdsToCheck.concat (alias);
+            for (let j = 0; j < checkForMarketIds.length; j++) {
+                const marketId = checkForMarketIds[j];
+                const messageHash = 'level2::' + marketId;
+                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const limit = this.safeInteger (subscription, 'limit');
+                const symbol = this.safeSymbol (marketId);
+                const type = this.safeString (event, 'type');
+                if (type === 'snapshot') {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                    const orderbook = this.orderbooks[symbol];
+                    this.handleOrderBookHelper (orderbook, updates);
+                    orderbook['timestamp'] = this.parse8601 (datetime);
+                    orderbook['datetime'] = datetime;
+                    orderbook['symbol'] = symbol;
+                    client.resolve (orderbook, messageHash);
+                } else if (type === 'update') {
+                    const orderbook = this.orderbooks[symbol];
+                    this.handleOrderBookHelper (orderbook, updates);
+                    orderbook['datetime'] = datetime;
+                    orderbook['timestamp'] = this.parse8601 (datetime);
+                    orderbook['symbol'] = symbol;
+                    client.resolve (orderbook, messageHash);
                 }
             }
         }
