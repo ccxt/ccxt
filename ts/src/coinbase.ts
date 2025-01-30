@@ -1534,9 +1534,10 @@ export default class coinbase extends Exchange {
 
     market (symbol: string): MarketInterface {
         // as they are aliases, we need to return the original market
-        const originalInput = symbol.replace ('/', '-');
+        const originalInput = symbol;
         if (originalInput in this.options['aliasCbMarketIds']) {
-            const newInput = this.options['aliasCbMarketIds'][originalInput];
+            const originalId = originalInput.replace ('/', '-');
+            const newInput = this.options['aliasCbMarketIds'][originalId];
             return super.market (newInput);
         }
         return super.market (originalInput);
@@ -1544,7 +1545,8 @@ export default class coinbase extends Exchange {
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         if (marketId in this.options['aliasCbMarketIds']) {
-            marketId = this.options['aliasCbMarketIds'][marketId];
+            const aliasedMarketId = this.options['aliasCbMarketIds'][marketId];
+            return super.safeMarket (aliasedMarketId, market, delimiter, marketType);
         }
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
