@@ -2775,7 +2775,8 @@ class lbank extends lbank$1 {
                             result[code] = this.depositWithdrawFee([fee]);
                         }
                         else {
-                            result[code]['info'].push(fee);
+                            const resultCodeInfo = result[code]['info'];
+                            resultCodeInfo.push(fee);
                         }
                         const chain = this.safeString(fee, 'chain');
                         const networkCode = this.safeString(this.options['inverse-networks'], chain, chain);

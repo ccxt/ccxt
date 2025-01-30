@@ -59,7 +59,7 @@ export default class luno extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrdersByState(state?: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByState(state: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name luno#fetchOrders

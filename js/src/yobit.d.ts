@@ -1,5 +1,5 @@
 import Exchange from './abstract/yobit.js';
-import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, int, DepositAddress, OrderBooks } from './base/types.js';
 /**
  * @class yobit
  * @augments Exchange
@@ -46,7 +46,7 @@ export default class yobit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
-    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<OrderBooks>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickersHelper(idsString: string, params?: {}): Promise<Tickers>;
     /**

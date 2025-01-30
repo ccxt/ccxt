@@ -34,6 +34,7 @@ async function testFeatures(exchange, skippedProperties) {
             }
         }
     }
+    return true;
 }
 function testFeaturesInner(exchange, skippedProperties, featureObj) {
     const format = {
@@ -124,5 +125,6 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
         testSharedMethods.assertInArray(exchange, skippedProperties, 'features', featureKeys, i, allMethods);
         testSharedMethods.assertStructure(exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
     }
+    // return true;
 }
 export default testFeatures;

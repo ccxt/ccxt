@@ -983,7 +983,8 @@ export default class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
-                result[side].push([price, amount]);
+                const resultSide = result[side];
+                resultSide.push([price, amount]);
             }
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);

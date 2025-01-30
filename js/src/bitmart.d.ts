@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, FundingRateHistory, LedgerEntry, FundingHistory } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -28,8 +28,8 @@ export default class bitmart extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchContractMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: {}): Promise<MarketInterface[]>;
+    fetchContractMarkets(params?: {}): Promise<MarketInterface[]>;
     /**
      * @method
      * @name bitmart#fetchMarkets
@@ -289,7 +289,7 @@ export default class bitmart extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name bitmart#cancelAllOrders

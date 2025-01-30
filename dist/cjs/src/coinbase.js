@@ -1310,7 +1310,7 @@ class coinbase extends coinbase$1 {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1357,7 +1357,7 @@ class coinbase extends coinbase$1 {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }

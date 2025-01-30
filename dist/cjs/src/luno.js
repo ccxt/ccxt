@@ -556,7 +556,7 @@ class luno extends luno$1 {
         const response = await this.privateGetOrdersId(this.extend(request, params));
         return this.parseOrder(response);
     }
-    async fetchOrdersByState(state = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
