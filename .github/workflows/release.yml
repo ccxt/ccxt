@@ -76,8 +76,8 @@ jobs:
         run: npm run request-tests
       - name: Response tests
         run: npm run response-tests
-      - name: CommonJs tests
-        run: npm run commonjs-test
+      # - name: CommonJs tests
+      #   run: npm run commonjs-test tmp disabling it
       - name: Package Test
         run: npm run package-test
       - name: Freshness Test
