@@ -83,17 +83,20 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'daysBack' => 0,
             'limit' => 0,
             'untilDays' => 0,
+            'symbolRequired' => false,
         ),
         'fetchOrder' => array(
             'marginMode' => false,
             'trigger' => false,
             'trailing' => false,
+            'symbolRequired' => false,
         ),
         'fetchOpenOrders' => array(
             'marginMode' => false,
             'limit' => 0,
             'trigger' => false,
             'trailing' => false,
+            'symbolRequired' => false,
         ),
         'fetchOrders' => array(
             'marginMode' => false,
@@ -102,6 +105,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'untilDays' => 0,
             'trigger' => false,
             'trailing' => false,
+            'symbolRequired' => false,
         ),
         'fetchClosedOrders' => array(
             'marginMode' => false,
@@ -111,6 +115,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'untilDays' => 0,
             'trigger' => false,
             'trailing' => false,
+            'symbolRequired' => false,
         ),
         'fetchOHLCV' => array(
             'limit' => 0,

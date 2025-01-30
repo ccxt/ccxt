@@ -1223,17 +1223,20 @@ class okx extends Exchange {
                         'daysBack' => 90,
                         'limit' => 100,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // not supported
                     'fetchClosedOrders' => array(
@@ -1244,6 +1247,7 @@ class okx extends Exchange {
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,

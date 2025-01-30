@@ -226,17 +226,20 @@ class poloniexfutures(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': 100000,
                         'untilDays': 7,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo
                     'fetchClosedOrders': {
@@ -247,6 +250,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 200,  # todo implement

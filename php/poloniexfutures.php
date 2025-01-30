@@ -212,17 +212,20 @@ class poloniexfutures extends Exchange {
                         'limit' => null,
                         'daysBack' => 100000,
                         'untilDays' => 7,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // todo
                     'fetchClosedOrders' => array(
@@ -233,6 +236,7 @@ class poloniexfutures extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 200, // todo implement

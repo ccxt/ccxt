@@ -243,6 +243,7 @@ class wazirx extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -251,6 +252,7 @@ class wazirx extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => null,
                     'fetchOHLCV' => array(

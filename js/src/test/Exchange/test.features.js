@@ -80,20 +80,20 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
-            // 'symbolRequired': false,
+            'symbolRequired': false,
         },
         'fetchOrder': {
             'marginMode': false,
             'trigger': false,
             'trailing': false,
-            // 'symbolRequired': false,
+            'symbolRequired': false,
         },
         'fetchOpenOrders': {
             'marginMode': false,
             'limit': 0,
             'trigger': false,
             'trailing': false,
-            // 'symbolRequired': false,
+            'symbolRequired': false,
         },
         'fetchOrders': {
             'marginMode': false,
@@ -102,7 +102,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'untilDays': 0,
             'trigger': false,
             'trailing': false,
-            // 'symbolRequired': false,
+            'symbolRequired': false,
         },
         'fetchClosedOrders': {
             'marginMode': false,
@@ -112,7 +112,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'untilDays': 0,
             'trigger': false,
             'trailing': false,
-            // 'symbolRequired': false,
+            'symbolRequired': false,
         },
         'fetchOHLCV': {
             'limit': 0,

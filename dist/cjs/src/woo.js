@@ -347,17 +347,20 @@ class woo extends woo$1 {
                         'limit': 500,
                         'daysBack': 90,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -366,6 +369,7 @@ class woo extends woo$1 {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -375,6 +379,7 @@ class woo extends woo$1 {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,

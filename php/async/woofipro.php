@@ -335,17 +335,20 @@ class woofipro extends Exchange {
                         'limit' => 500,
                         'daysBack' => null,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -356,6 +359,7 @@ class woofipro extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,

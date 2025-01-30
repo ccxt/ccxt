@@ -1026,17 +1026,20 @@ class kucoin extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => 7, // per  implementation comments
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1047,6 +1050,7 @@ class kucoin extends Exchange {
                         'untilDays' => 7,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1500,

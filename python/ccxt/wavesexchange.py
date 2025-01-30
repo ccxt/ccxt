@@ -388,17 +388,20 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'limit': 100,  # todo
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -407,6 +410,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },  # todo
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -416,6 +420,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': None,  # todo

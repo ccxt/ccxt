@@ -332,17 +332,20 @@ class phemex extends Exchange {
                         'limit' => 200,
                         'daysBack' => 100000,
                         'untilDays' => 2, // todo implement
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -351,6 +354,7 @@ class phemex extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -360,6 +364,7 @@ class phemex extends Exchange {
                         'untilDays' => 2,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,

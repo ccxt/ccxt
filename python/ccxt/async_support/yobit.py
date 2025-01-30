@@ -351,17 +351,20 @@ class yobit(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,

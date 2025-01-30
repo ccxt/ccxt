@@ -476,17 +476,20 @@ class kraken(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -497,6 +500,7 @@ class kraken(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 720,

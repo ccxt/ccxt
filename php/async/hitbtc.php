@@ -326,12 +326,14 @@ class hitbtc extends Exchange {
                         'limit' => 1000,
                         'daysBack' => 100000,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOpenOrders' => array(
@@ -339,6 +341,7 @@ class hitbtc extends Exchange {
                         'limit' => 1000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOrders' => null,
@@ -350,6 +353,7 @@ class hitbtc extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOHLCV' => array(

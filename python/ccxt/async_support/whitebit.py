@@ -322,6 +322,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -329,6 +330,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo
                     'fetchClosedOrders': {
@@ -339,6 +341,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,

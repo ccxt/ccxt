@@ -160,12 +160,14 @@ class oceanex extends Exchange {
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo => max unknown
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -174,6 +176,7 @@ class oceanex extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -183,6 +186,7 @@ class oceanex extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 100,

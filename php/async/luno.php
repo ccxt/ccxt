@@ -214,17 +214,20 @@ class luno extends Exchange {
                         'limit' => 1000,
                         'daysBack' => 100000, // todo
                         'untilDays' => 100000, // todo
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -233,6 +236,7 @@ class luno extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -242,6 +246,7 @@ class luno extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => null,

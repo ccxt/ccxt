@@ -306,6 +306,7 @@ class whitebit extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -313,6 +314,7 @@ class whitebit extends Exchange {
                         'limit' => 100,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // todo
                     'fetchClosedOrders' => array(
@@ -323,6 +325,7 @@ class whitebit extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,

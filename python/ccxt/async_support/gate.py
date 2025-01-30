@@ -758,17 +758,20 @@ class gate(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'trigger': True,
                         'trailing': False,
                         'limit': 100,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -779,6 +782,7 @@ class gate(Exchange, ImplicitAPI):
                         'untilDays': 30,
                         'daysBack': None,
                         'daysBackCanceled': None,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
