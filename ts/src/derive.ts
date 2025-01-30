@@ -108,7 +108,7 @@ export default class derive extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -2259,6 +2259,52 @@ export default class derive extends Exchange {
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name derive#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        params = this.omit (params, [ 'subaccount_id' ]);
+        const response = await this.privatePostGetWithdrawalHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "events": [
+        //             {
+        //                 "timestamp": 1736860533599,
+        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //                 "asset": "ETH",
+        //                 "amount": "0.1",
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //                 "error_log": {}
+        //             }
+        //         ]
+        //     },
+        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        // }
+        //
+        const currency = this.safeCurrency (code);
+        const result = this.safeDict (response, 'result', {});
+        const events = this.safeList (result, 'events');
+        return this.parseTransactions (events, currency, since, limit, params);
+    }
+
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // {
@@ -2273,10 +2319,14 @@ export default class derive extends Exchange {
         //
         const code = this.safeString (transaction, 'asset');
         const timestamp = this.safeInteger (transaction, 'timestamp');
+        let txId = this.safeString (transaction, 'tx_hash');
+        if (txId === '0x0') {
+            txId = undefined;
+        }
         return {
             'info': transaction,
             'id': undefined,
-            'txid': this.safeString (transaction, 'tx_hash'),
+            'txid': txId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
@@ -2299,11 +2349,8 @@ export default class derive extends Exchange {
 
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
-            // 'NEW': 'pending',
-            // 'CONFIRMING': 'pending',
-            // 'PROCESSING': 'pending',
             'settled': 'ok',
-            // 'CANCELED': 'canceled',
+            'reverted': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
