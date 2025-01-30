@@ -1,7 +1,7 @@
 {
     "exchange": "digifinex",
     "skipKeys": [],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "createOrder": [
             {
@@ -107,6 +107,7 @@
         "createOrders": [
             {
                 "description": "Spot create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/spot/order/batch_new",
                 "input": [
@@ -131,6 +132,7 @@
             },
             {
                 "description": "Spot margin create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/margin/order/batch_new",
                 "input": [

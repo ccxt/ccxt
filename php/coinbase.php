@@ -403,17 +403,20 @@ class coinbase extends Exchange {
                         'limit' => 3000,
                         'daysBack' => null,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -422,6 +425,7 @@ class coinbase extends Exchange {
                         'untilDays' => 10000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -431,6 +435,7 @@ class coinbase extends Exchange {
                         'untilDays' => 10000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 350,
@@ -1294,7 +1299,7 @@ class coinbase extends Exchange {
         return $this->fetch_markets_v2($params);
     }
 
-    public function fetch_markets_v2($params = array ()) {
+    public function fetch_markets_v2($params = array ()): array {
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_dict($response, 'currencies', array());
         $exchangeRates = $this->safe_dict($response, 'exchangeRates', array());
@@ -1313,7 +1318,7 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
-                    $result[] = array(
+                    $result[] = $this->safe_market_structure(array(
                         'id' => $baseId . '-' . $quoteId,
                         'symbol' => $base . '/' . $quote,
                         'base' => $base,
@@ -1360,14 +1365,14 @@ class coinbase extends Exchange {
                             ),
                         ),
                         'info' => $quoteCurrency,
-                    );
+                    ));
                 }
             }
         }
         return $result;
     }
 
-    public function fetch_markets_v3($params = array ()) {
+    public function fetch_markets_v3($params = array ()): array {
         $usePrivate = false;
         list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
         $spotUnresolvedPromises = array();
@@ -1964,7 +1969,7 @@ class coinbase extends Exchange {
         return $this->fetch_tickers_v2($symbols, $params);
     }
 
-    public function fetch_tickers_v2(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v2(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array(
@@ -1999,7 +2004,7 @@ class coinbase extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_tickers_v3(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v3(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();

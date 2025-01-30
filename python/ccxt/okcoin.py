@@ -264,17 +264,20 @@ class okcoin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 90,
                         'untilDays': 90,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': True,  # todo
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -285,6 +288,7 @@ class okcoin(Exchange, ImplicitAPI):
                         'untilDays': 90,  # todo
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 100,  # 300 is only possible for 'recent' 1440 candles, which does not make much sense
@@ -707,12 +711,20 @@ class okcoin(Exchange, ImplicitAPI):
         """
         response = self.publicGetPublicTime(params)
         #
-        #     {
-        #         "iso": "2015-01-07T23:47:25.201Z",
-        #         "epoch": 1420674445.201
-        #     }
+        # {
+        #     "code": "0",
+        #     "data":
+        #         [
+        #             {
+        #                 "ts": "1737379360033"
+        #             }
+        #         ],
+        #     "msg": ""
+        # }
         #
-        return self.parse8601(self.safe_string(response, 'iso'))
+        data = self.safe_list(response, 'data')
+        timestamp = self.safe_dict(data, 0)
+        return self.safe_integer(timestamp, 'ts')
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

@@ -266,12 +266,14 @@ class ellipx(Exchange, ImplicitAPI):
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -280,6 +282,7 @@ class ellipx(Exchange, ImplicitAPI):
                         'untilDays': None,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': None,
                     'fetchOHLCV': {
@@ -1621,7 +1624,7 @@ class ellipx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_trading_fee(self, symbol: str = None, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         Fetches the current trading fees(maker and taker) applicable to the user.
 
@@ -1855,10 +1858,11 @@ class ellipx(Exchange, ImplicitAPI):
         e = self.safe_integer(amount, 'e', None)
         if v is None or e is None:
             return None
-        preciseAmount = Precise(v)
-        preciseAmount.decimals = e
-        preciseAmount.reduce()
-        return str(preciseAmount)
+        precise = Precise(v)
+        precise.decimals = e
+        precise.reduce()
+        amountString = str(precise)
+        return amountString
 
     def to_amount(self, amount: float, precision: float) -> dict:
         v = str(amount)

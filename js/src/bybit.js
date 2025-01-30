@@ -1195,18 +1195,21 @@ export default class bybit extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 365 * 2,
-                        'untilDays': 7, // days between start-end
+                        'untilDays': 7,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 50,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1217,6 +1220,7 @@ export default class bybit extends Exchange {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1518,6 +1522,9 @@ export default class bybit extends Exchange {
         return amountString;
     }
     getPrice(symbol, price) {
+        if (price === undefined) {
+            return price;
+        }
         const market = this.market(symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -4769,7 +4776,7 @@ export default class bybit extends Exchange {
     }
     /**
      * @method
-     * @name bybit#fetchOrderClassic
+     * @name bybit#fetchOrder
      * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
@@ -4890,7 +4897,7 @@ export default class bybit extends Exchange {
     }
     /**
      * @method
-     * @name bybit#fetchOrders
+     * @name bybit#fetchOrdersClassic
      * @description fetches information on multiple orders made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} symbol unified market symbol of the market orders were made in

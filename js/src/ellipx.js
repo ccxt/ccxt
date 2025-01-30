@@ -266,12 +266,14 @@ export default class ellipx extends Exchange {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -280,6 +282,7 @@ export default class ellipx extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -1679,7 +1682,7 @@ export default class ellipx extends Exchange {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    async fetchTradingFee(symbol = undefined, params = {}) {
+    async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
         const response = await this.privateGetMarketTradeFeeQuery(params);
         //
@@ -1712,6 +1715,7 @@ export default class ellipx extends Exchange {
     }
     /**
      * @method
+     * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
      * @param {string} code Currency code
@@ -1898,10 +1902,11 @@ export default class ellipx extends Exchange {
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const preciseAmount = new Precise(v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce();
-        return preciseAmount.toString();
+        const precise = new Precise(v);
+        precise.decimals = e;
+        precise.reduce();
+        const amountString = precise.toString();
+        return amountString;
     }
     toAmount(amount, precision) {
         const v = amount.toString();

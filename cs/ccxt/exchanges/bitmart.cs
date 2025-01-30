@@ -623,17 +623,20 @@ public partial class bitmart : Exchange
                         { "limit", 200 },
                         { "daysBack", null },
                         { "untilDays", 99999 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 200 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -644,6 +647,7 @@ public partial class bitmart : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -874,7 +878,7 @@ public partial class bitmart : Exchange
             object minSellCost = this.safeString(market, "min_sell_amount");
             object minCost = Precise.stringMax(minBuyCost, minSellCost);
             object baseMinSize = this.safeNumber(market, "base_min_size");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
                 { "symbol", symbol },
@@ -923,7 +927,7 @@ public partial class bitmart : Exchange
                 } },
                 { "created", null },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -993,7 +997,7 @@ public partial class bitmart : Exchange
             {
                 expiry = null;
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", null },
                 { "symbol", symbol },
@@ -1042,7 +1046,7 @@ public partial class bitmart : Exchange
                 } },
                 { "created", this.safeInteger(market, "open_timestamp") },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -3825,7 +3829,7 @@ public partial class bitmart : Exchange
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
             {
-                ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], add("-", network)); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                ((IDictionary<string,object>)request)["currency"] = add(add(getValue(request, "currency"), "-"), network); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 ((IDictionary<string,object>)currency)["code"] = getValue(request, "currency"); // update currency code to filter
                 parameters = this.omit(parameters, "network");
             }
@@ -4792,7 +4796,7 @@ public partial class bitmart : Exchange
      * @description fetches historical funding rate prices
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}

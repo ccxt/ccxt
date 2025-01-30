@@ -159,6 +159,91 @@
         }
     },
     "methods": {
+        "createOrder": [
+            {
+                "description": "spot +selfTradePrevention +iceberg",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    241,
+                    {
+                        "selfTradePrevention": "expire_maker",
+                        "icebergAmount": 0.03
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "SOLUSDT",
+                    "orderId": "9780331417",
+                    "orderListId": "-1",
+                    "clientOrderId": "x-R4BD3S824d31be3228a348eaa0a303",
+                    "transactTime": "1737635557417",
+                    "price": "241.00000000",
+                    "origQty": "0.05000000",
+                    "executedQty": "0.00000000",
+                    "origQuoteOrderQty": "0.00000000",
+                    "cummulativeQuoteQty": "0.00000000",
+                    "status": "NEW",
+                    "timeInForce": "GTC",
+                    "type": "LIMIT",
+                    "side": "BUY",
+                    "workingTime": "1737635557417",
+                    "icebergQty": "0.03000000",
+                    "fills": [],
+                    "selfTradePreventionMode": "EXPIRE_MAKER"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "SOLUSDT",
+                        "orderId": "9780331417",
+                        "orderListId": "-1",
+                        "clientOrderId": "x-R4BD3S824d31be3228a348eaa0a303",
+                        "transactTime": "1737635557417",
+                        "price": "241.00000000",
+                        "origQty": "0.05000000",
+                        "executedQty": "0.00000000",
+                        "origQuoteOrderQty": "0.00000000",
+                        "cummulativeQuoteQty": "0.00000000",
+                        "status": "NEW",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "workingTime": "1737635557417",
+                        "icebergQty": "0.03000000",
+                        "fills": [],
+                        "selfTradePreventionMode": "EXPIRE_MAKER"
+                    },
+                    "id": "9780331417",
+                    "clientOrderId": "x-R4BD3S824d31be3228a348eaa0a303",
+                    "timestamp": 1737635557417,
+                    "datetime": "2025-01-23T12:32:37.417Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1737635557417,
+                    "symbol": "SOL/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 241,
+                    "triggerPrice": null,
+                    "amount": 0.05,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.05,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "Fetch spot closed order",

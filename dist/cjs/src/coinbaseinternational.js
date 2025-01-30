@@ -287,17 +287,20 @@ class coinbaseinternational extends coinbaseinternational$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -816,7 +819,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const currency = this.currency(code);
         const networks = this.safeDict(currency, 'networks');
         if (networks !== undefined) {
-            return;
+            return false;
         }
         const request = {
             'asset': currency['id'],
@@ -841,6 +844,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //    ]
         //
         currency['networks'] = this.parseNetworks(rawNetworks);
+        return true;
     }
     parseNetworks(networks, params = {}) {
         const result = {};

@@ -467,7 +467,7 @@ class coinex extends coinex$1 {
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -533,17 +533,20 @@ class coinex extends coinex$1 {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -554,6 +557,7 @@ class coinex extends coinex$1 {
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -3928,7 +3932,7 @@ class coinex extends coinex$1 {
             'currency': this.safeCurrencyCode(undefined, currency),
             'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'memo', tag),
         };
     }
     /**
@@ -4802,14 +4806,14 @@ class coinex extends coinex$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        if (tag) {
-            address = address + ':' + tag;
-        }
         const request = {
             'ccy': currency['id'],
             'to_address': address,
             'amount': this.numberToString(amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {

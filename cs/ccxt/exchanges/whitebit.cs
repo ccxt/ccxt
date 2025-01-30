@@ -152,6 +152,8 @@ public partial class whitebit : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fiatCurrencies", new List<object>() {"EUR", "USD", "RUB", "UAH"} },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "account", "spot" },
@@ -168,6 +170,78 @@ public partial class whitebit : Exchange
                 } },
                 { "defaultType", "spot" },
                 { "brokerId", "ccxt" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -211,6 +285,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object markets = await this.v4PublicGetMarkets();
         //
         //    [
@@ -1198,7 +1276,7 @@ public partial class whitebit : Exchange
         object response = await this.v4PublicGetTime(parameters);
         //
         //     {
-        //         "time":1635467280514
+        //         "time":1737380046
         //     }
         //
         return this.safeInteger(response, "time");
@@ -1217,11 +1295,9 @@ public partial class whitebit : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         // only buy side is supported
-        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+        return await this.createOrder(symbol, "market", side, 0, null, parameters);
     }
 
     /**
@@ -2720,7 +2796,7 @@ public partial class whitebit : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2743,12 +2819,14 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            object nonce = this.nonce();
+            object timestamp = this.parseToInt(divide(nonce, 1000));
+            object timestampString = ((object)timestamp).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
-                { "nonce", nonce },
+                { "nonce", timestampString },
             }, parameters));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);

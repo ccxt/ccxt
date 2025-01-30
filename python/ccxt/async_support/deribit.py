@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -327,17 +327,20 @@ class deribit(Exchange, ImplicitAPI):
                         'limit': 100,  # todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -348,6 +351,7 @@ class deribit(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo: recheck
@@ -760,7 +764,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account, currency: Currency = None):
+    def parse_account(self, account):
         #
         #      {
         #          "username": "someusername_1",
@@ -779,7 +783,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': account,
             'id': self.safe_string(account, 'id'),
             'type': self.safe_string(account, 'type'),
-            'code': self.safe_currency_code(None, currency),
+            'code': None,
         }
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -3063,7 +3067,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :param int [params.until]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
@@ -3071,17 +3075,32 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
+        eachItemDuration = '1h'
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720)
+            # fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
+        duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
+        else:
+            time = since + month
         request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         }
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_timestamp'] = until
+        else:
+            request['end_timestamp'] = time
+        if 'isDeribitPaginationCall' in params:
+            params = self.omit(params, 'isDeribitPaginationCall')
+            maxUntil = self.sum(since, limit * duration)
+            request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {

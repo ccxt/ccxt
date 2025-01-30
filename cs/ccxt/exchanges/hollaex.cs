@@ -188,17 +188,20 @@ public partial class hollaex : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -207,6 +210,7 @@ public partial class hollaex : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -216,6 +220,7 @@ public partial class hollaex : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -856,13 +861,14 @@ public partial class hollaex : Exchange
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -875,30 +881,22 @@ public partial class hollaex : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object duration = this.parseTimeframe(timeframe);
-        if (isTrue(isEqual(since, null)))
+        object until = this.safeInteger(parameters, "until");
+        object end = this.seconds();
+        if (isTrue(!isEqual(until, null)))
         {
-            if (isTrue(isEqual(limit, null)))
-            {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            }
-            object end = this.seconds();
-            object start = subtract(end, multiply(duration, limit));
-            ((IDictionary<string,object>)request)["to"] = end;
-            ((IDictionary<string,object>)request)["from"] = start;
+            end = this.parseToInt(divide(until, 1000));
+        }
+        object defaultSpan = 2592000; // 30 days
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         } else
         {
-            if (isTrue(isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-                ((IDictionary<string,object>)request)["to"] = this.seconds();
-            } else
-            {
-                object start = this.parseToInt(divide(since, 1000));
-                ((IDictionary<string,object>)request)["from"] = start;
-                ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(duration, limit));
-            }
+            ((IDictionary<string,object>)request)["from"] = subtract(end, defaultSpan);
         }
+        ((IDictionary<string,object>)request)["to"] = end;
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetChart(this.extend(request, parameters));
         //
         //     [
@@ -2063,6 +2061,7 @@ public partial class hollaex : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
+        // { "message": "Invalid token" }
         if (isTrue(isEqual(response, null)))
         {
             return null;
@@ -2072,7 +2071,7 @@ public partial class hollaex : Exchange
             //
             //  { "message": "Invalid token" }
             //
-            // different errors return the same code eg:
+            // different errors return the same code eg
             //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //

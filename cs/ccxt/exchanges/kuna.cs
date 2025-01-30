@@ -350,12 +350,14 @@ public partial class kuna : Exchange
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -366,6 +368,7 @@ public partial class kuna : Exchange
                         { "untilDays", 14 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", null },
                 } },
@@ -1089,7 +1092,7 @@ public partial class kuna : Exchange
 
     /**
      * @method
-     * @name kuna#cancelOrder
+     * @name kuna#cancelOrders
      * @description cancels an open order
      * @param {string} ids order ids
      * @param {string} symbol not used by kuna cancelOrder

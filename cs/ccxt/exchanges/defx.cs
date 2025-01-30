@@ -273,17 +273,20 @@ public partial class defx : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -292,6 +295,7 @@ public partial class defx : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -301,6 +305,7 @@ public partial class defx : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -956,7 +961,7 @@ public partial class defx : Exchange
 
     /**
      * @method
-     * @name defx#fetchTrades
+     * @name defx#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
      * @param {string} symbol unified symbol of the market to fetch trades for

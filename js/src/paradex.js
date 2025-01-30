@@ -310,18 +310,21 @@ export default class paradex extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000, // todo
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -330,6 +333,7 @@ export default class paradex extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -959,7 +963,7 @@ export default class paradex extends Exchange {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -1039,17 +1043,19 @@ export default class paradex extends Exchange {
     async prepareParadexDomain(l1 = false) {
         const systemConfig = await this.getSystemConfig();
         if (l1 === true) {
-            return {
+            const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             };
+            return l1D;
         }
-        return {
+        const domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         };
+        return domain;
     }
     async retrieveAccount() {
         const cachedAccount = this.safeDict(this.options, 'paradexAccount');
@@ -1722,7 +1728,7 @@ export default class paradex extends Exchange {
     }
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

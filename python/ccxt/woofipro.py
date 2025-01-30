@@ -341,17 +341,20 @@ class woofipro(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': None,
                         'untilDays': 100000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 500,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -362,6 +365,7 @@ class woofipro(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1384,6 +1388,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             }
+            childOrders = outterOrder['child_orders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
                 stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
@@ -1394,7 +1399,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder['child_orders'].append(stopLossOrder)
+                childOrders.append(stopLossOrder)
             if takeProfit is not None:
                 takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
                 takeProfitOrder: dict = {
@@ -1404,7 +1409,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder['child_orders'].append(takeProfitOrder)
+                outterOrder.append(takeProfitOrder)
             request['child_orders'] = [outterOrder]
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
@@ -1774,7 +1779,9 @@ class woofipro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = self.market(symbol) if (symbol is not None) else None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -2192,7 +2199,9 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
-        currency, rows = self.get_asset_history_rows(code, since, limit, params)
+        currencyRows = self.get_asset_history_rows(code, since, limit, params)
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2285,7 +2294,9 @@ class woofipro(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request: dict = {}
-        currency, rows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         #
         #     {
         #         "rows":[],
@@ -2544,7 +2555,7 @@ class woofipro(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: Str = None, params={}):
+    def fetch_position(self, symbol: Str, params={}):
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info

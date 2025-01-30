@@ -739,17 +739,20 @@ class gate extends gate$1 {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'trigger': true,
                         'trailing': false,
                         'limit': 100,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -760,6 +763,7 @@ class gate extends gate$1 {
                         'untilDays': 30,
                         'daysBack': undefined,
                         'daysBackCanceled': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1821,7 +1825,7 @@ class gate extends gate$1 {
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
             if (this.safeValue(result, code) === undefined) {
                 result[code] = {
-                    'id': code.toLowerCase(),
+                    'id': currency,
                     'code': code,
                     'info': undefined,
                     'name': undefined,
@@ -6453,7 +6457,7 @@ class gate extends gate$1 {
     }
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowIsolatedMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
      * @param {string} symbol unified market symbol, required for isolated margin

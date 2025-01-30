@@ -248,17 +248,20 @@ class okcoin extends Exchange {
                         'limit' => 100,
                         'daysBack' => 90,
                         'untilDays' => 90, // todo
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true, // todo
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -269,6 +272,7 @@ class okcoin extends Exchange {
                         'untilDays' => 90, // todo
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
@@ -687,18 +691,26 @@ class okcoin extends Exchange {
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
+             * fetches the current integer $timestamp in milliseconds from the exchange server
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetPublicTime ($params));
             //
-            //     {
-            //         "iso" => "2015-01-07T23:47:25.201Z",
-            //         "epoch" => 1420674445.201
-            //     }
+            // {
+            //     "code" => "0",
+            //     "data":
+            //         array(
+            //             {
+            //                 "ts" => "1737379360033"
+            //             }
+            //         ),
+            //     "msg" => ""
+            // }
             //
-            return $this->parse8601($this->safe_string($response, 'iso'));
+            $data = $this->safe_list($response, 'data');
+            $timestamp = $this->safe_dict($data, 0);
+            return $this->safe_integer($timestamp, 'ts');
         }) ();
     }
 

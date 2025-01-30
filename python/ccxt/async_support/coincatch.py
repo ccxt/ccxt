@@ -464,11 +464,13 @@ class coincatch(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 100000,  # todo implement
                         'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
@@ -476,6 +478,7 @@ class coincatch(Exchange, ImplicitAPI):
                         'trigger': True,
                         'trailing': False,
                         'marketType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo implement

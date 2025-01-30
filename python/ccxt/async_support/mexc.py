@@ -727,17 +727,20 @@ class mexc(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -746,6 +749,7 @@ class mexc(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': True,
@@ -755,6 +759,7 @@ class mexc(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1380,6 +1385,7 @@ class mexc(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
+            isLinear = quote == settle
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1397,8 +1403,8 @@ class mexc(Exchange, ImplicitAPI):
                 'option': False,
                 'active': (state == '0'),
                 'contract': True,
-                'linear': True,
-                'inverse': False,
+                'linear': isLinear,
+                'inverse': not isLinear,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
@@ -2190,10 +2196,8 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        req = {
-            'cost': cost,
-        }
-        return await self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
+        params['cost'] = cost
+        return await self.create_order(symbol, 'market', 'buy', 0, None, params)
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2210,10 +2214,8 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        req = {
-            'cost': cost,
-        }
-        return await self.create_order(symbol, 'market', 'sell', 0, None, self.extend(req, params))
+        params['cost'] = cost
+        return await self.create_order(symbol, 'market', 'sell', 0, None, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -2234,7 +2236,7 @@ class mexc(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
-
+        :param str [params.timeInForce]: 'IOC' or 'FOK', default is 'GTC'
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
         :param long [params.positionId]: *contract only* it is recommended to hasattr(self, fill) parameter when closing a position
@@ -2289,6 +2291,13 @@ class mexc(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
         if postOnly:
             request['type'] = 'LIMIT_MAKER'
+        tif = self.safe_string(params, 'timeInForce')
+        if tif is not None:
+            params = self.omit(params, 'timeInForce')
+            if tif == 'IOC':
+                request['type'] = 'IMMEDIATE_OR_CANCEL'
+            elif tif == 'FOK':
+                request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
     async def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
@@ -4624,7 +4633,7 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
             if rawNetwork is not None:
                 params = self.omit(params, 'network')
-                request['coin'] += '-' + rawNetwork
+                request['coin'] = request['coin'] + '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -5708,12 +5717,20 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/' + path
             else:
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
-            paramsEncoded = ''
+            urlParams = params
             if access == 'private':
-                params['timestamp'] = self.nonce()
-                params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
-            if params:
-                paramsEncoded = self.urlencode(params)
+                if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
+                    urlParams = {
+                        'timestamp': self.nonce(),
+                        'recvWindow': self.safe_integer(self.options, 'recvWindow', 5000),
+                    }
+                    body = self.json(params)
+                else:
+                    urlParams['timestamp'] = self.nonce()
+                    urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
+            paramsEncoded = ''
+            if urlParams:
+                paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
                 self.check_required_credentials()

@@ -729,17 +729,20 @@ public partial class gate : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", true },
                         { "trailing", false },
                         { "limit", 100 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -750,6 +753,7 @@ public partial class gate : Exchange
                         { "untilDays", 30 },
                         { "daysBack", null },
                         { "daysBackCanceled", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1826,7 +1830,7 @@ public partial class gate : Exchange
             if (isTrue(isEqual(this.safeValue(result, code), null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", ((string)code).ToLower() },
+                    { "id", currency },
                     { "code", code },
                     { "info", null },
                     { "name", null },
@@ -6942,7 +6946,7 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowIsolatedMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
      * @param {string} symbol unified market symbol, required for isolated margin

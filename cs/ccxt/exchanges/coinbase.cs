@@ -360,17 +360,20 @@ public partial class coinbase : Exchange
                         { "limit", 3000 },
                         { "daysBack", null },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -379,6 +382,7 @@ public partial class coinbase : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -388,6 +392,7 @@ public partial class coinbase : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 350 },
@@ -1340,7 +1345,7 @@ public partial class coinbase : Exchange
                     object quoteCurrency = getValue(data, j);
                     object quoteId = this.safeString(quoteCurrency, "id");
                     object quote = this.safeCurrencyCode(quoteId);
-                    ((IList<object>)result).Add(new Dictionary<string, object>() {
+                    ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                         { "id", add(add(baseId, "-"), quoteId) },
                         { "symbol", add(add(bs, "/"), quote) },
                         { "base", bs },
@@ -1387,7 +1392,7 @@ public partial class coinbase : Exchange
                             } },
                         } },
                         { "info", quoteCurrency },
-                    });
+                    }));
                 }
             }
         }
@@ -4826,7 +4831,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4851,7 +4856,7 @@ public partial class coinbase : Exchange
      * @param {strng} params.toCode the unified currency code that was converted into
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

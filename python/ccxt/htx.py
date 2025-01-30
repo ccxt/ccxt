@@ -1286,17 +1286,20 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
                         'limit': 500,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -1305,6 +1308,7 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -1314,6 +1318,7 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # 2000 for non-historical
@@ -3212,7 +3217,9 @@ class htx(Exchange, ImplicitAPI):
                 type = 'super-margin'
             elif marginMode == 'isolated':
                 type = 'margin'
-        marketId = None if (symbol is None) else self.market_id(symbol)
+        marketId = None
+        if symbol is not None:
+            marketId = self.market_id(symbol)
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')
@@ -6991,10 +6998,12 @@ class htx(Exchange, ImplicitAPI):
                     'AccessKeyId': self.apiKey,
                     'Timestamp': timestamp,
                 }
-                if method != 'POST':
-                    request = self.extend(request, query)
+                # sorting needs such flow exactly, before urlencoding(more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = self.keysort(request)
-                auth = self.urlencode(request)
+                if method != 'POST':
+                    sortedQuery = self.keysort(query)
+                    request = self.extend(request, sortedQuery)
+                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

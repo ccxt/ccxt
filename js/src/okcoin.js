@@ -245,18 +245,21 @@ export default class okcoin extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 90, // todo
+                        'untilDays': 90,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
-                        'trailing': true, // todo
+                        'trailing': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -267,6 +270,7 @@ export default class okcoin extends Exchange {
                         'untilDays': 90,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
@@ -691,12 +695,20 @@ export default class okcoin extends Exchange {
     async fetchTime(params = {}) {
         const response = await this.publicGetPublicTime(params);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601(this.safeString(response, 'iso'));
+        const data = this.safeList(response, 'data');
+        const timestamp = this.safeDict(data, 0);
+        return this.safeInteger(timestamp, 'ts');
     }
     /**
      * @method

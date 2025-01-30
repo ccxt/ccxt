@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.49'
+__version__ = '4.4.52'
 
 # -----------------------------------------------------------------------------
 
@@ -811,14 +811,18 @@ class Exchange(BaseExchange):
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
             retry = 0
+            shouldBreak = False
             while(retry < maxRetries):
                 try:
                     response = await getattr(self, endpointMethod)({})
+                    shouldBreak = True
                     break
                 except Exception as e:
                     retry = retry + 1
                     if retry == maxRetries:
                         raise e
+                if shouldBreak:
+                    break  # self is needed because of GO
             content = response
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
@@ -881,8 +885,9 @@ class Exchange(BaseExchange):
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
-                        continue
-                raise e
+                        # continue  #check self
+                if i >= retries:
+                    raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
@@ -1115,6 +1120,18 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTrade() is not supported yet')
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTradeHistory() is not supported yet')
+
+    async def fetch_position_mode(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
     async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
         """

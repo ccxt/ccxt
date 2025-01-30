@@ -13,6 +13,7 @@ import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
+import { capitalize } from '../js/src/base/functions.js'
 
 const { keys, values, entries, fromEntries } = Object
 
@@ -264,7 +265,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
-        'type': exchange.dex ? 'dex' : 'cex',
+        'type': exchange.dex ? '![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")' : '![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange")',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -686,6 +687,11 @@ async function exportEverything () {
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
         },
+        {
+            file: './go/ccxt/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} };`,
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
@@ -722,6 +728,7 @@ async function exportEverything () {
 
     unlimitedLog.bright.green ('Exported successfully.')
 }
+
 
 // ============================================================================
 // main entry point

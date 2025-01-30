@@ -8,7 +8,7 @@ namespace Tests;
 public partial class testMainClass : BaseTest
 {
     // ----------------------------------------------------------------------------
-    public static void tcoDebug(Exchange exchange, object symbol, object message)
+    public static object tcoDebug(Exchange exchange, object symbol, object message)
     {
         // just for debugging purposes
         object debugCreateOrder = true;
@@ -17,9 +17,10 @@ public partial class testMainClass : BaseTest
             // for c# fix, extra step to convert them to string
             Console.WriteLine(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString(), " : ", symbol, "] ", message);
         }
+        return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task testCreateOrder(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testCreateOrder(Exchange exchange, object skippedProperties, object symbol)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
         assert(isTrue(isTrue(getValue(exchange.has, "cancelOrder")) || isTrue(getValue(exchange.has, "cancelOrders"))) || isTrue(getValue(exchange.has, "cancelAllOrders")), add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
@@ -56,9 +57,11 @@ public partial class testMainClass : BaseTest
             await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell", null);
         }
         tcoDebug(exchange, symbol, "### SCENARIO 2 PASSED ###");
+        // **************** [Scenario 3 - START] **************** //
+        return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task tcoCreateUnfillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSell, object predefinedAmount = null)
+    async static public Task<object> tcoCreateUnfillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSell, object predefinedAmount = null)
     {
         try
         {
@@ -105,8 +108,9 @@ public partial class testMainClass : BaseTest
         {
             throw new Exception ((string)add(add(logPrefix, " failed for Scenario 1: "), ((object)e).ToString())) ;
         }
+        return true;
     }
-    async static public Task tcoCreateFillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSellString, object predefinedAmount = null)
+    async static public Task<object> tcoCreateFillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSellString, object predefinedAmount = null)
     {
         try
         {
@@ -143,8 +147,9 @@ public partial class testMainClass : BaseTest
         {
             throw new Exception ((string)add("failed for Scenario 2: ", ((object)e).ToString())) ;
         }
+        return true;
     }
-    public static void tcoAssertFilledOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object createdOrder, object fetchedOrder, object requestedSide, object requestedAmount)
+    public static object tcoAssertFilledOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object createdOrder, object fetchedOrder, object requestedSide, object requestedAmount)
     {
         // test filled amount
         object precisionAmount = exchange.safeString(getValue(market, "precision"), "amount");
@@ -163,9 +168,10 @@ public partial class testMainClass : BaseTest
         // ensure that order side matches
         testSharedMethods.assertInArray(exchange, skippedProperties, "createdOrder", createdOrder, "side", new List<object>() {null, requestedSide});
         testSharedMethods.assertInArray(exchange, skippedProperties, "fetchedOrder", fetchedOrder, "side", new List<object>() {null, requestedSide});
+        return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task tcoCancelOrder(Exchange exchange, object symbol, object orderId = null)
+    async static public Task<object> tcoCancelOrder(Exchange exchange, object symbol, object orderId = null)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
         object usedMethod = "";
@@ -183,6 +189,10 @@ public partial class testMainClass : BaseTest
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
         tcoDebug(exchange, symbol, add(add(add("canceled order using ", usedMethod), ":"), getValue(cancelResult, "id")));
+        // todo:
+        // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
+        // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
+        return true;
     }
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
@@ -259,7 +269,7 @@ public partial class testMainClass : BaseTest
         finalAmount = parseFloat(exchange.decimalToPrecision(finalAmount, 2, getValue(getValue(market, "precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
-    async static public Task tcoTryCancelOrder(Exchange exchange, object symbol, object order, object skippedProperties)
+    async static public Task<object> tcoTryCancelOrder(Exchange exchange, object symbol, object order, object skippedProperties)
     {
         object orderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(order, "id"), skippedProperties);
         object needsCancel = exchange.inArray(getValue(orderFetched, "status"), new List<object>() {"open", "pending", null});
@@ -279,6 +289,7 @@ public partial class testMainClass : BaseTest
         {
             tcoDebug(exchange, symbol, "order is already closed/filled, no need to cancel it");
         }
+        return true;
     }
 
 }

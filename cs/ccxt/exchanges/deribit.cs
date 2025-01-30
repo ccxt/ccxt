@@ -287,17 +287,20 @@ public partial class deribit : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -308,6 +311,7 @@ public partial class deribit : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -773,7 +777,7 @@ public partial class deribit : Exchange
             { "info", account },
             { "id", this.safeString(account, "id") },
             { "type", this.safeString(account, "type") },
-            { "code", this.safeCurrencyCode(null, currency) },
+            { "code", null },
         };
     }
 
@@ -3341,7 +3345,7 @@ public partial class deribit : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3354,21 +3358,44 @@ public partial class deribit : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
+        object maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        object eachItemDuration = "1h";
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.extend(parameters, new Dictionary<string, object>() {
+                { "isDeribitPaginationCall", true },
+            }), maxEntriesPerRequest);
         }
+        object duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();
         object month = multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000);
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(time, month);
+        } else
+        {
+            time = add(since, month);
         }
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(since, 1) },
-            { "end_timestamp", time },
         };
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        } else
+        {
+            ((IDictionary<string,object>)request)["end_timestamp"] = time;
+        }
+        if (isTrue(inOp(parameters, "isDeribitPaginationCall")))
+        {
+            parameters = this.omit(parameters, "isDeribitPaginationCall");
+            object maxUntil = this.sum(since, multiply(limit, duration));
+            ((IDictionary<string,object>)request)["end_timestamp"] = mathMin(getValue(request, "end_timestamp"), maxUntil);
+        }
         object response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));
         //
         //    {

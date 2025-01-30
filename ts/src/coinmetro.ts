@@ -211,7 +211,7 @@ export default class coinmetro extends Exchange {
             // exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': undefined,
-                'currencyIdsListForParseMarket': undefined,
+                'currencyIdsListForParseMarket': [ 'QRDO' ],
             },
             'features': {
                 'spot': {
@@ -247,17 +247,20 @@ export default class coinmetro extends Exchange {
                         'limit': undefined,
                         'daysBack': 100000,
                         'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -266,6 +269,7 @@ export default class coinmetro extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -401,7 +405,12 @@ export default class coinmetro extends Exchange {
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
             const currenciesById = this.indexBy (result, 'id');
             this.options['currenciesByIdForParseMarket'] = currenciesById;
-            this.options['currencyIdsListForParseMarket'] = Object.keys (currenciesById);
+            const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
+            const currencyIdsList = Object.keys (currenciesById);
+            for (let i = 0; i < currencyIdsList.length; i++) {
+                currentCurrencyIdsList.push (currencyIdsList[i]);
+            }
+            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         }
         return result;
     }
@@ -505,10 +514,22 @@ export default class coinmetro extends Exchange {
         let baseId = undefined;
         let quoteId = undefined;
         const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
+        // Bubble sort by length (longest first)
+        const currencyIdsLength = currencyIds.length;
+        for (let i = 0; i < currencyIdsLength; i++) {
+            for (let j = 0; j < currencyIdsLength - i - 1; j++) {
+                const a = currencyIds[j];
+                const b = currencyIds[j + 1];
+                if (a.length < b.length) {
+                    currencyIds[j] = b;
+                    currencyIds[j + 1] = a;
+                }
+            }
+        }
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const entryIndex = marketId.indexOf (currencyId);
-            if (entryIndex !== -1) {
+            if (entryIndex === 0) {
                 const restId = marketId.replace (currencyId, '');
                 if (this.inArray (restId, currencyIds)) {
                     if (entryIndex === 0) {
@@ -1290,9 +1311,9 @@ export default class coinmetro extends Exchange {
         let request: Dict = {
         };
         request['orderType'] = type;
-        let precisedAmount = undefined;
+        let formattedAmount = undefined;
         if (amount !== undefined) {
-            precisedAmount = this.amountToPrecision (symbol, amount);
+            formattedAmount = this.amountToPrecision (symbol, amount);
         }
         let cost = this.safeValue (params, 'cost');
         params = this.omit (params, 'cost');
@@ -1300,7 +1321,7 @@ export default class coinmetro extends Exchange {
             if ((price === undefined) && (cost === undefined)) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order');
             } else if ((price !== undefined) && (amount !== undefined)) {
-                const costString = Precise.stringMul (this.numberToString (price), this.numberToString (precisedAmount));
+                const costString = Precise.stringMul (this.numberToString (price), this.numberToString (formattedAmount));
                 cost = this.parseToNumeric (costString);
             }
         }
@@ -1309,9 +1330,9 @@ export default class coinmetro extends Exchange {
             precisedCost = this.costToPrecision (symbol, cost);
         }
         if (side === 'sell') {
-            request = this.handleCreateOrderSide (market['baseId'], market['quoteId'], precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide (market['baseId'], market['quoteId'], formattedAmount, precisedCost, request);
         } else if (side === 'buy') {
-            request = this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, formattedAmount, request);
         }
         const timeInForce = this.safeValue (params, 'timeInForce');
         if (timeInForce !== undefined) {
@@ -1447,7 +1468,7 @@ export default class coinmetro extends Exchange {
 
     /**
      * @method
-     * @name coinmetro#cancelOrder
+     * @name coinmetro#closePosition
      * @description closes an open position
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
      * @param {string} symbol not used by coinmetro closePosition ()

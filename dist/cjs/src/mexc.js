@@ -712,17 +712,20 @@ class mexc extends mexc$1 {
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -731,6 +734,7 @@ class mexc extends mexc$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
@@ -740,6 +744,7 @@ class mexc extends mexc$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1381,6 +1386,7 @@ class mexc extends mexc$1 {
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
             const state = this.safeString(market, 'state');
+            const isLinear = quote === settle;
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1398,8 +1404,8 @@ class mexc extends mexc$1 {
                 'option': false,
                 'active': (state === '0'),
                 'contract': true,
-                'linear': true,
-                'inverse': false,
+                'linear': isLinear,
+                'inverse': !isLinear,
                 'taker': this.safeNumber(market, 'takerFeeRate'),
                 'maker': this.safeNumber(market, 'makerFeeRate'),
                 'contractSize': this.safeNumber(market, 'contractSize'),
@@ -2251,10 +2257,8 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
     }
     /**
      * @method
@@ -2272,10 +2276,8 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
     }
     /**
      * @method
@@ -2295,7 +2297,7 @@ class mexc extends mexc$1 {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
-     *
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK', default is 'GTC'
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
      * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
@@ -2363,6 +2365,16 @@ class mexc extends mexc$1 {
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
+        }
+        const tif = this.safeString(params, 'timeInForce');
+        if (tif !== undefined) {
+            params = this.omit(params, 'timeInForce');
+            if (tif === 'IOC') {
+                request['type'] = 'IMMEDIATE_OR_CANCEL';
+            }
+            else if (tif === 'FOK') {
+                request['type'] = 'FILL_OR_KILL';
+            }
         }
         return this.extend(request, params);
     }
@@ -4856,7 +4868,7 @@ class mexc extends mexc$1 {
             const rawNetwork = this.safeString(params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit(params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {
@@ -5989,13 +6001,23 @@ class mexc extends mexc$1 {
             else {
                 url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             }
-            let paramsEncoded = '';
+            let urlParams = params;
             if (access === 'private') {
-                params['timestamp'] = this.nonce();
-                params['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
+                    urlParams = {
+                        'timestamp': this.nonce(),
+                        'recvWindow': this.safeInteger(this.options, 'recvWindow', 5000),
+                    };
+                    body = this.json(params);
+                }
+                else {
+                    urlParams['timestamp'] = this.nonce();
+                    urlParams['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                }
             }
-            if (Object.keys(params).length) {
-                paramsEncoded = this.urlencode(params);
+            let paramsEncoded = '';
+            if (Object.keys(urlParams).length) {
+                paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
             if (access === 'private') {

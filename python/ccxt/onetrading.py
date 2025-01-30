@@ -333,17 +333,20 @@ class onetrading(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo
                     'fetchClosedOrders': {
@@ -354,6 +357,7 @@ class onetrading(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 5000,
@@ -1200,7 +1204,7 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/#create-order
 
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders

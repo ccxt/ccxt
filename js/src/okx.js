@@ -1228,17 +1228,20 @@ export default class okx extends Exchange {
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1249,6 +1252,7 @@ export default class okx extends Exchange {
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -3100,12 +3104,20 @@ export default class okx extends Exchange {
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitPrice);
-                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision(symbol, tpOrdPx);
+                let tpOrdPxReq = '-1';
+                if (tpOrdPx !== undefined) {
+                    tpOrdPxReq = this.priceToPrecision(symbol, tpOrdPx);
+                }
+                request['tpOrdPx'] = tpOrdPxReq;
                 request['tpTriggerPxType'] = tpTriggerPxType;
             }
             if (stopLossPrice !== undefined) {
                 request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossPrice);
-                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision(symbol, slOrdPx);
+                let slOrdPxReq = '-1';
+                if (slOrdPx !== undefined) {
+                    slOrdPxReq = this.priceToPrecision(symbol, slOrdPx);
+                }
+                request['slOrdPx'] = slOrdPxReq;
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
@@ -5733,7 +5745,7 @@ export default class okx extends Exchange {
     }
     /**
      * @method
-     * @name okx#fetchPositions
+     * @name okx#fetchPositionsForSymbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
@@ -6784,7 +6796,8 @@ export default class okx extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
-                borrowRateHistories[code].push(borrowRateStructure);
+                const borrrowRateCode = borrowRateHistories[code];
+                borrrowRateCode.push(borrowRateStructure);
             }
         }
         const keys = Object.keys(borrowRateHistories);

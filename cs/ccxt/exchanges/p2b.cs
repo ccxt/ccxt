@@ -183,6 +183,7 @@ public partial class p2b : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 1 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", null },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
@@ -190,6 +191,7 @@ public partial class p2b : Exchange
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -200,6 +202,7 @@ public partial class p2b : Exchange
                         { "untilDays", 1 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 500 },

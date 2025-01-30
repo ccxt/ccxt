@@ -290,17 +290,20 @@ export default class defx extends Exchange {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -309,6 +312,7 @@ export default class defx extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -318,6 +322,7 @@ export default class defx extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -940,7 +945,7 @@ export default class defx extends Exchange {
     }
     /**
      * @method
-     * @name defx#fetchTrades
+     * @name defx#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
      * @param {string} symbol unified symbol of the market to fetch trades for

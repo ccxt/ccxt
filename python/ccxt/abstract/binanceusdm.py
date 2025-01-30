@@ -220,6 +220,7 @@ class ImplicitAPI:
     sapi_get_portfolio_repay_futures_switch = sapiGetPortfolioRepayFuturesSwitch = Entry('portfolio/repay-futures-switch', 'sapi', 'GET', {'cost': 3})
     sapi_get_portfolio_margin_asset_leverage = sapiGetPortfolioMarginAssetLeverage = Entry('portfolio/margin-asset-leverage', 'sapi', 'GET', {'cost': 5})
     sapi_get_portfolio_balance = sapiGetPortfolioBalance = Entry('portfolio/balance', 'sapi', 'GET', {'cost': 2})
+    sapi_get_portfolio_negative_balance_exchange_record = sapiGetPortfolioNegativeBalanceExchangeRecord = Entry('portfolio/negative-balance-exchange-record', 'sapi', 'GET', {'cost': 2})
     sapi_get_staking_productlist = sapiGetStakingProductList = Entry('staking/productList', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_staking_position = sapiGetStakingPosition = Entry('staking/position', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_staking_stakingrecord = sapiGetStakingStakingRecord = Entry('staking/stakingRecord', 'sapi', 'GET', {'cost': 0.1})
@@ -763,4 +764,3 @@ class ImplicitAPI:
     papi_delete_margin_allopenorders = papiDeleteMarginAllOpenOrders = Entry('margin/allOpenOrders', 'papi', 'DELETE', {'cost': 5})
     papi_delete_margin_orderlist = papiDeleteMarginOrderList = Entry('margin/orderList', 'papi', 'DELETE', {'cost': 2})
     papi_delete_listenkey = papiDeleteListenKey = Entry('listenKey', 'papi', 'DELETE', {'cost': 0.2})
-    papiv2_get_um_account = papiV2GetUmAccount = Entry('um/account', 'papiV2', 'GET', {'cost': 1})

@@ -1019,18 +1019,21 @@ class kucoin extends kucoin$1 {
                         'marginMode': true,
                         'limit': undefined,
                         'daysBack': undefined,
-                        'untilDays': 7, // per  implementation comments
+                        'untilDays': 7,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1041,6 +1044,7 @@ class kucoin extends kucoin$1 {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,
@@ -1310,12 +1314,14 @@ class kucoin extends kucoin$1 {
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
     async loadMigrationStatus(force = false) {
         if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result = await this.privateGetHfAccountsOpened();
             this.options['hf'] = this.safeBool(result, 'data');
         }
+        return true;
     }
     handleHfAndParams(params = {}) {
         const migrated = this.safeBool(this.options, 'hf', false);
@@ -1341,8 +1347,7 @@ class kucoin extends kucoin$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const promises = [];
-        promises.push(this.publicGetCurrencies(params));
+        const response = await this.publicGetCurrencies(params);
         //
         //    {
         //        "code":"200000",
@@ -1368,92 +1373,40 @@ class kucoin extends kucoin$1 {
         //                    "isDepositEnabled":false,
         //                    "confirms":12,
         //                    "preConfirms":12,
+        //                    "withdrawPrecision": 8,
+        //                    "maxWithdraw": null,
+        //                    "maxDeposit": null,
+        //                    "needTag": false,
         //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         //                    "depositFeeRate": "0.001", // present for some currencies/networks
         //                 }
         //              ]
         //           },
-        //    }
-        //
-        promises.push(this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true));
-        //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": [
-        //            {
-        //                "status": "enabled",
-        //                "currency": "BTC",
-        //                "isChainEnabled": "true",
-        //                "chain": "btc",
-        //                "chainName": "BTC",
-        //                "chainFullName": "Bitcoin",
-        //                "walletPrecision": "8",
-        //                "isDepositEnabled": "true",
-        //                "depositMinSize": "0.00005",
-        //                "confirmationCount": "2",
-        //                "isWithdrawEnabled": "true",
-        //                "withdrawMinSize": "0.001",
-        //                "withdrawMinFee": "0.0005",
-        //                "withdrawFeeRate": "0",
-        //                "depositDisabledTip": "Wallet Maintenance",
-        //                "preDepositTipEnabled": "true",
-        //                "preDepositTip": "Do not transfer from ETH network directly",
-        //                "withdrawDisabledTip": "",
-        //                "preWithdrawTipEnabled": "false",
-        //                "preWithdrawTip": "",
-        //                "orgAddress": "",
-        //                "userAddressName": "Memo",
-        //            },
         //        ]
         //    }
         //
-        const responses = await Promise.all(promises);
-        const currenciesResponse = this.safeDict(responses, 0, {});
-        const currenciesData = this.safeList(currenciesResponse, 'data', []);
-        const additionalResponse = this.safeDict(responses, 1, {});
-        const additionalData = this.safeList(additionalResponse, 'data', []);
-        const additionalDataGrouped = this.groupBy(additionalData, 'currency');
+        const currenciesData = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const id = this.safeString(entry, 'currency');
             const name = this.safeString(entry, 'fullName');
             const code = this.safeCurrencyCode(id);
-            let isWithdrawEnabled = undefined;
-            let isDepositEnabled = undefined;
             const networks = {};
             const chains = this.safeList(entry, 'chains', []);
-            const extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString(entry, 'precision');
             const precision = this.parseNumber(this.parsePrecision(rawPrecision));
             const chainsLength = chains.length;
             if (!chainsLength) {
-                // https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = false;
-                isDepositEnabled = false;
+                // one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
+                continue;
             }
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
                 const networkCode = this.networkIdToCode(chainId, code);
                 const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
-                if (isWithdrawEnabled === undefined) {
-                    isWithdrawEnabled = chainWithdrawEnabled;
-                }
-                else {
-                    isWithdrawEnabled = isWithdrawEnabled || chainWithdrawEnabled;
-                }
                 const chainDepositEnabled = this.safeBool(chain, 'isDepositEnabled', false);
-                if (isDepositEnabled === undefined) {
-                    isDepositEnabled = chainDepositEnabled;
-                }
-                else {
-                    isDepositEnabled = isDepositEnabled || chainDepositEnabled;
-                }
-                const chainExtraData = this.safeDict(extraChainsData, chainId, {});
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
@@ -1463,35 +1416,35 @@ class kucoin extends kucoin$1 {
                     'fee': this.safeNumber(chain, 'withdrawalMinFee'),
                     'deposit': chainDepositEnabled,
                     'withdraw': chainWithdrawEnabled,
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainExtraData, 'walletPrecision'))),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(chain, 'withdrawalMinSize'),
-                            'max': undefined,
+                            'max': this.safeNumber(chain, 'maxWithdraw'),
                         },
                         'deposit': {
                             'min': this.safeNumber(chain, 'depositMinSize'),
-                            'max': undefined,
+                            'max': this.safeNumber(chain, 'maxDeposit'),
                         },
                     },
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
             const isFiat = (rawPrecision === '2') && (chainsLength === 0);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'precision': precision,
                 'info': entry,
-                'active': (isDepositEnabled || isWithdrawEnabled),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': undefined,
-                'limits': this.limits,
                 'networks': networks,
-            };
+                'deposit': undefined,
+                'withdraw': undefined,
+                'active': undefined,
+                'fee': undefined,
+                'limits': undefined,
+            });
         }
         return result;
     }
@@ -1635,6 +1588,37 @@ class kucoin extends kucoin$1 {
         //        "chain": "ERC20"
         //    }
         //
+        if ('chains' in fee) {
+            // if data obtained through `currencies` endpoint
+            const resultNew = {
+                'info': fee,
+                'withdraw': {
+                    'fee': undefined,
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+                'networks': {},
+            };
+            const chains = this.safeList(fee, 'chains', []);
+            for (let i = 0; i < chains.length; i++) {
+                const chain = chains[i];
+                const networkCodeNew = this.networkIdToCode(this.safeString(chain, 'chainId'), this.safeString(currency, 'code'));
+                resultNew['networks'][networkCodeNew] = {
+                    'withdraw': {
+                        'fee': this.safeNumber(chain, 'withdrawMinFee'),
+                        'percentage': false,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
+            return resultNew;
+        }
         const minWithdrawFee = this.safeNumber(fee, 'withdrawMinFee');
         const result = {
             'info': fee,
@@ -2315,10 +2299,8 @@ class kucoin extends kucoin$1 {
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         await this.loadMarkets();
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
     /**
      * @method
@@ -3237,15 +3219,15 @@ class kucoin extends kucoin$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
         const method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
         let response = undefined;
         [request, params] = this.handleUntilOption('endAt', request, params);
         if (hf) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
@@ -4067,7 +4049,10 @@ class kucoin extends kucoin$1 {
                 }
             }
         }
-        const returnType = isolated ? result : this.safeBalance(result);
+        let returnType = result;
+        if (!isolated) {
+            returnType = this.safeBalance(result);
+        }
         return returnType;
     }
     /**
@@ -4818,7 +4803,8 @@ class kucoin extends kucoin$1 {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
-                borrowRateHistories[code].push(borrowRateStructure);
+                const borrowRateHistoriesCode = borrowRateHistories[code];
+                borrowRateHistoriesCode.push(borrowRateStructure);
             }
         }
         const keys = Object.keys(borrowRateHistories);

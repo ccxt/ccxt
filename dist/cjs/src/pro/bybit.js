@@ -827,7 +827,7 @@ class bybit extends bybit$1 {
     }
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols

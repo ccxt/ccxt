@@ -410,17 +410,20 @@ export default class coinbase extends Exchange {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -429,6 +432,7 @@ export default class coinbase extends Exchange {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -438,6 +442,7 @@ export default class coinbase extends Exchange {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 350,
@@ -1308,7 +1313,7 @@ export default class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1355,7 +1360,7 @@ export default class coinbase extends Exchange {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }

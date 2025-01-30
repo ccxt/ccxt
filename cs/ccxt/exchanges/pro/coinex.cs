@@ -267,7 +267,10 @@ public partial class coinex : ccxt.coinex
         parameters = ((IList<object>)typeparametersVariable)[1];
         await this.authenticate(type);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object currencies = new List<object>(((IDictionary<string,object>)this.currencies_by_id).Keys);
+        // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        object activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
+        object activeCurrenciesById = this.indexBy(activeCurrencies, "id");
+        object currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
         if (isTrue(isEqual(currencies, null)))
         {
             currencies = new List<object>() {};

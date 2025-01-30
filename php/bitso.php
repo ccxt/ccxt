@@ -216,17 +216,20 @@ class bitso extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null,
@@ -1090,7 +1093,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple $orders
          *
@@ -1128,7 +1131,7 @@ class bitso extends Exchange {
         return $orders;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
         /**
          * cancel all open orders
          *
