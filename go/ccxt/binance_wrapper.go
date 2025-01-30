@@ -30,7 +30,7 @@ func NewBinance(userConfig map[string]interface{}) Binance {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Binance) FetchTime(params ...interface{}) ( int64, error) {
-    res := <- this.Core.FetchTime(params)
+    res := <- this.Core.FetchTime(params...)
     if IsError(res) {
         return -1, CreateReturnError(res)
     }
@@ -50,7 +50,7 @@ func (this *Binance) FetchTime(params ...interface{}) ( int64, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Binance) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
-    res := <- this.Core.FetchMarkets(params)
+    res := <- this.Core.FetchMarkets(params...)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -77,7 +77,7 @@ func (this *Binance) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func (this *Binance) FetchBalance(params ...interface{}) (Balances, error) {
-    res := <- this.Core.FetchBalance(params)
+    res := <- this.Core.FetchBalance(params...)
     if IsError(res) {
         return Balances{}, CreateReturnError(res)
     }
@@ -106,12 +106,12 @@ func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOrderBook(symbol, limit, params)
     if IsError(res) {
@@ -128,7 +128,7 @@ func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
  */
 func (this *Binance) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
-    res := <- this.Core.FetchStatus(params)
+    res := <- this.Core.FetchStatus(params...)
     if IsError(res) {
         return map[string]interface{}{}, CreateReturnError(res)
     }
@@ -158,7 +158,7 @@ func (this *Binance) FetchTicker(symbol string, options ...FetchTickerOptions) (
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTicker(symbol, params)
     if IsError(res) {
@@ -188,12 +188,12 @@ func (this *Binance) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, er
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchBidsAsks(symbols, params)
     if IsError(res) {
@@ -223,12 +223,12 @@ func (this *Binance) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLastPrices(symbols, params)
     if IsError(res) {
@@ -260,12 +260,12 @@ func (this *Binance) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if IsError(res) {
@@ -294,7 +294,7 @@ func (this *Binance) FetchMarkPrice(symbol string, options ...FetchMarkPriceOpti
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMarkPrice(symbol, params)
     if IsError(res) {
@@ -323,12 +323,12 @@ func (this *Binance) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMarkPrices(symbols, params)
     if IsError(res) {
@@ -370,22 +370,22 @@ func (this *Binance) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 
     var timeframe interface{} = nil
     if opts.Timeframe != nil {
-        timeframe = opts.Timeframe
+        timeframe = *opts.Timeframe
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOHLCV(symbol, timeframe, since, limit, params)
     if IsError(res) {
@@ -432,17 +432,17 @@ func (this *Binance) FetchTrades(symbol string, options ...FetchTradesOptions) (
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTrades(symbol, since, limit, params)
     if IsError(res) {
@@ -476,12 +476,12 @@ func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, sid
 
     var price interface{} = nil
     if opts.Price != nil {
-        price = opts.Price
+        price = *opts.Price
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.EditSpotOrder(id, symbol, typeVar, side, amount, price, params)
     if IsError(res) {
@@ -514,12 +514,12 @@ func (this *Binance) EditContractOrder(id string, symbol string, typeVar string,
 
     var price interface{} = nil
     if opts.Price != nil {
-        price = opts.Price
+        price = *opts.Price
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.EditContractOrder(id, symbol, typeVar, side, amount, price, params)
     if IsError(res) {
@@ -553,17 +553,17 @@ func (this *Binance) EditOrder(id string, symbol string, typeVar string, side st
 
     var amount interface{} = nil
     if opts.Amount != nil {
-        amount = opts.Amount
+        amount = *opts.Amount
     }
 
     var price interface{} = nil
     if opts.Price != nil {
-        price = opts.Price
+        price = *opts.Price
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
     if IsError(res) {
@@ -592,7 +592,7 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateOrders(orders, params)
     if IsError(res) {
@@ -604,8 +604,8 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @method
  * @name binance#createOrder
  * @description create a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
  * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
@@ -632,6 +632,8 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
  * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+ * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+ * @param {float} [params.icebergAmount] set iceberg amount for limit orders
  * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
  * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
@@ -647,12 +649,12 @@ func (this *Binance) CreateOrder(symbol string, typeVar string, side string, amo
 
     var price interface{} = nil
     if opts.Price != nil {
-        price = opts.Price
+        price = *opts.Price
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
     if IsError(res) {
@@ -681,7 +683,7 @@ func (this *Binance) CreateMarketOrderWithCost(symbol string, side string, cost 
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateMarketOrderWithCost(symbol, side, cost, params)
     if IsError(res) {
@@ -709,7 +711,7 @@ func (this *Binance) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateMarketBuyOrderWithCost(symbol, cost, params)
     if IsError(res) {
@@ -737,7 +739,7 @@ func (this *Binance) CreateMarketSellOrderWithCost(symbol string, cost float64, 
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateMarketSellOrderWithCost(symbol, cost, params)
     if IsError(res) {
@@ -773,12 +775,12 @@ func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOrder(id, symbol, params)
     if IsError(res) {
@@ -807,7 +809,7 @@ func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -820,22 +822,22 @@ func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOrders(symbol, since, limit, params)
     if IsError(res) {
@@ -862,7 +864,7 @@ func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -876,22 +878,22 @@ func (this *Binance) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOpenOrders(symbol, since, limit, params)
     if IsError(res) {
@@ -913,6 +915,7 @@ func (this *Binance) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
@@ -925,12 +928,12 @@ func (this *Binance) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOpenOrder(id, symbol, params)
     if IsError(res) {
@@ -957,7 +960,7 @@ func (this *Binance) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -970,22 +973,22 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchClosedOrders(symbol, since, limit, params)
     if IsError(res) {
@@ -1012,7 +1015,7 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (map[string]interface{}, error) {
@@ -1025,22 +1028,22 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchCanceledOrders(symbol, since, limit, params)
     if IsError(res) {
@@ -1067,7 +1070,7 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1080,22 +1083,22 @@ func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchCanceledAndClosedOrders(symbol, since, limit, params)
     if IsError(res) {
@@ -1121,7 +1124,7 @@ func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to cancel a portfolio margin account conditional order
+ * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -1134,12 +1137,12 @@ func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if IsError(res) {
@@ -1164,7 +1167,7 @@ func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
- * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
+ * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -1177,12 +1180,12 @@ func (this *Binance) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CancelAllOrders(symbol, params)
     if IsError(res) {
@@ -1215,12 +1218,12 @@ func (this *Binance) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CancelOrders(ids, symbol, params)
     if IsError(res) {
@@ -1253,22 +1256,22 @@ func (this *Binance) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOrderTrades(id, symbol, since, limit, params)
     if IsError(res) {
@@ -1306,22 +1309,22 @@ func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMyTrades(symbol, since, limit, params)
     if IsError(res) {
@@ -1351,22 +1354,22 @@ func (this *Binance) FetchMyDustTrades(options ...FetchMyDustTradesOptions) (map
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMyDustTrades(symbol, since, limit, params)
     if IsError(res) {
@@ -1399,22 +1402,22 @@ func (this *Binance) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchDeposits(code, since, limit, params)
     if IsError(res) {
@@ -1447,22 +1450,22 @@ func (this *Binance) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchWithdrawals(code, since, limit, params)
     if IsError(res) {
@@ -1494,7 +1497,7 @@ func (this *Binance) Transfer(code string, amount float64, fromAccount string, t
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.Transfer(code, amount, fromAccount, toAccount, params)
     if IsError(res) {
@@ -1526,22 +1529,22 @@ func (this *Binance) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTransfers(code, since, limit, params)
     if IsError(res) {
@@ -1569,7 +1572,7 @@ func (this *Binance) FetchDepositAddress(code string, options ...FetchDepositAdd
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchDepositAddress(code, params)
     if IsError(res) {
@@ -1597,12 +1600,12 @@ func (this *Binance) FetchTransactionFees(options ...FetchTransactionFeesOptions
 
     var codes interface{} = nil
     if opts.Codes != nil {
-        codes = opts.Codes
+        codes = *opts.Codes
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTransactionFees(codes, params)
     if IsError(res) {
@@ -1629,12 +1632,12 @@ func (this *Binance) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 
     var codes interface{} = nil
     if opts.Codes != nil {
-        codes = opts.Codes
+        codes = *opts.Codes
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchDepositWithdrawFees(codes, params)
     if IsError(res) {
@@ -1664,12 +1667,12 @@ func (this *Binance) Withdraw(code string, amount float64, address string, optio
 
     var tag interface{} = nil
     if opts.Tag != nil {
-        tag = opts.Tag
+        tag = *opts.Tag
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.Withdraw(code, amount, address, tag, params)
     if IsError(res) {
@@ -1702,7 +1705,7 @@ func (this *Binance) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTradingFee(symbol, params)
     if IsError(res) {
@@ -1723,7 +1726,7 @@ func (this *Binance) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
  */
 func (this *Binance) FetchTradingFees(params ...interface{}) (TradingFees, error) {
-    res := <- this.Core.FetchTradingFees(params)
+    res := <- this.Core.FetchTradingFees(params...)
     if IsError(res) {
         return TradingFees{}, CreateReturnError(res)
     }
@@ -1749,7 +1752,7 @@ func (this *Binance) FetchFundingRate(symbol string, options ...FetchFundingRate
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchFundingRate(symbol, params)
     if IsError(res) {
@@ -1782,22 +1785,22 @@ func (this *Binance) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchFundingRateHistory(symbol, since, limit, params)
     if IsError(res) {
@@ -1826,12 +1829,12 @@ func (this *Binance) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchFundingRates(symbols, params)
     if IsError(res) {
@@ -1863,12 +1866,12 @@ func (this *Binance) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (L
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLeverageTiers(symbols, params)
     if IsError(res) {
@@ -1895,7 +1898,7 @@ func (this *Binance) FetchPosition(symbol string, options ...FetchPositionOption
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchPosition(symbol, params)
     if IsError(res) {
@@ -1922,12 +1925,12 @@ func (this *Binance) FetchOptionPositions(options ...FetchOptionPositionsOptions
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOptionPositions(symbols, params)
     if IsError(res) {
@@ -1961,12 +1964,12 @@ func (this *Binance) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchPositions(symbols, params)
     if IsError(res) {
@@ -2002,12 +2005,12 @@ func (this *Binance) FetchAccountPositions(options ...FetchAccountPositionsOptio
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchAccountPositions(symbols, params)
     if IsError(res) {
@@ -2042,12 +2045,12 @@ func (this *Binance) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchPositionsRisk(symbols, params)
     if IsError(res) {
@@ -2082,22 +2085,22 @@ func (this *Binance) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchFundingHistory(symbol, since, limit, params)
     if IsError(res) {
@@ -2129,12 +2132,12 @@ func (this *Binance) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.SetLeverage(leverage, symbol, params)
     if IsError(res) {
@@ -2163,12 +2166,12 @@ func (this *Binance) SetMarginMode(marginMode string, options ...SetMarginModeOp
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.SetMarginMode(marginMode, symbol, params)
     if IsError(res) {
@@ -2201,12 +2204,12 @@ func (this *Binance) SetPositionMode(hedged bool, options ...SetPositionModeOpti
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.SetPositionMode(hedged, symbol, params)
     if IsError(res) {
@@ -2238,12 +2241,12 @@ func (this *Binance) FetchLeverages(options ...FetchLeveragesOptions) (Leverages
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLeverages(symbols, params)
     if IsError(res) {
@@ -2272,22 +2275,22 @@ func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOpt
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchSettlementHistory(symbol, since, limit, params)
     if IsError(res) {
@@ -2316,22 +2319,22 @@ func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistor
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMySettlementHistory(symbol, since, limit, params)
     if IsError(res) {
@@ -2347,7 +2350,7 @@ func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistor
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
  */
 func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 
@@ -2359,12 +2362,12 @@ func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOpti
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLedgerEntry(id, code, params)
     if IsError(res) {
@@ -2389,7 +2392,7 @@ func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOpti
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
  */
 func (this *Binance) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -2401,22 +2404,22 @@ func (this *Binance) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLedger(code, since, limit, params)
     if IsError(res) {
@@ -2443,7 +2446,7 @@ func (this *Binance) FetchCrossBorrowRate(code string, options ...FetchCrossBorr
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchCrossBorrowRate(code, params)
     if IsError(res) {
@@ -2473,7 +2476,7 @@ func (this *Binance) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchIsolatedBorrowRate(symbol, params)
     if IsError(res) {
@@ -2494,7 +2497,7 @@ func (this *Binance) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
  */
 func (this *Binance) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
-    res := <- this.Core.FetchIsolatedBorrowRates(params)
+    res := <- this.Core.FetchIsolatedBorrowRates(params...)
     if IsError(res) {
         return IsolatedBorrowRates{}, CreateReturnError(res)
     }
@@ -2521,17 +2524,17 @@ func (this *Binance) FetchBorrowRateHistory(code string, options ...FetchBorrowR
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchBorrowRateHistory(code, since, limit, params)
     if IsError(res) {
@@ -2559,7 +2562,7 @@ func (this *Binance) CreateGiftCode(code string, amount interface{}, options ...
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateGiftCode(code, amount, params)
     if IsError(res) {
@@ -2591,27 +2594,27 @@ func (this *Binance) FetchBorrowInterest(options ...FetchBorrowInterestOptions) 
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchBorrowInterest(code, symbol, since, limit, params)
     if IsError(res) {
@@ -2644,22 +2647,22 @@ func (this *Binance) FetchOpenInterestHistory(symbol string, options ...FetchOpe
 
     var timeframe interface{} = nil
     if opts.Timeframe != nil {
-        timeframe = opts.Timeframe
+        timeframe = *opts.Timeframe
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOpenInterestHistory(symbol, timeframe, since, limit, params)
     if IsError(res) {
@@ -2688,7 +2691,7 @@ func (this *Binance) FetchOpenInterest(symbol string, options ...FetchOpenIntere
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOpenInterest(symbol, params)
     if IsError(res) {
@@ -2726,22 +2729,22 @@ func (this *Binance) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMyLiquidations(symbol, since, limit, params)
     if IsError(res) {
@@ -2768,7 +2771,7 @@ func (this *Binance) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchGreeks(symbol, params)
     if IsError(res) {
@@ -2786,12 +2789,12 @@ func (this *Binance) FetchTradingLimits(options ...FetchTradingLimitsOptions) (m
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchTradingLimits(symbols, params)
     if IsError(res) {
@@ -2820,12 +2823,12 @@ func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (map
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchPositionMode(symbol, params)
     if IsError(res) {
@@ -2855,12 +2858,12 @@ func (this *Binance) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMarginModes(symbols, params)
     if IsError(res) {
@@ -2889,7 +2892,7 @@ func (this *Binance) FetchMarginMode(symbol string, options ...FetchMarginModeOp
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMarginMode(symbol, params)
     if IsError(res) {
@@ -2916,7 +2919,7 @@ func (this *Binance) FetchOption(symbol string, options ...FetchOptionOptions) (
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchOption(symbol, params)
     if IsError(res) {
@@ -2948,27 +2951,27 @@ func (this *Binance) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustme
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var typeVar interface{} = nil
     if opts.Type != nil {
-        typeVar = opts.Type
+        typeVar = *opts.Type
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchMarginAdjustmentHistory(symbol, typeVar, since, limit, params)
     if IsError(res) {
@@ -2985,7 +2988,7 @@ func (this *Binance) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustme
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Binance) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
-    res := <- this.Core.FetchConvertCurrencies(params)
+    res := <- this.Core.FetchConvertCurrencies(params...)
     if IsError(res) {
         return Currencies{}, CreateReturnError(res)
     }
@@ -3013,12 +3016,12 @@ func (this *Binance) FetchConvertQuote(fromCode string, toCode string, options .
 
     var amount interface{} = nil
     if opts.Amount != nil {
-        amount = opts.Amount
+        amount = *opts.Amount
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchConvertQuote(fromCode, toCode, amount, params)
     if IsError(res) {
@@ -3048,12 +3051,12 @@ func (this *Binance) CreateConvertTrade(id string, fromCode string, toCode strin
 
     var amount interface{} = nil
     if opts.Amount != nil {
-        amount = opts.Amount
+        amount = *opts.Amount
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.CreateConvertTrade(id, fromCode, toCode, amount, params)
     if IsError(res) {
@@ -3081,12 +3084,12 @@ func (this *Binance) FetchConvertTrade(id string, options ...FetchConvertTradeOp
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchConvertTrade(id, code, params)
     if IsError(res) {
@@ -3116,22 +3119,22 @@ func (this *Binance) FetchConvertTradeHistory(options ...FetchConvertTradeHistor
 
     var code interface{} = nil
     if opts.Code != nil {
-        code = opts.Code
+        code = *opts.Code
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchConvertTradeHistory(code, since, limit, params)
     if IsError(res) {
@@ -3160,12 +3163,12 @@ func (this *Binance) FetchFundingIntervals(options ...FetchFundingIntervalsOptio
 
     var symbols interface{} = nil
     if opts.Symbols != nil {
-        symbols = opts.Symbols
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchFundingIntervals(symbols, params)
     if IsError(res) {
@@ -3197,27 +3200,27 @@ func (this *Binance) FetchLongShortRatioHistory(options ...FetchLongShortRatioHi
 
     var symbol interface{} = nil
     if opts.Symbol != nil {
-        symbol = opts.Symbol
+        symbol = *opts.Symbol
     }
 
     var timeframe interface{} = nil
     if opts.Timeframe != nil {
-        timeframe = opts.Timeframe
+        timeframe = *opts.Timeframe
     }
 
     var since interface{} = nil
     if opts.Since != nil {
-        since = opts.Since
+        since = *opts.Since
     }
 
     var limit interface{} = nil
     if opts.Limit != nil {
-        limit = opts.Limit
+        limit = *opts.Limit
     }
 
     var params interface{} = nil
     if opts.Params != nil {
-        params = opts.Params
+        params = *opts.Params
     }
     res := <- this.Core.FetchLongShortRatioHistory(symbol, timeframe, since, limit, params)
     if IsError(res) {

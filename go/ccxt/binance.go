@@ -8,7 +8,7 @@ type binance struct {
 
 }
 
-func NewBinance() binance {
+func NewBinanceCore() binance {
    p := binance{}
    setDefaults(&p)
    return p
@@ -85,6 +85,8 @@ func  (this *binance) Describe() interface{}  {
             "fetchDepositWithdrawFee": "emulated",
             "fetchDepositWithdrawFees": true,
             "fetchFundingHistory": true,
+            "fetchFundingInterval": "emulated",
+            "fetchFundingIntervals": true,
             "fetchFundingRate": true,
             "fetchFundingRateHistory": true,
             "fetchFundingRates": true,
@@ -100,12 +102,16 @@ func  (this *binance) Describe() interface{}  {
             "fetchLeverages": true,
             "fetchLeverageTiers": true,
             "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": true,
             "fetchMarginAdjustmentHistory": true,
-            "fetchMarginMode": "emulated",
+            "fetchMarginMode": true,
             "fetchMarginModes": true,
             "fetchMarketLeverageTiers": "emulated",
             "fetchMarkets": true,
             "fetchMarkOHLCV": true,
+            "fetchMarkPrice": true,
+            "fetchMarkPrices": true,
             "fetchMyLiquidations": true,
             "fetchMySettlementHistory": true,
             "fetchMyTrades": true,
@@ -179,7 +185,7 @@ func  (this *binance) Describe() interface{}  {
             "1M": "1M",
         },
         "urls": map[string]interface{} {
-            "logo": "https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg",
+            "logo": "https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b",
             "test": map[string]interface{} {
                 "dapiPublic": "https://testnet.binancefuture.com/dapi/v1",
                 "dapiPrivate": "https://testnet.binancefuture.com/dapi/v1",
@@ -377,6 +383,12 @@ func  (this *binance) Describe() interface{}  {
                     "eth-staking/wbeth/history/wrapHistory": 15,
                     "eth-staking/wbeth/history/unwrapHistory": 15,
                     "eth-staking/eth/history/wbethRewardsHistory": 15,
+                    "sol-staking/sol/history/stakingHistory": 15,
+                    "sol-staking/sol/history/redemptionHistory": 15,
+                    "sol-staking/sol/history/bnsolRewardsHistory": 15,
+                    "sol-staking/sol/history/rateHistory": 15,
+                    "sol-staking/account": 15,
+                    "sol-staking/sol/quota": 15,
                     "mining/pub/algoList": 0.1,
                     "mining/pub/coinList": 0.1,
                     "mining/worker/detail": 0.5,
@@ -449,6 +461,8 @@ func  (this *binance) Describe() interface{}  {
                     "portfolio/asset-index-price": 0.1,
                     "portfolio/repay-futures-switch": 3,
                     "portfolio/margin-asset-leverage": 5,
+                    "portfolio/balance": 2,
+                    "portfolio/negative-balance-exchange-record": 2,
                     "staking/productList": 0.1,
                     "staking/position": 0.1,
                     "staking/stakingRecord": 0.1,
@@ -568,6 +582,8 @@ func  (this *binance) Describe() interface{}  {
                     "eth-staking/eth/stake": 15,
                     "eth-staking/eth/redeem": 15,
                     "eth-staking/wbeth/wrap": 15,
+                    "sol-staking/sol/stake": 15,
+                    "sol-staking/sol/redeem": 15,
                     "mining/hash-transfer/config": 0.5,
                     "mining/hash-transfer/config/cancel": 0.5,
                     "portfolio/repay": 20.001,
@@ -589,6 +605,8 @@ func  (this *binance) Describe() interface{}  {
                     "portfolio/bnb-transfer": 150,
                     "portfolio/repay-futures-switch": 150,
                     "portfolio/repay-futures-negative-balance": 150,
+                    "portfolio/mint": 20,
+                    "portfolio/redeem": 20,
                     "lending/auto-invest/plan/add": 0.1,
                     "lending/auto-invest/plan/edit": 0.1,
                     "lending/auto-invest/plan/edit-status": 0.1,
@@ -600,6 +618,7 @@ func  (this *binance) Describe() interface{}  {
                     "simple-earn/locked/redeem": 0.1,
                     "simple-earn/flexible/setAutoSubscribe": 15,
                     "simple-earn/locked/setAutoSubscribe": 15,
+                    "simple-earn/locked/setRedeemOption": 5,
                     "dci/product/subscribe": 0.1,
                     "dci/product/auto_compound/edit": 0.1,
                 },
@@ -633,6 +652,7 @@ func  (this *binance) Describe() interface{}  {
                     "loan/flexible/ltv/adjustment/history": 40,
                     "loan/flexible/loanable/data": 40,
                     "loan/flexible/collateral/data": 40,
+                    "portfolio/account": 2,
                 },
                 "post": map[string]interface{} {
                     "eth-staking/eth/stake": 15,
@@ -703,6 +723,7 @@ func  (this *binance) Describe() interface{}  {
                     },
                     "constituents": 2,
                     "openInterest": 1,
+                    "fundingInfo": 1,
                 },
             },
             "dapiData": map[string]interface{} {
@@ -748,6 +769,10 @@ func  (this *binance) Describe() interface{}  {
                     "commissionRate": 20,
                     "income/asyn": 5,
                     "income/asyn/id": 5,
+                    "trade/asyn": 0.5,
+                    "trade/asyn/id": 0.5,
+                    "order/asyn": 0.5,
+                    "order/asyn/id": 0.5,
                     "pmExchangeInfo": 0.5,
                     "pmAccountInfo": 0.5,
                 },
@@ -837,6 +862,7 @@ func  (this *binance) Describe() interface{}  {
                         "noSymbol": 10,
                     },
                     "lvtKlines": 1,
+                    "convert/exchangeInfo": 4,
                 },
             },
             "fapiData": map[string]interface{} {
@@ -895,6 +921,7 @@ func  (this *binance) Describe() interface{}  {
                     "feeBurn": 1,
                     "symbolConfig": 5,
                     "accountConfig": 5,
+                    "convert/orderStatus": 5,
                 },
                 "post": map[string]interface{} {
                     "batchOrders": 5,
@@ -909,6 +936,8 @@ func  (this *binance) Describe() interface{}  {
                     "apiReferral/customization": 1,
                     "apiReferral/userCustomization": 1,
                     "feeBurn": 1,
+                    "convert/getQuote": 200,
+                    "convert/acceptQuote": 20,
                 },
                 "put": map[string]interface{} {
                     "listenKey": 1,
@@ -978,6 +1007,10 @@ func  (this *binance) Describe() interface{}  {
                     "mmp": 1,
                     "countdownCancelAll": 1,
                     "order": 1,
+                    "block/order/orders": 5,
+                    "block/order/execute": 5,
+                    "block/user-trades": 5,
+                    "blockTrades": 5,
                 },
                 "post": map[string]interface{} {
                     "order": 1,
@@ -987,9 +1020,12 @@ func  (this *binance) Describe() interface{}  {
                     "mmpReset": 1,
                     "countdownCancelAll": 1,
                     "countdownCancelAllHeartBeat": 10,
+                    "block/order/create": 5,
+                    "block/order/execute": 5,
                 },
                 "put": map[string]interface{} {
                     "listenKey": 1,
+                    "block/order/create": 5,
                 },
                 "delete": map[string]interface{} {
                     "order": 1,
@@ -997,6 +1033,7 @@ func  (this *binance) Describe() interface{}  {
                     "allOpenOrders": 1,
                     "allOpenOrdersByUnderlying": 1,
                     "listenKey": 1,
+                    "block/order/create": 5,
                 },
             },
             "public": map[string]interface{} {
@@ -1079,7 +1116,7 @@ func  (this *binance) Describe() interface{}  {
             },
             "papi": map[string]interface{} {
                 "get": map[string]interface{} {
-                    "ping": 1,
+                    "ping": 0.2,
                     "um/order": 1,
                     "um/openOrder": 1,
                     "um/openOrders": map[string]interface{} {
@@ -1100,7 +1137,10 @@ func  (this *binance) Describe() interface{}  {
                         "noSymbol": 40,
                     },
                     "um/conditional/orderHistory": 1,
-                    "um/conditional/allOrders": 40,
+                    "um/conditional/allOrders": map[string]interface{} {
+                        "cost": 1,
+                        "noSymbol": 40,
+                    },
                     "cm/conditional/openOrder": 1,
                     "cm/conditional/openOrders": map[string]interface{} {
                         "cost": 1,
@@ -1108,67 +1148,92 @@ func  (this *binance) Describe() interface{}  {
                     },
                     "cm/conditional/orderHistory": 1,
                     "cm/conditional/allOrders": 40,
-                    "margin/order": 5,
+                    "margin/order": 10,
                     "margin/openOrders": 5,
                     "margin/allOrders": 100,
                     "margin/orderList": 5,
                     "margin/allOrderList": 100,
                     "margin/openOrderList": 5,
                     "margin/myTrades": 5,
-                    "balance": 20,
-                    "account": 20,
-                    "margin/maxBorrowable": 5,
-                    "margin/maxWithdraw": 5,
-                    "um/positionRisk": 5,
-                    "cm/positionRisk": 1,
-                    "um/positionSide/dual": 30,
-                    "cm/positionSide/dual": 30,
+                    "balance": 4,
+                    "account": 4,
+                    "margin/maxBorrowable": 1,
+                    "margin/maxWithdraw": 1,
+                    "um/positionRisk": 1,
+                    "cm/positionRisk": 0.2,
+                    "um/positionSide/dual": 6,
+                    "cm/positionSide/dual": 6,
                     "um/userTrades": 5,
                     "cm/userTrades": 20,
-                    "um/leverageBracket": 1,
-                    "cm/leverageBracket": 1,
+                    "um/leverageBracket": 0.2,
+                    "cm/leverageBracket": 0.2,
                     "margin/forceOrders": 1,
-                    "um/forceOrders": 20,
-                    "cm/forceOrders": 20,
-                    "um/apiTradingStatus": 1,
-                    "um/commissionRate": 20,
-                    "cm/commissionRate": 20,
-                    "margin/marginLoan": 10,
-                    "margin/repayLoan": 10,
-                    "margin/marginInterestHistory": 1,
-                    "portfolio/interest-history": 50,
-                    "um/income": 30,
-                    "cm/income": 30,
-                    "um/account": 5,
-                    "cm/account": 5,
-                    "repay-futures-switch": 3,
+                    "um/forceOrders": map[string]interface{} {
+                        "cost": 20,
+                        "noSymbol": 50,
+                    },
+                    "cm/forceOrders": map[string]interface{} {
+                        "cost": 20,
+                        "noSymbol": 50,
+                    },
+                    "um/apiTradingStatus": map[string]interface{} {
+                        "cost": 0.2,
+                        "noSymbol": 2,
+                    },
+                    "um/commissionRate": 4,
+                    "cm/commissionRate": 4,
+                    "margin/marginLoan": 2,
+                    "margin/repayLoan": 2,
+                    "margin/marginInterestHistory": 0.2,
+                    "portfolio/interest-history": 10,
+                    "um/income": 6,
+                    "cm/income": 6,
+                    "um/account": 1,
+                    "cm/account": 1,
+                    "repay-futures-switch": 6,
                     "um/adlQuantile": 5,
                     "cm/adlQuantile": 5,
+                    "um/trade/asyn": 300,
+                    "um/trade/asyn/id": 2,
+                    "um/order/asyn": 300,
+                    "um/order/asyn/id": 2,
+                    "um/income/asyn": 300,
+                    "um/income/asyn/id": 2,
+                    "um/orderAmendment": 1,
+                    "cm/orderAmendment": 1,
+                    "um/feeBurn": 30,
+                    "um/accountConfig": 1,
+                    "um/symbolConfig": 1,
+                    "cm/accountConfig": 1,
+                    "cm/symbolConfig": 1,
+                    "rateLimit/order": 1,
                 },
                 "post": map[string]interface{} {
                     "um/order": 1,
                     "um/conditional/order": 1,
                     "cm/order": 1,
                     "cm/conditional/order": 1,
-                    "margin/order": 0.0133,
-                    "marginLoan": 0.1333,
-                    "repayLoan": 0.1333,
-                    "margin/order/oco": 0.04,
-                    "um/leverage": 1,
-                    "cm/leverage": 1,
-                    "um/positionSide/dual": 1,
-                    "cm/positionSide/dual": 1,
-                    "auto-collection": 0.6667,
-                    "bnb-transfer": 0.6667,
+                    "margin/order": 1,
+                    "marginLoan": 100,
+                    "repayLoan": 100,
+                    "margin/order/oco": 1,
+                    "um/leverage": 0.2,
+                    "cm/leverage": 0.2,
+                    "um/positionSide/dual": 0.2,
+                    "cm/positionSide/dual": 0.2,
+                    "auto-collection": 150,
+                    "bnb-transfer": 150,
                     "repay-futures-switch": 150,
                     "repay-futures-negative-balance": 150,
-                    "listenKey": 1,
-                    "asset-collection": 3,
-                    "margin/repay-debt": 0.4,
+                    "listenKey": 0.2,
+                    "asset-collection": 6,
+                    "margin/repay-debt": 3000,
                     "um/feeBurn": 1,
                 },
                 "put": map[string]interface{} {
-                    "listenKey": 1,
+                    "listenKey": 0.2,
+                    "um/order": 1,
+                    "cm/order": 1,
                 },
                 "delete": map[string]interface{} {
                     "um/order": 1,
@@ -1179,10 +1244,10 @@ func  (this *binance) Describe() interface{}  {
                     "cm/conditional/order": 1,
                     "cm/allOpenOrders": 1,
                     "cm/conditional/allOpenOrders": 1,
-                    "margin/order": 1,
+                    "margin/order": 2,
                     "margin/allOpenOrders": 5,
                     "margin/orderList": 2,
-                    "listenKey": 1,
+                    "listenKey": 0.2,
                 },
             },
         },
@@ -1221,6 +1286,13 @@ func  (this *binance) Describe() interface{}  {
                 },
             },
             "option": map[string]interface{} {},
+        },
+        "currencies": map[string]interface{} {
+            "BNFCR": this.SafeCurrencyStructure(map[string]interface{} {
+                "id": "BNFCR",
+                "code": "BNFCR",
+                "precision": this.ParseNumber("0.001"),
+            }),
         },
         "commonCurrencies": map[string]interface{} {
             "BCC": "BCC",
@@ -1284,6 +1356,7 @@ func  (this *binance) Describe() interface{}  {
                 "OMNI": "OMNI",
                 "EOS": "EOS",
                 "SPL": "SOL",
+                "SOL": "SOL",
             },
             "reverseNetworks": map[string]interface{} {
                 "tronscan.org": "TRC20",
@@ -1380,6 +1453,7 @@ func  (this *binance) Describe() interface{}  {
                 "explorer.zensystem.io": "ZEN",
             },
             "networksById": map[string]interface{} {
+                "SOL": "SOL",
                 "tronscan.org": "TRC20",
                 "etherscan.io": "ERC20",
                 "bscscan.com": "BSC",
@@ -1517,6 +1591,169 @@ func  (this *binance) Describe() interface{}  {
             },
             "legalMoneyCurrenciesById": map[string]interface{} {
                 "BUSD": "USD",
+            },
+        },
+        "features": map[string]interface{} {
+            "spot": map[string]interface{} {
+                "sandbox": true,
+                "createOrder": map[string]interface{} {
+                    "marginMode": true,
+                    "triggerPrice": true,
+                    "triggerPriceType": nil,
+                    "triggerDirection": false,
+                    "stopLossPrice": true,
+                    "takeProfitPrice": true,
+                    "attachedStopLossTakeProfit": nil,
+                    "timeInForce": map[string]interface{} {
+                        "IOC": true,
+                        "FOK": true,
+                        "PO": true,
+                        "GTD": false,
+                    },
+                    "hedged": true,
+                    "leverage": false,
+                    "marketBuyByCost": true,
+                    "marketBuyRequiresPrice": false,
+                    "selfTradePrevention": map[string]interface{} {
+                        "expire_maker": true,
+                        "expire_taker": true,
+                        "expire_both": true,
+                        "none": true,
+                    },
+                    "trailing": false,
+                    "icebergAmount": true,
+                },
+                "createOrders": nil,
+                "fetchMyTrades": map[string]interface{} {
+                    "marginMode": false,
+                    "limit": 1000,
+                    "daysBack": nil,
+                    "untilDays": 1,
+                    "symbolRequired": true,
+                },
+                "fetchOrder": map[string]interface{} {
+                    "marginMode": true,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchOpenOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": nil,
+                    "trigger": false,
+                    "trailing": false,
+                },
+                "fetchOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": 1000,
+                    "daysBack": nil,
+                    "untilDays": 10000,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchClosedOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": 1000,
+                    "daysBack": nil,
+                    "daysBackCanceled": nil,
+                    "untilDays": 10000,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchOHLCV": map[string]interface{} {
+                    "limit": 1000,
+                },
+            },
+            "forDerivatives": map[string]interface{} {
+                "sandbox": true,
+                "createOrder": map[string]interface{} {
+                    "marginMode": false,
+                    "triggerPrice": true,
+                    "triggerPriceType": map[string]interface{} {
+                        "mark": true,
+                        "last": true,
+                        "index": false,
+                    },
+                    "stopLossPrice": true,
+                    "takeProfitPrice": true,
+                    "attachedStopLossTakeProfit": nil,
+                    "timeInForce": map[string]interface{} {
+                        "IOC": true,
+                        "FOK": true,
+                        "PO": true,
+                        "GTD": true,
+                    },
+                    "hedged": true,
+                    "selfTradePrevention": true,
+                    "trailing": true,
+                    "iceberg": false,
+                    "leverage": false,
+                    "marketBuyRequiresPrice": false,
+                    "marketBuyByCost": true,
+                },
+                "createOrders": map[string]interface{} {
+                    "max": 5,
+                },
+                "fetchMyTrades": map[string]interface{} {
+                    "marginMode": false,
+                    "daysBack": nil,
+                    "limit": 1000,
+                    "untilDays": 7,
+                    "symbolRequired": true,
+                },
+                "fetchOrder": map[string]interface{} {
+                    "marginMode": false,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchOpenOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": 500,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": false,
+                },
+                "fetchOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": 1000,
+                    "daysBack": 90,
+                    "untilDays": 7,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchClosedOrders": map[string]interface{} {
+                    "marginMode": true,
+                    "limit": 1000,
+                    "daysBack": 90,
+                    "daysBackCanceled": 3,
+                    "untilDays": 7,
+                    "trigger": false,
+                    "trailing": false,
+                    "symbolRequired": true,
+                },
+                "fetchOHLCV": map[string]interface{} {
+                    "limit": 1500,
+                },
+            },
+            "swap": map[string]interface{} {
+                "linear": map[string]interface{} {
+                    "extends": "forDerivatives",
+                },
+                "inverse": map[string]interface{} {
+                    "extends": "forDerivatives",
+                },
+            },
+            "future": map[string]interface{} {
+                "linear": map[string]interface{} {
+                    "extends": "forDerivatives",
+                },
+                "inverse": map[string]interface{} {
+                    "extends": "forDerivatives",
+                },
             },
         },
         "exceptions": map[string]interface{} {
@@ -1872,12 +2109,15 @@ func  (this *binance) Describe() interface{}  {
                     "-4088": PermissionDenied,
                     "-4114": BadRequest,
                     "-4115": BadRequest,
+                    "-4116": InvalidOrder,
+                    "-4117": OperationRejected,
                     "-4118": OperationRejected,
                     "-4131": OperationRejected,
                     "-4140": BadRequest,
                     "-4141": OperationRejected,
                     "-4144": BadSymbol,
                     "-4164": InvalidOrder,
+                    "-4136": InvalidOrder,
                     "-4165": BadRequest,
                     "-4167": BadRequest,
                     "-4168": BadRequest,
@@ -2133,17 +2373,64 @@ func  (this *binance) Describe() interface{}  {
             },
             "portfolioMargin": map[string]interface{} {
                 "exact": map[string]interface{} {
+                    "-1000": OperationFailed,
+                    "-1001": ExchangeError,
+                    "-1002": PermissionDenied,
+                    "-1003": RateLimitExceeded,
+                    "-1004": BadRequest,
                     "-1005": PermissionDenied,
+                    "-1006": BadResponse,
+                    "-1007": BadResponse,
+                    "-1008": OperationFailed,
+                    "-1010": ExchangeError,
                     "-1011": PermissionDenied,
+                    "-1013": ExchangeError,
+                    "-1014": InvalidOrder,
+                    "-1015": InvalidOrder,
+                    "-1016": NotSupported,
+                    "-1020": NotSupported,
+                    "-1021": BadRequest,
+                    "-1022": BadRequest,
                     "-1023": BadRequest,
+                    "-1099": OperationFailed,
+                    "-1100": BadRequest,
+                    "-1101": BadRequest,
+                    "-1102": BadRequest,
+                    "-1103": BadRequest,
+                    "-1104": BadRequest,
+                    "-1105": BadRequest,
+                    "-1106": BadRequest,
+                    "-1108": BadRequest,
                     "-1109": BadRequest,
                     "-1110": BadSymbol,
+                    "-1111": BadRequest,
+                    "-1112": BadRequest,
                     "-1113": BadRequest,
+                    "-1114": BadRequest,
+                    "-1115": BadRequest,
+                    "-1116": BadRequest,
+                    "-1117": BadRequest,
+                    "-1118": BadRequest,
+                    "-1119": BadRequest,
+                    "-1120": BadRequest,
+                    "-1121": BadSymbol,
+                    "-1125": BadRequest,
+                    "-1127": BadRequest,
                     "-1128": BadRequest,
+                    "-1130": BadRequest,
+                    "-1131": BadRequest,
+                    "-1134": BadRequest,
                     "-1136": BadRequest,
-                    "-2016": OperationRejected,
-                    "-2018": InsufficientFunds,
-                    "-2019": InsufficientFunds,
+                    "-1145": BadRequest,
+                    "-1151": BadRequest,
+                    "-2010": InvalidOrder,
+                    "-2011": OperationRejected,
+                    "-2013": OrderNotFound,
+                    "-2014": OperationRejected,
+                    "-2015": OperationRejected,
+                    "-2016": OperationFailed,
+                    "-2018": OperationFailed,
+                    "-2019": OperationFailed,
                     "-2020": OrderNotFillable,
                     "-2021": OrderImmediatelyFillable,
                     "-2022": InvalidOrder,
@@ -2153,10 +2440,65 @@ func  (this *binance) Describe() interface{}  {
                     "-2026": InvalidOrder,
                     "-2027": OperationRejected,
                     "-2028": OperationRejected,
+                    "-4000": BadRequest,
+                    "-4001": BadRequest,
+                    "-4002": BadRequest,
+                    "-4003": BadRequest,
+                    "-4004": BadRequest,
+                    "-4005": BadRequest,
+                    "-4006": BadRequest,
+                    "-4007": BadRequest,
+                    "-4008": BadRequest,
+                    "-4009": BadRequest,
+                    "-4010": BadRequest,
+                    "-4011": BadRequest,
+                    "-4012": BadRequest,
+                    "-4013": BadRequest,
+                    "-4014": BadRequest,
+                    "-4015": BadRequest,
+                    "-4016": BadRequest,
+                    "-4017": BadRequest,
+                    "-4018": BadRequest,
+                    "-4019": BadRequest,
+                    "-4020": BadRequest,
+                    "-4021": BadRequest,
+                    "-4022": BadRequest,
+                    "-4023": BadRequest,
+                    "-4024": BadRequest,
+                    "-4025": BadRequest,
+                    "-4026": BadRequest,
+                    "-4027": BadRequest,
+                    "-4028": BadRequest,
+                    "-4029": BadRequest,
+                    "-4030": BadRequest,
+                    "-4031": BadRequest,
+                    "-4032": BadRequest,
+                    "-4033": BadRequest,
+                    "-4044": BadRequest,
+                    "-4045": BadRequest,
+                    "-4046": BadRequest,
+                    "-4047": BadRequest,
+                    "-4048": BadRequest,
+                    "-4049": BadRequest,
+                    "-4050": BadRequest,
+                    "-4051": BadRequest,
+                    "-4052": BadRequest,
+                    "-4053": BadRequest,
+                    "-4054": BadRequest,
+                    "-4055": BadRequest,
+                    "-4056": PermissionDenied,
+                    "-4057": PermissionDenied,
+                    "-4058": BadRequest,
+                    "-4059": BadRequest,
+                    "-4060": BadRequest,
+                    "-4061": InvalidOrder,
+                    "-4062": BadRequest,
                     "-4063": BadRequest,
                     "-4064": BadRequest,
                     "-4065": BadRequest,
                     "-4066": BadRequest,
+                    "-4067": BadRequest,
+                    "-4068": BadRequest,
                     "-4069": BadRequest,
                     "-4070": BadRequest,
                     "-4071": BadRequest,
@@ -2170,40 +2512,36 @@ func  (this *binance) Describe() interface{}  {
                     "-4079": BadRequest,
                     "-4080": PermissionDenied,
                     "-4081": BadRequest,
+                    "-4082": BadRequest,
+                    "-4083": BadRequest,
+                    "-4084": NotSupported,
                     "-4085": BadRequest,
                     "-4086": BadRequest,
                     "-4087": PermissionDenied,
                     "-4088": PermissionDenied,
+                    "-4104": BadRequest,
                     "-4114": BadRequest,
                     "-4115": BadRequest,
                     "-4118": OperationRejected,
                     "-4131": OperationRejected,
-                    "-4140": BadRequest,
+                    "-4135": BadRequest,
+                    "-4137": BadRequest,
+                    "-4138": BadRequest,
+                    "-4139": BadRequest,
+                    "-4140": OrderImmediatelyFillable,
                     "-4141": BadRequest,
+                    "-4142": OrderImmediatelyFillable,
                     "-4144": BadSymbol,
                     "-4161": OperationRejected,
-                    "-4164": OperationRejected,
+                    "-4164": InvalidOrder,
                     "-4165": BadRequest,
-                    "-4183": BadRequest,
-                    "-4184": BadRequest,
+                    "-4183": InvalidOrder,
+                    "-4184": InvalidOrder,
+                    "-4408": InvalidOrder,
                     "-5021": OrderNotFillable,
                     "-5022": OrderNotFillable,
-                    "-20121": ExchangeError,
-                    "-20124": ExchangeError,
-                    "-20130": ExchangeError,
-                    "-20132": ExchangeError,
-                    "-20194": ExchangeError,
-                    "-20195": ExchangeError,
-                    "-20196": ExchangeError,
-                    "-20198": ExchangeError,
-                    "-20204": ExchangeError,
-                    "-21001": BadRequest,
-                    "-21002": BadRequest,
-                    "-21003": BadResponse,
-                    "-21004": OperationRejected,
-                    "-21005": InsufficientFunds,
-                    "-21006": OperationFailed,
-                    "-21007": OperationFailed,
+                    "-5028": OperationFailed,
+                    "-5041": RateLimitExceeded,
                 },
             },
             "exact": map[string]interface{} {
@@ -2523,22 +2861,23 @@ func  (this *binance) CurrencyToPrecision(code interface{}, fee interface{}, opt
 func  (this *binance) Nonce() interface{}  {
     return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
 }
+/**
+ * @method
+ * @name binance#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
+ */
 func  (this *binance) FetchTime(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTime
-            * @description fetches the current integer timestamp in milliseconds from the exchange server
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {int} the current integer timestamp in milliseconds from the exchange server
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var defaultType interface{} = this.SafeString2(this.Options, "fetchTime", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -2549,56 +2888,74 @@ func  (this *binance) FetchTime(optionalArgs ...interface{}) <- chan interface{}
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicGetTime(query))
+                
+        response = (<-this.FapiPublicGetTime(query))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetTime(query))
+                
+        response = (<-this.DapiPublicGetTime(query))
+                PanicOnError(response)
             } else {
-                response = (<-this.PublicGetTime(query))
+                
+        response = (<-this.PublicGetTime(query))
+                PanicOnError(response)
             }
-                ch <-this.SafeInteger(response, "serverTime")
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.SafeInteger(response, "serverTime")
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
 func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchCurrencies
-            * @description fetches all available currencies on an exchange
-            * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-            * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an associative dictionary of currencies
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var fetchCurrenciesEnabled interface{} = this.SafeBool(this.Options, "fetchCurrencies")
             if !IsTrue(fetchCurrenciesEnabled) {
-                                ch <- nil
-                                return nil
+        
+                return nil
             }
             // this endpoint requires authentication
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             if !IsTrue(this.CheckRequiredCredentials(false)) {
-                                ch <- nil
-                                return nil
+        
+                return nil
             }
             // sandbox/testnet does not support sapi endpoints
             var apiBackup interface{} = this.SafeValue(this.Urls, "apiBackup")
             if IsTrue(!IsEqual(apiBackup, nil)) {
-                                ch <- nil
-                                return nil
+        
+                return nil
             }
-            var promises interface{} = []interface{}{this.SapiGetCapitalConfigGetall(params), this.SapiGetMarginAllAssets(params)}
-            var results interface{} = (<-promiseAll(promises))
+            var promises interface{} = []interface{}{this.SapiGetCapitalConfigGetall(params)}
+            var fetchMargins interface{} = this.SafeBool(this.Options, "fetchMargins", false)
+            if IsTrue(fetchMargins) {
+                AppendToArray(&promises,this.SapiGetMarginAllPairs(params))
+            }
+        
+            results:= (<-promiseAll(promises))
+            PanicOnError(results)
             var responseCurrencies interface{} = GetValue(results, 0)
-            var responseMarginables interface{} = GetValue(results, 1)
-            var marginablesById interface{} = this.IndexBy(responseMarginables, "assetName")
+            var marginablesById interface{} = nil
+            if IsTrue(fetchMargins) {
+                var responseMarginables interface{} = GetValue(results, 1)
+                marginablesById = this.IndexBy(responseMarginables, "assetName")
+            }
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(responseCurrencies)); i++ {
                 //
@@ -2778,29 +3135,32 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
             "margin": this.SafeBool(marginEntry, "isBorrowable"),
         })
             }
-                ch <-result
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMarkets
+ * @description retrieves data on all markets for binance
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
 func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMarkets
-            * @description retrieves data on all markets for binance
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-            * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
-            * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} an array of objects representing market data
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var promisesRaw interface{} = []interface{}{}
             var rawFetchMarkets interface{} = this.SafeList(this.Options, "fetchMarkets", []interface{}{"spot", "linear", "inverse"})
@@ -2832,7 +3192,9 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                     panic(ExchangeError(Add(Add(Add(this.Id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")))
                 }
             }
-            var results interface{} = (<-promiseAll(promisesRaw))
+        
+            results:= (<-promiseAll(promisesRaw))
+            PanicOnError(results)
             var markets interface{} = []interface{}{}
             AddElementToObject(this.Options, "crossMarginPairsData", []interface{}{})
             AddElementToObject(this.Options, "isolatedMarginPairsData", []interface{}{})
@@ -3069,17 +3431,21 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //     }
             //
             if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
-                (<-this.LoadTimeDifference())
+        
+                retRes913197 := (<-this.LoadTimeDifference())
+                PanicOnError(retRes913197)
             }
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 AppendToArray(&result,this.ParseMarket(GetValue(markets, i)))
             }
-                ch <-result
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseMarket(market interface{}) interface{}  {
     var swap interface{} = false
     var future interface{} = false
@@ -3116,14 +3482,15 @@ func  (this *binance) ParseMarket(market interface{}) interface{}  {
     var fees interface{} = this.Fees
     var linear interface{} = nil
     var inverse interface{} = nil
-    var strike interface{} = this.SafeString(market, "strikePrice")
     var symbol interface{} = Add(Add(base, "/"), quote)
+    var strike interface{} = nil
     if IsTrue(contract) {
         if IsTrue(swap) {
             symbol = Add(Add(symbol, ":"), settle)
         } else if IsTrue(future) {
             symbol = Add(Add(Add(Add(symbol, ":"), settle), "-"), this.Yymmdd(expiry))
         } else if IsTrue(option) {
+            strike = this.NumberToString(this.ParseToNumeric(this.SafeString(market, "strikePrice")))
             symbol = Add(Add(Add(Add(Add(Add(Add(Add(symbol, ":"), settle), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), this.SafeString(optionParts, 3))
         }
         contractSize = this.SafeNumber2(market, "contractSize", "unit", this.ParseNumber("1"))
@@ -3303,7 +3670,11 @@ func  (this *binance) ParseBalanceCustom(response interface{}, optionalArgs ...i
                 AddElementToObject(account, "used", this.SafeString(entry, "crossMarginLocked"))
                 AddElementToObject(account, "total", this.SafeString(entry, "crossMarginAsset"))
             } else {
-                AddElementToObject(account, "total", this.SafeString(entry, "totalWalletBalance"))
+                var usedLinear interface{} = this.SafeString(entry, "umUnrealizedPNL")
+                var usedInverse interface{} = this.SafeString(entry, "cmUnrealizedPNL")
+                var totalUsed interface{} = Precise.StringAdd(usedLinear, usedInverse)
+                var totalWalletBalance interface{} = this.SafeString(entry, "totalWalletBalance")
+                AddElementToObject(account, "total", Precise.StringAdd(totalUsed, totalWalletBalance))
             }
             AddElementToObject(result, code, account)
         }
@@ -3384,33 +3755,36 @@ func  (this *binance) ParseBalanceCustom(response interface{}, optionalArgs ...i
     AddElementToObject(result, "datetime", this.Iso8601(timestamp))
     return Ternary(IsTrue(isolated), result, this.SafeBalance(result))
 }
+/**
+ * @method
+ * @name binance#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
+ * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               // future
+ * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+ * @param {string} [params.subType] 'linear' or 'inverse'
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ */
 func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchBalance
-            * @description query for balance and get the amount of funds available for trading or funds locked in orders
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
-            * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
-            * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
-            * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               // future
-            * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-            * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
-            * @param {string} [params.subType] 'linear' or 'inverse'
-            * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes810838 := (<-this.LoadMarkets())
+            PanicOnError(retRes810838)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
             var subType interface{} = nil
@@ -3436,7 +3810,9 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     typeVar = "inverse"
                 }
                 isPortfolioMargin = true
-                response = (<-this.PapiGetBalance(this.Extend(request, query)))
+                
+        response = (<-this.PapiGetBalance(this.Extend(request, query)))
+                PanicOnError(response)
             } else if IsTrue(this.IsLinear(typeVar, subType)) {
                 typeVar = "linear"
                 var useV2 interface{} = nil
@@ -3445,13 +3821,19 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                 params = GetValue(useV2paramsVariable,1)
                 params = this.Extend(request, query)
                 if !IsTrue(useV2) {
-                    response = (<-this.FapiPrivateV3GetAccount(params))
+                    
+        response = (<-this.FapiPrivateV3GetAccount(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateV2GetAccount(params))
+                    
+        response = (<-this.FapiPrivateV2GetAccount(params))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 typeVar = "inverse"
-                response = (<-this.DapiPrivateGetAccount(this.Extend(request, query)))
+                
+        response = (<-this.DapiPrivateGetAccount(this.Extend(request, query)))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "isolated")) {
                 var paramSymbols interface{} = this.SafeList(params, "symbols")
                 query = this.Omit(query, "symbols")
@@ -3469,17 +3851,28 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     }
                     AddElementToObject(request, "symbols", symbols)
                 }
-                response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query)))
+                
+        response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query)))
+                PanicOnError(response)
             } else if IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsEqual(marginMode, "cross")))) {
-                response = (<-this.SapiGetMarginAccount(this.Extend(request, query)))
+                
+        response = (<-this.SapiGetMarginAccount(this.Extend(request, query)))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "savings")) {
-                response = (<-this.SapiGetLendingUnionAccount(this.Extend(request, query)))
+                
+        response = (<-this.SapiGetLendingUnionAccount(this.Extend(request, query)))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "funding")) {
-                response = (<-this.SapiPostAssetGetFundingAsset(this.Extend(request, query)))
+                
+        response = (<-this.SapiPostAssetGetFundingAsset(this.Extend(request, query)))
+                PanicOnError(response)
             } else {
-                response = (<-this.PrivateGetAccount(this.Extend(request, query)))
+                
+        response = (<-this.PrivateGetAccount(this.Extend(request, query)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             // spot
             //
             //     {
@@ -3659,33 +4052,37 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
             //         },
             //     ]
             //
-                ch <-this.ParseBalanceCustom(response, typeVar, marginMode, isPortfolioMargin)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseBalanceCustom(response, typeVar, marginMode, isPortfolioMargin)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOrderBook
+ * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
 func  (this *binance) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOrderBook
-            * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
-            * @param {string} symbol unified symbol of the market to fetch the order book for
-            * @param {int} [limit] the maximum amount of order book entries to return
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-            */
-            limit := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    limit := GetArg(optionalArgs, 0, nil)
             _ = limit
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes744585 := (<-this.LoadMarkets())
+            PanicOnError(retRes744585)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -3695,13 +4092,21 @@ func  (this *binance) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPublicGetDepth(this.Extend(request, params)))
+                
+        response = (<-this.EapiPublicGetDepth(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPublicGetDepth(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetDepth(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPublicGetDepth(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetDepth(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.PublicGetDepth(this.Extend(request, params)))
+                
+        response = (<-this.PublicGetDepth(this.Extend(request, params)))
+                PanicOnError(response)
             }
             //
             // future
@@ -3742,12 +4147,26 @@ func  (this *binance) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             var timestamp interface{} = this.SafeInteger(response, "T")
             var orderbook interface{} = this.ParseOrderBook(response, symbol, timestamp)
             AddElementToObject(orderbook, "nonce", this.SafeInteger2(response, "lastUpdateId", "u"))
-                ch <-orderbook
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- orderbook
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
+    // markPrices
+    //
+    //     {
+    //         "symbol": "BTCUSDT",
+    //         "markPrice": "11793.63104562",  // mark price
+    //         "indexPrice": "11781.80495970", // index price
+    //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+    //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
+    //         "nextFundingTime": 1597392000000,
+    //         "interestRate": "0.00010000",
+    //         "time": 1597370495002
+    //     }
     //
     //     {
     //         "symbol": "ETHBTC",
@@ -3853,7 +4272,7 @@ func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp interface{} = this.SafeInteger(ticker, "closeTime")
+    var timestamp interface{} = this.SafeInteger2(ticker, "closeTime", "time")
     var marketType interface{} = nil
     if IsTrue((InOp(ticker, "time"))) {
         marketType = "contract"
@@ -3896,24 +4315,29 @@ func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{
         "average": nil,
         "baseVolume": baseVolume,
         "quoteVolume": quoteVolume,
+        "markPrice": this.SafeString(ticker, "markPrice"),
+        "indexPrice": this.SafeString(ticker, "indexPrice"),
         "info": ticker,
     }, market)
 }
+/**
+ * @method
+ * @name binance#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://developers.binance.com/docs/wallet/others/system-status
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ */
 func  (this *binance) FetchStatus(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchStatus
-            * @description the latest known information on the availability of the exchange API
-            * @see https://developers.binance.com/docs/wallet/others/system-status
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            var response interface{} = (<-this.SapiGetSystemStatus(params))
+        
+            response:= (<-this.SapiGetSystemStatus(params))
+            PanicOnError(response)
             //
             //     {
             //         "status": 0,              // 0: normal，1：system maintenance
@@ -3921,7 +4345,8 @@ func  (this *binance) FetchStatus(optionalArgs ...interface{}) <- chan interface
             //     }
             //
             var statusRaw interface{} = this.SafeString(response, "status")
-                ch <-map[string]interface{} {
+        
+            ch <- map[string]interface{} {
                 "status": this.SafeString(map[string]interface{} {
                     "0": "ok",
                     "1": "maintenance",
@@ -3931,81 +4356,102 @@ func  (this *binance) FetchStatus(optionalArgs ...interface{}) <- chan interface
                 "url": nil,
                 "info": response,
             }
-        return nil
-    }()
-    return ch
-}
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
 func  (this *binance) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTicker
-            * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
-            * @param {string} symbol unified symbol of the market to fetch the ticker for
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
-            * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes747269 := (<-this.LoadMarkets())
+            PanicOnError(retRes747269)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPublicGetTicker(this.Extend(request, params)))
+                
+        response = (<-this.EapiPublicGetTicker(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPublicGetTicker24hr(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetTicker24hr(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPublicGetTicker24hr(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetTicker24hr(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 var rolling interface{} = this.SafeBool(params, "rolling", false)
                 params = this.Omit(params, "rolling")
                 if IsTrue(rolling) {
-                    response = (<-this.PublicGetTicker(this.Extend(request, params)))
+                    
+        response = (<-this.PublicGetTicker(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.PublicGetTicker24hr(this.Extend(request, params)))
+                    
+        response = (<-this.PublicGetTicker24hr(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             }
             if IsTrue(IsArray(response)) {
                 var firstTicker interface{} = this.SafeDict(response, 0, map[string]interface{} {})
-                                ch <-this.ParseTicker(firstTicker, market)
+        
+                ch <- this.ParseTicker(firstTicker, market)
+                return nil
             }
-                ch <-this.ParseTicker(response, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTicker(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
 func  (this *binance) FetchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchBidsAsks
-            * @description fetches the bid and ask price and volume for multiple markets
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
-            * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes952345 := (<-this.LoadMarkets())
+            PanicOnError(retRes952345)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4018,44 +4464,55 @@ func  (this *binance) FetchBidsAsks(optionalArgs ...interface{}) <- chan interfa
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicGetTickerBookTicker(params))
+                
+        response = (<-this.FapiPublicGetTickerBookTicker(params))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetTickerBookTicker(params))
+                
+        response = (<-this.DapiPublicGetTickerBookTicker(params))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "spot")) {
                 var request interface{} = map[string]interface{} {}
                 if IsTrue(!IsEqual(symbols, nil)) {
                     AddElementToObject(request, "symbols", this.Json(this.MarketIds(symbols)))
                 }
-                response = (<-this.PublicGetTickerBookTicker(this.Extend(request, params)))
+                
+        response = (<-this.PublicGetTickerBookTicker(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchBidsAsks() does not support "), typeVar), " markets yet")))
             }
-                ch <-this.ParseTickers(response, symbols)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTickers(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchLastPrices
+ * @description fetches the last price for multiple markets
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of lastprices structures
+ */
 func  (this *binance) FetchLastPrices(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchLastPrices
-            * @description fetches the last price for multiple markets
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
-            * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a dictionary of lastprices structures
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes286790 := (<-this.LoadMarkets())
+            PanicOnError(retRes286790)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4068,19 +4525,27 @@ func  (this *binance) FetchLastPrices(optionalArgs ...interface{}) <- chan inter
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicV2GetTickerPrice(params))
+                
+        response = (<-this.FapiPublicV2GetTickerPrice(params))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetTickerPrice(params))
+                
+        response = (<-this.DapiPublicGetTickerPrice(params))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "spot")) {
-                response = (<-this.PublicGetTickerPrice(params))
+                
+        response = (<-this.PublicGetTickerPrice(params))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchLastPrices() does not support "), typeVar), " markets yet")))
             }
-                ch <-this.ParseLastPrices(response, symbols)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseLastPrices(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseLastPrice(entry interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // spot
@@ -4114,39 +4579,41 @@ func  (this *binance) ParseLastPrice(entry interface{}, optionalArgs ...interfac
     var typeVar interface{} = Ternary(IsTrue((IsEqual(timestamp, nil))), "spot", "swap")
     var marketId interface{} = this.SafeString(entry, "symbol")
     market = this.SafeMarket(marketId, market, nil, typeVar)
-    var price interface{} = this.SafeNumber(entry, "price")
     return map[string]interface{} {
         "symbol": GetValue(market, "symbol"),
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
-        "price": price,
+        "price": this.SafeNumberOmitZero(entry, "price"),
         "side": nil,
         "info": entry,
     }
 }
+/**
+ * @method
+ * @name binance#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
 func  (this *binance) FetchTickers(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTickers
-            * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
-            * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-            * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes760112 := (<-this.LoadMarkets())
+            PanicOnError(retRes760112)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4159,25 +4626,144 @@ func  (this *binance) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicGetTicker24hr(params))
+                
+        response = (<-this.FapiPublicGetTicker24hr(params))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetTicker24hr(params))
+                
+        response = (<-this.DapiPublicGetTicker24hr(params))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "spot")) {
                 var request interface{} = map[string]interface{} {}
                 if IsTrue(!IsEqual(symbols, nil)) {
                     AddElementToObject(request, "symbols", this.Json(this.MarketIds(symbols)))
                 }
-                response = (<-this.PublicGetTicker24hr(this.Extend(request, params)))
+                
+        response = (<-this.PublicGetTicker24hr(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "option")) {
-                response = (<-this.EapiPublicGetTicker(params))
+                
+        response = (<-this.EapiPublicGetTicker(params))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchTickers() does not support "), typeVar), " markets yet")))
             }
-                ch <-this.ParseTickers(response, symbols)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTickers(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMarkPrice
+ * @description fetches mark price for the market
+ * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+ * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func  (this *binance) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes788139 := (<-this.LoadMarkets())
+            PanicOnError(retRes788139)
+            var market interface{} = this.Market(symbol)
+            var typeVar interface{} = nil
+            typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMarkPrice", market, params, "swap");
+            typeVar = GetValue(typeVarparamsVariable,0);
+            params = GetValue(typeVarparamsVariable,1)
+            var subType interface{} = nil
+            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear");
+            subType = GetValue(subTypeparamsVariable,0);
+            params = GetValue(subTypeparamsVariable,1)
+            var request interface{} = map[string]interface{} {
+                "symbol": GetValue(market, "id"),
+            }
+            var response interface{} = nil
+            if IsTrue(this.IsLinear(typeVar, subType)) {
+                
+        response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
+                PanicOnError(response)
+            } else if IsTrue(this.IsInverse(typeVar, subType)) {
+                
+        response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params)))
+                PanicOnError(response)
+            } else {
+                panic(NotSupported(Add(Add(Add(this.Id, " fetchMarkPrice() does not support "), typeVar), " markets yet")))
+            }
+            if IsTrue(IsArray(response)) {
+        
+                ch <- this.ParseTicker(this.SafeDict(response, 0, map[string]interface{} {}), market)
+                return nil
+            }
+        
+            ch <- this.ParseTicker(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMarkPrices
+ * @description fetches mark prices for multiple markets
+ * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+ * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func  (this *binance) FetchMarkPrices(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]interface{} {})
+            _ = params
+        
+            retRes735767 := (<-this.LoadMarkets())
+            PanicOnError(retRes735767)
+            symbols = this.MarketSymbols(symbols, nil, true, true, true)
+            var market interface{} = this.GetMarketFromSymbols(symbols)
+            var typeVar interface{} = nil
+            typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap");
+            typeVar = GetValue(typeVarparamsVariable,0);
+            params = GetValue(typeVarparamsVariable,1)
+            var subType interface{} = nil
+            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrices", market, params, "linear");
+            subType = GetValue(subTypeparamsVariable,0);
+            params = GetValue(subTypeparamsVariable,1)
+            var response interface{} = nil
+            if IsTrue(this.IsLinear(typeVar, subType)) {
+                
+        response = (<-this.FapiPublicGetPremiumIndex(params))
+                PanicOnError(response)
+            } else if IsTrue(this.IsInverse(typeVar, subType)) {
+                
+        response = (<-this.DapiPublicGetPremiumIndex(params))
+                PanicOnError(response)
+            } else {
+                panic(NotSupported(Add(Add(Add(this.Id, " fetchMarkPrices() does not support "), typeVar), " markets yet")))
+            }
+        
+            ch <- this.ParseTickers(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}  {
     // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
     //     [
@@ -4236,35 +4822,36 @@ func  (this *binance) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
     var volumeIndex interface{} = Ternary(IsTrue(inverse), 7, 5)
     return []interface{}{this.SafeInteger2(ohlcv, 0, "openTime"), this.SafeNumber2(ohlcv, 1, "open"), this.SafeNumber2(ohlcv, 2, "high"), this.SafeNumber2(ohlcv, 3, "low"), this.SafeNumber2(ohlcv, 4, "close"), this.SafeNumber2(ohlcv, volumeIndex, "volume")}
 }
+/**
+ * @method
+ * @name binance#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
 func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOHLCV
-            * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
-            * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-            * @param {string} timeframe the length of time each candle represents
-            * @param {int} [since] timestamp in ms of the earliest candle to fetch
-            * @param {int} [limit] the maximum amount of candles to fetch
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.price] "mark" or "index" for mark price and index price candles
-            * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-            */
-            timeframe := GetArg(optionalArgs, 0, "1m")
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    timeframe := GetArg(optionalArgs, 0, "1m")
             _ = timeframe
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -4272,13 +4859,19 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes247687 := (<-this.LoadMarkets())
+            PanicOnError(retRes247687)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false);
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+        
+                    retRes500871 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+                    PanicOnError(retRes500871)
+                    ch <- retRes500871
+                    return nil
             }
             var market interface{} = this.Market(symbol)
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -4325,31 +4918,51 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPublicGetKlines(this.Extend(request, params)))
+                
+        response = (<-this.EapiPublicGetKlines(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(price, "mark")) {
                 if IsTrue(GetValue(market, "inverse")) {
-                    response = (<-this.DapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(price, "index")) {
                 if IsTrue(GetValue(market, "inverse")) {
-                    response = (<-this.DapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(price, "premiumIndex")) {
                 if IsTrue(GetValue(market, "inverse")) {
-                    response = (<-this.DapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPublicGetKlines(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetKlines(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPublicGetKlines(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetKlines(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.PublicGetKlines(this.Extend(request, params)))
+                
+        response = (<-this.PublicGetKlines(this.Extend(request, params)))
+                PanicOnError(response)
             }
             //
             //     [
@@ -4377,11 +4990,14 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             //         }
             //     ]
             //
-                ch <-this.ParseOHLCVs(response, market, timeframe, since, limit)
-        return nil
-    }()
-    return ch
-}
+            var candles interface{} = this.ParseOHLCVs(response, market, timeframe, since, limit)
+        
+            ch <- candles
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -4651,52 +5267,59 @@ func  (this *binance) ParseTrade(trade interface{}, optionalArgs ...interface{})
         "fee": fee,
     }, market)
 }
+/**
+ * @method
+ * @name binance#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * Default fetchTradesMethod
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+ * Other fetchTradesMethod
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+ * @param {int} [limit] default 500, max 1000
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
 func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTrades
-            * @description get the list of most recent trades for a particular symbol
-            * Default fetchTradesMethod
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
-            * Other fetchTradesMethod
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
-            * @param {string} symbol unified symbol of the market to fetch trades for
-            * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
-            * @param {int} [limit] default 500, max 1000
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
-            * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            *
-            * EXCHANGE SPECIFIC PARAMETERS
-            * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-            * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-            */
-            since := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    since := GetArg(optionalArgs, 0, nil)
             _ = since
             limit := GetArg(optionalArgs, 1, nil)
             _ = limit
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes145285 := (<-this.LoadMarkets())
+            PanicOnError(retRes145285)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+        
+                    retRes605603 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+                    PanicOnError(retRes605603)
+                    ch <- retRes605603
+                    return nil
             }
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -4714,24 +5337,35 @@ func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{
                     AddElementToObject(request, "endTime", until)
                 }
             }
-            if IsTrue(!IsEqual(limit, nil)) {
-                var isFutureOrSwap interface{} =         (IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future")))
-                AddElementToObject(request, "limit", Ternary(IsTrue(isFutureOrSwap), mathMin(limit, 1000), limit)) // default = 500, maximum = 1000
-            }
             var method interface{} = this.SafeString(this.Options, "fetchTradesMethod")
             method = this.SafeString2(params, "fetchTradesMethod", "method", method)
+            if IsTrue(!IsEqual(limit, nil)) {
+                var isFutureOrSwap interface{} =         (IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future")))
+                var isHistoricalEndpoint interface{} = IsTrue((!IsEqual(method, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(method, "GetHistoricalTrades"), 0)))
+                var maxLimitForContractHistorical interface{} = Ternary(IsTrue(isHistoricalEndpoint), 500, 1000)
+                AddElementToObject(request, "limit", Ternary(IsTrue(isFutureOrSwap), mathMin(limit, maxLimitForContractHistorical), limit)) // default = 500, maximum = 1000
+            }
             params = this.Omit(params, []interface{}{"until", "fetchTradesMethod"})
             var response interface{} = nil
             if IsTrue(IsTrue(GetValue(market, "option")) || IsTrue(IsEqual(method, "eapiPublicGetTrades"))) {
-                response = (<-this.EapiPublicGetTrades(this.Extend(request, params)))
+                
+        response = (<-this.EapiPublicGetTrades(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(IsTrue(GetValue(market, "linear")) || IsTrue(IsEqual(method, "fapiPublicGetAggTrades"))) {
-                response = (<-this.FapiPublicGetAggTrades(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetAggTrades(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(IsTrue(GetValue(market, "inverse")) || IsTrue(IsEqual(method, "dapiPublicGetAggTrades"))) {
-                response = (<-this.DapiPublicGetAggTrades(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetAggTrades(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.PublicGetAggTrades(this.Extend(request, params)))
+                
+        response = (<-this.PublicGetAggTrades(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             // Caveats:
             // - default limit (500) applies only if no other parameters set, trades up
             //   to the maximum limit may be returned to satisfy other parameters
@@ -4797,42 +5431,48 @@ func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{
             //         },
             //     ]
             //
-                ch <-this.ParseTrades(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseTrades(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#editSpotOrder
+ * @ignore
+ * @description edit a trade order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+ * @param {string} id cancel order id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) EditSpotOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#editSpotOrder
-            * @ignore
-            * @description edit a trade order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
-            * @param {string} id cancel order id
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} amount how much of currency you want to trade in units of base currency
-            * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            price := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    price := GetArg(optionalArgs, 0, nil)
             _ = price
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes35634 := (<-this.LoadMarkets())
+            PanicOnError(retRes35634)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " editSpotOrder() does not support "), GetValue(market, "type")), " orders")))
             }
             var payload interface{} = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
-            var response interface{} = (<-this.PrivatePostOrderCancelReplace(payload))
+        
+            response:= (<-this.PrivatePostOrderCancelReplace(payload))
+            PanicOnError(response)
             //
             // spot
             //
@@ -4873,11 +5513,13 @@ func  (this *binance) EditSpotOrder(id interface{}, symbol interface{}, typeVar 
             //     }
             //
             var data interface{} = this.SafeDict(response, "newOrderResponse")
-                ch <-this.ParseOrder(data, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOrder(data, market)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
@@ -4911,8 +5553,8 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
         uppercaseType = "LIMIT_MAKER"
     }
     AddElementToObject(request, "type", uppercaseType)
-    var stopPrice interface{} = this.SafeNumber2(params, "stopPrice", "triggerPrice")
-    if IsTrue(!IsEqual(stopPrice, nil)) {
+    var triggerPrice interface{} = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+    if IsTrue(!IsEqual(triggerPrice, nil)) {
         if IsTrue(IsEqual(uppercaseType, "MARKET")) {
             uppercaseType = "STOP_LOSS"
         } else if IsTrue(IsEqual(uppercaseType, "LIMIT")) {
@@ -4922,7 +5564,7 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     var validOrderTypes interface{} = this.SafeList(GetValue(market, "info"), "orderTypes")
     if !IsTrue(this.InArray(uppercaseType, validOrderTypes)) {
         if IsTrue(!IsEqual(initialUppercaseType, uppercaseType)) {
-            panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " stopPrice parameter is not allowed for "), symbol), " "), typeVar), " orders")))
+            panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " triggerPrice parameter is not allowed for "), symbol), " "), typeVar), " orders")))
         } else {
             panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " "), typeVar), " is not a valid order type for the "), symbol), " market")))
         }
@@ -4941,7 +5583,7 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     AddElementToObject(request, "newOrderRespType", this.SafeValue(GetValue(this.Options, "newOrderRespType"), typeVar, "RESULT")) // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
     var timeInForceIsRequired interface{} = false
     var priceIsRequired interface{} = false
-    var stopPriceIsRequired interface{} = false
+    var triggerPriceIsRequired interface{} = false
     var quantityIsRequired interface{} = false
     if IsTrue(IsEqual(uppercaseType, "MARKET")) {
         var quoteOrderQty interface{} = this.SafeBool(this.Options, "quoteOrderQty", true)
@@ -4966,11 +5608,11 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
         timeInForceIsRequired = true
         quantityIsRequired = true
     } else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT")))) {
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
         quantityIsRequired = true
     } else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))) {
         quantityIsRequired = true
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
         priceIsRequired = true
         timeInForceIsRequired = true
     } else if IsTrue(IsEqual(uppercaseType, "LIMIT_MAKER")) {
@@ -4989,11 +5631,11 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     if IsTrue(IsTrue(timeInForceIsRequired) && IsTrue((IsEqual(this.SafeString(params, "timeInForce"), nil)))) {
         AddElementToObject(request, "timeInForce", GetValue(this.Options, "defaultTimeInForce")) // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
     }
-    if IsTrue(stopPriceIsRequired) {
-        if IsTrue(IsEqual(stopPrice, nil)) {
-            panic(InvalidOrder(Add(Add(Add(this.Id, " editOrder() requires a stopPrice extra param for a "), typeVar), " order")))
+    if IsTrue(triggerPriceIsRequired) {
+        if IsTrue(IsEqual(triggerPrice, nil)) {
+            panic(InvalidOrder(Add(Add(Add(this.Id, " editOrder() requires a triggerPrice extra param for a "), typeVar), " order")))
         } else {
-            AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, stopPrice))
+            AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
         }
     }
     AddElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE") // If the cancel request fails, the new order placement will not be attempted.
@@ -5033,39 +5675,47 @@ func  (this *binance) EditContractOrderRequest(id interface{}, symbol interface{
     params = this.Omit(params, []interface{}{"clientOrderId", "newClientOrderId"})
     return request
 }
+/**
+ * @method
+ * @name binance#editContractOrder
+ * @description edit a trade order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+ * @param {string} id cancel order id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) EditContractOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#editContractOrder
-            * @description edit a trade order
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
-            * @param {string} id cancel order id
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} type 'market' or 'limit'
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} amount how much of currency you want to trade in units of base currency
-            * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            price := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    price := GetArg(optionalArgs, 0, nil)
             _ = price
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes981264 := (<-this.LoadMarkets())
+            PanicOnError(retRes981264)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.EditContractOrderRequest(id, symbol, typeVar, side, amount, price, params)
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPrivatePutOrder(this.Extend(request, params)))
+                
+        response = (<-this.FapiPrivatePutOrder(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPrivatePutOrder(this.Extend(request, params)))
+                
+        response = (<-this.DapiPrivatePutOrder(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             // swap and future
             //
             //     {
@@ -5092,51 +5742,63 @@ func  (this *binance) EditContractOrder(id interface{}, symbol interface{}, type
             //         "updateTime": 1684300587845
             //     }
             //
-                ch <-this.ParseOrder(response, market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOrder(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#editOrder
+ * @description edit a trade order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+ * @param {string} id cancel order id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#editOrder
-            * @description edit a trade order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
-            * @param {string} id cancel order id
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} type 'market' or 'limit'
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} amount how much of currency you want to trade in units of base currency
-            * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            amount := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    amount := GetArg(optionalArgs, 0, nil)
             _ = amount
             price := GetArg(optionalArgs, 1, nil)
             _ = price
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes586363 := (<-this.LoadMarkets())
+            PanicOnError(retRes586363)
             var market interface{} = this.Market(symbol)
             if IsTrue(GetValue(market, "option")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders")))
             }
             if IsTrue(GetValue(market, "spot")) {
-                                ch <-(<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
+        
+                    retRes832834 :=  (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes832834)
+                    ch <- retRes832834
+                    return nil
             } else {
-                                ch <-(<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
+        
+                    retRes809413 :=  (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes809413)
+                    ch <- retRes809413
+                    return nil
             }
-        return nil
-    }()
-    return ch
-}
+                return nil
+            }()
+            return ch
+        }
 func  (this *binance) ParseOrderStatus(status interface{}) interface{}  {
     var statuses interface{} = map[string]interface{} {
         "NEW": "open",
@@ -5685,7 +6347,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
         typeVar = "limit"
     }
     var stopPriceString interface{} = this.SafeString(order, "stopPrice")
-    var stopPrice interface{} = this.ParseNumber(this.OmitZero(stopPriceString))
+    var triggerPrice interface{} = this.ParseNumber(this.OmitZero(stopPriceString))
     var feeCost interface{} = this.SafeNumber(order, "fee")
     var fee interface{} = nil
     if IsTrue(!IsEqual(feeCost, nil)) {
@@ -5710,7 +6372,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
         "reduceOnly": this.SafeBool(order, "reduceOnly"),
         "side": side,
         "price": price,
-        "triggerPrice": stopPrice,
+        "triggerPrice": triggerPrice,
         "amount": amount,
         "cost": cost,
         "average": average,
@@ -5721,23 +6383,27 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
         "trades": fills,
     }, market)
 }
+/**
+ * @method
+ * @name binance#createOrders
+ * @description *contract only* create a list of trade orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createOrders
-            * @description *contract only* create a list of trade orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
-            * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes641620 := (<-this.LoadMarkets())
+            PanicOnError(retRes641620)
             var ordersRequests interface{} = []interface{}{}
             var orderSymbols interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -5763,13 +6429,20 @@ func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface
             }
             request = this.Extend(request, params)
             if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPrivatePostBatchOrders(request))
+                
+        response = (<-this.FapiPrivatePostBatchOrders(request))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivatePostBatchOrders(request))
+                
+        response = (<-this.EapiPrivatePostBatchOrders(request))
+                PanicOnError(response)
             } else {
-                response = (<-this.DapiPrivatePostBatchOrders(request))
+                
+        response = (<-this.DapiPrivatePostBatchOrders(request))
+                PanicOnError(response)
             }
-            //
+        
+                //
             //   [
             //       {
             //          "code": -4005,
@@ -5803,57 +6476,63 @@ func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface
             //       }
             //   ]
             //
-                ch <-this.ParseOrders(response)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOrders(response)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#createOrder
+ * @description create a trade order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
+ * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of you want to trade in units of the base currency
+ * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+ * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+ * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+ * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+ * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+ * @param {float} [params.icebergAmount] set iceberg amount for limit orders
+ * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+ * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+ * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createOrder
-            * @description create a trade order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
-            * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} amount how much of you want to trade in units of the base currency
-            * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
-            * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
-            * @param {float} [params.trailingPercent] the percent to trail away from the current market price
-            * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-            * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-            * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-            * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
-            * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
-            * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
-            * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            price := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    price := GetArg(optionalArgs, 0, nil)
             _ = price
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes50341 := (<-this.LoadMarkets())
+            PanicOnError(retRes50341)
             var market interface{} = this.Market(symbol)
             var marketType interface{} = this.SafeString(params, "type", GetValue(market, "type"))
             var marginMode interface{} = nil
@@ -5881,51 +6560,79 @@ func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side 
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivatePostOrder(request))
+                
+        response = (<-this.EapiPrivatePostOrder(request))
+                PanicOnError(response)
             } else if IsTrue(sor) {
                 if IsTrue(test) {
-                    response = (<-this.PrivatePostSorOrderTest(request))
+                    
+        response = (<-this.PrivatePostSorOrderTest(request))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.PrivatePostSorOrder(request))
+                    
+        response = (<-this.PrivatePostSorOrder(request))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiPostUmConditionalOrder(request))
+                        
+        response = (<-this.PapiPostUmConditionalOrder(request))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiPostUmOrder(request))
+                        
+        response = (<-this.PapiPostUmOrder(request))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivatePostOrder(request))
+                    
+        response = (<-this.FapiPrivatePostOrder(request))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiPostCmConditionalOrder(request))
+                        
+        response = (<-this.PapiPostCmConditionalOrder(request))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiPostCmOrder(request))
+                        
+        response = (<-this.PapiPostCmOrder(request))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivatePostOrder(request))
+                    
+        response = (<-this.DapiPrivatePostOrder(request))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue(IsEqual(marketType, "margin")) || IsTrue(!IsEqual(marginMode, nil))) || IsTrue(isPortfolioMargin)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiPostMarginOrder(request))
+                    
+        response = (<-this.PapiPostMarginOrder(request))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.SapiPostMarginOrder(request))
+                    
+        response = (<-this.SapiPostMarginOrder(request))
+                    PanicOnError(response)
                 }
             } else {
                 if IsTrue(test) {
-                    response = (<-this.PrivatePostOrderTest(request))
+                    
+        response = (<-this.PrivatePostOrderTest(request))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.PrivatePostOrder(request))
+                    
+        response = (<-this.PrivatePostOrder(request))
+                    PanicOnError(response)
                 }
             }
-                ch <-this.ParseOrder(response, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOrder(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
@@ -5963,15 +6670,10 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     marginMode = GetValue(marginModeparamsVariable,0);
     params = GetValue(marginModeparamsVariable,1)
     var reduceOnly interface{} = this.SafeBool(params, "reduceOnly", false)
-    if IsTrue(IsTrue(IsTrue((IsEqual(marketType, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) || IsTrue(GetValue(market, "option"))) {
-        // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-        params = this.Omit(params, "reduceOnly")
-        if IsTrue(GetValue(market, "option")) {
-            AddElementToObject(request, "reduceOnly", reduceOnly)
-        } else {
-            if IsTrue(reduceOnly) {
-                AddElementToObject(request, "sideEffectType", "AUTO_REPAY")
-            }
+    if IsTrue(reduceOnly) {
+        if IsTrue(IsTrue(IsEqual(marketType, "margin")) || IsTrue((!IsTrue(GetValue(market, "contract")) && IsTrue((!IsEqual(marginMode, nil)))))) {
+            params = this.Omit(params, "reduceOnly")
+            AddElementToObject(request, "sideEffectType", "AUTO_REPAY")
         }
     }
     var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
@@ -6042,7 +6744,7 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         var validOrderTypes interface{} = this.SafeList(GetValue(market, "info"), "orderTypes")
         if !IsTrue(this.InArray(uppercaseType, validOrderTypes)) {
             if IsTrue(!IsEqual(initialUppercaseType, uppercaseType)) {
-                panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " stopPrice parameter is not allowed for "), symbol), " "), typeVar), " orders")))
+                panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " triggerPrice parameter is not allowed for "), symbol), " "), typeVar), " orders")))
             } else {
                 panic(InvalidOrder(Add(Add(Add(Add(Add(this.Id, " "), typeVar), " is not a valid order type for the "), symbol), " market")))
             }
@@ -6089,9 +6791,10 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     var typeRequest interface{} = Ternary(IsTrue(isPortfolioMarginConditional), "strategyType", "type")
     AddElementToObject(request, typeRequest, uppercaseType)
     // additional required fields depending on the order type
+    var closePosition interface{} = this.SafeBool(params, "closePosition", false)
     var timeInForceIsRequired interface{} = false
     var priceIsRequired interface{} = false
-    var stopPriceIsRequired interface{} = false
+    var triggerPriceIsRequired interface{} = false
     var quantityIsRequired interface{} = false
     //
     // spot/margin
@@ -6140,14 +6843,14 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         timeInForceIsRequired = true
         quantityIsRequired = true
     } else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT")))) {
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
         quantityIsRequired = true
         if IsTrue(IsTrue(GetValue(market, "linear")) || IsTrue(GetValue(market, "inverse"))) {
             priceIsRequired = true
         }
     } else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))) {
         quantityIsRequired = true
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
         priceIsRequired = true
         timeInForceIsRequired = true
     } else if IsTrue(IsEqual(uppercaseType, "LIMIT_MAKER")) {
@@ -6155,16 +6858,17 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         quantityIsRequired = true
     } else if IsTrue(IsEqual(uppercaseType, "STOP")) {
         quantityIsRequired = true
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
         priceIsRequired = true
     } else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_MARKET"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT_MARKET")))) {
-        var closePosition interface{} = this.SafeBool(params, "closePosition")
-        if IsTrue(IsEqual(closePosition, nil)) {
+        if !IsTrue(closePosition) {
             quantityIsRequired = true
         }
-        stopPriceIsRequired = true
+        triggerPriceIsRequired = true
     } else if IsTrue(IsEqual(uppercaseType, "TRAILING_STOP_MARKET")) {
-        quantityIsRequired = true
+        if !IsTrue(closePosition) {
+            quantityIsRequired = true
+        }
         if IsTrue(IsEqual(trailingPercent, nil)) {
             panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a trailingPercent param for a "), typeVar), " order")))
         }
@@ -6174,24 +6878,36 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         if IsTrue(isPortfolioMargin) {
             AddElementToObject(request, "quantity", this.ParseToNumeric(amount))
         } else {
-            AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
+            var marketAmountPrecision interface{} = this.SafeString(GetValue(market, "precision"), "amount")
+            var isPrecisionAvailable interface{} =             (!IsEqual(marketAmountPrecision, nil))
+            if IsTrue(isPrecisionAvailable) {
+                AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
+            } else {
+                AddElementToObject(request, "quantity", this.ParseToNumeric(amount)) // some options don't have the precision available
+            }
         }
     }
     if IsTrue(IsTrue(priceIsRequired) && !IsTrue(isPriceMatch)) {
         if IsTrue(IsEqual(price, nil)) {
             panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a price argument for a "), typeVar), " order")))
         }
-        AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+        var pricePrecision interface{} = this.SafeString(GetValue(market, "precision"), "price")
+        var isPricePrecisionAvailable interface{} =         (!IsEqual(pricePrecision, nil))
+        if IsTrue(isPricePrecisionAvailable) {
+            AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+        } else {
+            AddElementToObject(request, "price", this.ParseToNumeric(price)) // some options don't have the precision available
+        }
     }
-    if IsTrue(stopPriceIsRequired) {
+    if IsTrue(triggerPriceIsRequired) {
         if IsTrue(GetValue(market, "contract")) {
             if IsTrue(IsEqual(stopPrice, nil)) {
-                panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a stopPrice extra param for a "), typeVar), " order")))
+                panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice extra param for a "), typeVar), " order")))
             }
         } else {
             // check for delta price as well
             if IsTrue(IsTrue(IsTrue(IsEqual(trailingDelta, nil)) && IsTrue(IsEqual(stopPrice, nil))) && IsTrue(IsEqual(trailingPercent, nil))) {
-                panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a "), typeVar), " order")))
+                panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a "), typeVar), " order")))
             }
         }
         if IsTrue(!IsEqual(stopPrice, nil)) {
@@ -6199,7 +6915,7 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         }
     }
     if IsTrue(IsTrue(IsTrue(timeInForceIsRequired) && IsTrue((IsEqual(this.SafeString(params, "timeInForce"), nil)))) && IsTrue((IsEqual(this.SafeString(request, "timeInForce"), nil)))) {
-        AddElementToObject(request, "timeInForce", GetValue(this.Options, "defaultTimeInForce")) // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        AddElementToObject(request, "timeInForce", this.SafeString(this.Options, "defaultTimeInForce")) // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
     }
     if IsTrue(IsTrue(!IsTrue(isPortfolioMargin) && IsTrue(GetValue(market, "contract"))) && IsTrue(postOnly)) {
         AddElementToObject(request, "timeInForce", "GTX")
@@ -6216,121 +6932,159 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
         }
         AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(side, "buy"))), "LONG", "SHORT"))
     }
-    var requestParams interface{} = this.Omit(params, []interface{}{"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged"})
+    // unified stp
+    var selfTradePrevention interface{} = this.SafeString(params, "selfTradePrevention")
+    if IsTrue(!IsEqual(selfTradePrevention, nil)) {
+        if IsTrue(GetValue(market, "spot")) {
+            AddElementToObject(request, "selfTradePreventionMode", ToUpper(selfTradePrevention)) // binance enums exactly match the unified ccxt enums (but needs uppercase)
+        }
+    }
+    // unified iceberg
+    var icebergAmount interface{} = this.SafeNumber(params, "icebergAmount")
+    if IsTrue(!IsEqual(icebergAmount, nil)) {
+        if IsTrue(GetValue(market, "spot")) {
+            AddElementToObject(request, "icebergQty", this.AmountToPrecision(symbol, icebergAmount))
+        }
+    }
+    var requestParams interface{} = this.Omit(params, []interface{}{"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "selfTradePrevention", "icebergAmount"})
     return this.Extend(request, requestParams)
 }
+/**
+ * @method
+ * @name binance#createMarketOrderWithCost
+ * @description create a market order by providing the symbol, side and cost
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createMarketOrderWithCost
-            * @description create a market order by providing the symbol, side and cost
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} cost how much you want to trade in units of the quote currency
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes31996 := (<-this.LoadMarkets())
+            PanicOnError(retRes31996)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "cost", cost)
-                ch <-(<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes624675 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
+                PanicOnError(retRes624675)
+                ch <- retRes624675
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#createMarketBuyOrderWithCost
+ * @description create a market buy order by providing the symbol and cost
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createMarketBuyOrderWithCost
-            * @description create a market buy order by providing the symbol and cost
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {float} cost how much you want to trade in units of the quote currency
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes526999 := (<-this.LoadMarkets())
+            PanicOnError(retRes526999)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "cost", cost)
-                ch <-(<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes572462 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+                PanicOnError(retRes572462)
+                ch <- retRes572462
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#createMarketSellOrderWithCost
+ * @description create a market sell order by providing the symbol and cost
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createMarketSellOrderWithCost
-            * @description create a market sell order by providing the symbol and cost
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {float} cost how much you want to trade in units of the quote currency
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes592987 := (<-this.LoadMarkets())
+            PanicOnError(retRes592987)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "quoteOrderQty", cost)
-                ch <-(<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes271683 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+                PanicOnError(retRes271683)
+                ch <- retRes271683
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+ * @param {string} id the order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOrder
-            * @description fetches information on an order made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
-            * @param {string} id the order id
-            * @param {string} symbol unified symbol of the market the order was made in
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
-            * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes726601 := (<-this.LoadMarkets())
+            PanicOnError(retRes726601)
             var market interface{} = this.Market(symbol)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchOrder", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -6358,65 +7112,84 @@ func  (this *binance) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params = this.Omit(params, []interface{}{"type", "clientOrderId", "origClientOrderId"})
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivateGetOrder(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateGetOrder(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmOrder(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetOrder(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmOrder(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetOrder(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) || IsTrue(isPortfolioMargin)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetMarginOrder(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         AddElementToObject(request, "isIsolated", true)
                     }
-                    response = (<-this.SapiGetMarginOrder(this.Extend(request, params)))
+                    
+        response = (<-this.SapiGetMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
-                response = (<-this.PrivateGetOrder(this.Extend(request, params)))
+                
+        response = (<-this.PrivateGetOrder(this.Extend(request, params)))
+                PanicOnError(response)
             }
-                ch <-this.ParseOrder(response, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOrder(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOrders
+ * @description fetches information on multiple orders made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOrders
-            * @description fetches information on multiple orders made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-            * @param {string} symbol unified market symbol of the market orders were made in
-            * @param {int} [since] the earliest time in ms to fetch orders for
-            * @param {int} [limit] the maximum number of order structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {int} [params.until] the latest time in ms to fetch orders for
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
-            * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -6427,13 +7200,19 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes230461 := (<-this.LoadMarkets())
+            PanicOnError(retRes230461)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+        
+                    retRes911284 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+                    PanicOnError(retRes911284)
+                    ch <- retRes911284
+                    return nil
             }
             var market interface{} = this.Market(symbol)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchOrders", "defaultType", GetValue(market, "type"))
@@ -6462,40 +7241,61 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivateGetHistoryOrders(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateGetHistoryOrders(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetUmConditionalAllOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmConditionalAllOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetUmAllOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmAllOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivateGetAllOrders(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetCmConditionalAllOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmConditionalAllOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetCmAllOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmAllOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivateGetAllOrders(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetMarginAllOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetMarginAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else if IsTrue(IsTrue(IsEqual(typeVar, "margin")) || IsTrue(!IsEqual(marginMode, nil))) {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         AddElementToObject(request, "isIsolated", true)
                     }
-                    response = (<-this.SapiGetMarginAllOrders(this.Extend(request, params)))
+                    
+        response = (<-this.SapiGetMarginAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.PrivateGetAllOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PrivateGetAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             }
-            //
+        
+                //
             //  spot
             //
             //     [
@@ -6675,39 +7475,41 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
             //         },
             //     ]
             //
-                ch <-this.ParseOrders(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOrders(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOpenOrders
+ * @description fetch all unfilled currently open orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOpenOrders
-            * @description fetch all unfilled currently open orders
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
-            * @param {string} symbol unified market symbol
-            * @param {int} [since] the earliest time in ms to fetch open orders for
-            * @param {int} [limit] the maximum number of open orders structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -6715,7 +7517,9 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes365108 := (<-this.LoadMarkets())
+            PanicOnError(retRes365108)
             var market interface{} = nil
             var typeVar interface{} = nil
             var request interface{} = map[string]interface{} {}
@@ -6753,30 +7557,46 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "limit", limit)
                 }
-                response = (<-this.EapiPrivateGetOpenOrders(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateGetOpenOrders(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetUmConditionalOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmConditionalOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetUmOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivateGetOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetCmConditionalOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmConditionalOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetCmOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivateGetOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue(IsEqual(typeVar, "margin")) || IsTrue(!IsEqual(marginMode, nil))) || IsTrue(isPortfolioMargin)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetMarginOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetMarginOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         AddElementToObject(request, "isIsolated", true)
@@ -6784,44 +7604,54 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                             panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument for isolated markets")))
                         }
                     }
-                    response = (<-this.SapiGetMarginOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.SapiGetMarginOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
-                response = (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
+                
+        response = (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
+                PanicOnError(response)
             }
-                ch <-this.ParseOrders(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOrders(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOpenOrder
+ * @description fetch an open order by the id
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOpenOrder
-            * @description fetch an open order by the id
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
-            * @param {string} id order id
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes722653 := (<-this.LoadMarkets())
+            PanicOnError(retRes722653)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -6839,22 +7669,34 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
             if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetUmConditionalOpenOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmConditionalOpenOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetUmOpenOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmOpenOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivateGetOpenOrder(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetOpenOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiGetCmConditionalOpenOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmConditionalOpenOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiGetCmOpenOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmOpenOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivateGetOpenOrder(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetOpenOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 if IsTrue(GetValue(market, "option")) {
@@ -6863,7 +7705,8 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
                     panic(NotSupported(Add(this.Id, " fetchOpenOrder() does not support spot markets")))
                 }
             }
-            //
+        
+                //
             // linear swap
             //
             //     {
@@ -7011,38 +7854,40 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
             //         "priceProtect": false
             //     }
             //
-                ch <-this.ParseOrder(response, market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOrder(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchClosedOrders
+ * @description fetches information on multiple closed orders made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchClosedOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchClosedOrders
-            * @description fetches information on multiple closed orders made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-            * @param {string} symbol unified market symbol of the market orders were made in
-            * @param {int} [since] the earliest time in ms to fetch orders for
-            * @param {int} [limit] the maximum number of order structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
-            * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7053,40 +7898,45 @@ func  (this *binance) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
             }
-            var orders interface{} = (<-this.FetchOrders(symbol, since, nil, params))
+        
+            orders:= (<-this.FetchOrders(symbol, since, nil, params))
+            PanicOnError(orders)
             var filteredOrders interface{} = this.FilterBy(orders, "status", "closed")
-                ch <-this.FilterBySinceLimit(filteredOrders, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySinceLimit(filteredOrders, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchCanceledOrders
+ * @description fetches information on multiple canceled orders made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @param {string} symbol unified market symbol of the market the orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchCanceledOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchCanceledOrders
-            * @description fetches information on multiple canceled orders made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-            * @param {string} symbol unified market symbol of the market the orders were made in
-            * @param {int} [since] the earliest time in ms to fetch orders for
-            * @param {int} [limit] the maximum number of order structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
-            * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7097,40 +7947,45 @@ func  (this *binance) FetchCanceledOrders(optionalArgs ...interface{}) <- chan i
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchCanceledOrders() requires a symbol argument")))
             }
-            var orders interface{} = (<-this.FetchOrders(symbol, since, nil, params))
+        
+            orders:= (<-this.FetchOrders(symbol, since, nil, params))
+            PanicOnError(orders)
             var filteredOrders interface{} = this.FilterBy(orders, "status", "canceled")
-                ch <-this.FilterBySinceLimit(filteredOrders, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySinceLimit(filteredOrders, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchCanceledAndClosedOrders
+ * @description fetches information on multiple canceled orders made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @param {string} symbol unified market symbol of the market the orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchCanceledAndClosedOrders
-            * @description fetches information on multiple canceled orders made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-            * @param {string} symbol unified market symbol of the market the orders were made in
-            * @param {int} [since] the earliest time in ms to fetch orders for
-            * @param {int} [limit] the maximum number of order structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
-            * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7141,49 +7996,56 @@ func  (this *binance) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) 
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchCanceledAndClosedOrders() requires a symbol argument")))
             }
-            var orders interface{} = (<-this.FetchOrders(symbol, since, nil, params))
+        
+            orders:= (<-this.FetchOrders(symbol, since, nil, params))
+            PanicOnError(orders)
             var canceledOrders interface{} = this.FilterBy(orders, "status", "canceled")
             var closedOrders interface{} = this.FilterBy(orders, "status", "closed")
             var filteredOrders interface{} = this.ArrayConcat(canceledOrders, closedOrders)
             var sortedOrders interface{} = this.SortBy(filteredOrders, "timestamp")
-                ch <-this.FilterBySinceLimit(sortedOrders, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySinceLimit(sortedOrders, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#cancelOrder
+ * @description cancels an open order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+ * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CancelOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#cancelOrder
-            * @description cancels an open order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
-            * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
-            * @param {string} id order id
-            * @param {string} symbol unified symbol of the market the order was made in
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to cancel a portfolio margin account conditional order
-            * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes309650 := (<-this.LoadMarkets())
+            PanicOnError(retRes309650)
             var market interface{} = this.Market(symbol)
             var defaultType interface{} = this.SafeString2(this.Options, "cancelOrder", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -7220,76 +8082,101 @@ func  (this *binance) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params = this.Omit(params, []interface{}{"type", "origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional"})
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivateDeleteOrder(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateDeleteOrder(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiDeleteUmConditionalOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteUmConditionalOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiDeleteUmOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteUmOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivateDeleteOrder(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateDeleteOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiDeleteCmConditionalOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteCmConditionalOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiDeleteCmOrder(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteCmOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivateDeleteOrder(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateDeleteOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) || IsTrue(isPortfolioMargin)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiDeleteMarginOrder(this.Extend(request, params)))
+                    
+        response = (<-this.PapiDeleteMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         AddElementToObject(request, "isIsolated", true)
                     }
-                    response = (<-this.SapiDeleteMarginOrder(this.Extend(request, params)))
+                    
+        response = (<-this.SapiDeleteMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
-                response = (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+                
+        response = (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+                PanicOnError(response)
             }
-                ch <-this.ParseOrder(response, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOrder(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#cancelAllOrders
+ * @description cancel all open orders in a market
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+ * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+ * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CancelAllOrders(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#cancelAllOrders
-            * @description cancel all open orders in a market
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
-            * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
-            * @param {string} symbol unified market symbol of the market to cancel orders in
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
-            * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
-            * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes775199 := (<-this.LoadMarkets())
+            PanicOnError(retRes775199)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -7307,77 +8194,104 @@ func  (this *binance) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params = GetValue(marginModeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiDeleteUmConditionalAllOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteUmConditionalAllOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiDeleteUmAllOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteUmAllOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.FapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
                     if IsTrue(isConditional) {
-                        response = (<-this.PapiDeleteCmConditionalAllOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteCmConditionalAllOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PapiDeleteCmAllOpenOrders(this.Extend(request, params)))
+                        
+        response = (<-this.PapiDeleteCmAllOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else {
-                    response = (<-this.DapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) || IsTrue(isPortfolioMargin)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiDeleteMarginAllOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiDeleteMarginAllOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         AddElementToObject(request, "isIsolated", true)
                     }
-                    response = (<-this.SapiDeleteMarginOpenOrders(this.Extend(request, params)))
+                    
+        response = (<-this.SapiDeleteMarginOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
-                response = (<-this.PrivateDeleteOpenOrders(this.Extend(request, params)))
+                
+        response = (<-this.PrivateDeleteOpenOrders(this.Extend(request, params)))
+                PanicOnError(response)
             }
             if IsTrue(IsArray(response)) {
-                                ch <-this.ParseOrders(response, market)
+        
+                ch <- this.ParseOrders(response, market)
+                return nil
             } else {
-                                ch <-[]interface{}{this.SafeOrder(map[string]interface{} {
+        
+                ch <- []interface{}{this.SafeOrder(map[string]interface{} {
             "info": response,
         })}
+                return nil
             }
-        return nil
-    }()
-    return ch
-}
+                return nil
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#cancelOrders
+ * @description cancel multiple orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+ * @param {string[]} ids order ids
+ * @param {string} [symbol] unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+ * @param {int[]} [params.recvWindow]
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#cancelOrders
-            * @description cancel multiple orders
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
-            * @param {string[]} ids order ids
-            * @param {string} [symbol] unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            *
-            * EXCHANGE SPECIFIC PARAMETERS
-            * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-            * @param {int[]} [params.recvWindow]
-            * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes848782 := (<-this.LoadMarkets())
+            PanicOnError(retRes848782)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "contract")) {
                 panic(BadRequest(Add(this.Id, " cancelOrders is only supported for swap markets.")))
@@ -7388,11 +8302,16 @@ func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{})
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+                
+        response = (<-this.FapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+                
+        response = (<-this.DapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             //    [
             //        {
             //            "clientOrderId": "myOrder1",
@@ -7427,31 +8346,33 @@ func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{})
             //        }
             //    ]
             //
-                ch <-this.ParseOrders(response, market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOrders(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOrderTrades
+ * @description fetch all the trades made from a single order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ */
 func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOrderTrades
-            * @description fetch all the trades made from a single order
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
-            * @param {string} id order id
-            * @param {string} symbol unified market symbol
-            * @param {int} [since] the earliest time in ms to fetch trades for
-            * @param {int} [limit] the maximum number of trades to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7462,7 +8383,9 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes513332 := (<-this.LoadMarkets())
+            PanicOnError(retRes513332)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = this.SafeString(params, "type", GetValue(market, "type"))
             params = this.Omit(params, "type")
@@ -7472,36 +8395,41 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
-                ch <-(<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes119125 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes119125)
+                ch <- retRes119125
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMyTrades
+ * @description fetch all trades made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ */
 func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMyTrades
-            * @description fetch all trades made by the user
-            * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
-            * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
-            * @param {string} symbol unified market symbol
-            * @param {int} [since] the earliest time in ms to fetch trades for
-            * @param {int} [limit] the maximum number of trades structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {int} [params.until] the latest time in ms to fetch entries for
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
-            * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7509,13 +8437,19 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes327548 := (<-this.LoadMarkets())
+            PanicOnError(retRes327548)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+        
+                    retRes787121 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                    PanicOnError(retRes787121)
+                    ch <- retRes787121
+                    return nil
             }
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
@@ -7556,7 +8490,9 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             }
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "option")) {
-                response = (<-this.EapiPrivateGetUserTrades(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateGetUserTrades(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
@@ -7570,30 +8506,45 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 params = GetValue(isPortfolioMarginparamsVariable,1)
                 if IsTrue(IsTrue(IsEqual(typeVar, "spot")) || IsTrue(IsEqual(typeVar, "margin"))) {
                     if IsTrue(isPortfolioMargin) {
-                        response = (<-this.PapiGetMarginMyTrades(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetMarginMyTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else if IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) {
                         if IsTrue(IsEqual(marginMode, "isolated")) {
                             AddElementToObject(request, "isIsolated", true)
                         }
-                        response = (<-this.SapiGetMarginMyTrades(this.Extend(request, params)))
+                        
+        response = (<-this.SapiGetMarginMyTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.PrivateGetMyTrades(this.Extend(request, params)))
+                        
+        response = (<-this.PrivateGetMyTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else if IsTrue(GetValue(market, "linear")) {
                     if IsTrue(isPortfolioMargin) {
-                        response = (<-this.PapiGetUmUserTrades(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetUmUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.FapiPrivateGetUserTrades(this.Extend(request, params)))
+                        
+        response = (<-this.FapiPrivateGetUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 } else if IsTrue(GetValue(market, "inverse")) {
                     if IsTrue(isPortfolioMargin) {
-                        response = (<-this.PapiGetCmUserTrades(this.Extend(request, params)))
+                        
+        response = (<-this.PapiGetCmUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.DapiPrivateGetUserTrades(this.Extend(request, params)))
+                        
+        response = (<-this.DapiPrivateGetUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                     }
                 }
             }
-            //
+        
+                //
             // spot trade
             //
             //     [
@@ -7722,28 +8673,30 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             //         }
             //     ]
             //
-                ch <-this.ParseTrades(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseTrades(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMyDustTrades
+ * @description fetch all dust trades made by the user
+ * @see https://developers.binance.com/docs/wallet/asset/dust-log
+ * @param {string} symbol not used by binance fetchMyDustTrades ()
+ * @param {int} [since] the earliest time in ms to fetch my dust trades for
+ * @param {int} [limit] the maximum number of dust trades to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'spot' or 'margin', default spot
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ */
 func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMyDustTrades
-            * @description fetch all dust trades made by the user
-            * @see https://developers.binance.com/docs/wallet/asset/dust-log
-            * @param {string} symbol not used by binance fetchMyDustTrades ()
-            * @param {int} [since] the earliest time in ms to fetch my dust trades for
-            * @param {int} [limit] the maximum number of dust trades to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.type] 'spot' or 'margin', default spot
-            * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-            */
-            //
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    //
             // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
             // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
             // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
@@ -7757,7 +8710,9 @@ func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) <- chan int
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes433735 := (<-this.LoadMarkets())
+            PanicOnError(retRes433735)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "startTime", since)
@@ -7768,7 +8723,9 @@ func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) <- chan int
             if IsTrue(!IsEqual(accountType, nil)) {
                 AddElementToObject(request, "accountType", accountType)
             }
-            var response interface{} = (<-this.SapiGetAssetDribblet(this.Extend(request, params)))
+        
+            response:= (<-this.SapiGetAssetDribblet(this.Extend(request, params)))
+            PanicOnError(response)
             //     {
             //       "total": "4",
             //       "userAssetDribblets": [
@@ -7809,11 +8766,13 @@ func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) <- chan int
                 }
             }
             var trades interface{} = this.ParseTrades(data, nil, since, limit)
-                ch <-this.FilterBySinceLimit(trades, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySinceLimit(trades, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseDustTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -7887,26 +8846,27 @@ func  (this *binance) ParseDustTrade(trade interface{}, optionalArgs ...interfac
         "info": trade,
     }
 }
+/**
+ * @method
+ * @name binance#fetchDeposits
+ * @description fetch all deposits made to an account
+ * @see https://developers.binance.com/docs/wallet/capital/deposite-history
+ * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch deposits for
+ * @param {int} [limit] the maximum number of deposits structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.fiat] if true, only fiat deposits will be returned
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
 func  (this *binance) FetchDeposits(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchDeposits
-            * @description fetch all deposits made to an account
-            * @see https://developers.binance.com/docs/wallet/capital/deposite-history
-            * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
-            * @param {string} code unified currency code
-            * @param {int} [since] the earliest time in ms to fetch deposits for
-            * @param {int} [limit] the maximum number of deposits structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {bool} [params.fiat] if true, only fiat deposits will be returned
-            * @param {int} [params.until] the latest time in ms to fetch entries for
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7914,13 +8874,19 @@ func  (this *binance) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes511089 := (<-this.LoadMarkets())
+            PanicOnError(retRes511089)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+        
+                    retRes371037 :=  (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+                    PanicOnError(retRes371037)
+                    ch <- retRes371037
+                    return nil
             }
             var currency interface{} = nil
             var response interface{} = nil
@@ -7941,7 +8907,9 @@ func  (this *binance) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
                 if IsTrue(!IsEqual(until, nil)) {
                     AddElementToObject(request, "endTime", until)
                 }
-                var raw interface{} = (<-this.SapiGetFiatOrders(this.Extend(request, params)))
+        
+                raw:= (<-this.SapiGetFiatOrders(this.Extend(request, params)))
+                PanicOnError(raw)
                 response = this.SafeList(raw, "data", []interface{}{})
             } else {
                 if IsTrue(!IsEqual(code, nil)) {
@@ -7960,36 +8928,41 @@ func  (this *binance) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "limit", limit)
                 }
-                response = (<-this.SapiGetCapitalDepositHisrec(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetCapitalDepositHisrec(this.Extend(request, params)))
+                PanicOnError(response)
             }
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 AddElementToObject(GetValue(response, i), "type", "deposit")
             }
-                ch <-this.ParseTransactions(response, currency, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTransactions(response, currency, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchWithdrawals
+ * @description fetch all withdrawals made from an account
+ * @see https://developers.binance.com/docs/wallet/capital/withdraw-history
+ * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
 func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchWithdrawals
-            * @description fetch all withdrawals made from an account
-            * @see https://developers.binance.com/docs/wallet/capital/withdraw-history
-            * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
-            * @param {string} code unified currency code
-            * @param {int} [since] the earliest time in ms to fetch withdrawals for
-            * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
-            * @param {int} [params.until] the latest time in ms to fetch withdrawals for
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -7997,13 +8970,19 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes772869 := (<-this.LoadMarkets())
+            PanicOnError(retRes772869)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+        
+                    retRes246535 :=  (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+                    PanicOnError(retRes246535)
+                    ch <- retRes246535
+                    return nil
             }
             var legalMoney interface{} = this.SafeDict(this.Options, "legalMoney", map[string]interface{} {})
             var fiatOnly interface{} = this.SafeBool(params, "fiat", false)
@@ -8024,7 +9003,9 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
                 if IsTrue(!IsEqual(since, nil)) {
                     AddElementToObject(request, "beginTime", since)
                 }
-                var raw interface{} = (<-this.SapiGetFiatOrders(this.Extend(request, params)))
+        
+                raw:= (<-this.SapiGetFiatOrders(this.Extend(request, params)))
+                PanicOnError(raw)
                 response = this.SafeList(raw, "data", []interface{}{})
             } else {
                 if IsTrue(!IsEqual(code, nil)) {
@@ -8039,16 +9020,20 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "limit", limit)
                 }
-                response = (<-this.SapiGetCapitalWithdrawHistory(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetCapitalWithdrawHistory(this.Extend(request, params)))
+                PanicOnError(response)
             }
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 AddElementToObject(GetValue(response, i), "type", "withdrawal")
             }
-                ch <-this.ParseTransactions(response, currency, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTransactions(response, currency, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseTransactionStatusByType(status interface{}, optionalArgs ...interface{}) interface{}  {
     typeVar := GetArg(optionalArgs, 0, nil)
     _ = typeVar
@@ -8360,27 +9345,30 @@ func  (this *binance) ParseIncome(income interface{}, optionalArgs ...interface{
         "amount": this.SafeNumber(income, "income"),
     }
 }
+/**
+ * @method
+ * @name binance#transfer
+ * @description transfer currency internally between wallets on the same account
+ * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from
+ * @param {string} toAccount account to transfer to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] exchange specific transfer type
+ * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ */
 func  (this *binance) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#transfer
-            * @description transfer currency internally between wallets on the same account
-            * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer
-            * @param {string} code unified currency code
-            * @param {float} amount amount to transfer
-            * @param {string} fromAccount account to transfer from
-            * @param {string} toAccount account to transfer to
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.type] exchange specific transfer type
-            * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
-            * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes726807 := (<-this.LoadMarkets())
+            PanicOnError(retRes726807)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -8458,36 +9446,41 @@ func  (this *binance) Transfer(code interface{}, amount interface{}, fromAccount
                     AddElementToObject(request, "type", Add(Add(fromId, "_"), toId))
                 }
             }
-            var response interface{} = (<-this.SapiPostAssetTransfer(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiPostAssetTransfer(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "tranId":13526853623
             //     }
             //
-                ch <-this.ParseTransfer(response, currency)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseTransfer(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+ * @param {string} code unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfers structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.internal] default false, when true will fetch pay trade history
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ */
 func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTransfers
-            * @description fetch a history of internal transfers made on an account
-            * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
-            * @param {string} code unified currency code of the currency transferred
-            * @param {int} [since] the earliest time in ms to fetch transfers for
-            * @param {int} [limit] the maximum number of transfers structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] the latest time in ms to fetch transfers for
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.internal] default false, when true will fetch pay trade history
-            * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -8495,7 +9488,9 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes159970 := (<-this.LoadMarkets())
+            PanicOnError(retRes159970)
             var internal interface{} = this.SafeBool(params, "internal")
             params = this.Omit(params, "internal")
             var paginate interface{} = false
@@ -8503,7 +9498,11 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(IsTrue(paginate) && !IsTrue(internal)) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+        
+                    retRes81114 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+                    PanicOnError(retRes81114)
+                    ch <- retRes81114
+                    return nil
             }
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -8547,32 +9546,42 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             }
             var response interface{} = nil
             if IsTrue(internal) {
-                response = (<-this.SapiGetPayTransactions(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetPayTransactions(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.SapiGetAssetTransfer(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetAssetTransfer(this.Extend(request, params)))
+                PanicOnError(response)
             }
             var rows interface{} = this.SafeList2(response, "rows", "data", []interface{}{})
-                ch <-this.ParseTransfers(rows, currency, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTransfers(rows, currency, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchDepositAddress
+ * @description fetch the deposit address for a currency associated with this account
+ * @see https://developers.binance.com/docs/wallet/capital/deposite-address
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] network for fetch deposit address
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
 func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchDepositAddress
-            * @description fetch the deposit address for a currency associated with this account
-            * @see https://developers.binance.com/docs/wallet/capital/deposite-address
-            * @param {string} code unified currency code
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes940572 := (<-this.LoadMarkets())
+            PanicOnError(retRes940572)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -8585,8 +9594,11 @@ func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...inte
                 params = this.Omit(params, "network")
             }
             // has support for the 'network' parameter
-            var response interface{} = (<-this.SapiGetCapitalDepositAddress(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiGetCapitalDepositAddress(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "currency": "XRP",
             //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
@@ -8599,69 +9611,96 @@ func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...inte
             //         }
             //     }
             //
-            var address interface{} = this.SafeString(response, "address")
-            var url interface{} = this.SafeString(response, "url")
-            var impliedNetwork interface{} = nil
-            if IsTrue(!IsEqual(url, nil)) {
-                var reverseNetworks interface{} = this.SafeDict(this.Options, "reverseNetworks", map[string]interface{} {})
-                var parts interface{} = Split(url, "/")
-                var topLevel interface{} = this.SafeString(parts, 2)
-                if IsTrue(IsTrue((IsEqual(topLevel, "blockchair.com"))) || IsTrue((IsEqual(topLevel, "viewblock.io")))) {
-                    var subLevel interface{} = this.SafeString(parts, 3)
-                    if IsTrue(!IsEqual(subLevel, nil)) {
-                        topLevel = Add(Add(topLevel, "/"), subLevel)
-                    }
-                }
-                impliedNetwork = this.SafeString(reverseNetworks, topLevel)
-                var impliedNetworks interface{} = this.SafeDict(this.Options, "impliedNetworks", map[string]interface{} {
-                    "ETH": map[string]interface{} {
-                        "ERC20": "ETH",
-                    },
-                    "TRX": map[string]interface{} {
-                        "TRC20": "TRX",
-                    },
-                })
-                if IsTrue(InOp(impliedNetworks, code)) {
-                    var conversion interface{} = this.SafeDict(impliedNetworks, code, map[string]interface{} {})
-                    impliedNetwork = this.SafeString(conversion, impliedNetwork, impliedNetwork)
-                }
+        ch <- this.ParseDepositAddress(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *binance) ParseDepositAddress(response interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     {
+    //         "currency": "XRP",
+    //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+    //         "tag": "108618262",
+    //         "info": {
+    //             "coin": "XRP",
+    //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+    //             "tag": "108618262",
+    //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+    //         }
+    //     }
+    //
+    currency := GetArg(optionalArgs, 0, nil)
+    _ = currency
+    var info interface{} = this.SafeDict(response, "info", map[string]interface{} {})
+    var url interface{} = this.SafeString(info, "url")
+    var address interface{} = this.SafeString(response, "address")
+    var currencyId interface{} = this.SafeString(response, "currency")
+    var code interface{} = this.SafeCurrencyCode(currencyId, currency)
+    var impliedNetwork interface{} = nil
+    if IsTrue(!IsEqual(url, nil)) {
+        var reverseNetworks interface{} = this.SafeDict(this.Options, "reverseNetworks", map[string]interface{} {})
+        var parts interface{} = Split(url, "/")
+        var topLevel interface{} = this.SafeString(parts, 2)
+        if IsTrue(IsTrue((IsEqual(topLevel, "blockchair.com"))) || IsTrue((IsEqual(topLevel, "viewblock.io")))) {
+            var subLevel interface{} = this.SafeString(parts, 3)
+            if IsTrue(!IsEqual(subLevel, nil)) {
+                topLevel = Add(Add(topLevel, "/"), subLevel)
             }
-            var tag interface{} = this.SafeString(response, "tag", "")
-            if IsTrue(IsEqual(GetLength(tag), 0)) {
-                tag = nil
-            }
-            this.CheckAddress(address)
-                ch <-map[string]interface{} {
-                "currency": code,
-                "address": address,
-                "tag": tag,
-                "network": impliedNetwork,
-                "info": response,
-            }
-        return nil
-    }()
-    return ch
+        }
+        impliedNetwork = this.SafeString(reverseNetworks, topLevel)
+        var impliedNetworks interface{} = this.SafeDict(this.Options, "impliedNetworks", map[string]interface{} {
+            "ETH": map[string]interface{} {
+                "ERC20": "ETH",
+            },
+            "TRX": map[string]interface{} {
+                "TRC20": "TRX",
+            },
+        })
+        if IsTrue(InOp(impliedNetworks, code)) {
+            var conversion interface{} = this.SafeDict(impliedNetworks, code, map[string]interface{} {})
+            impliedNetwork = this.SafeString(conversion, impliedNetwork, impliedNetwork)
+        }
+    }
+    var tag interface{} = this.SafeString(response, "tag", "")
+    if IsTrue(IsEqual(GetLength(tag), 0)) {
+        tag = nil
+    }
+    this.CheckAddress(address)
+    return map[string]interface{} {
+        "info": response,
+        "currency": code,
+        "network": impliedNetwork,
+        "address": address,
+        "tag": tag,
+    }
 }
+/**
+ * @method
+ * @name binance#fetchTransactionFees
+ * @deprecated
+ * @description please use fetchDepositWithdrawFees instead
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+ * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
 func  (this *binance) FetchTransactionFees(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTransactionFees
-            * @deprecated
-            * @description please use fetchDepositWithdrawFees instead
-            * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-            * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-            */
-            codes := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    codes := GetArg(optionalArgs, 0, nil)
             _ = codes
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
-            var response interface{} = (<-this.SapiGetCapitalConfigGetall(params))
+        
+            retRes906254 := (<-this.LoadMarkets())
+            PanicOnError(retRes906254)
+        
+            response:= (<-this.SapiGetCapitalConfigGetall(params))
+            PanicOnError(response)
             //
             //  [
             //     {
@@ -8758,35 +9797,43 @@ func  (this *binance) FetchTransactionFees(optionalArgs ...interface{}) <- chan 
                     AddElementToObject(GetValue(withdrawFees, code), networkCode, fee)
                 }
             }
-                ch <-map[string]interface{} {
+        
+            ch <- map[string]interface{} {
                 "withdraw": withdrawFees,
                 "deposit": map[string]interface{} {},
                 "info": response,
             }
-        return nil
-    }()
-    return ch
-}
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchDepositWithdrawFees
+ * @description fetch deposit and withdraw fees
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+ * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
 func  (this *binance) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchDepositWithdrawFees
-            * @description fetch deposit and withdraw fees
-            * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-            * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-            */
-            codes := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    codes := GetArg(optionalArgs, 0, nil)
             _ = codes
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
-            var response interface{} = (<-this.SapiGetCapitalConfigGetall(params))
-            //
+        
+            retRes158013 := (<-this.LoadMarkets())
+            PanicOnError(retRes158013)
+        
+            response:= (<-this.SapiGetCapitalConfigGetall(params))
+            PanicOnError(response)
+        
+                //
             //    [
             //        {
             //            "coin": "BAT",
@@ -8828,11 +9875,12 @@ func  (this *binance) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             //        }
             //    ]
             //
-                ch <-this.ParseDepositWithdrawFees(response, codes, "coin")
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseDepositWithdrawFees(response, codes, "coin")
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //    {
@@ -8903,23 +9951,24 @@ func  (this *binance) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...i
     }
     return result
 }
+/**
+ * @method
+ * @name binance#withdraw
+ * @description make a withdrawal
+ * @see https://developers.binance.com/docs/wallet/capital/withdraw
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to withdraw
+ * @param {string} address the address to withdraw to
+ * @param {string} tag
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
 func  (this *binance) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#withdraw
-            * @description make a withdrawal
-            * @see https://developers.binance.com/docs/wallet/capital/withdraw
-            * @param {string} code unified currency code
-            * @param {float} amount the amount to withdraw
-            * @param {string} address the address to withdraw to
-            * @param {string} tag
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-            */
-            tag := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    tag := GetArg(optionalArgs, 0, nil)
             _ = tag
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -8927,7 +9976,9 @@ func  (this *binance) Withdraw(code interface{}, amount interface{}, address int
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
-            (<-this.LoadMarkets())
+        
+            retRes578026 := (<-this.LoadMarkets())
+            PanicOnError(retRes578026)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -8944,13 +9995,17 @@ func  (this *binance) Withdraw(code interface{}, amount interface{}, address int
                 AddElementToObject(request, "network", network)
                 params = this.Omit(params, "network")
             }
-            var response interface{} = (<-this.SapiPostCapitalWithdrawApply(this.Extend(request, params)))
-            //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-                ch <-this.ParseTransaction(response, currency)
-        return nil
-    }()
-    return ch
-}
+        
+            response:= (<-this.SapiPostCapitalWithdrawApply(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //     { id: '9a67628b16ba4988ae20d329333f16bc' }
+        ch <- this.ParseTransaction(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseTradingFee(fee interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // spot
@@ -8982,28 +10037,31 @@ func  (this *binance) ParseTradingFee(fee interface{}, optionalArgs ...interface
         "tierBased": nil,
     }
 }
+/**
+ * @method
+ * @name binance#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
 func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTradingFee
-            * @description fetch the trading fees for a market
-            * @see https://developers.binance.com/docs/wallet/asset/trade-fee
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes360353 := (<-this.LoadMarkets())
+            PanicOnError(retRes360353)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = GetValue(market, "type")
             var subType interface{} = nil
@@ -9022,18 +10080,28 @@ func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interf
             var response interface{} = nil
             if IsTrue(isLinear) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmCommissionRate(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmCommissionRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetCommissionRate(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetCommissionRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(isInverse) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmCommissionRate(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmCommissionRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetCommissionRate(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetCommissionRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
-                response = (<-this.SapiGetAssetTradeFee(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetAssetTradeFee(this.Extend(request, params)))
+                PanicOnError(response)
             }
             //
             // spot
@@ -9058,30 +10126,35 @@ func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interf
             if IsTrue(IsArray(data)) {
                 data = this.SafeDict(data, 0, map[string]interface{} {})
             }
-                ch <-this.ParseTradingFee(data, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseTradingFee(data, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ */
 func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchTradingFees
-            * @description fetch the trading fees for multiple markets
-            * @see https://developers.binance.com/docs/wallet/asset/trade-fee
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes48987 := (<-this.LoadMarkets())
+            PanicOnError(retRes48987)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -9095,11 +10168,17 @@ func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
             var isInverse interface{} = this.IsInverse(typeVar, subType)
             var response interface{} = nil
             if IsTrue(isSpotOrMargin) {
-                response = (<-this.SapiGetAssetTradeFee(params))
+                
+        response = (<-this.SapiGetAssetTradeFee(params))
+                PanicOnError(response)
             } else if IsTrue(isLinear) {
-                response = (<-this.FapiPrivateGetAccountConfig(params))
+                
+        response = (<-this.FapiPrivateGetAccountConfig(params))
+                PanicOnError(response)
             } else if IsTrue(isInverse) {
-                response = (<-this.DapiPrivateGetAccount(params))
+                
+        response = (<-this.DapiPrivateGetAccount(params))
+                PanicOnError(response)
             }
             //
             // sapi / spot
@@ -9170,7 +10249,9 @@ func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
                     var symbol interface{} = GetValue(fee, "symbol")
                     AddElementToObject(result, symbol, fee)
                 }
-                                ch <-result
+        
+                ch <- result
+                return nil
             } else if IsTrue(isLinear) {
                 //
                 //     {
@@ -9213,7 +10294,9 @@ func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
         })
                     }
                 }
-                                ch <-result
+        
+                ch <- result
+                return nil
             } else if IsTrue(isInverse) {
                 //
                 //     {
@@ -9244,87 +10327,104 @@ func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
         })
                     }
                 }
-                                ch <-result
-            }
-                ch <- nil
+        
+                ch <- result
                 return nil
-
-    }()
-    return ch
-}
+            }
+        
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#futuresTransfer
+ * @ignore
+ * @description transfer between futures account
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to transfer
+ * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} params.recvWindow
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
+ */
 func  (this *binance) FuturesTransfer(code interface{}, amount interface{}, typeVar interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#futuresTransfer
-            * @ignore
-            * @description transfer between futures account
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
-            * @param {string} code unified currency code
-            * @param {float} amount the amount to transfer
-            * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {float} params.recvWindow
-            * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             if IsTrue(IsTrue((IsLessThan(typeVar, 1))) || IsTrue((IsGreaterThan(typeVar, 4)))) {
                 panic(ArgumentsRequired(Add(this.Id, " type must be between 1 and 4")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes898941 := (<-this.LoadMarkets())
+            PanicOnError(retRes898941)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
                 "amount": amount,
                 "type": typeVar,
             }
-            var response interface{} = (<-this.SapiPostFuturesTransfer(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiPostFuturesTransfer(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //   {
             //       "tranId": 100000001
             //   }
             //
-                ch <-this.ParseTransfer(response, currency)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseTransfer(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
 func  (this *binance) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchFundingRate
-            * @description fetch the current funding rate
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes980461 := (<-this.LoadMarkets())
+            PanicOnError(retRes980461)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchFundingRate() supports linear and inverse contracts only")))
             }
             if IsTrue(GetValue(market, "inverse")) {
                 response = GetValue(response, 0)
             }
-            //
+        
+                //
             //     {
             //         "symbol": "BTCUSDT",
             //         "markPrice": "45802.81129892",
@@ -9336,31 +10436,33 @@ func  (this *binance) FetchFundingRate(symbol interface{}, optionalArgs ...inter
             //         "time": "1621252344001"
             //     }
             //
-                ch <-this.ParseFundingRate(response, market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseFundingRate(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ */
 func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchFundingRateHistory
-            * @description fetches historical funding rate prices
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
-            * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-            * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-            * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] timestamp in ms of the latest funding rate
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -9368,14 +10470,20 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes323516 := (<-this.LoadMarkets())
+            PanicOnError(retRes323516)
             var request interface{} = map[string]interface{} {}
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+        
+                    retRes683961 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+                    PanicOnError(retRes683961)
+                    ch <- retRes683961
+                    return nil
             }
             var defaultType interface{} = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "future")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -9404,57 +10512,72 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             }
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicGetFundingRate(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetFundingRate(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetFundingRate(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetFundingRate(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchFundingRateHistory() is not supported for "), typeVar), " markets")))
             }
-            //
+        
+                //
             //     {
             //         "symbol": "BTCUSDT",
             //         "fundingRate": "0.00063521",
             //         "fundingTime": "1621267200000",
             //     }
             //
-            var rates interface{} = []interface{}{}
-            for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-                var entry interface{} = GetValue(response, i)
-                var timestamp interface{} = this.SafeInteger(entry, "fundingTime")
-                AppendToArray(&rates,map[string]interface{} {
-                    "info": entry,
-                    "symbol": this.SafeSymbol(this.SafeString(entry, "symbol"), nil, nil, "swap"),
-                    "fundingRate": this.SafeNumber(entry, "fundingRate"),
-                    "timestamp": timestamp,
-                    "datetime": this.Iso8601(timestamp),
-                })
-            }
-            var sorted interface{} = this.SortBy(rates, "timestamp")
-                ch <-this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-        return nil
-    }()
-    return ch
+        ch <- this.ParseFundingRateHistories(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *binance) ParseFundingRateHistory(contract interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     {
+    //         "symbol": "BTCUSDT",
+    //         "fundingRate": "0.00063521",
+    //         "fundingTime": "1621267200000",
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var timestamp interface{} = this.SafeInteger(contract, "fundingTime")
+    return map[string]interface{} {
+        "info": contract,
+        "symbol": this.SafeSymbol(this.SafeString(contract, "symbol"), nil, nil, "swap"),
+        "fundingRate": this.SafeNumber(contract, "fundingRate"),
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
+    }
 }
+/**
+ * @method
+ * @name binance#fetchFundingRates
+ * @description fetch the funding rate for multiple markets
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ */
 func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchFundingRates
-            * @description fetch the funding rate for multiple markets
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
-            * @param {string[]|undefined} symbols list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes518910 := (<-this.LoadMarkets())
+            PanicOnError(retRes518910)
             symbols = this.MarketSymbols(symbols)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -9465,31 +10588,48 @@ func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) <- chan int
             var query interface{} = this.Omit(params, "type")
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
-                response = (<-this.FapiPublicGetPremiumIndex(query))
+                
+        response = (<-this.FapiPublicGetPremiumIndex(query))
+                PanicOnError(response)
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
-                response = (<-this.DapiPublicGetPremiumIndex(query))
+                
+        response = (<-this.DapiPublicGetPremiumIndex(query))
+                PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchFundingRates() supports linear and inverse contracts only")))
             }
-            var result interface{} = this.ParseFundingRates(response)
-                ch <-this.FilterByArray(result, "symbol", symbols)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseFundingRates(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{}  {
     // ensure it matches with https://www.binance.com/en/futures/funding-history/0
     //
-    //   {
-    //     "symbol": "BTCUSDT",
-    //     "markPrice": "45802.81129892",
-    //     "indexPrice": "45745.47701915",
-    //     "estimatedSettlePrice": "45133.91753671",
-    //     "lastFundingRate": "0.00063521",
-    //     "interestRate": "0.00010000",
-    //     "nextFundingTime": "1621267200000",
-    //     "time": "1621252344001"
-    //  }
+    // fetchFundingRate, fetchFundingRates
+    //
+    //     {
+    //         "symbol": "BTCUSDT",
+    //         "markPrice": "45802.81129892",
+    //         "indexPrice": "45745.47701915",
+    //         "estimatedSettlePrice": "45133.91753671",
+    //         "lastFundingRate": "0.00063521",
+    //         "interestRate": "0.00010000",
+    //         "nextFundingTime": "1621267200000",
+    //         "time": "1621252344001"
+    //     }
+    //
+    // fetchFundingInterval, fetchFundingIntervals
+    //
+    //     {
+    //         "symbol": "BLZUSDT",
+    //         "adjustedFundingRateCap": "0.03000000",
+    //         "adjustedFundingRateFloor": "-0.03000000",
+    //         "fundingIntervalHours": 4,
+    //         "disclaimer": false
+    //     }
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -9502,6 +10642,11 @@ func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...int
     var estimatedSettlePrice interface{} = this.SafeNumber(contract, "estimatedSettlePrice")
     var fundingRate interface{} = this.SafeNumber(contract, "lastFundingRate")
     var fundingTime interface{} = this.SafeInteger(contract, "nextFundingTime")
+    var interval interface{} = this.SafeString(contract, "fundingIntervalHours")
+    var intervalString interface{} = nil
+    if IsTrue(!IsEqual(interval, nil)) {
+        intervalString = Add(interval, "h")
+    }
     return map[string]interface{} {
         "info": contract,
         "symbol": symbol,
@@ -9520,7 +10665,7 @@ func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...int
         "previousFundingRate": nil,
         "previousFundingTimestamp": nil,
         "previousFundingDatetime": nil,
-        "interval": nil,
+        "interval": intervalString,
     }
 }
 func  (this *binance) ParseAccountPositions(account interface{}, optionalArgs ...interface{}) interface{}  {
@@ -10054,14 +11199,17 @@ func  (this *binance) ParsePositionRisk(position interface{}, optionalArgs ...in
     }
 }
 func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            reload := GetArg(optionalArgs, 0, false)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    reload := GetArg(optionalArgs, 0, false)
             _ = reload
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes306660 := (<-this.LoadMarkets())
+            PanicOnError(retRes306660)
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             var leverageBrackets interface{} = this.SafeDict(this.Options, "leverageBrackets")
@@ -10080,15 +11228,23 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
                 var response interface{} = nil
                 if IsTrue(this.IsLinear(typeVar, subType)) {
                     if IsTrue(isPortfolioMargin) {
-                        response = (<-this.PapiGetUmLeverageBracket(query))
+                        
+        response = (<-this.PapiGetUmLeverageBracket(query))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.FapiPrivateGetLeverageBracket(query))
+                        
+        response = (<-this.FapiPrivateGetLeverageBracket(query))
+                        PanicOnError(response)
                     }
                 } else if IsTrue(this.IsInverse(typeVar, subType)) {
                     if IsTrue(isPortfolioMargin) {
-                        response = (<-this.PapiGetCmLeverageBracket(query))
+                        
+        response = (<-this.PapiGetCmLeverageBracket(query))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.DapiPrivateV2GetLeverageBracket(query))
+                        
+        response = (<-this.DapiPrivateV2GetLeverageBracket(query))
+                        PanicOnError(response)
                     }
                 } else {
                     panic(NotSupported(Add(this.Id, " loadLeverageBrackets() supports linear and inverse contracts only")))
@@ -10109,34 +11265,39 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
                     AddElementToObject(GetValue(this.Options, "leverageBrackets"), symbol, result)
                 }
             }
-                ch <-GetValue(this.Options, "leverageBrackets")
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- GetValue(this.Options, "leverageBrackets")
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ */
 func  (this *binance) FetchLeverageTiers(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchLeverageTiers
-            * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
-            * @param {string[]|undefined} symbols list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes185132 := (<-this.LoadMarkets())
+            PanicOnError(retRes185132)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -10152,20 +11313,29 @@ func  (this *binance) FetchLeverageTiers(optionalArgs ...interface{}) <- chan in
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmLeverageBracket(params))
+                    
+        response = (<-this.PapiGetUmLeverageBracket(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetLeverageBracket(params))
+                    
+        response = (<-this.FapiPrivateGetLeverageBracket(params))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmLeverageBracket(params))
+                    
+        response = (<-this.PapiGetCmLeverageBracket(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateV2GetLeverageBracket(params))
+                    
+        response = (<-this.DapiPrivateV2GetLeverageBracket(params))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchLeverageTiers() supports linear and inverse contracts only")))
             }
-            //
+        
+                //
             // usdm
             //
             //    [
@@ -10203,11 +11373,12 @@ func  (this *binance) FetchLeverageTiers(optionalArgs ...interface{}) <- chan in
             //         }
             //     ]
             //
-                ch <-this.ParseLeverageTiers(response, symbols, "symbol")
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseLeverageTiers(response, symbols, "symbol")
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
@@ -10241,6 +11412,7 @@ func  (this *binance) ParseMarketLeverageTiers(info interface{}, optionalArgs ..
         var bracket interface{} = GetValue(brackets, j)
         AppendToArray(&tiers,map[string]interface{} {
             "tier": this.SafeNumber(bracket, "bracket"),
+            "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "quote"),
             "minNotional": this.SafeNumber2(bracket, "notionalFloor", "qtyFloor"),
             "maxNotional": this.SafeNumber2(bracket, "notionalCap", "qtyCap"),
@@ -10251,22 +11423,25 @@ func  (this *binance) ParseMarketLeverageTiers(info interface{}, optionalArgs ..
     }
     return tiers
 }
+/**
+ * @method
+ * @name binance#fetchPosition
+ * @description fetch data on an open position
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+ * @param {string} symbol unified market symbol of the market the position is held in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
 func  (this *binance) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchPosition
-            * @description fetch data on an open position
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-            * @param {string} symbol unified market symbol of the market the position is held in
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes257945 := (<-this.LoadMarkets())
+            PanicOnError(retRes257945)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "option")) {
                 panic(NotSupported(Add(this.Id, " fetchPosition() supports option markets only")))
@@ -10274,8 +11449,11 @@ func  (this *binance) FetchPosition(symbol interface{}, optionalArgs ...interfac
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
-            var response interface{} = (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     [
             //         {
             //             "entryPrice": "27.70000000",
@@ -10298,29 +11476,33 @@ func  (this *binance) FetchPosition(symbol interface{}, optionalArgs ...interfac
             //         }
             //     ]
             //
-                ch <-this.ParsePosition(GetValue(response, 0), market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParsePosition(GetValue(response, 0), market)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOptionPositions
+ * @description fetch data on open options positions
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
 func  (this *binance) FetchOptionPositions(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOptionPositions
-            * @description fetch data on open options positions
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-            * @param {string[]|undefined} symbols list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes769453 := (<-this.LoadMarkets())
+            PanicOnError(retRes769453)
             symbols = this.MarketSymbols(symbols)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
@@ -10338,7 +11520,9 @@ func  (this *binance) FetchOptionPositions(optionalArgs ...interface{}) <- chan 
                 market = this.Market(symbol)
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
             }
-            var response interface{} = (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
+        
+            response:= (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -10366,11 +11550,13 @@ func  (this *binance) FetchOptionPositions(optionalArgs ...interface{}) <- chan 
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 AppendToArray(&result,this.ParsePosition(GetValue(response, i), market))
             }
-                ch <-this.FilterByArrayPositions(result, "symbol", symbols, false)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -10396,7 +11582,7 @@ func  (this *binance) ParsePosition(position interface{}, optionalArgs ...interf
     market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(position, "symbol")
-    market = this.SafeMarket(marketId, market)
+    market = this.SafeMarket(marketId, market, nil, "swap")
     var symbol interface{} = GetValue(market, "symbol")
     var side interface{} = this.SafeStringLower(position, "side")
     var quantity interface{} = this.SafeString(position, "quantity")
@@ -10430,26 +11616,28 @@ func  (this *binance) ParsePosition(position interface{}, optionalArgs ...interf
         "percentage": nil,
     })
 }
+/**
+ * @method
+ * @name binance#fetchPositions
+ * @description fetch all open positions
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+ * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
 func  (this *binance) FetchPositions(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchPositions
-            * @description fetch all open positions
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-            * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-            * @param {string[]} [symbols] list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
-            * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
-            * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -10466,41 +11654,54 @@ func  (this *binance) FetchPositions(optionalArgs ...interface{}) <- chan interf
                 }
             }
             if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
-                                ch <-(<-this.FetchPositionsRisk(symbols, params))
+        
+                    retRes900195 :=  (<-this.FetchPositionsRisk(symbols, params))
+                    PanicOnError(retRes900195)
+                    ch <- retRes900195
+                    return nil
             } else if IsTrue(IsEqual(defaultMethod, "account")) {
-                                ch <-(<-this.FetchAccountPositions(symbols, params))
+        
+                    retRes5348 :=  (<-this.FetchAccountPositions(symbols, params))
+                    PanicOnError(retRes5348)
+                    ch <- retRes5348
+                    return nil
             } else if IsTrue(IsEqual(defaultMethod, "option")) {
-                                ch <-(<-this.FetchOptionPositions(symbols, params))
+        
+                    retRes697638 :=  (<-this.FetchOptionPositions(symbols, params))
+                    PanicOnError(retRes697638)
+                    ch <- retRes697638
+                    return nil
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")))
             }
-        return nil
-    }()
-    return ch
-}
+                return nil
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchAccountPositions
+ * @ignore
+ * @description fetch account positions
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
+ * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
+ * @returns {object} data on account positions
+ */
 func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchAccountPositions
-            * @ignore
-            * @description fetch account positions
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
-            * @param {string[]} [symbols] list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
-            * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
-            * @returns {object} data on account positions
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -10509,8 +11710,12 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan
                     panic(ArgumentsRequired(Add(this.Id, " fetchPositions() requires an array argument for symbols")))
                 }
             }
-            (<-this.LoadMarkets())
-            (<-this.LoadLeverageBrackets(false, params))
+        
+            retRes653817 := (<-this.LoadMarkets())
+            PanicOnError(retRes653817)
+        
+            retRes707751 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes707751)
             var defaultType interface{} = this.SafeString(this.Options, "defaultType", "future")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
             params = this.Omit(params, "type")
@@ -10525,23 +11730,33 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmAccount(params))
+                    
+        response = (<-this.PapiGetUmAccount(params))
+                    PanicOnError(response)
                 } else {
                     var useV2 interface{} = nil
                     useV2paramsVariable := this.HandleOptionAndParams(params, "fetchAccountPositions", "useV2", false);
                     useV2 = GetValue(useV2paramsVariable,0);
                     params = GetValue(useV2paramsVariable,1)
                     if !IsTrue(useV2) {
-                        response = (<-this.FapiPrivateV3GetAccount(params))
+                        
+        response = (<-this.FapiPrivateV3GetAccount(params))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.FapiPrivateV2GetAccount(params))
+                        
+        response = (<-this.FapiPrivateV2GetAccount(params))
+                        PanicOnError(response)
                     }
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmAccount(params))
+                    
+        response = (<-this.PapiGetCmAccount(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetAccount(params))
+                    
+        response = (<-this.DapiPrivateGetAccount(params))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPositions() supports linear and inverse contracts only")))
@@ -10552,33 +11767,36 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan
             params = GetValue(filterClosedparamsVariable,1)
             var result interface{} = this.ParseAccountPositions(response, filterClosed)
             symbols = this.MarketSymbols(symbols)
-                ch <-this.FilterByArrayPositions(result, "symbol", symbols, false)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchPositionsRisk
+ * @ignore
+ * @description fetch positions risk
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+ * @returns {object} data on the positions risk
+ */
 func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchPositionsRisk
-            * @ignore
-            * @description fetch positions risk
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
-            * @param {string[]|undefined} symbols list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
-            * @returns {object} data on the positions risk
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -10587,8 +11805,12 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
                     panic(ArgumentsRequired(Add(this.Id, " fetchPositionsRisk() requires an array argument for symbols")))
                 }
             }
-            (<-this.LoadMarkets())
-            (<-this.LoadLeverageBrackets(false, params))
+        
+            retRes715392 := (<-this.LoadMarkets())
+            PanicOnError(retRes715392)
+        
+            retRes12255 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes12255)
             var request interface{} = map[string]interface{} {}
             var defaultType interface{} = "future"
             defaultType = this.SafeString(this.Options, "defaultType", defaultType)
@@ -10605,7 +11827,9 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmPositionRisk(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmPositionRisk(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
                     var useV2 interface{} = nil
                     useV2paramsVariable := this.HandleOptionAndParams(params, "fetchPositionsRisk", "useV2", false);
@@ -10613,16 +11837,24 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
                     params = GetValue(useV2paramsVariable,1)
                     params = this.Extend(request, params)
                     if !IsTrue(useV2) {
-                        response = (<-this.FapiPrivateV3GetPositionRisk(params))
+                        
+        response = (<-this.FapiPrivateV3GetPositionRisk(params))
+                        PanicOnError(response)
                     } else {
-                        response = (<-this.FapiPrivateV2GetPositionRisk(params))
+                        
+        response = (<-this.FapiPrivateV2GetPositionRisk(params))
+                        PanicOnError(response)
                     }
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmPositionRisk(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmPositionRisk(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetPositionRisk(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetPositionRisk(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPositionsRisk() supports linear and inverse contracts only")))
@@ -10717,33 +11949,36 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
                 }
             }
             symbols = this.MarketSymbols(symbols)
-                ch <-this.FilterByArrayPositions(result, "symbol", symbols, false)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding history entry
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
 func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchFundingHistory
-            * @description fetch the history of funding payments paid and received on this account
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-            * @param {string} symbol unified market symbol
-            * @param {int} [since] the earliest time in ms to fetch funding history for
-            * @param {int} [limit] the maximum number of funding history structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] timestamp in ms of the latest funding history entry
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -10751,7 +11986,9 @@ func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) <- chan i
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes953392 := (<-this.LoadMarkets())
+            PanicOnError(retRes953392)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "incomeType": "FUNDING_FEE",
@@ -10786,43 +12023,54 @@ func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) <- chan i
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchFundingHistory() supports linear and inverse contracts only")))
             }
-                ch <-this.ParseIncomes(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseIncomes(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#setLeverage
+ * @description set the level of leverage for a market
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+ * @param {float} leverage the rate of leverage
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
+ * @returns {object} response from the exchange
+ */
 func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#setLeverage
-            * @description set the level of leverage for a market
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
-            * @param {float} leverage the rate of leverage
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
-            * @returns {object} response from the exchange
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -10834,7 +12082,9 @@ func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interfac
             if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 125)))) {
                 panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes234040 := (<-this.LoadMarkets())
+            PanicOnError(retRes234040)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -10847,40 +12097,51 @@ func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiPostUmLeverage(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostUmLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivatePostLeverage(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivatePostLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiPostCmLeverage(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostCmLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivatePostLeverage(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivatePostLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " setLeverage() supports linear and inverse contracts only")))
             }
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
 func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#setMarginMode
-            * @description set margin mode to 'cross' or 'isolated'
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
-            * @param {string} marginMode 'cross' or 'isolated'
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} response from the exchange
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -10901,7 +12162,9 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
             if IsTrue(IsTrue((!IsEqual(marginMode, "ISOLATED"))) && IsTrue((!IsEqual(marginMode, "CROSSED")))) {
                 panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes917496 := (<-this.LoadMarkets())
+            PanicOnError(retRes917496)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -10911,7 +12174,7 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
             
             {		ret__ := func(this *binance) (ret_ interface{}) {
             		defer func() {
-            			if e := recover().(interface{}); e != nil {
+            			if e := recover(); e != nil {
                             if e == "break" {
             				    return
             			    }
@@ -10935,51 +12198,56 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
                     } else {
                         panic(e)
                     }
-                                    ch <- nil
-                                    return nil
+                                return nil
             				}(this)
             			}
             		}()
             		// try block:
                             if IsTrue(GetValue(market, "linear")) {
-                        response = (<-this.FapiPrivatePostMarginType(this.Extend(request, params)))
+                        
+            response = (<-this.FapiPrivatePostMarginType(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else if IsTrue(GetValue(market, "inverse")) {
-                        response = (<-this.DapiPrivatePostMarginType(this.Extend(request, params)))
+                        
+            response = (<-this.DapiPrivatePostMarginType(this.Extend(request, params)))
+                        PanicOnError(response)
                     } else {
                         panic(NotSupported(Add(this.Id, " setMarginMode() supports linear and inverse contracts only")))
                     }
-                        ch <- nil
-                        return nil
+            		return nil
             	}(this)
             	if ret__ != nil {
-                        ch <-ret__
+            		return ret__
             	}
             }
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#setPositionMode
+ * @description set hedged to true or false for a market
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+ * @param {bool} hedged set to true to use dualSidePosition
+ * @param {string} symbol not used by binance setPositionMode ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} response from the exchange
+ */
 func  (this *binance) SetPositionMode(hedged interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#setPositionMode
-            * @description set hedged to true or false for a market
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
-            * @param {bool} hedged set to true to use dualSidePosition
-            * @param {string} symbol not used by binance setPositionMode ()
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} response from the exchange
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -11006,54 +12274,69 @@ func  (this *binance) SetPositionMode(hedged interface{}, optionalArgs ...interf
             var response interface{} = nil
             if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiPostCmPositionSideDual(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostCmPositionSideDual(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivatePostPositionSideDual(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivatePostPositionSideDual(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiPostUmPositionSideDual(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostUmPositionSideDual(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivatePostPositionSideDual(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivatePostPositionSideDual(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(BadRequest(Add(this.Id, " setPositionMode() supports linear and inverse contracts only")))
             }
-            //
+        
+                //
             //     {
             //       "code": 200,
             //       "msg": "success"
             //     }
             //
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchLeverages
+ * @description fetch the set leverage for all markets
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ */
 func  (this *binance) FetchLeverages(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchLeverages
-            * @description fetch the set leverage for all markets
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-            * @param {string[]} [symbols] a list of unified market symbols
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
-            (<-this.LoadLeverageBrackets(false, params))
+        
+            retRes485732 := (<-this.LoadMarkets())
+            PanicOnError(retRes485732)
+        
+            retRes167515 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes167515)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverages", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -11069,15 +12352,23 @@ func  (this *binance) FetchLeverages(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmAccount(params))
+                    
+        response = (<-this.PapiGetUmAccount(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetSymbolConfig(params))
+                    
+        response = (<-this.FapiPrivateGetSymbolConfig(params))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmAccount(params))
+                    
+        response = (<-this.PapiGetCmAccount(params))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetAccount(params))
+                    
+        response = (<-this.DapiPrivateGetAccount(params))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchLeverages() supports linear and inverse contracts only")))
@@ -11086,11 +12377,13 @@ func  (this *binance) FetchLeverages(optionalArgs ...interface{}) <- chan interf
             if IsTrue(IsArray(response)) {
                 leverages = response
             }
-                ch <-this.ParseLeverages(leverages, symbols, "symbol")
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseLeverages(leverages, symbols, "symbol")
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -11124,22 +12417,23 @@ func  (this *binance) ParseLeverage(leverage interface{}, optionalArgs ...interf
         "shortLeverage": shortLeverage,
     }
 }
+/**
+ * @method
+ * @name binance#fetchSettlementHistory
+ * @description fetches historical settlement records
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+ * @param {string} symbol unified market symbol of the settlement history
+ * @param {int} [since] timestamp in ms
+ * @param {int} [limit] number of records, default 100, max 100
+ * @param {object} [params] exchange specific params
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ */
 func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchSettlementHistory
-            * @description fetches historical settlement records
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
-            * @param {string} symbol unified market symbol of the settlement history
-            * @param {int} [since] timestamp in ms
-            * @param {int} [limit] number of records, default 100, max 100
-            * @param {object} [params] exchange specific params
-            * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -11147,7 +12441,9 @@ func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) <- cha
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes288059 := (<-this.LoadMarkets())
+            PanicOnError(retRes288059)
             var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params);
@@ -11167,7 +12463,9 @@ func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) <- cha
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
             }
-            var response interface{} = (<-this.EapiPublicGetExerciseHistory(this.Extend(request, params)))
+        
+            response:= (<-this.EapiPublicGetExerciseHistory(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -11181,27 +12479,30 @@ func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) <- cha
             //
             var settlements interface{} = this.ParseSettlements(response, market)
             var sorted interface{} = this.SortBy(settlements, "timestamp")
-                ch <-this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMySettlementHistory
+ * @description fetches historical settlement records of the user
+ * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+ * @param {string} symbol unified market symbol of the settlement history
+ * @param {int} [since] timestamp in ms
+ * @param {int} [limit] number of records
+ * @param {object} [params] exchange specific params
+ * @returns {object[]} a list of [settlement history objects]
+ */
 func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMySettlementHistory
-            * @description fetches historical settlement records of the user
-            * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
-            * @param {string} symbol unified market symbol of the settlement history
-            * @param {int} [since] timestamp in ms
-            * @param {int} [limit] number of records
-            * @param {object} [params] exchange specific params
-            * @returns {object[]} a list of [settlement history objects]
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -11209,7 +12510,9 @@ func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) <- c
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes701895 := (<-this.LoadMarkets())
+            PanicOnError(retRes701895)
             var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params);
@@ -11228,7 +12531,9 @@ func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) <- c
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
             }
-            var response interface{} = (<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params)))
+        
+            response:= (<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -11251,11 +12556,13 @@ func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) <- c
             //
             var settlements interface{} = this.ParseSettlements(response, market)
             var sorted interface{} = this.SortBy(settlements, "timestamp")
-                ch <-this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseSettlement(settlement interface{}, market interface{}) interface{}  {
     //
     // fetchSettlementHistory
@@ -11338,25 +12645,28 @@ func  (this *binance) ParseSettlements(settlements interface{}, market interface
     }
     return result
 }
+/**
+ * @method
+ * @name binance#fetchLedgerEntry
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+ * @param {string} id the identification number of the ledger entry
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ */
 func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchLedgerEntry
-            * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-            * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
-            * @param {string} id the identification number of the ledger entry
-            * @param {string} code unified currency code
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes279932 := (<-this.LoadMarkets())
+            PanicOnError(retRes279932)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLedgerEntry", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -11370,7 +12680,9 @@ func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface
                 "recordId": id,
                 "currency": GetValue(currency, "id"),
             }
-            var response interface{} = (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+        
+            response:= (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -11383,35 +12695,38 @@ func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface
             //     ]
             //
             var first interface{} = this.SafeDict(response, 0, response)
-                ch <-this.ParseLedgerEntry(first, currency)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseLedgerEntry(first, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchLedger
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+ * @param {string} [code] unified currency code
+ * @param {int} [since] timestamp in ms of the earliest ledger entry
+ * @param {int} [limit] max number of ledger entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ */
 func  (this *binance) FetchLedger(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchLedger
-            * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-            * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-            * @param {string} [code] unified currency code
-            * @param {int} [since] timestamp in ms of the earliest ledger entry
-            * @param {int} [limit] max number of ledger entries to return
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] timestamp in ms of the latest ledger entry
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -11419,13 +12734,19 @@ func  (this *binance) FetchLedger(optionalArgs ...interface{}) <- chan interface
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes933369 := (<-this.LoadMarkets())
+            PanicOnError(retRes933369)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+        
+                    retRes961037 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
+                    PanicOnError(retRes961037)
+                    ch <- retRes961037
+                    return nil
             }
             var typeVar interface{} = nil
             var subType interface{} = nil
@@ -11459,23 +12780,34 @@ func  (this *binance) FetchLedger(optionalArgs ...interface{}) <- chan interface
             if IsTrue(IsEqual(typeVar, "option")) {
                 this.CheckRequiredArgument("fetchLedger", code, "code")
                 AddElementToObject(request, "currency", GetValue(currency, "id"))
-                response = (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+                
+        response = (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(this.IsLinear(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(this.IsInverse(typeVar, subType)) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(this.Id, " fetchLedger() supports contract wallets only")))
             }
-            //
+        
+                //
             // options (eapi)
             //
             //     [
@@ -11503,11 +12835,12 @@ func  (this *binance) FetchLedger(optionalArgs ...interface{}) <- chan interface
             //         }
             //     ]
             //
-                ch <-this.ParseLedger(response, currency, since, limit)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseLedger(response, currency, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // options (eapi)
@@ -11719,16 +13052,16 @@ func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interf
 func  (this *binance) GetExceptionsByUrl(url interface{}, exactOrBroad interface{}) interface{}  {
     var marketType interface{} = nil
     var hostname interface{} = Ternary(IsTrue((!IsEqual(this.Hostname, nil))), this.Hostname, "binance.com")
-    if IsTrue(StartsWith(url, Add(Add("https://api.", hostname), "/"))) {
+    if IsTrue(IsTrue(StartsWith(url, Add(Add("https://api.", hostname), "/"))) || IsTrue(StartsWith(url, "https://testnet.binance.vision"))) {
         marketType = "spot"
-    } else if IsTrue(StartsWith(url, Add(Add("https://dapi.", hostname), "/"))) {
+    } else if IsTrue(IsTrue(StartsWith(url, Add(Add("https://dapi.", hostname), "/"))) || IsTrue(StartsWith(url, "https://testnet.binancefuture.com/dapi"))) {
         marketType = "inverse"
-    } else if IsTrue(StartsWith(url, Add(Add("https://fapi.", hostname), "/"))) {
+    } else if IsTrue(IsTrue(StartsWith(url, Add(Add("https://fapi.", hostname), "/"))) || IsTrue(StartsWith(url, "https://testnet.binancefuture.com/fapi"))) {
         marketType = "linear"
     } else if IsTrue(StartsWith(url, Add(Add("https://eapi.", hostname), "/"))) {
         marketType = "option"
     } else if IsTrue(StartsWith(url, Add(Add("https://papi.", hostname), "/"))) {
-        marketType = "portfoliomargin"
+        marketType = "portfolioMargin"
     }
     if IsTrue(!IsEqual(marketType, nil)) {
         var exceptionsForMarketType interface{} = this.SafeDict(this.Exceptions, marketType, map[string]interface{} {})
@@ -11766,7 +13099,7 @@ func  (this *binance) HandleErrors(code interface{}, reason interface{}, url int
             
             {		ret__ := func(this *binance) (ret_ interface{}) {
             		defer func() {
-            			if e := recover().(interface{}); e != nil {
+            			if e := recover(); e != nil {
                             if e == "break" {
             				    return
             			    }
@@ -11774,7 +13107,7 @@ func  (this *binance) HandleErrors(code interface{}, reason interface{}, url int
             					// catch block:
                                                 // do nothing
                             parsedMessage = nil
-            					return nil
+                                return nil
             				}(this)
             			}
             		}()
@@ -11859,10 +13192,11 @@ func  (this *binance) CalculateRateLimiterCost(api interface{}, method interface
     return this.SafeValue(config, "cost", 1)
 }
 func  (this *binance) Request(path interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            api := GetArg(optionalArgs, 0, "public")
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    api := GetArg(optionalArgs, 0, "public")
             _ = api
             method := GetArg(optionalArgs, 1, "GET")
             _ = method
@@ -11874,21 +13208,26 @@ func  (this *binance) Request(path interface{}, optionalArgs ...interface{}) <- 
             _ = body
             config := GetArg(optionalArgs, 5, map[string]interface{} {})
             _ = config
-            var response interface{} = (<-this.Fetch2(path, api, method, params, headers, body, config))
+        
+            response:= (<-this.Fetch2(path, api, method, params, headers, body, config))
+            PanicOnError(response)
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             if IsTrue(IsEqual(api, "private")) {
                 AddElementToObject(this.Options, "hasAlreadyAuthenticatedSuccessfully", true)
             }
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{}, addOrReduce interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            // used to modify isolated positions
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    // used to modify isolated positions
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var defaultType interface{} = this.SafeString(this.Options, "defaultType", "future")
@@ -11899,7 +13238,9 @@ func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{},
             if IsTrue(IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsEqual(typeVar, "spot")))) {
                 panic(NotSupported(Add(this.Id, " add / reduce margin only supported with type future or delivery")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes117316 := (<-this.LoadMarkets())
+            PanicOnError(retRes117316)
             var market interface{} = this.Market(symbol)
             amount = this.AmountToPrecision(symbol, amount)
             var request interface{} = map[string]interface{} {
@@ -11911,12 +13252,17 @@ func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{},
             var code interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
                 code = GetValue(market, "quote")
-                response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params)))
+                
+        response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 code = GetValue(market, "base")
-                response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params)))
+                
+        response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             //     {
             //         "code": 200,
             //         "msg": "Successfully modify position margin.",
@@ -11924,13 +13270,14 @@ func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{},
             //         "type": 1
             //     }
             //
-                ch <-this.Extend(this.ParseMarginModification(response, market), map[string]interface{} {
+        ch <- this.Extend(this.ParseMarginModification(response, market), map[string]interface{} {
                 "code": code,
             })
-        return nil
-    }()
-    return ch
-}
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // add/reduce margin
@@ -11977,71 +13324,86 @@ func  (this *binance) ParseMarginModification(data interface{}, optionalArgs ...
         "datetime": this.Iso8601(timestamp),
     }
 }
+/**
+ * @method
+ * @name binance#reduceMargin
+ * @description remove margin from a position
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount the amount of margin to remove
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ */
 func  (this *binance) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#reduceMargin
-            * @description remove margin from a position
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
-            * @param {string} symbol unified market symbol
-            * @param {float} amount the amount of margin to remove
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-                ch <-(<-this.ModifyMarginHelper(symbol, amount, 2, params))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes700652 :=  (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+                PanicOnError(retRes700652)
+                ch <- retRes700652
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#addMargin
+ * @description add margin
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ */
 func  (this *binance) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#addMargin
-            * @description add margin
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
-            * @param {string} symbol unified market symbol
-            * @param {float} amount amount of margin to add
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-                ch <-(<-this.ModifyMarginHelper(symbol, amount, 1, params))
-        return nil
-    }()
-    return ch
-}
+        
+                retRes713443 :=  (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+                PanicOnError(retRes713443)
+                ch <- retRes713443
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
 func  (this *binance) FetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchCrossBorrowRate
-            * @description fetch the rate of interest to borrow a currency for margin trading
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
-            * @param {string} code unified currency code
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes407968 := (<-this.LoadMarkets())
+            PanicOnError(retRes407968)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
             }
-            var response interface{} = (<-this.SapiGetMarginInterestRateHistory(this.Extend(request, params)))
+        
+            response:= (<-this.SapiGetMarginInterestRateHistory(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -12053,57 +13415,67 @@ func  (this *binance) FetchCrossBorrowRate(code interface{}, optionalArgs ...int
             //     ]
             //
             var rate interface{} = this.SafeDict(response, 0)
-                ch <-this.ParseBorrowRate(rate)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseBorrowRate(rate)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchIsolatedBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+ * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+ */
 func  (this *binance) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchIsolatedBorrowRate
-            * @description fetch the rate of interest to borrow a currency for margin trading
-            * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            *
-            * EXCHANGE SPECIFIC PARAMETERS
-            * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
-            * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var request interface{} = map[string]interface{} {
                 "symbol": symbol,
             }
-            var borrowRates interface{} = (<-this.FetchIsolatedBorrowRates(this.Extend(request, params)))
-                ch <-this.SafeDict(borrowRates, symbol)
-        return nil
-    }()
-    return ch
-}
+        
+            borrowRates:= (<-this.FetchIsolatedBorrowRates(this.Extend(request, params)))
+            PanicOnError(borrowRates)
+        
+            ch <- this.SafeDict(borrowRates, symbol)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchIsolatedBorrowRates
+ * @description fetch the borrow interest rates of all currencies
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.symbol] unified market symbol
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
 func  (this *binance) FetchIsolatedBorrowRates(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchIsolatedBorrowRates
-            * @description fetch the borrow interest rates of all currencies
-            * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {object} [params.symbol] unified market symbol
-            *
-            * EXCHANGE SPECIFIC PARAMETERS
-            * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
-            * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes172306 := (<-this.LoadMarkets())
+            PanicOnError(retRes172306)
             var request interface{} = map[string]interface{} {}
             var symbol interface{} = this.SafeString(params, "symbol")
             params = this.Omit(params, "symbol")
@@ -12111,8 +13483,11 @@ func  (this *binance) FetchIsolatedBorrowRates(optionalArgs ...interface{}) <- c
                 var market interface{} = this.Market(symbol)
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
             }
-            var response interface{} = (<-this.SapiGetMarginIsolatedMarginData(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiGetMarginIsolatedMarginData(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //    [
             //        {
             //            "vipLevel": 0,
@@ -12133,33 +13508,37 @@ func  (this *binance) FetchIsolatedBorrowRates(optionalArgs ...interface{}) <- c
             //        }
             //    ]
             //
-                ch <-this.ParseIsolatedBorrowRates(response)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseIsolatedBorrowRates(response)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchBorrowRateHistory
+ * @description retrieves a history of a currencies borrow interest rate at specific time slots
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+ * @param {string} code unified currency code
+ * @param {int} [since] timestamp for the earliest borrow rate
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
 func  (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchBorrowRateHistory
-            * @description retrieves a history of a currencies borrow interest rate at specific time slots
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
-            * @param {string} code unified currency code
-            * @param {int} [since] timestamp for the earliest borrow rate
-            * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-            */
-            since := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    since := GetArg(optionalArgs, 0, nil)
             _ = since
             limit := GetArg(optionalArgs, 1, nil)
             _ = limit
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes494420 := (<-this.LoadMarkets())
+            PanicOnError(retRes494420)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 93
             } else if IsTrue(IsGreaterThan(limit, 93)) {
@@ -12176,8 +13555,11 @@ func  (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...i
                 var now interface{} = this.Milliseconds()
                 AddElementToObject(request, "endTime", mathMin(endTime, now)) // cannot have an endTime later than current time
             }
-            var response interface{} = (<-this.SapiGetMarginInterestRateHistory(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiGetMarginInterestRateHistory(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     [
             //         {
             //             "asset": "USDT",
@@ -12187,21 +13569,12 @@ func  (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...i
             //         },
             //     ]
             //
-                ch <-this.ParseBorrowRateHistory(response, code, since, limit)
-        return nil
-    }()
-    return ch
-}
-func  (this *binance) ParseBorrowRateHistory(response interface{}, code interface{}, since interface{}, limit interface{}) interface{}  {
-    var result interface{} = []interface{}{}
-    for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        var item interface{} = GetValue(response, i)
-        var borrowRate interface{} = this.ParseBorrowRate(item)
-        AppendToArray(&result,borrowRate)
-    }
-    var sorted interface{} = this.SortBy(result, "timestamp")
-    return this.FilterByCurrencySinceLimit(sorted, code, since, limit)
-}
+        ch <- this.ParseBorrowRateHistory(response, code, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //    {
@@ -12263,30 +13636,35 @@ func  (this *binance) ParseIsolatedBorrowRate(info interface{}, optionalArgs ...
         "datetime": nil,
     }
 }
+/**
+ * @method
+ * @name binance#createGiftCode
+ * @description create gift code
+ * @see https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+ * @param {string} code gift code
+ * @param {float} amount amount of currency for the gift
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} The gift code id, code, currency and amount
+ */
 func  (this *binance) CreateGiftCode(code interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createGiftCode
-            * @description create gift code
-            * @see https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
-            * @param {string} code gift code
-            * @param {float} amount amount of currency for the gift
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} The gift code id, code, currency and amount
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes368727 := (<-this.LoadMarkets())
+            PanicOnError(retRes368727)
             var currency interface{} = this.Currency(code)
             // ensure you have enough token in your funding account before calling this code
             var request interface{} = map[string]interface{} {
                 "token": GetValue(currency, "id"),
                 "amount": amount,
             }
-            var response interface{} = (<-this.SapiPostGiftcardCreateCode(this.Extend(request, params)))
+        
+            response:= (<-this.SapiPostGiftcardCreateCode(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     {
             //         "code": "000000",
@@ -12298,37 +13676,43 @@ func  (this *binance) CreateGiftCode(code interface{}, amount interface{}, optio
             var data interface{} = this.SafeDict(response, "data")
             var giftcardCode interface{} = this.SafeString(data, "code")
             var id interface{} = this.SafeString(data, "referenceNo")
-                ch <-map[string]interface{} {
+        
+            ch <- map[string]interface{} {
                 "info": response,
                 "id": id,
                 "code": giftcardCode,
                 "currency": code,
                 "amount": amount,
             }
-        return nil
-    }()
-    return ch
-}
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#redeemGiftCode
+ * @description redeem gift code
+ * @see https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+ * @param {string} giftcardCode
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
 func  (this *binance) RedeemGiftCode(giftcardCode interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#redeemGiftCode
-            * @description redeem gift code
-            * @see https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
-            * @param {string} giftcardCode
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} response from the exchange
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var request interface{} = map[string]interface{} {
                 "code": giftcardCode,
             }
-            var response interface{} = (<-this.SapiPostGiftcardRedeemCode(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiPostGiftcardRedeemCode(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "code": "000000",
             //         "message": "success",
@@ -12339,31 +13723,36 @@ func  (this *binance) RedeemGiftCode(giftcardCode interface{}, optionalArgs ...i
             //         "success": true
             //     }
             //
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#verifyGiftCode
+ * @description verify gift code
+ * @see https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+ * @param {string} id reference number id
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
 func  (this *binance) VerifyGiftCode(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#verifyGiftCode
-            * @description verify gift code
-            * @see https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
-            * @param {string} id reference number id
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} response from the exchange
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var request interface{} = map[string]interface{} {
                 "referenceNo": id,
             }
-            var response interface{} = (<-this.SapiGetGiftcardVerify(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiGetGiftcardVerify(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "code": "000000",
             //         "message": "success",
@@ -12371,30 +13760,32 @@ func  (this *binance) VerifyGiftCode(id interface{}, optionalArgs ...interface{}
             //         "success": true
             //     }
             //
-                ch <-response
-        return nil
-    }()
-    return ch
-}
+        ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchBorrowInterest
+ * @description fetch the interest owed by the user for borrowing currency for margin trading
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+ * @param {string} [code] unified currency code
+ * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
+ * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+ * @param {int} [limit] the maximum number of structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ */
 func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchBorrowInterest
-            * @description fetch the interest owed by the user for borrowing currency for margin trading
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
-            * @param {string} [code] unified currency code
-            * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
-            * @param {int} [since] the earliest time in ms to fetch borrrow interest for
-            * @param {int} [limit] the maximum number of structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
-            * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             symbol := GetArg(optionalArgs, 1, nil)
             _ = symbol
@@ -12404,7 +13795,9 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <- chan i
             _ = limit
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes696296 := (<-this.LoadMarkets())
+            PanicOnError(retRes696296)
             var isPortfolioMargin interface{} = nil
             isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false);
             isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable,0);
@@ -12426,13 +13819,17 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <- chan i
             params = GetValue(requestparamsVariable,1)
             var response interface{} = nil
             if IsTrue(isPortfolioMargin) {
-                response = (<-this.PapiGetMarginMarginInterestHistory(this.Extend(request, params)))
+                
+        response = (<-this.PapiGetMarginMarginInterestHistory(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(symbol, nil)) {
                     market = this.Market(symbol)
                     AddElementToObject(request, "isolatedSymbol", GetValue(market, "id"))
                 }
-                response = (<-this.SapiGetMarginInterestHistory(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetMarginInterestHistory(this.Extend(request, params)))
+                PanicOnError(response)
             }
             //
             // spot margin
@@ -12472,11 +13869,13 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <- chan i
             //
             var rows interface{} = this.SafeList(response, "rows")
             var interest interface{} = this.ParseBorrowInterests(rows, market)
-                ch <-this.FilterByCurrencySinceLimit(interest, code, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseBorrowInterest(info interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -12484,40 +13883,42 @@ func  (this *binance) ParseBorrowInterest(info interface{}, optionalArgs ...inte
     var timestamp interface{} = this.SafeInteger(info, "interestAccuredTime")
     var marginMode interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), "cross", "isolated")
     return map[string]interface{} {
-        "account": Ternary(IsTrue((IsEqual(symbol, nil))), "cross", symbol),
+        "info": info,
         "symbol": symbol,
-        "marginMode": marginMode,
         "currency": this.SafeCurrencyCode(this.SafeString(info, "asset")),
         "interest": this.SafeNumber(info, "interest"),
         "interestRate": this.SafeNumber(info, "interestRate"),
         "amountBorrowed": this.SafeNumber(info, "principal"),
+        "marginMode": marginMode,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
-        "info": info,
     }
 }
+/**
+ * @method
+ * @name binance#repayCrossMargin
+ * @description repay borrowed margin and interest
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+ * @param {string} code unified currency code of the currency to repay
+ * @param {float} amount the amount to repay
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+ * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+ * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ */
 func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#repayCrossMargin
-            * @description repay borrowed margin and interest
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
-            * @param {string} code unified currency code of the currency to repay
-            * @param {float} amount the amount to repay
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
-            * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
-            * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
-            * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes302718 := (<-this.LoadMarkets())
+            PanicOnError(retRes302718)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -12534,38 +13935,49 @@ func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opt
                 method = GetValue(methodparamsVariable,0);
                 params = GetValue(methodparamsVariable,1)
                 if IsTrue(IsEqual(method, "papiPostMarginRepayDebt")) {
-                    response = (<-this.PapiPostMarginRepayDebt(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostMarginRepayDebt(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.PapiPostRepayLoan(this.Extend(request, params)))
+                    
+        response = (<-this.PapiPostRepayLoan(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 AddElementToObject(request, "isIsolated", "FALSE")
                 AddElementToObject(request, "type", "REPAY")
-                response = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+                
+        response = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+                PanicOnError(response)
             }
-                ch <-this.ParseMarginLoan(response, currency)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseMarginLoan(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#repayIsolatedMargin
+ * @description repay borrowed margin and interest
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @param {string} symbol unified market symbol, required for isolated margin
+ * @param {string} code unified currency code of the currency to repay
+ * @param {float} amount the amount to repay
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ */
 func  (this *binance) RepayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#repayIsolatedMargin
-            * @description repay borrowed margin and interest
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-            * @param {string} symbol unified market symbol, required for isolated margin
-            * @param {string} code unified currency code of the currency to repay
-            * @param {float} amount the amount to repay
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes590593 := (<-this.LoadMarkets())
+            PanicOnError(retRes590593)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -12575,37 +13987,44 @@ func  (this *binance) RepayIsolatedMargin(symbol interface{}, code interface{}, 
                 "isIsolated": "TRUE",
                 "type": "REPAY",
             }
-            var response interface{} = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "tranId": 108988250265,
             //         "clientTag":""
             //     }
             //
-                ch <-this.ParseMarginLoan(response, currency)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseMarginLoan(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#borrowCrossMargin
+ * @description create a loan to borrow margin
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+ * @param {string} code unified currency code of the currency to borrow
+ * @param {float} amount the amount to borrow
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ */
 func  (this *binance) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#borrowCrossMargin
-            * @description create a loan to borrow margin
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
-            * @param {string} code unified currency code of the currency to borrow
-            * @param {float} amount the amount to borrow
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
-            * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes182398 := (<-this.LoadMarkets())
+            PanicOnError(retRes182398)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -12617,41 +14036,50 @@ func  (this *binance) BorrowCrossMargin(code interface{}, amount interface{}, op
             isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable,0);
             params = GetValue(isPortfolioMarginparamsVariable,1)
             if IsTrue(isPortfolioMargin) {
-                response = (<-this.PapiPostMarginLoan(this.Extend(request, params)))
+                
+        response = (<-this.PapiPostMarginLoan(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 AddElementToObject(request, "isIsolated", "FALSE")
                 AddElementToObject(request, "type", "BORROW")
-                response = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+                
+        response = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             //     {
             //         "tranId": 108988250265,
             //         "clientTag":""
             //     }
             //
-                ch <-this.ParseMarginLoan(response, currency)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseMarginLoan(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#borrowIsolatedMargin
+ * @description create a loan to borrow margin
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @param {string} symbol unified market symbol, required for isolated margin
+ * @param {string} code unified currency code of the currency to borrow
+ * @param {float} amount the amount to borrow
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ */
 func  (this *binance) BorrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#borrowIsolatedMargin
-            * @description create a loan to borrow margin
-            * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-            * @param {string} symbol unified market symbol, required for isolated margin
-            * @param {string} code unified currency code of the currency to borrow
-            * @param {float} amount the amount to borrow
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes225042 := (<-this.LoadMarkets())
+            PanicOnError(retRes225042)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -12661,18 +14089,22 @@ func  (this *binance) BorrowIsolatedMargin(symbol interface{}, code interface{},
                 "isIsolated": "TRUE",
                 "type": "BORROW",
             }
-            var response interface{} = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     {
             //         "tranId": 108988250265,
             //         "clientTag":""
             //     }
             //
-                ch <-this.ParseMarginLoan(response, currency)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseMarginLoan(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseMarginLoan(info interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -12704,26 +14136,27 @@ func  (this *binance) ParseMarginLoan(info interface{}, optionalArgs ...interfac
         "info": info,
     }
 }
+/**
+ * @method
+ * @name binance#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+ * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+ * @param {int} [limit] default 30, max 500
+ * @param {object} [params] exchange specific parameters
+ * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
 func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOpenInterestHistory
-            * @description Retrieves the open interest history of a currency
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
-            * @param {string} symbol Unified CCXT market symbol
-            * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-            * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
-            * @param {int} [limit] default 30, max 500
-            * @param {object} [params] exchange specific parameters
-            * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-            */
-            timeframe := GetArg(optionalArgs, 0, "5m")
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    timeframe := GetArg(optionalArgs, 0, "5m")
             _ = timeframe
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -12734,13 +14167,19 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
             if IsTrue(IsEqual(timeframe, "1m")) {
                 panic(BadRequest(Add(this.Id, "fetchOpenInterestHistory cannot use the 1m timeframe")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes453112 := (<-this.LoadMarkets())
+            PanicOnError(retRes453112)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false);
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+        
+                    retRes918187 :=  (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+                    PanicOnError(retRes918187)
+                    ch <- retRes918187
+                    return nil
             }
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -12771,11 +14210,16 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiDataGetOpenInterestHist(this.Extend(request, params)))
+                
+        response = (<-this.DapiDataGetOpenInterestHist(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.FapiDataGetOpenInterestHist(this.Extend(request, params)))
+                
+        response = (<-this.FapiDataGetOpenInterestHist(this.Extend(request, params)))
+                PanicOnError(response)
             }
-            //
+        
+                //
             //  [
             //      {
             //          "symbol":"BTCUSDT",
@@ -12786,29 +14230,33 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
             //      ...
             //  ]
             //
-                ch <-this.ParseOpenInterests(response, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseOpenInterestsHistory(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
 func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOpenInterest
-            * @description retrieves the open interest of a contract trading pair
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
-            * @param {string} symbol unified CCXT market symbol
-            * @param {object} [params] exchange specific parameters
-            * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes389171 := (<-this.LoadMarkets())
+            PanicOnError(retRes389171)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             if IsTrue(GetValue(market, "option")) {
@@ -12822,11 +14270,17 @@ func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
-                response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params)))
+                
+        response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params)))
+                
+        response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
-                response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params)))
+                
+        response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params)))
+                PanicOnError(response)
             }
             //
             // futures (fapi)
@@ -12860,22 +14314,26 @@ func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
             //
             if IsTrue(GetValue(market, "option")) {
                 symbol = GetValue(market, "symbol")
-                var result interface{} = this.ParseOpenInterests(response, market)
+                var result interface{} = this.ParseOpenInterestsHistory(response, market)
                 for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
                     var item interface{} = GetValue(result, i)
                     if IsTrue(IsEqual(GetValue(item, "symbol"), symbol)) {
-                                                                ch <-item
+        
+                        ch <- item
+                        return nil
                     }
                 }
             } else {
-                                ch <-this.ParseOpenInterest(response, market)
-            }
-                ch <- nil
+        
+                ch <- this.ParseOpenInterest(response, market)
                 return nil
-
-    }()
-    return ch
-}
+            }
+        
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -12896,31 +14354,32 @@ func  (this *binance) ParseOpenInterest(interest interface{}, optionalArgs ...in
         "info": interest,
     }, market)
 }
+/**
+ * @method
+ * @name binance#fetchMyLiquidations
+ * @description retrieves the users liquidated positions
+ * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+ * @param {string} [symbol] unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] exchange specific parameters for the binance api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+ * @param {string} [params.type] "spot"
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ */
 func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMyLiquidations
-            * @description retrieves the users liquidated positions
-            * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
-            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
-            * @param {string} [symbol] unified CCXT market symbol
-            * @param {int} [since] the earliest time in ms to fetch liquidations for
-            * @param {int} [limit] the maximum number of liquidation structures to retrieve
-            * @param {object} [params] exchange specific parameters for the binance api endpoint
-            * @param {int} [params.until] timestamp in ms of the latest liquidation
-            * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-            * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
-            * @param {string} [params.type] "spot"
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -12928,13 +14387,19 @@ func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <- chan i
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes101195 := (<-this.LoadMarkets())
+            PanicOnError(retRes101195)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
-                                ch <-(<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+        
+                    retRes979669 :=  (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+                    PanicOnError(retRes979669)
+                    ch <- retRes979669
+                    return nil
             }
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -12978,21 +14443,33 @@ func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <- chan i
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "spot")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetMarginForceOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetMarginForceOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.SapiGetMarginForceLiquidationRec(this.Extend(request, params)))
+                    
+        response = (<-this.SapiGetMarginForceLiquidationRec(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "linear")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetUmForceOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetUmForceOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.FapiPrivateGetForceOrders(this.Extend(request, params)))
+                    
+        response = (<-this.FapiPrivateGetForceOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "inverse")) {
                 if IsTrue(isPortfolioMargin) {
-                    response = (<-this.PapiGetCmForceOrders(this.Extend(request, params)))
+                    
+        response = (<-this.PapiGetCmForceOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 } else {
-                    response = (<-this.DapiPrivateGetForceOrders(this.Extend(request, params)))
+                    
+        response = (<-this.DapiPrivateGetForceOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchMyLiquidations() does not support "), GetValue(market, "type")), " markets")))
@@ -13075,11 +14552,13 @@ func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <- chan i
             //     ]
             //
             var liquidations interface{} = this.SafeList(response, "rows", response)
-                ch <-this.ParseLiquidations(liquidations, market, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseLiquidations(liquidations, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseLiquidation(liquidation interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // margin
@@ -13165,28 +14644,34 @@ func  (this *binance) ParseLiquidation(liquidation interface{}, optionalArgs ...
         "datetime": this.Iso8601(timestamp),
     })
 }
+/**
+ * @method
+ * @name binance#fetchGreeks
+ * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+ * @param {string} symbol unified symbol of the market to fetch greeks for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ */
 func  (this *binance) FetchGreeks(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchGreeks
-            * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
-            * @param {string} symbol unified symbol of the market to fetch greeks for
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes16360 := (<-this.LoadMarkets())
+            PanicOnError(retRes16360)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
-            var response interface{} = (<-this.EapiPublicGetMark(this.Extend(request, params)))
-            //
+        
+            response:= (<-this.EapiPublicGetMark(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
             //     [
             //         {
             //             "symbol": "BTC-231229-40000-C",
@@ -13203,11 +14688,12 @@ func  (this *binance) FetchGreeks(symbol interface{}, optionalArgs ...interface{
             //         }
             //     ]
             //
-                ch <-this.ParseGreeks(GetValue(response, 0), market)
-        return nil
-    }()
-    return ch
-}
+        ch <- this.ParseGreeks(GetValue(response, 0), market)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -13251,15 +14737,18 @@ func  (this *binance) ParseGreeks(greeks interface{}, optionalArgs ...interface{
     }
 }
 func  (this *binance) FetchTradingLimits(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            // this method should not be called directly, use loadTradingLimits () instead
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    // this method should not be called directly, use loadTradingLimits () instead
             symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            var markets interface{} = (<-this.FetchMarkets())
+        
+            markets:= (<-this.FetchMarkets())
+            PanicOnError(markets)
             var tradingLimits interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var market interface{} = GetValue(markets, i)
@@ -13268,27 +14757,30 @@ func  (this *binance) FetchTradingLimits(optionalArgs ...interface{}) <- chan in
                     AddElementToObject(tradingLimits, symbol, GetValue(GetValue(market, "limits"), "amount"))
                 }
             }
-                ch <-tradingLimits
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- tradingLimits
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchPositionMode
+ * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} an object detailing whether the market is in hedged or one-way mode
+ */
 func  (this *binance) FetchPositionMode(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchPositionMode
-            * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
-            * @param {string} symbol unified symbol of the market to fetch the order book for
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} an object detailing whether the market is in hedged or one-way mode
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
@@ -13302,9 +14794,13 @@ func  (this *binance) FetchPositionMode(optionalArgs ...interface{}) <- chan int
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "linear")) {
-                response = (<-this.FapiPrivateGetPositionSideDual(params))
+                
+        response = (<-this.FapiPrivateGetPositionSideDual(params))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(subType, "inverse")) {
-                response = (<-this.DapiPrivateGetPositionSideDual(params))
+                
+        response = (<-this.DapiPrivateGetPositionSideDual(params))
+                PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")))
             }
@@ -13314,35 +14810,40 @@ func  (this *binance) FetchPositionMode(optionalArgs ...interface{}) <- chan int
             //    }
             //
             var dualSidePosition interface{} = this.SafeBool(response, "dualSidePosition")
-                ch <-map[string]interface{} {
+        
+            ch <- map[string]interface{} {
                 "info": response,
                 "hedged": dualSidePosition,
             }
-        return nil
-    }()
-    return ch
-}
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMarginModes
+ * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @param {string[]} symbols unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ */
 func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchMarginModes
-            * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-            * @param {string} symbol unified symbol of the market the order was made in
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes99666 := (<-this.LoadMarkets())
+            PanicOnError(retRes99666)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
                 symbols = this.MarketSymbols(symbols)
@@ -13354,9 +14855,13 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) <- chan inte
             params = GetValue(subTypeparamsVariable,1)
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "linear")) {
-                response = (<-this.FapiPrivateGetSymbolConfig(params))
+                
+        response = (<-this.FapiPrivateGetSymbolConfig(params))
+                PanicOnError(response)
             } else if IsTrue(IsEqual(subType, "inverse")) {
-                response = (<-this.DapiPrivateGetAccount(params))
+                
+        response = (<-this.DapiPrivateGetAccount(params))
+                PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " fetchMarginModes () supports linear and inverse subTypes only")))
             }
@@ -13364,11 +14869,64 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) <- chan inte
             if IsTrue(IsArray(response)) {
                 assets = response
             }
-                ch <-this.ParseMarginModes(assets, symbols, "symbol", "swap")
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseMarginModes(assets, symbols, "symbol", "swap")
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchMarginMode
+ * @description fetches the margin mode of a specific symbol
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ */
+func  (this *binance) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes594093 := (<-this.LoadMarkets())
+            PanicOnError(retRes594093)
+            var market interface{} = this.Market(symbol)
+            var subType interface{} = nil
+            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params);
+            subType = GetValue(subTypeparamsVariable,0);
+            params = GetValue(subTypeparamsVariable,1)
+            var response interface{} = nil
+            if IsTrue(IsEqual(subType, "linear")) {
+                var request interface{} = map[string]interface{} {
+                    "symbol": GetValue(market, "id"),
+                }
+                
+        response = (<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params)))
+                PanicOnError(response)
+            } else if IsTrue(IsEqual(subType, "inverse")) {
+        
+                fetchMarginModesResponse:= (<-this.FetchMarginModes([]interface{}{symbol}, params))
+                PanicOnError(fetchMarginModesResponse)
+        
+                ch <- GetValue(fetchMarginModesResponse, symbol)
+                return nil
+            } else {
+                panic(BadRequest(Add(this.Id, " fetchMarginMode () supports linear and inverse subTypes only")))
+            }
+        
+            ch <- this.ParseMarginMode(GetValue(response, 0), market)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -13389,27 +14947,32 @@ func  (this *binance) ParseMarginMode(marginMode interface{}, optionalArgs ...in
         "marginMode": reMarginMode,
     }
 }
+/**
+ * @method
+ * @name binance#fetchOption
+ * @description fetches option data that is commonly found in an option chain
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ */
 func  (this *binance) FetchOption(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchOption
-            * @description fetches option data that is commonly found in an option chain
-            * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
-            * @param {string} symbol unified market symbol
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes213000 := (<-this.LoadMarkets())
+            PanicOnError(retRes213000)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
-            var response interface{} = (<-this.EapiPublicGetTicker(this.Extend(request, params)))
+        
+            response:= (<-this.EapiPublicGetTicker(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -13435,11 +14998,13 @@ func  (this *binance) FetchOption(symbol interface{}, optionalArgs ...interface{
             //     ]
             //
             var chain interface{} = this.SafeDict(response, 0, map[string]interface{} {})
-                ch <-this.ParseOption(chain, nil, market)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseOption(chain, nil, market)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseOption(chain interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -13489,24 +15054,26 @@ func  (this *binance) ParseOption(chain interface{}, optionalArgs ...interface{}
         "quoteVolume": nil,
     }
 }
+/**
+ * @method
+ * @name binance#fetchMarginAdjustmentHistory
+ * @description fetches the history of margin added or reduced from contract isolated positions
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+ * @param {string} symbol unified market symbol
+ * @param {string} [type] "add" or "reduce"
+ * @param {int} [since] timestamp in ms of the earliest change to fetch
+ * @param {int} [limit] the maximum amount of changes to fetch
+ * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest change to fetch
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ */
 func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @description fetches the history of margin added or reduced from contract isolated positions
-            * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
-            * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
-            * @param {string} symbol unified market symbol
-            * @param {string} [type] "add" or "reduce"
-            * @param {int} [since] timestamp in ms of the earliest change to fetch
-            * @param {int} [limit] the maximum amount of changes to fetch
-            * @param {object} params extra parameters specific to the exchange api endpoint
-            * @param {int} [params.until] timestamp in ms of the latest change to fetch
-            * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             typeVar := GetArg(optionalArgs, 1, nil)
             _ = typeVar
@@ -13516,7 +15083,9 @@ func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) 
             _ = limit
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes24761 := (<-this.LoadMarkets())
+            PanicOnError(retRes24761)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
             }
@@ -13540,9 +15109,13 @@ func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) 
             }
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
-                response = (<-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+                
+        response = (<-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+                PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
-                response = (<-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+                
+        response = (<-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 panic(BadRequest(Add(Add(this.Id, "fetchMarginAdjustmentHistory () is not supported for markets of type "), GetValue(market, "type"))))
             }
@@ -13562,27 +15135,34 @@ func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) 
             //    ]
             //
             var modifications interface{} = this.ParseMarginModifications(response)
-                ch <-this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchConvertCurrencies
+ * @description fetches all available currencies that can be converted
+ * @see https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
 func  (this *binance) FetchConvertCurrencies(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchConvertCurrencies
-            * @description fetches all available currencies that can be converted
-            * @see https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an associative dictionary of currencies
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
-            var response interface{} = (<-this.SapiGetConvertAssetInfo(params))
+        
+            retRes425029 := (<-this.LoadMarkets())
+            PanicOnError(retRes425029)
+        
+            response:= (<-this.SapiGetConvertAssetInfo(params))
+            PanicOnError(response)
             //
             //     [
             //         {
@@ -13625,41 +15205,48 @@ func  (this *binance) FetchConvertCurrencies(optionalArgs ...interface{}) <- cha
             "created": nil,
         })
             }
-                ch <-result
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchConvertQuote
+ * @description fetch a quote for converting from one currency to another
+ * @see https://developers.binance.com/docs/convert/trade/Send-quote-request
+ * @param {string} fromCode the currency that you want to sell and convert from
+ * @param {string} toCode the currency that you want to buy and convert into
+ * @param {float} amount how much you want to trade in units of the from currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
 func  (this *binance) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchConvertQuote
-            * @description fetch a quote for converting from one currency to another
-            * @see https://developers.binance.com/docs/convert/trade/Send-quote-request
-            * @param {string} fromCode the currency that you want to sell and convert from
-            * @param {string} toCode the currency that you want to buy and convert into
-            * @param {float} amount how much you want to trade in units of the from currency
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
-            * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-            */
-            amount := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    amount := GetArg(optionalArgs, 0, nil)
             _ = amount
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             if IsTrue(IsEqual(amount, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchConvertQuote() requires an amount argument")))
             }
-            (<-this.LoadMarkets())
+        
+            retRes897110 := (<-this.LoadMarkets())
+            PanicOnError(retRes897110)
             var request interface{} = map[string]interface{} {
                 "fromAsset": fromCode,
                 "toAsset": toCode,
                 "fromAmount": amount,
             }
-            var response interface{} = (<-this.SapiPostConvertGetQuote(this.Extend(request, params)))
+        
+            response:= (<-this.SapiPostConvertGetQuote(this.Extend(request, params)))
+            PanicOnError(response)
             //
             //     {
             //         "quoteId":"12415572564",
@@ -13672,32 +15259,37 @@ func  (this *binance) FetchConvertQuote(fromCode interface{}, toCode interface{}
             //
             var fromCurrency interface{} = this.Currency(fromCode)
             var toCurrency interface{} = this.Currency(toCode)
-                ch <-this.ParseConversion(response, fromCurrency, toCurrency)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseConversion(response, fromCurrency, toCurrency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#createConvertTrade
+ * @description convert from one currency to another
+ * @see https://developers.binance.com/docs/convert/trade/Accept-Quote
+ * @param {string} id the id of the trade that you want to make
+ * @param {string} fromCode the currency that you want to sell and convert from
+ * @param {string} toCode the currency that you want to buy and convert into
+ * @param {float} [amount] how much you want to trade in units of the from currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
 func  (this *binance) CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#createConvertTrade
-            * @description convert from one currency to another
-            * @see https://developers.binance.com/docs/convert/trade/Accept-Quote
-            * @param {string} id the id of the trade that you want to make
-            * @param {string} fromCode the currency that you want to sell and convert from
-            * @param {string} toCode the currency that you want to buy and convert into
-            * @param {float} [amount] how much you want to trade in units of the from currency
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-            */
-            amount := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    amount := GetArg(optionalArgs, 0, nil)
             _ = amount
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes438984 := (<-this.LoadMarkets())
+            PanicOnError(retRes438984)
             var request interface{} = map[string]interface{} {}
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(fromCode, "BUSD"))) || IsTrue((IsEqual(toCode, "BUSD")))) {
@@ -13708,37 +15300,46 @@ func  (this *binance) CreateConvertTrade(id interface{}, fromCode interface{}, t
                 AddElementToObject(request, "asset", fromCode)
                 AddElementToObject(request, "targetAsset", toCode)
                 AddElementToObject(request, "amount", amount)
-                response = (<-this.SapiPostAssetConvertTransfer(this.Extend(request, params)))
+                
+        response = (<-this.SapiPostAssetConvertTransfer(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 AddElementToObject(request, "quoteId", id)
-                response = (<-this.SapiPostConvertAcceptQuote(this.Extend(request, params)))
+                
+        response = (<-this.SapiPostConvertAcceptQuote(this.Extend(request, params)))
+                PanicOnError(response)
             }
             var fromCurrency interface{} = this.Currency(fromCode)
             var toCurrency interface{} = this.Currency(toCode)
-                ch <-this.ParseConversion(response, fromCurrency, toCurrency)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseConversion(response, fromCurrency, toCurrency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchConvertTrade
+ * @description fetch the data for a conversion trade
+ * @see https://developers.binance.com/docs/convert/trade/Order-Status
+ * @param {string} id the id of the trade that you want to fetch
+ * @param {string} [code] the unified currency code of the conversion trade
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
 func  (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchConvertTrade
-            * @description fetch the data for a conversion trade
-            * @see https://developers.binance.com/docs/convert/trade/Order-Status
-            * @param {string} id the id of the trade that you want to fetch
-            * @param {string} [code] the unified currency code of the conversion trade
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes694451 := (<-this.LoadMarkets())
+            PanicOnError(retRes694451)
             var request interface{} = map[string]interface{} {}
             var response interface{} = nil
             if IsTrue(IsEqual(code, "BUSD")) {
@@ -13751,10 +15352,14 @@ func  (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interfac
                 AddElementToObject(request, "tranId", id)
                 AddElementToObject(request, "startTime", Subtract(now, msInDay))
                 AddElementToObject(request, "endTime", now)
-                response = (<-this.SapiGetAssetConvertTransferQueryByPage(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetAssetConvertTransferQueryByPage(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 AddElementToObject(request, "orderId", id)
-                response = (<-this.SapiGetConvertOrderStatus(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetConvertOrderStatus(this.Extend(request, params)))
+                PanicOnError(response)
             }
             var data interface{} = response
             if IsTrue(IsEqual(code, "BUSD")) {
@@ -13771,28 +15376,31 @@ func  (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interfac
             if IsTrue(!IsEqual(toCurrencyId, nil)) {
                 toCurrency = this.Currency(toCurrencyId)
             }
-                ch <-this.ParseConversion(data, fromCurrency, toCurrency)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseConversion(data, fromCurrency, toCurrency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchConvertTradeHistory
+ * @description fetch the users history of conversion trades
+ * @see https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+ * @param {string} [code] the unified currency code
+ * @param {int} [since] the earliest time in ms to fetch conversions for
+ * @param {int} [limit] the maximum number of conversion structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
 func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <- chan interface{} {
-    ch := make(chan interface{})
-    go func() interface{} {
-        defer close(ch)
-            /**
-            * @method
-            * @name binance#fetchConvertTradeHistory
-            * @description fetch the users history of conversion trades
-            * @see https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
-            * @param {string} [code] the unified currency code
-            * @param {int} [since] the earliest time in ms to fetch conversions for
-            * @param {int} [limit] the maximum number of conversion structures to retrieve
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-            * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-            */
-            code := GetArg(optionalArgs, 0, nil)
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    code := GetArg(optionalArgs, 0, nil)
             _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -13800,7 +15408,9 @@ func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <- c
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            (<-this.LoadMarkets())
+        
+            retRes506099 := (<-this.LoadMarkets())
+            PanicOnError(retRes506099)
             var request interface{} = map[string]interface{} {}
             var msInThirtyDays interface{} = 2592000000
             var now interface{} = this.Milliseconds()
@@ -13829,7 +15439,9 @@ func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <- c
                 fromCurrencyKey = "deductedAsset"
                 toCurrencyKey = "targetAsset"
                 responseQuery = "rows"
-                response = (<-this.SapiGetAssetConvertTransferQueryByPage(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetAssetConvertTransferQueryByPage(this.Extend(request, params)))
+                PanicOnError(response)
             } else {
                 if IsTrue(IsGreaterThan((Subtract(GetValue(request, "endTime"), GetValue(request, "startTime"))), msInThirtyDays)) {
                     panic(BadRequest(Add(this.Id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")))
@@ -13840,14 +15452,18 @@ func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <- c
                 fromCurrencyKey = "fromAsset"
                 toCurrencyKey = "toAsset"
                 responseQuery = "list"
-                response = (<-this.SapiGetConvertTradeFlow(this.Extend(request, params)))
+                
+        response = (<-this.SapiGetConvertTradeFlow(this.Extend(request, params)))
+                PanicOnError(response)
             }
             var rows interface{} = this.SafeList(response, responseQuery, []interface{}{})
-                ch <-this.ParseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
-        return nil
-    }()
-    return ch
-}
+        
+            ch <- this.ParseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *binance) ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}  {
     //
     // fetchConvertQuote
@@ -13941,9 +15557,181 @@ func  (this *binance) ParseConversion(conversion interface{}, optionalArgs ...in
         "fee": nil,
     }
 }
+/**
+ * @method
+ * @name binance#fetchFundingIntervals
+ * @description fetch the funding rate interval for multiple markets
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func  (this *binance) FetchFundingIntervals(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]interface{} {})
+            _ = params
+        
+            retRes578153 := (<-this.LoadMarkets())
+            PanicOnError(retRes578153)
+            var market interface{} = nil
+            if IsTrue(!IsEqual(symbols, nil)) {
+                symbols = this.MarketSymbols(symbols)
+                market = this.Market(GetValue(symbols, 0))
+            }
+            var typeVar interface{} = "swap"
+            var subType interface{} = nil
+            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingIntervals", market, params, "linear");
+            subType = GetValue(subTypeparamsVariable,0);
+            params = GetValue(subTypeparamsVariable,1)
+            var response interface{} = nil
+            if IsTrue(this.IsLinear(typeVar, subType)) {
+                
+        response = (<-this.FapiPublicGetFundingInfo(params))
+                PanicOnError(response)
+            } else if IsTrue(this.IsInverse(typeVar, subType)) {
+                
+        response = (<-this.DapiPublicGetFundingInfo(params))
+                PanicOnError(response)
+            } else {
+                panic(NotSupported(Add(this.Id, " fetchFundingIntervals() supports linear and inverse swap contracts only")))
+            }
+        
+                //
+            //     [
+            //         {
+            //             "symbol": "BLZUSDT",
+            //             "adjustedFundingRateCap": "0.03000000",
+            //             "adjustedFundingRateFloor": "-0.03000000",
+            //             "fundingIntervalHours": 4,
+            //             "disclaimer": false
+            //         },
+            //     ]
+            //
+        ch <- this.ParseFundingRates(response, symbols)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#fetchLongShortRatioHistory
+ * @description fetches the long short ratio history for a unified market symbol
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+ * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+ * @param {string} [timeframe] the period for the ratio, default is 24 hours
+ * @param {int} [since] the earliest time in ms to fetch ratios for
+ * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+ */
+func  (this *binance) FetchLongShortRatioHistory(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
+            _ = symbol
+            timeframe := GetArg(optionalArgs, 1, nil)
+            _ = timeframe
+            since := GetArg(optionalArgs, 2, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 3, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 4, map[string]interface{} {})
+            _ = params
+        
+            retRes788070 := (<-this.LoadMarkets())
+            PanicOnError(retRes788070)
+            var market interface{} = this.Market(symbol)
+            if IsTrue(IsEqual(timeframe, nil)) {
+                timeframe = "1d"
+            }
+            var request interface{} = map[string]interface{} {
+                "period": timeframe,
+            }
+            requestparamsVariable := this.HandleUntilOption("endTime", request, params);
+            request = GetValue(requestparamsVariable,0);
+            params = GetValue(requestparamsVariable,1)
+            if IsTrue(!IsEqual(since, nil)) {
+                AddElementToObject(request, "startTime", since)
+            }
+            if IsTrue(!IsEqual(limit, nil)) {
+                AddElementToObject(request, "limit", limit)
+            }
+            var subType interface{} = nil
+            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLongShortRatioHistory", market, params);
+            subType = GetValue(subTypeparamsVariable,0);
+            params = GetValue(subTypeparamsVariable,1)
+            var response interface{} = nil
+            if IsTrue(IsEqual(subType, "linear")) {
+                AddElementToObject(request, "symbol", GetValue(market, "id"))
+                
+        response = (<-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
+                PanicOnError(response)
+            } else if IsTrue(IsEqual(subType, "inverse")) {
+                AddElementToObject(request, "pair", GetValue(GetValue(market, "info"), "pair"))
+                
+        response = (<-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
+                PanicOnError(response)
+            } else {
+                panic(BadRequest(Add(this.Id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")))
+            }
+        
+            ch <- this.ParseLongShortRatioHistory(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *binance) ParseLongShortRatio(info interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    // linear
+    //
+    //     {
+    //         "symbol": "BTCUSDT",
+    //         "longAccount": "0.4558",
+    //         "longShortRatio": "0.8376",
+    //         "shortAccount": "0.5442",
+    //         "timestamp": 1726790400000
+    //     }
+    //
+    // inverse
+    //
+    //     {
+    //         "longAccount": "0.7262",
+    //         "longShortRatio": "2.6523",
+    //         "shortAccount": "0.2738",
+    //         "pair": "BTCUSD",
+    //         "timestamp": 1726790400000
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var marketId interface{} = this.SafeString(info, "symbol")
+    var timestamp interface{} = this.SafeIntegerOmitZero(info, "timestamp")
+    return map[string]interface{} {
+        "info": info,
+        "symbol": this.SafeSymbol(marketId, market, nil, "contract"),
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
+        "timeframe": nil,
+        "longShortRatio": this.SafeNumber(info, "longShortRatio"),
+    }
+}
 
 
 func (this *binance) Init(userConfig map[string]interface{}) {
-	this.Exchange = Exchange{}
-	this.Exchange.Init(userConfig, this.Describe().(map[string]interface{}), this)
+    this.Exchange = Exchange{}
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+    this.Exchange.DerivedExchange = this
 }

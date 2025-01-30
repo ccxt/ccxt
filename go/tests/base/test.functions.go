@@ -36,6 +36,7 @@ var FunctionsMap = map[string]interface{}{
     "ticker": TestTicker,
     "trade": TestTrade,
     "tradingFee": TestTradingFee,
+    "features": TestFeatures,
     "fetchAccounts": TestFetchAccounts,
     "fetchBalance": TestFetchBalance,
     "fetchBorrowInterest": TestFetchBorrowInterest,
