@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1520,6 +1520,8 @@ class bybit(Exchange, ImplicitAPI):
         return amountString
 
     def get_price(self, symbol: str, price: str):
+        if price is None:
+            return price
         market = self.market(symbol)
         emptyPrecisionPrice = (market['precision']['price'] is None)
         if not emptyPrecisionPrice:
@@ -1724,7 +1726,7 @@ class bybit(Exchange, ImplicitAPI):
         derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
         return self.array_concat(spotMarkets, derivativeMarkets)
 
-    def fetch_spot_markets(self, params):
+    def fetch_spot_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'spot',
         }
@@ -1839,7 +1841,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_future_markets(self, params):
+    def fetch_future_markets(self, params) -> List[Market]:
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
@@ -2021,7 +2023,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_option_markets(self, params):
+    def fetch_option_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'option',
         }

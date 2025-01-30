@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -937,7 +937,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_spot_markets(self, params={}):
+    def fetch_spot_markets(self, params={}) -> List[MarketInterface]:
         response = self.publicGetSpotV1SymbolsDetails(params)
         #
         #     {
@@ -981,7 +981,7 @@ class bitmart(Exchange, ImplicitAPI):
             minSellCost = self.safe_string(market, 'min_sell_amount')
             minCost = Precise.string_max(minBuyCost, minSellCost)
             baseMinSize = self.safe_number(market, 'base_min_size')
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -1030,10 +1030,10 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            })
+            }))
         return result
 
-    def fetch_contract_markets(self, params={}):
+    def fetch_contract_markets(self, params={}) -> List[MarketInterface]:
         response = self.publicGetContractPublicDetails(params)
         #
         #     {
@@ -1093,7 +1093,7 @@ class bitmart(Exchange, ImplicitAPI):
             expiry = self.safe_integer(market, 'expire_timestamp')
             if not isFutures and (expiry == 0):
                 expiry = None
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'numericId': None,
                 'symbol': symbol,
@@ -1142,7 +1142,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'created': self.safe_integer(market, 'open_timestamp'),
                 'info': market,
-            })
+            }))
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -2963,7 +2963,7 @@ class bitmart(Exchange, ImplicitAPI):
         order = self.safe_order({'id': id, 'symbol': market['symbol'], 'info': {}}, market)
         return order
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -3539,7 +3539,7 @@ class bitmart(Exchange, ImplicitAPI):
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 currency['code'] = request['currency']  # update currency code to filter
                 params = self.omit(params, 'network')
         response = self.privateGetAccountV2DepositWithdrawHistory(self.extend(request, params))

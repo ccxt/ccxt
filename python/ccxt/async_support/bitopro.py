@@ -1156,7 +1156,7 @@ class bitopro(Exchange, ImplicitAPI):
                 }))
         return orders
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -1188,7 +1188,7 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders
 

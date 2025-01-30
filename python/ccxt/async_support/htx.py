@@ -3218,7 +3218,9 @@ class htx(Exchange, ImplicitAPI):
                 type = 'super-margin'
             elif marginMode == 'isolated':
                 type = 'margin'
-        marketId = None if (symbol is None) else self.market_id(symbol)
+        marketId = None
+        if symbol is not None:
+            marketId = self.market_id(symbol)
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')

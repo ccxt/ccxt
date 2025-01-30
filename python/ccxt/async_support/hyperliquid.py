@@ -1138,7 +1138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
 

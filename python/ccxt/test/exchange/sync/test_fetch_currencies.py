@@ -25,3 +25,4 @@ def test_fetch_currencies(exchange, skipped_properties):
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         for i in range(0, len(values)):
             test_currency(exchange, skipped_properties, method, values[i])
+    return True

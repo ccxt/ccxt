@@ -1329,10 +1329,12 @@ class kucoin(Exchange, ImplicitAPI):
 
         https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
 
+        :returns any: ignore
         """
         if not ('hf' in self.options) or (self.options['hf'] is None) or force:
             result: dict = self.privateGetHfAccountsOpened()
             self.options['hf'] = self.safe_bool(result, 'data')
+        return True
 
     def handle_hf_and_params(self, params={}):
         migrated: Bool = self.safe_bool(self.options, 'hf', False)
@@ -3879,7 +3881,9 @@ class kucoin(Exchange, ImplicitAPI):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[codeInner2] = account
-        returnType = result if isolated else self.safe_balance(result)
+        returnType = result
+        if not isolated:
+            returnType = self.safe_balance(result)
         return returnType
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -4592,7 +4596,8 @@ class kucoin(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
-                borrowRateHistories[code].append(borrowRateStructure)
+                borrowRateHistoriesCode = borrowRateHistories[code]
+                borrowRateHistoriesCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())
         for i in range(0, len(keys)):
             code = keys[i]

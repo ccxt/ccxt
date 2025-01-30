@@ -2468,15 +2468,16 @@ class vertex extends vertex$1 {
             'digests': ids,
             'nonce': nonce,
         };
+        const productIds = cancels['productIds'];
         const marketIdNum = this.parseToNumeric(marketId);
         for (let i = 0; i < ids.length; i++) {
-            cancels['productIds'].push(marketIdNum);
+            productIds.push(marketIdNum);
         }
         const request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': this.numberToString(cancels['nonce']),
                 },

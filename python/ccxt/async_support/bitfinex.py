@@ -1141,7 +1141,8 @@ class bitfinex(Exchange, ImplicitAPI):
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
             side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
-            result[side].append([price, self.parse_number(amount)])
+            resultSide = result[side]
+            resultSide.append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result

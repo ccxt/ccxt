@@ -27,11 +27,16 @@ export default class Headers extends URLSearchParams {
     forEach(callback: any, thisArg?: any): void;
     values(): Generator<string, void, unknown>;
     /**
+     * @type {() => IterableIterator<[string, string]>}
+     */
+    entries(): IterableIterator<[string, string]>;
+    /**
      * Node-fetch non-spec method
      * returning all headers and their values as array
      * @returns {Record<string, string[]>}
      */
     raw(): Record<string, string[]>;
     get [Symbol.toStringTag](): string;
+    [Symbol.iterator](): IterableIterator<[string, string]>;
 }
 export type HeadersInit = Headers | Record<string, string> | Iterable<readonly [string, string]> | Iterable<Iterable<string>>;

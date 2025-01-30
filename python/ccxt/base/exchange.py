@@ -2361,9 +2361,17 @@ class Exchange(object):
                 if fromStart:
                     if limit > arrayLength:
                         limit = arrayLength
-                    array = self.array_slice(array, 0, limit) if ascending else self.array_slice(array, -limit)
+                    # array = self.array_slice(array, 0, limit) if ascending else self.array_slice(array, -limit)
+                    if ascending:
+                        array = self.array_slice(array, 0, limit)
+                    else:
+                        array = self.array_slice(array, -limit)
                 else:
-                    array = self.array_slice(array, -limit) if ascending else self.array_slice(array, 0, limit)
+                    # array = self.array_slice(array, -limit) if ascending else self.array_slice(array, 0, limit)
+                    if ascending:
+                        array = self.array_slice(array, -limit)
+                    else:
+                        array = self.array_slice(array, 0, limit)
         return array
 
     def filter_by_since_limit(self, array: List[object], since: Int = None, limit: Int = None, key: IndexType = 'timestamp', tail=False):
@@ -3048,7 +3056,9 @@ class Exchange(object):
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
-                (self.markets_by_id[value['id']]).append(value)
+                marketsByIdArray = (self.markets_by_id[value['id']])
+                marketsByIdArray.append(value)
+                self.markets_by_id[value['id']] = marketsByIdArray
             else:
                 self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market_structure(), {
@@ -3403,13 +3413,16 @@ class Exchange(object):
         results = []
         if isinstance(orders, list):
             for i in range(0, len(orders)):
-                order = self.extend(self.parse_order(orders[i], market), params)
+                parsed = self.parse_order(orders[i], market)  # don't inline self call
+                order = self.extend(parsed, params)
                 results.append(order)
         else:
             ids = list(orders.keys())
             for i in range(0, len(ids)):
                 id = ids[i]
-                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
+                idExtended = self.extend({'id': id}, orders[id])
+                parsedOrder = self.parse_order(idExtended, market)  # don't  inline these calls
+                order = self.extend(parsedOrder, params)
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
@@ -3758,12 +3771,18 @@ class Exchange(object):
         result[volume] = []
         for i in range(0, len(ohlcvs)):
             ts = ohlcvs[i][0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
-            result[timestamp].append(ts)
-            result[open].append(ohlcvs[i][1])
-            result[high].append(ohlcvs[i][2])
-            result[low].append(ohlcvs[i][3])
-            result[close].append(ohlcvs[i][4])
-            result[volume].append(ohlcvs[i][5])
+            resultTimestamp = result[timestamp]
+            resultTimestamp.append(ts)
+            resultOpen = result[open]
+            resultOpen.append(ohlcvs[i][1])
+            resultHigh = result[high]
+            resultHigh.append(ohlcvs[i][2])
+            resultLow = result[low]
+            resultLow.append(ohlcvs[i][3])
+            resultClose = result[close]
+            resultClose.append(ohlcvs[i][4])
+            resultVolume = result[volume]
+            resultVolume.append(ohlcvs[i][5])
         return result
 
     def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
@@ -3777,14 +3796,18 @@ class Exchange(object):
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
             retry = 0
+            shouldBreak = False
             while(retry < maxRetries):
                 try:
                     response = getattr(self, endpointMethod)({})
+                    shouldBreak = True
                     break
                 except Exception as e:
                     retry = retry + 1
                     if retry == maxRetries:
                         raise e
+                if shouldBreak:
+                    break  # self is needed because of GO
             content = response
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
@@ -4264,12 +4287,19 @@ class Exchange(object):
         objects = self.to_array(objects)
         # return all of them if no values were passed
         if values is None or not values:
-            return self.index_by(objects, key) if indexed else objects
+            # return self.index_by(objects, key) if indexed else objects
+            if indexed:
+                return self.index_by(objects, key)
+            else:
+                return objects
         results = []
         for i in range(0, len(objects)):
             if self.in_array(objects[i][key], values):
                 results.append(objects[i])
-        return self.index_by(results, key) if indexed else results
+        # return self.index_by(results, key) if indexed else results
+        if indexed:
+            return self.index_by(results, key)
+        return results
 
     def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         if self.enableRateLimit:
@@ -4294,8 +4324,9 @@ class Exchange(object):
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             self.sleep(retryDelay)
-                        continue
-                raise e
+                        # continue  #check self
+                if i >= retries:
+                    raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
     def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
@@ -4454,7 +4485,7 @@ class Exchange(object):
             'precision': None,
         })
 
-    def safe_market(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None):
         result = self.safe_market_structure({
             'symbol': marketId,
             'marketId': marketId,
@@ -4619,9 +4650,8 @@ class Exchange(object):
         return [value2, params]
 
     def handle_option(self, methodName: str, optionName: str, defaultValue=None):
-        # eslint-disable-next-line no-unused-vars
-        result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
-        return result
+        res = self.handle_option_and_params({}, methodName, optionName, defaultValue)
+        return self.safe_value(res, 0)
 
     def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None):
         """
@@ -4790,6 +4820,18 @@ class Exchange(object):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
+
+    def fetch_convert_trade(self, id: str, code: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTrade() is not supported yet')
+
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTradeHistory() is not supported yet')
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
         """
@@ -5382,10 +5424,14 @@ class Exchange(object):
         return self.create_order_ws(symbol, 'market', 'sell', amount, None, params)
 
     def cost_to_precision(self, symbol: str, cost):
+        if cost is None:
+            return None
         market = self.market(symbol)
         return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol: str, price):
+        if price is None:
+            return None
         market = self.market(symbol)
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
@@ -5393,6 +5439,8 @@ class Exchange(object):
         return result
 
     def amount_to_precision(self, symbol: str, amount):
+        if amount is None:
+            return None
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
@@ -5400,6 +5448,8 @@ class Exchange(object):
         return result
 
     def fee_to_precision(self, symbol: str, fee):
+        if fee is None:
+            return None
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
@@ -5631,14 +5681,16 @@ class Exchange(object):
         results = []
         if isinstance(tickers, list):
             for i in range(0, len(tickers)):
-                ticker = self.extend(self.parse_ticker(tickers[i]), params)
+                parsedTicker = self.parse_ticker(tickers[i])
+                ticker = self.extend(parsedTicker, params)
                 results.append(ticker)
         else:
             marketIds = list(tickers.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
-                ticker = self.extend(self.parse_ticker(tickers[marketId], market), params)
+                parsed = self.parse_ticker(tickers[marketId], market)
+                ticker = self.extend(parsed, params)
                 results.append(ticker)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)

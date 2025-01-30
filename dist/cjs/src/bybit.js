@@ -1519,6 +1519,9 @@ class bybit extends bybit$1 {
         return amountString;
     }
     getPrice(symbol, price) {
+        if (price === undefined) {
+            return price;
+        }
         const market = this.market(symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
