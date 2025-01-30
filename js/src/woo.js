@@ -288,6 +288,8 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -348,17 +350,20 @@ export default class woo extends Exchange {
                         'limit': 500,
                         'daysBack': 90,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -367,6 +372,7 @@ export default class woo extends Exchange {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -376,6 +382,7 @@ export default class woo extends Exchange {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -503,6 +510,9 @@ export default class woo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const response = await this.v1PublicGetInfo(params);
         //
         // {
@@ -1160,6 +1170,7 @@ export default class woo extends Exchange {
                 'algoType': 'POSITIONAL_TP_SL',
                 'childOrders': [],
             };
+            const childOrders = outterOrder['childOrders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeString(stopLoss, 'triggerPrice', stopLoss);
@@ -1170,7 +1181,7 @@ export default class woo extends Exchange {
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
-                outterOrder['childOrders'].push(stopLossOrder);
+                childOrders.push(stopLossOrder);
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeString(takeProfit, 'triggerPrice', takeProfit);
@@ -1181,7 +1192,7 @@ export default class woo extends Exchange {
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
-                outterOrder['childOrders'].push(takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
             request['childOrders'] = [outterOrder];
         }
@@ -2241,7 +2252,9 @@ export default class woo extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -2344,7 +2357,9 @@ export default class woo extends Exchange {
         const request = {
             'type': 'BALANCE',
         };
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -2643,7 +2658,7 @@ export default class woo extends Exchange {
         };
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
@@ -3264,7 +3279,7 @@ export default class woo extends Exchange {
         };
         return await this.v1PrivatePostClientIsolatedMargin(this.extend(request, params));
     }
-    async fetchPosition(symbol = undefined, params = {}) {
+    async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

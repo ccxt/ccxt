@@ -163,6 +163,7 @@ class btcturk extends Exchange {
                         'limit' => 100,
                         'daysBack' => 100000,
                         'untilDays' => 30,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -170,6 +171,7 @@ class btcturk extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -178,6 +180,7 @@ class btcturk extends Exchange {
                         'untilDays' => 30,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => null,
                     'fetchOHLCV' => array(

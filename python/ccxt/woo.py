@@ -296,6 +296,8 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
@@ -356,17 +358,20 @@ class woo(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 90,
                         'untilDays': 10000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 500,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -375,6 +380,7 @@ class woo(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -384,6 +390,7 @@ class woo(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -508,6 +515,8 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         response = self.v1PublicGetInfo(params)
         #
         # {
@@ -1128,6 +1137,7 @@ class woo(Exchange, ImplicitAPI):
                 'algoType': 'POSITIONAL_TP_SL',
                 'childOrders': [],
             }
+            childOrders = outterOrder['childOrders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
                 stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
@@ -1138,7 +1148,7 @@ class woo(Exchange, ImplicitAPI):
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': True,
                 }
-                outterOrder['childOrders'].append(stopLossOrder)
+                childOrders.append(stopLossOrder)
             if takeProfit is not None:
                 takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
@@ -1148,7 +1158,7 @@ class woo(Exchange, ImplicitAPI):
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': True,
                 }
-                outterOrder['childOrders'].append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
             request['childOrders'] = [outterOrder]
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
@@ -2146,7 +2156,9 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
-        currency, rows = self.get_asset_history_rows(code, since, limit, params)
+        currencyRows = self.get_asset_history_rows(code, since, limit, params)
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2246,7 +2258,9 @@ class woo(Exchange, ImplicitAPI):
         request: dict = {
             'type': 'BALANCE',
         }
-        currency, rows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         #
         #     {
         #         "rows":[],
@@ -2536,7 +2550,7 @@ class woo(Exchange, ImplicitAPI):
         }
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
@@ -3115,7 +3129,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostClientIsolatedMargin(self.extend(request, params))
 
-    def fetch_position(self, symbol: Str = None, params={}):
+    def fetch_position(self, symbol: Str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {

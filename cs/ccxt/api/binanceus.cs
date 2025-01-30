@@ -1101,6 +1101,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetPortfolioBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -4074,11 +4079,6 @@ public partial class binanceus : binance
     public async Task<object> papiDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("papiDeleteListenKey",parameters);
-    }
-
-    public async Task<object> papiV2GetUmAccount (object parameters = null)
-    {
-        return await this.callAsync ("papiV2GetUmAccount",parameters);
     }
 
 }

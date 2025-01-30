@@ -31,5 +31,7 @@ function test_fetch_positions($exchange, $skipped_properties, $symbol) {
         for ($i = 0; $i < count($positions_for_symbol); $i++) {
             test_position($exchange, $skipped_properties, $method, $positions_for_symbol[$i], $symbol, $now);
         }
+        // testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
+        return true;
     }) ();
 }

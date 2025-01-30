@@ -1388,18 +1388,18 @@ class bitget extends Exchange {
                         '1m' => 30,
                         '3m' => 30,
                         '5m' => 30,
-                        '10m' => 52,
+                        '10m' => 30,
                         '15m' => 52,
-                        '30m' => 52,
+                        '30m' => 62,
                         '1h' => 83,
                         '2h' => 120,
                         '4h' => 240,
                         '6h' => 360,
                         '12h' => 360,
-                        '1d' => 360,
-                        '3d' => 1000,
-                        '1w' => 1000,
-                        '1M' => 1000,
+                        '1d' => 300,
+                        '3d' => 300,
+                        '1w' => 300,
+                        '1M' => 300,
                     ),
                 ),
                 'fetchTrades' => array(
@@ -1580,17 +1580,20 @@ class bitget extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 90,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1601,6 +1604,7 @@ class bitget extends Exchange {
                         'untilDays' => 90,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
@@ -1965,10 +1969,10 @@ class bitget extends Exchange {
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
-            $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
-            $precisePrice->reduce ();
-            $priceString = (string) $precisePrice;
+            $precise = new Precise ($priceStep);
+            $precise->decimals = max ($precise->decimals, $priceDecimals);
+            $precise->reduce ();
+            $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
             $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);
@@ -3581,6 +3585,7 @@ class bitget extends Exchange {
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -3592,9 +3597,10 @@ class bitget extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForHistoryEndpoint));
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForRecentEndpoint));
             }
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -3623,7 +3629,7 @@ class bitget extends Exchange {
             $ohlcOptions = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $retrievableDaysMap = $this->safe_dict($ohlcOptions, 'maxDaysPerTimeframe', array());
             $maxRetrievableDaysForRecent = $this->safe_integer($retrievableDaysMap, $timeframe, 30); // default to safe minimum
-            $endpointTsBoundary = $now - $maxRetrievableDaysForRecent * $msInDay;
+            $endpointTsBoundary = $now - ($maxRetrievableDaysForRecent - 1) * $msInDay;
             if ($limitDefined) {
                 $limit = min ($limit, $maxLimitForRecentEndpoint);
                 $request['limit'] = $limit;
@@ -3661,7 +3667,7 @@ class bitget extends Exchange {
             // make $request
             if ($market['spot']) {
                 // checks if we need history endpoint
-                if ($historicalEndpointNeeded) {
+                if ($historicalEndpointNeeded || $useHistoryEndpoint) {
                     $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->publicSpotGetV2SpotMarketCandles ($this->extend($request, $params)));
@@ -3688,7 +3694,7 @@ class bitget extends Exchange {
                 } elseif ($priceType === 'index') {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryIndexCandles ($extended));
                 } else {
-                    if ($historicalEndpointNeeded) {
+                    if ($historicalEndpointNeeded || $useHistoryEndpoint) {
                         $response = Async\await($this->publicMixGetV2MixMarketHistoryCandles ($extended));
                     } else {
                         $response = Async\await($this->publicMixGetV2MixMarketCandles ($extended));
@@ -4351,8 +4357,10 @@ class bitget extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 

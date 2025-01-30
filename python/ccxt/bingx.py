@@ -589,17 +589,20 @@ class bingx(Exchange, ImplicitAPI):
                         'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -608,6 +611,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -617,6 +621,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -629,19 +634,7 @@ class bingx(Exchange, ImplicitAPI):
                         'daysBack': None,
                         'untilDays': None,
                     },
-                    'fetchOHLCV': {
-                        'limit': 1440,
-                    },
                     'fetchOrders': None,
-                    'fetchClosedOrders': {
-                        'marginMode': False,
-                        'limit': 1000,
-                        'daysBack': None,
-                        'daysBackCanceled': None,
-                        'untilDays': 7,
-                        'trigger': False,
-                        'trailing': False,
-                    },
                 },
                 #
                 'spot': {
@@ -670,12 +663,16 @@ class bingx(Exchange, ImplicitAPI):
                         'extends': 'defaultForInverse',
                     },
                 },
+                'defaultForFuture': {
+                    'extends': 'defaultForLinear',
+                    'fetchOrders': None,
+                },
                 'future': {
                     'linear': {
-                        'extends': 'defaultForLinear',
+                        'extends': 'defaultForFuture',
                     },
                     'inverse': {
-                        'extends': 'defaultForInverse',
+                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -818,7 +815,7 @@ class bingx(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_spot_markets(self, params):
+    def fetch_spot_markets(self, params) -> List[Market]:
         response = self.spotV1PublicGetCommonSymbols(params)
         #
         #    {
@@ -829,8 +826,8 @@ class bingx(Exchange, ImplicitAPI):
         #              "symbols": [
         #                  {
         #                    "symbol": "GEAR-USDT",
-        #                    "minQty": 735,
-        #                    "maxQty": 2941177,
+        #                    "minQty": 735,  # deprecated
+        #                    "maxQty": 2941177,  # deprecated
         #                    "minNotional": 5,
         #                    "maxNotional": 20000,
         #                    "status": 1,
@@ -948,6 +945,9 @@ class bingx(Exchange, ImplicitAPI):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
+        minAmount = None
+        if not spot:
+            minAmount = self.safe_number_2(market, 'minQty', 'tradeMinQuantity')
         timeOnline = self.safe_integer(market, 'timeOnline')
         if timeOnline == 0:
             timeOnline = None
@@ -988,8 +988,8 @@ class bingx(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),
-                    'max': self.safe_number(market, 'maxQty'),
+                    'min': minAmount,
+                    'max': None,
                 },
                 'price': {
                     'min': minTickSize,
@@ -1621,21 +1621,24 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol')
-            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.parse_funding_rate_histories(data, market, since, limit)
+
+    def parse_funding_rate_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "fundingRate": "0.0001",
+        #         "fundingTime": 1585684800000
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(self.safe_string(contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -2274,12 +2277,13 @@ class bingx(Exchange, ImplicitAPI):
         else:
             linearSwapData = self.safe_dict(response, 'data', {})
             linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
-            currencyId = self.safe_string(linearSwapBalance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
-            account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
-            result[code] = account
+            if linearSwapBalance:
+                currencyId = self.safe_string(linearSwapBalance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
@@ -2650,10 +2654,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', side, cost, None, params)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2663,10 +2665,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2676,10 +2676,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', 'sell', cost, None, params)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -2862,7 +2860,10 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
-            request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
+            amountReq = amount
+            if not market['inverse']:
+                amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+            request['quantity'] = amountReq  # precision not available for inverse contracts
         params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
@@ -6160,6 +6161,37 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
+    def custom_encode(self, params):
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        adjustedValue = None
+        result = None
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = sortedParams[key]
+            if isinstance(value, list):
+                arrStr = None
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    isString = (isinstance(arrayElement, str))
+                    if isString:
+                        if j > 0:
+                            arrStr += ',' + '"' + str(arrayElement) + '"'
+                        else:
+                            arrStr = '"' + str(arrayElement) + '"'
+                    else:
+                        if j > 0:
+                            arrStr += ',' + str(arrayElement)
+                        else:
+                            arrStr = str(arrayElement)
+                adjustedValue = '[' + arrStr + ']'
+                value = adjustedValue
+            if i == 0:
+                result = key + '=' + value
+            else:
+                result += '&' + key + '=' + value
+        return result
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -6188,16 +6220,22 @@ class bingx(Exchange, ImplicitAPI):
         elif access == 'private':
             self.check_required_credentials()
             isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
-            parsedParams = self.parse_params(params)
-            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
+            parsedParams = None
+            encodeRequest = None
+            if isJsonContentType:
+                encodeRequest = self.custom_encode(params)
+            else:
+                parsedParams = self.parse_params(params)
+                encodeRequest = self.rawencode(parsedParams)
+            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if isJsonContentType:
                 headers['Content-Type'] = 'application/json'
-                parsedParams['signature'] = signature
-                body = self.json(parsedParams)
+                params['signature'] = signature
+                body = self.json(params)
             else:
                 query = self.urlencode(parsedParams)
                 url += '?' + query + '&' + 'signature=' + signature

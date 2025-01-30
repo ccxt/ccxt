@@ -325,6 +325,72 @@ export default class vertex extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'brokerId': 5930043274845996,
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true, // todo
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': true, // todo
+                        'takeProfitPrice': true, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true, // todo
+                        'marketBuyRequiresPrice': true, // todo fix implementation
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000, // todo
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined, // todo, only for trigger
+                    'fetchClosedOrders': undefined, // todo through fetchOrders
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 
@@ -2205,7 +2271,7 @@ export default class vertex extends Exchange {
             //       "product_id": 1,
             //       "orders": [
             //         {
-            //           "product_id": 1,
+            //           "product_id": 2,
             //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18": "1000000000000000000",
             //           "amount": "1000000000000000000",
@@ -2214,7 +2280,7 @@ export default class vertex extends Exchange {
             //           "order_type": "default",
             //           "unfilled_amount": "1000000000000000000",
             //           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at": 1682437739,
+            //           "placed_at": 1682437737,
             //           "order_type": "ioc"
             //         }
             //       ]
@@ -2444,15 +2510,16 @@ export default class vertex extends Exchange {
             'digests': ids,
             'nonce': nonce,
         };
+        const productIds = cancels['productIds'];
         const marketIdNum = this.parseToNumeric (marketId);
         for (let i = 0; i < ids.length; i++) {
-            cancels['productIds'].push (marketIdNum);
+            productIds.push (marketIdNum);
         }
         const request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': this.numberToString (cancels['nonce']),
                 },

@@ -21,4 +21,5 @@ function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
         assert_timestamp_order($exchange, $method, $symbol, $trades);
     }
+    return true;
 }

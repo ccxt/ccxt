@@ -196,6 +196,8 @@ public partial class hyperliquid : Exchange
                     { "Order price cannot be more than 80% away from the reference price", typeof(InvalidOrder) },
                     { "Order has zero size.", typeof(InvalidOrder) },
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
+                    { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
+                    { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -239,17 +241,20 @@ public partial class hyperliquid : Exchange
                         { "limit", 2000 },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 2000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -258,6 +263,7 @@ public partial class hyperliquid : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -267,6 +273,7 @@ public partial class hyperliquid : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 5000 },
@@ -393,7 +400,7 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSwapMarkets
      * @description retrieves data on all swap markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -452,7 +459,7 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
-     * @name calculatePricePrecision
+     * @name hyperliquid#calculatePricePrecision
      * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
      * @param {float} price the price to use in the calculation
      * @param {int} amountPrecision the amountPrecision to use in the calculation
@@ -506,7 +513,7 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSpotMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -705,6 +712,12 @@ public partial class hyperliquid : Exchange
         object price = this.safeNumber(market, "markPx", 0);
         object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         object pricePrecisionStr = this.numberToString(pricePrecision);
+        object isDelisted = this.safeBool(market, "isDelisted");
+        object active = true;
+        if (isTrue(!isEqual(isDelisted, null)))
+        {
+            active = !isTrue(isDelisted);
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
@@ -720,7 +733,7 @@ public partial class hyperliquid : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", true },
+            { "active", active },
             { "contract", contract },
             { "linear", true },
             { "inverse", false },
@@ -1189,7 +1202,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] wallet address that made trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<object> fetchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1501,7 +1514,7 @@ public partial class hyperliquid : Exchange
     {
         /**
         * @method
-        * @name hyperliquid#createOrders
+        * @name hyperliquid#createOrdersRequest
         * @description create a list of trade orders
         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -2071,6 +2084,10 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },
@@ -3102,7 +3119,28 @@ public partial class hyperliquid : Exchange
             { "signature", sig },
         };
         object response = await this.privatePostExchange(request);
-        return response;
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return this.parseTransfer(response);
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "currency", null },
+            { "amount", null },
+            { "fromAccount", null },
+            { "toAccount", null },
+            { "status", "ok" },
+        };
     }
 
     /**

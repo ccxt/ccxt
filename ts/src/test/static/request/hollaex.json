@@ -62,6 +62,94 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1737067504",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1734475507&to=1737067507",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1705212000&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1737067512",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  null,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1705212000&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
             }
         ]
     }

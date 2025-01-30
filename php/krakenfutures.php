@@ -294,6 +294,7 @@ class krakenfutures extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -301,6 +302,7 @@ class krakenfutures extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -311,6 +313,7 @@ class krakenfutures extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 5000,
@@ -1546,13 +1549,13 @@ class krakenfutures extends Exchange {
     }
 
     public function parse_order_type($orderType) {
-        $map = array(
+        $typesMap = array(
             'lmt' => 'limit',
             'mkt' => 'market',
             'post' => 'limit',
             'ioc' => 'market',
         );
-        return $this->safe_string($map, $orderType, $orderType);
+        return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
     public function verify_order_action_success($status, $method, $omit = []) {
@@ -2588,21 +2591,24 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tiers = array();
+        if ($marginLevels === null) {
+            return $tiers;
+        }
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
             $initialMargin = $this->safe_string($tier, 'initialMargin');
-            $notionalFloor = $this->safe_number($tier, 'contracts');
+            $minNotional = $this->safe_number($tier, 'numNonContractUnits');
             if ($i !== 0) {
                 $tiersLength = count($tiers);
                 $previousTier = $tiers[$tiersLength - 1];
-                $previousTier['notionalCap'] = $notionalFloor;
+                $previousTier['maxNotional'] = $minNotional;
             }
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
-                'notionalFloor' => $notionalFloor,
-                'notionalCap' => null,
+                'minNotional' => $minNotional,
+                'maxNotional' => null,
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMargin)),
                 'info' => $tier,

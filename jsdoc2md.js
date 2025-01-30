@@ -81,10 +81,30 @@ const groupedByMethod = templateData.reduce((acc, arr) => {
   return acc;
 }, {});
 
-const templateDataGroupedByMethod = Object.values(groupedByMethod).sort((a, b) =>a[0].name < b[0].name ? -1 : 1)
+let duplicateIds = []
+const templateDataGroupedByMethod = Object.values(groupedByMethod)
+    .map(group => {
+        // Filter out duplicate IDs within each group's data array. This is done to avoid Jsdoc2md error: Maximum call stack size exceeded
+        return group.filter((item, index, self) => {
+            if (index === self.findIndex(el => el.id === item.id)) {
+                return true
+            } else {
+                console.error ('🚨 duplicate id found: ', item.id)
+                duplicateIds.push (item.id)
+                return false
+            }
+          }
+        );
+    })
+    .sort((a, b) => a[0].name < b[0].name ? -1 : 1);
 
+if (duplicateIds.length > 0) {
+  throw new Error ('🚨 duplicate ids found: ' + duplicateIds.join (', '))
+}
 
-const baseOutput = await Promise.all (templateDataGroupedByMethod.map (data => jsdoc2md.render ({ template, data, partial: basePartial, helper})))
+const baseOutput = await Promise.all(templateDataGroupedByMethod.map(data => 
+    jsdoc2md.render({ template, data, partial: basePartial, helper})
+));
 
 console.log ('📰 creating index of exchange functions')
 const exchangeLinks = []
@@ -94,8 +114,9 @@ outputByExchange.forEach ((output, i) => {
   try {
     fs.writeFileSync(outputFolder + fileName, output)
   } catch (e) {
-    console.error(`Error writing file ${fileName}:`, e.message)
-    debugger
+    const error = `Error writing file ${fileName}: ${e.message}`
+    console.error(error)
+    throw error
   }
   exchangeLinks.push (`\t- [${name}](${fileName})`)
 })

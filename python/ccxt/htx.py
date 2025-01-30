@@ -968,6 +968,8 @@ class htx(Exchange, ImplicitAPI):
                         'inverse': True,
                     },
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': True,
                 },
@@ -1284,17 +1286,20 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
                         'limit': 500,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -1303,6 +1308,7 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -1312,6 +1318,7 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # 2000 for non-historical
@@ -1769,6 +1776,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         types = None
         types, params = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
         allMarkets = []
@@ -3208,7 +3217,9 @@ class htx(Exchange, ImplicitAPI):
                 type = 'super-margin'
             elif marginMode == 'isolated':
                 type = 'margin'
-        marketId = None if (symbol is None) else self.market_id(symbol)
+        marketId = None
+        if symbol is not None:
+            marketId = self.market_id(symbol)
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')
@@ -6901,6 +6912,9 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
@@ -6913,7 +6927,7 @@ class htx(Exchange, ImplicitAPI):
             url += '/' + self.implode_params(path, params)
             if api == 'private' or api == 'v2Private':
                 self.check_required_credentials()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -6977,17 +6991,19 @@ class htx(Exchange, ImplicitAPI):
                         clientOrderId = self.safe_string(params, 'client-order-id')
                         if clientOrderId is None:
                             params['client-order-id'] = id + self.uuid()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': self.apiKey,
                     'Timestamp': timestamp,
                 }
-                if method != 'POST':
-                    request = self.extend(request, query)
+                # sorting needs such flow exactly, before urlencoding(more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = self.keysort(request)
-                auth = self.urlencode(request)
+                if method != 'POST':
+                    sortedQuery = self.keysort(query)
+                    request = self.extend(request, sortedQuery)
+                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

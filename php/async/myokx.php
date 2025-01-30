@@ -41,6 +41,16 @@ class myokx extends okx {
                 'future' => false,
                 'option' => false,
             ),
+            'features' => array(
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 }

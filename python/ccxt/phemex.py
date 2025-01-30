@@ -306,6 +306,114 @@ class phemex(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0.001'),
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo
+                        'triggerPriceType': {
+                            'mark': True,
+                            'last': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'untilDays': 2,  # todo implement
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 100000,
+                        'untilDays': 2,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerDirection': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'mark': True,
+                                'last': True,
+                                'index': True,
+                            },
+                            'price': True,
+                        },
+                        'hedged': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -1159,7 +1267,7 @@ class phemex(Exchange, ImplicitAPI):
         return self.to_en(price, market['priceScale'])
 
     def from_en(self, en, scale):
-        if en is None:
+        if en is None or scale is None:
             return None
         precise = Precise(en)
         precise.decimals = self.sum(precise.decimals, scale)
@@ -2064,8 +2172,9 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.parse_swap_balance(response) if (type == 'swap') else self.parse_spot_balance(response)
-        return result
+        if type == 'swap':
+            return self.parse_swap_balance(response)
+        return self.parse_spot_balance(response)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -2687,7 +2796,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
 

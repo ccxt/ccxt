@@ -1195,17 +1195,20 @@ export default class bybit extends Exchange {
                         'limit': 100,
                         'daysBack': 365 * 2, // 2 years
                         'untilDays': 7, // days between start-end
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 50,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1216,6 +1219,7 @@ export default class bybit extends Exchange {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1523,6 +1527,9 @@ export default class bybit extends Exchange {
     }
 
     getPrice (symbol: string, price: string) {
+        if (price === undefined) {
+            return price;
+        }
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -1744,7 +1751,7 @@ export default class bybit extends Exchange {
         return this.arrayConcat (spotMarkets, derivativeMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params): Promise<Market[]> {
         const request: Dict = {
             'category': 'spot',
         };
@@ -1862,7 +1869,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchFutureMarkets (params) {
+    async fetchFutureMarkets (params): Promise<Market[]> {
         params = this.extend (params);
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
@@ -2057,7 +2064,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchOptionMarkets (params) {
+    async fetchOptionMarkets (params): Promise<Market[]> {
         const request: Dict = {
             'category': 'option',
         };
@@ -3323,7 +3330,12 @@ export default class bybit extends Exchange {
                         if (free !== undefined) {
                             account['free'] = free;
                         } else {
-                            account['used'] = this.safeString (coinEntry, 'locked');
+                            const locked = this.safeString (coinEntry, 'locked', '0');
+                            const totalPositionIm = this.safeString (coinEntry, 'totalPositionIM', '0');
+                            const totalOrderIm = this.safeString (coinEntry, 'totalOrderIM', '0');
+                            let totalUsed = Precise.stringAdd (locked, totalPositionIm);
+                            totalUsed = Precise.stringAdd (totalUsed, totalOrderIm);
+                            account['used'] = totalUsed;
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString (coinEntry, 'coin');
@@ -3843,7 +3855,7 @@ export default class bybit extends Exchange {
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-     * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+     * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
@@ -4729,7 +4741,7 @@ export default class bybit extends Exchange {
 
     /**
      * @method
-     * @name bybit#fetchOrderClassic
+     * @name bybit#fetchOrder
      * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
@@ -4852,7 +4864,7 @@ export default class bybit extends Exchange {
 
     /**
      * @method
-     * @name bybit#fetchOrders
+     * @name bybit#fetchOrdersClassic
      * @description fetches information on multiple orders made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} symbol unified market symbol of the market orders were made in

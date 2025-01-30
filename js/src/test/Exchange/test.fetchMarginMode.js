@@ -9,5 +9,6 @@ async function testFetchMarginMode(exchange, skippedProperties, symbol) {
     const method = 'fetchMarginMode';
     const marginMode = await exchange.fetchMarginMode(symbol);
     testMarginMode(exchange, skippedProperties, method, marginMode);
+    return true;
 }
 export default testFetchMarginMode;

@@ -140,12 +140,14 @@ export default class btcbox extends Exchange {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -154,6 +156,7 @@ export default class btcbox extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': undefined,
@@ -676,9 +679,6 @@ export default class btcbox extends Exchange {
     async fetchOrdersByType (type, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
         const market = this.market (symbol);
         const request: Dict = {
             'type': type, // 'open' or 'all'

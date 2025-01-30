@@ -1121,6 +1121,8 @@ class okx extends Exchange {
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -1231,17 +1233,20 @@ class okx extends Exchange {
                         'daysBack' => 90,
                         'limit' => 100,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // not supported
                     'fetchClosedOrders' => array(
@@ -1252,6 +1257,7 @@ class okx extends Exchange {
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,
@@ -1505,6 +1511,10 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1515,6 +1525,9 @@ class okx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $types = $this->safe_list($this->options, 'fetchMarkets', array());
             $promises = array();
             $result = array();
@@ -2848,9 +2861,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2871,9 +2886,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -3116,12 +3133,20 @@ class okx extends Exchange {
             }
             if ($takeProfitPrice !== null) {
                 $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                $request['tpOrdPx'] = ($tpOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $tpOrdPx);
+                $tpOrdPxReq = '-1';
+                if ($tpOrdPx !== null) {
+                    $tpOrdPxReq = $this->price_to_precision($symbol, $tpOrdPx);
+                }
+                $request['tpOrdPx'] = $tpOrdPxReq;
                 $request['tpTriggerPxType'] = $tpTriggerPxType;
             }
             if ($stopLossPrice !== null) {
                 $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossPrice);
-                $request['slOrdPx'] = ($slOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $slOrdPx);
+                $slOrdPxReq = '-1';
+                if ($slOrdPx !== null) {
+                    $slOrdPxReq = $this->price_to_precision($symbol, $slOrdPx);
+                }
+                $request['slOrdPx'] = $slOrdPxReq;
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
@@ -6256,7 +6281,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $timestamp = $this->iso8601($this->milliseconds());
+            $timestamp = $this->iso8601($this->nonce());
             $headers = array(
                 'OK-ACCESS-KEY' => $this->apiKey,
                 'OK-ACCESS-PASSPHRASE' => $this->password,
@@ -6876,7 +6901,8 @@ class okx extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrrowRateCode = $borrowRateHistories[$code];
+                $borrrowRateCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();

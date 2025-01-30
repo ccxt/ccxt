@@ -1381,18 +1381,18 @@ class bitget extends bitget$1 {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 52,
+                        '10m': 30,
                         '15m': 52,
-                        '30m': 52,
+                        '30m': 62,
                         '1h': 83,
                         '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 360,
-                        '1d': 360,
-                        '3d': 1000,
-                        '1w': 1000,
-                        '1M': 1000,
+                        '1d': 300,
+                        '3d': 300,
+                        '1w': 300,
+                        '1M': 300,
                     },
                 },
                 'fetchTrades': {
@@ -1572,17 +1572,20 @@ class bitget extends bitget$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 90,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1593,6 +1596,7 @@ class bitget extends bitget$1 {
                         'untilDays': 90,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // variable timespans for recent endpoint, 200 for historical
@@ -1962,10 +1966,10 @@ class bitget extends bitget$1 {
             const amountDecimals = this.safeInteger(market, 'volumePlace');
             const priceStep = this.safeString(market, 'priceEndStep');
             const amountStep = this.safeString(market, 'minTradeNum');
-            const precisePrice = new Precise["default"](priceStep);
-            precisePrice.decimals = Math.max(precisePrice.decimals, priceDecimals);
-            precisePrice.reduce();
-            const priceString = precisePrice.toString();
+            const precise = new Precise["default"](priceStep);
+            precise.decimals = Math.max(precise.decimals, priceDecimals);
+            precise.reduce();
+            const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new Precise["default"](amountStep);
             preciseAmount.decimals = Math.max(preciseAmount.decimals, amountDecimals);
@@ -3554,6 +3558,7 @@ class bitget extends bitget$1 {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3566,9 +3571,10 @@ class bitget extends bitget$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint);
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const useHistoryEndpoint = this.safeBool(params, 'useHistoryEndpoint', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox(symbol);
@@ -3598,7 +3604,7 @@ class bitget extends bitget$1 {
         const ohlcOptions = this.safeDict(this.options, 'fetchOHLCV', {});
         const retrievableDaysMap = this.safeDict(ohlcOptions, 'maxDaysPerTimeframe', {});
         const maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
+        const endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay;
         if (limitDefined) {
             limit = Math.min(limit, maxLimitForRecentEndpoint);
             request['limit'] = limit;
@@ -3637,7 +3643,7 @@ class bitget extends bitget$1 {
         // make request
         if (market['spot']) {
             // checks if we need history endpoint
-            if (historicalEndpointNeeded) {
+            if (historicalEndpointNeeded || useHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -3669,7 +3675,7 @@ class bitget extends bitget$1 {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             }
             else {
-                if (historicalEndpointNeeded) {
+                if (historicalEndpointNeeded || useHistoryEndpoint) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 }
                 else {
@@ -4332,8 +4338,10 @@ class bitget extends bitget$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method

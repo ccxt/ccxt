@@ -454,17 +454,20 @@ class bitfinex(Exchange, ImplicitAPI):
                         'limit': 2500,
                         'daysBack': None,
                         'untilDays': 100000,  # todo: implement
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -475,6 +478,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 10000,
@@ -1137,7 +1141,8 @@ class bitfinex(Exchange, ImplicitAPI):
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
             side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
-            result[side].append([price, self.parse_number(amount)])
+            resultSide = result[side]
+            resultSide.append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result

@@ -286,104 +286,111 @@ class bitmex(Exchange, ImplicitAPI):
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
-                'features': {
-                    'default': {
-                        'sandbox': True,
-                        'createOrder': {
-                            'marginMode': True,
-                            'triggerPrice': True,
-                            'triggerPriceType': {
-                                'last': True,
-                                'mark': True,
-                            },
-                            'triggerDirection': True,
-                            'stopLossPrice': False,
-                            'takeProfitPrice': False,
-                            'attachedStopLossTakeProfit': None,
-                            'timeInForce': {
-                                'IOC': True,
-                                'FOK': True,
-                                'PO': True,
-                                'GTD': False,
-                            },
-                            'hedged': False,
-                            'trailing': True,
-                            'marketBuyRequiresPrice': False,
-                            'marketBuyByCost': False,
-                            'leverage': False,
-                            'selfTradePrevention': False,
-                            'iceberg': True,  # todo
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
                         },
-                        'createOrders': None,
-                        'fetchMyTrades': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBack': None,
-                            'untilDays': 1000000,
+                        'triggerDirection': True,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
                         },
-                        'fetchOrder': {
-                            'marginMode': False,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBack': None,
-                            'untilDays': 1000000,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchClosedOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBack': None,
-                            'daysBackCanceled': None,
-                            'untilDays': 1000000,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOHLCV': {
-                            'limit': 10000,
+                        'hedged': False,
+                        'trailing': True,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        # exchange-supported features
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': False,
                         },
                     },
-                    'spot': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': False,
-                            },
+                },
+                'derivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': True,
                         },
                     },
-                    'forDeriv': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': True,
-                            },
-                        },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'derivatives',
                     },
-                    'swap': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
-                    'future': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
                 },
             },
@@ -962,7 +969,8 @@ class bitmex(Exchange, ImplicitAPI):
             # https://github.com/ccxt/ccxt/issues/4927
             # the exchange sometimes returns null price in the orderbook
             if price is not None:
-                result[side].append([price, amount])
+                resultSide = result[side]
+                resultSide.append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -2502,7 +2510,8 @@ class bitmex(Exchange, ImplicitAPI):
             if swap:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)
-        return self.parse_funding_rates(filteredResponse, symbols)
+        result = self.parse_funding_rates(filteredResponse)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # see response sample under "fetchMarkets" because same endpoint is being used here

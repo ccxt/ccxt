@@ -21,6 +21,7 @@ function tco_debug($exchange, $symbol, $message) {
         // for c# fix, extra step to convert them to string
         var_dump(' >>>>> testCreateOrder [', ((string) ($exchange['id'])), ' : ', $symbol, '] ', $message);
     }
+    return true;
 }
 
 
@@ -58,6 +59,8 @@ function test_create_order($exchange, $skipped_properties, $symbol) {
             Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
         }
         tco_debug($exchange, $symbol, '### SCENARIO 2 PASSED ###');
+        // **************** [Scenario 3 - START] **************** //
+        return true;
     }) ();
 }
 
@@ -103,7 +106,7 @@ function tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_p
         } catch(\Throwable $e) {
             throw new Error($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
         }
-
+        return true;
     }) ();
 }
 
@@ -142,7 +145,7 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
         } catch(\Throwable $e) {
             throw new Error('failed for Scenario 2: ' . ((string) $e));
         }
-
+        return true;
     }) ();
 }
 
@@ -165,6 +168,7 @@ function tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_prope
     // ensure that order side matches
     assert_in_array($exchange, $skipped_properties, 'createdOrder', $created_order, 'side', [null, $requested_side]);
     assert_in_array($exchange, $skipped_properties, 'fetchedOrder', $fetched_order, 'side', [null, $requested_side]);
+    return true;
 }
 
 
@@ -184,6 +188,10 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
             throw new Error($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
         }
         tco_debug($exchange, $symbol, 'canceled order using ' . $used_method . ':' . $cancel_result['id']);
+        // todo:
+        // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
+        // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
+        return true;
     }) ();
 }
 
@@ -274,5 +282,6 @@ function tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties) {
         } else {
             tco_debug($exchange, $symbol, 'order is already closed/filled, no need to cancel it');
         }
+        return true;
     }) ();
 }

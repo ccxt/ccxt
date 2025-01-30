@@ -35,7 +35,7 @@ export default class wavesexchange extends Exchange {
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
-    checkRequiredKeys(): void;
+    checkRequiredKeys(): boolean;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

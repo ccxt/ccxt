@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -1139,6 +1139,8 @@ class okx(Exchange, ImplicitAPI):
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
                 'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                'timeDifference': 0,  # the difference between system clock and exchange server clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 # 'fetchBalance': {
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
@@ -1249,17 +1251,20 @@ class okx(Exchange, ImplicitAPI):
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # not supported
                     'fetchClosedOrders': {
@@ -1270,6 +1275,7 @@ class okx(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -1503,6 +1509,9 @@ class okx(Exchange, ImplicitAPI):
             })
         return result
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for okx
@@ -1512,6 +1521,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         types = self.safe_list(self.options, 'fetchMarkets', [])
         promises = []
         result = []
@@ -2749,9 +2760,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2768,9 +2781,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
@@ -2978,11 +2993,17 @@ class okx(Exchange, ImplicitAPI):
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice)
-                request['tpOrdPx'] = '-1' if (tpOrdPx is None) else self.price_to_precision(symbol, tpOrdPx)
+                tpOrdPxReq = '-1'
+                if tpOrdPx is not None:
+                    tpOrdPxReq = self.price_to_precision(symbol, tpOrdPx)
+                request['tpOrdPx'] = tpOrdPxReq
                 request['tpTriggerPxType'] = tpTriggerPxType
             if stopLossPrice is not None:
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice)
-                request['slOrdPx'] = '-1' if (slOrdPx is None) else self.price_to_precision(symbol, slOrdPx)
+                slOrdPxReq = '-1'
+                if slOrdPx is not None:
+                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx)
+                request['slOrdPx'] = slOrdPxReq
                 request['slTriggerPxType'] = slTriggerPxType
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -5873,7 +5894,7 @@ class okx(Exchange, ImplicitAPI):
                     if clientOrderId is None:
                         params['clOrdId'] = brokerId + self.uuid16()
                         params['tag'] = brokerId
-            timestamp = self.iso8601(self.milliseconds())
+            timestamp = self.iso8601(self.nonce())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,
                 'OK-ACCESS-PASSPHRASE': self.password,
@@ -6437,7 +6458,8 @@ class okx(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
-                borrowRateHistories[code].append(borrowRateStructure)
+                borrrowRateCode = borrowRateHistories[code]
+                borrrowRateCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())
         for i in range(0, len(keys)):
             code = keys[i]

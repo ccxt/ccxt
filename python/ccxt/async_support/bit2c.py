@@ -209,17 +209,20 @@ class bit2c(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo implement

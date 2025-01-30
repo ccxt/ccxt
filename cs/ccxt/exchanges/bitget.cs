@@ -1339,18 +1339,18 @@ public partial class bitget : Exchange
                         { "1m", 30 },
                         { "3m", 30 },
                         { "5m", 30 },
-                        { "10m", 52 },
+                        { "10m", 30 },
                         { "15m", 52 },
-                        { "30m", 52 },
+                        { "30m", 62 },
                         { "1h", 83 },
                         { "2h", 120 },
                         { "4h", 240 },
                         { "6h", 360 },
                         { "12h", 360 },
-                        { "1d", 360 },
-                        { "3d", 1000 },
-                        { "1w", 1000 },
-                        { "1M", 1000 },
+                        { "1d", 300 },
+                        { "3d", 300 },
+                        { "1w", 300 },
+                        { "1M", 300 },
                     } },
                 } },
                 { "fetchTrades", new Dictionary<string, object>() {
@@ -1514,17 +1514,20 @@ public partial class bitget : Exchange
                         { "limit", 100 },
                         { "daysBack", null },
                         { "untilDays", 90 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -1535,6 +1538,7 @@ public partial class bitget : Exchange
                         { "untilDays", 90 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1936,10 +1940,10 @@ public partial class bitget : Exchange
             object amountDecimals = this.safeInteger(market, "volumePlace");
             object priceStep = this.safeString(market, "priceEndStep");
             object amountStep = this.safeString(market, "minTradeNum");
-            var precisePrice = new Precise(priceStep);
-            precisePrice.decimals = mathMax(precisePrice.decimals, priceDecimals);
-            precisePrice.reduce();
-            object priceString = ((object)precisePrice).ToString();
+            var precise = new Precise(priceStep);
+            precise.decimals = mathMax(precise.decimals, priceDecimals);
+            precise.reduce();
+            object priceString = ((object)precise).ToString();
             pricePrecision = this.parseNumber(priceString);
             var preciseAmount = new Precise(amountStep);
             preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
@@ -3676,6 +3680,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3694,9 +3699,10 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForRecentEndpoint);
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         object market = null;
         if (isTrue(sandboxMode))
         {
@@ -3727,7 +3733,7 @@ public partial class bitget : Exchange
         object ohlcOptions = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object retrievableDaysMap = this.safeDict(ohlcOptions, "maxDaysPerTimeframe", new Dictionary<string, object>() {});
         object maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        object endpointTsBoundary = subtract(now, multiply(maxRetrievableDaysForRecent, msInDay));
+        object endpointTsBoundary = subtract(now, multiply((subtract(maxRetrievableDaysForRecent, 1)), msInDay));
         if (isTrue(limitDefined))
         {
             limit = mathMin(limit, maxLimitForRecentEndpoint);
@@ -3773,7 +3779,7 @@ public partial class bitget : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             // checks if we need history endpoint
-            if (isTrue(historicalEndpointNeeded))
+            if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
             {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
@@ -3813,7 +3819,7 @@ public partial class bitget : Exchange
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
             {
-                if (isTrue(historicalEndpointNeeded))
+                if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
                 {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 } else
@@ -4512,8 +4518,10 @@ public partial class bitget : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -9611,7 +9619,7 @@ public partial class bitget : Exchange
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9665,7 +9673,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

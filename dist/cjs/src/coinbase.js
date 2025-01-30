@@ -367,6 +367,8 @@ class coinbase extends coinbase$1 {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
@@ -405,17 +407,20 @@ class coinbase extends coinbase$1 {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -424,6 +429,7 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -433,6 +439,7 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 350,
@@ -1275,6 +1282,9 @@ class coinbase extends coinbase$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3(params);
@@ -1300,7 +1310,7 @@ class coinbase extends coinbase$1 {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1347,7 +1357,7 @@ class coinbase extends coinbase$1 {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }
@@ -4881,6 +4891,9 @@ class coinbase extends coinbase$1 {
         const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         return token;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4953,7 +4966,9 @@ class coinbase extends coinbase$1 {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const timestampString = this.seconds().toString();
+                    const nonce = this.nonce();
+                    const timestamp = this.parseToInt(nonce / 1000);
+                    const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                     headers = {

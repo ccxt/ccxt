@@ -158,17 +158,20 @@ public partial class ace : Exchange
                         { "limit", 500 },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -471,7 +474,7 @@ public partial class ace : Exchange
         //     }
         //
         object orderBook = this.safeDict(response, "attachment");
-        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks");
+        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks", 1, 0);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

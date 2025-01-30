@@ -282,6 +282,8 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
@@ -342,17 +344,20 @@ class woo extends Exchange {
                         'limit' => 500,
                         'daysBack' => 90,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -361,6 +366,7 @@ class woo extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -370,6 +376,7 @@ class woo extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -498,6 +505,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $response = $this->v1PublicGetInfo ($params);
         //
         // {
@@ -1156,6 +1166,7 @@ class woo extends Exchange {
                 'algoType' => 'POSITIONAL_TP_SL',
                 'childOrders' => array(),
             );
+            $childOrders = $outterOrder['childOrders'];
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($stopLoss !== null) {
                 $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
@@ -1166,7 +1177,7 @@ class woo extends Exchange {
                     'type' => 'CLOSE_POSITION',
                     'reduceOnly' => true,
                 );
-                $outterOrder['childOrders'][] = $stopLossOrder;
+                $childOrders[] = $stopLossOrder;
             }
             if ($takeProfit !== null) {
                 $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
@@ -1177,7 +1188,7 @@ class woo extends Exchange {
                     'type' => 'CLOSE_POSITION',
                     'reduceOnly' => true,
                 );
-                $outterOrder['childOrders'][] = $takeProfitOrder;
+                $childOrders[] = $takeProfitOrder;
             }
             $request['childOrders'] = array( $outterOrder );
         }
@@ -2244,7 +2255,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
-        list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $params);
+        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $params);
+        $currency = $this->safe_value($currencyRows, 0);
+        $rows = $this->safe_list($currencyRows, 1);
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -2352,7 +2365,9 @@ class woo extends Exchange {
         $request = array(
             'type' => 'BALANCE',
         );
-        list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
+        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
+        $currency = $this->safe_value($currencyRows, 0);
+        $rows = $this->safe_list($currencyRows, 1);
         //
         //     {
         //         "rows":array(),
@@ -2661,7 +2676,7 @@ class woo extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -3285,7 +3300,7 @@ class woo extends Exchange {
         return $this->v1PrivatePostClientIsolatedMargin ($this->extend($request, $params));
     }
 
-    public function fetch_position(?string $symbol = null, $params = array ()) {
+    public function fetch_position(?string $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

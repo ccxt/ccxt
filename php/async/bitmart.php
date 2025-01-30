@@ -532,6 +532,8 @@ class bitmart extends Exchange {
                 'defaultNetworks' => array(
                     'USDT' => 'ERC20',
                 ),
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'ERC20' => 'ERC20',
                     'SOL' => 'SOL',
@@ -727,17 +729,20 @@ class bitmart extends Exchange {
                         'limit' => 200,
                         'daysBack' => null,
                         'untilDays' => 99999,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 200,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -748,6 +753,7 @@ class bitmart extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
@@ -928,7 +934,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params = array ()) {
+    public function fetch_spot_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->publicGetSpotV1SymbolsDetails ($params));
             //
@@ -973,7 +979,7 @@ class bitmart extends Exchange {
                 $minSellCost = $this->safe_string($market, 'min_sell_amount');
                 $minCost = Precise::string_max($minBuyCost, $minSellCost);
                 $baseMinSize = $this->safe_number($market, 'base_min_size');
-                $result[] = array(
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'numericId' => $numericId,
                     'symbol' => $symbol,
@@ -1022,13 +1028,13 @@ class bitmart extends Exchange {
                     ),
                     'created' => null,
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
     }
 
-    public function fetch_contract_markets($params = array ()) {
+    public function fetch_contract_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->publicGetContractPublicDetails ($params));
             //
@@ -1090,7 +1096,7 @@ class bitmart extends Exchange {
                 if (!$isFutures && ($expiry === 0)) {
                     $expiry = null;
                 }
-                $result[] = array(
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'numericId' => null,
                     'symbol' => $symbol,
@@ -1139,7 +1145,7 @@ class bitmart extends Exchange {
                     ),
                     'created' => $this->safe_integer($market, 'open_timestamp'),
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1155,6 +1161,9 @@ class bitmart extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $spot = Async\await($this->fetch_spot_markets($params));
             $contract = Async\await($this->fetch_contract_markets($params));
             return $this->array_concat($spot, $contract);
@@ -3115,7 +3124,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -3764,7 +3773,7 @@ class bitmart extends Exchange {
                 $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
                 $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
                 if ($network !== null) {
-                    $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                    $request['currency'] = $request['currency'] . '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                     $currency['code'] = $request['currency']; // update $currency $code to filter
                     $params = $this->omit($params, 'network');
                 }
@@ -4690,7 +4699,7 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$since] not sent to exchange api, exchange api always returns the most recent $data, only used to filter exchange $response
              * @param {int} [$limit] the maximum amount of funding rate structures to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -5390,7 +5399,7 @@ class bitmart extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -5411,7 +5420,7 @@ class bitmart extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTxBitmart000');
             $headers = array(
                 'X-BM-KEY' => $this->apiKey,

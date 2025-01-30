@@ -230,6 +230,69 @@ class ellipx extends ellipx$1 {
                     'ETH': 'Ethereum',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -664,6 +727,7 @@ class ellipx extends ellipx$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1613,7 +1677,7 @@ class ellipx extends ellipx$1 {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    async fetchTradingFee(symbol = undefined, params = {}) {
+    async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
         const response = await this.privateGetMarketTradeFeeQuery(params);
         //
@@ -1646,6 +1710,7 @@ class ellipx extends ellipx$1 {
     }
     /**
      * @method
+     * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
      * @param {string} code Currency code
@@ -1832,10 +1897,11 @@ class ellipx extends ellipx$1 {
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const preciseAmount = new Precise["default"](v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce();
-        return preciseAmount.toString();
+        const precise = new Precise["default"](v);
+        precise.decimals = e;
+        precise.reduce();
+        const amountString = precise.toString();
+        return amountString;
     }
     toAmount(amount, precision) {
         const v = amount.toString();

@@ -476,17 +476,20 @@ class kraken(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -497,6 +500,7 @@ class kraken(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 720,
@@ -706,7 +710,7 @@ class kraken(Exchange, ImplicitAPI):
         if currencyId is not None:
             if len(currencyId) > 3:
                 if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                    if not (currencyId.find('.') > 0):
+                    if not (currencyId.find('.') > 0) and (currencyId != 'ZEUS'):
                         currencyId = currencyId[1:]
         return super(kraken, self).safe_currency(currencyId, currency)
 
@@ -1488,10 +1492,8 @@ class kraken(Exchange, ImplicitAPI):
         """
         self.load_markets()
         # only buy orders are supported by the endpoint
-        req = {
-            'cost': cost,
-        }
-        return self.create_order(symbol, 'market', side, 1, None, self.extend(req, params))
+        params['cost'] = cost
+        return self.create_order(symbol, 'market', side, cost, None, params)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """

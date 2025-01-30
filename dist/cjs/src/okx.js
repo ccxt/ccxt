@@ -1113,6 +1113,8 @@ class okx extends okx$1 {
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'defaultType': 'spot',
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -1223,17 +1225,20 @@ class okx extends okx$1 {
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1244,6 +1249,7 @@ class okx extends okx$1 {
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -1487,6 +1493,9 @@ class okx extends okx$1 {
         }
         return result;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1496,6 +1505,9 @@ class okx extends okx$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const types = this.safeList(this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
@@ -2800,9 +2812,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2820,9 +2834,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -3085,12 +3101,20 @@ class okx extends okx$1 {
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitPrice);
-                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision(symbol, tpOrdPx);
+                let tpOrdPxReq = '-1';
+                if (tpOrdPx !== undefined) {
+                    tpOrdPxReq = this.priceToPrecision(symbol, tpOrdPx);
+                }
+                request['tpOrdPx'] = tpOrdPxReq;
                 request['tpTriggerPxType'] = tpTriggerPxType;
             }
             if (stopLossPrice !== undefined) {
                 request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossPrice);
-                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision(symbol, slOrdPx);
+                let slOrdPxReq = '-1';
+                if (slOrdPx !== undefined) {
+                    slOrdPxReq = this.priceToPrecision(symbol, slOrdPx);
+                }
+                request['slOrdPx'] = slOrdPxReq;
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
@@ -5718,7 +5742,7 @@ class okx extends okx$1 {
     }
     /**
      * @method
-     * @name okx#fetchPositions
+     * @name okx#fetchPositionsForSymbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
@@ -6175,7 +6199,7 @@ class okx extends okx$1 {
                     }
                 }
             }
-            const timestamp = this.iso8601(this.milliseconds());
+            const timestamp = this.iso8601(this.nonce());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
                 'OK-ACCESS-PASSPHRASE': this.password,
@@ -6769,7 +6793,8 @@ class okx extends okx$1 {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
-                borrowRateHistories[code].push(borrowRateStructure);
+                const borrrowRateCode = borrowRateHistories[code];
+                borrrowRateCode.push(borrowRateStructure);
             }
         }
         const keys = Object.keys(borrowRateHistories);

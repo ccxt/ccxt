@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1210,17 +1210,20 @@ class bybit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 365 * 2,  # 2 years
                         'untilDays': 7,  # days between start-end
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 50,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -1231,6 +1234,7 @@ class bybit(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1516,6 +1520,8 @@ class bybit(Exchange, ImplicitAPI):
         return amountString
 
     def get_price(self, symbol: str, price: str):
+        if price is None:
+            return price
         market = self.market(symbol)
         emptyPrecisionPrice = (market['precision']['price'] is None)
         if not emptyPrecisionPrice:
@@ -1720,7 +1726,7 @@ class bybit(Exchange, ImplicitAPI):
         derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
         return self.array_concat(spotMarkets, derivativeMarkets)
 
-    def fetch_spot_markets(self, params):
+    def fetch_spot_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'spot',
         }
@@ -1835,7 +1841,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_future_markets(self, params):
+    def fetch_future_markets(self, params) -> List[Market]:
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
@@ -2017,7 +2023,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_option_markets(self, params):
+    def fetch_option_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'option',
         }
@@ -3209,7 +3215,16 @@ class bybit(Exchange, ImplicitAPI):
                         if (loan is not None) and (interest is not None):
                             account['debt'] = Precise.string_add(loan, interest)
                         account['total'] = self.safe_string(coinEntry, 'walletBalance')
-                        account['free'] = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        free = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        if free is not None:
+                            account['free'] = free
+                        else:
+                            locked = self.safe_string(coinEntry, 'locked', '0')
+                            totalPositionIm = self.safe_string(coinEntry, 'totalPositionIM', '0')
+                            totalOrderIm = self.safe_string(coinEntry, 'totalOrderIM', '0')
+                            totalUsed = Precise.string_add(locked, totalPositionIm)
+                            totalUsed = Precise.string_add(totalUsed, totalOrderIm)
+                            account['used'] = totalUsed
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
@@ -3692,7 +3707,7 @@ class bybit(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param str [params.positionIdx]: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
         :param bool [params.hedged]: *contracts only* True for hedged mode, False for one way mode, default is False
-        :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
+        :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
         :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'

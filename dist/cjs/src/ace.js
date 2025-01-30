@@ -180,17 +180,20 @@ class ace extends ace$1 {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -475,7 +478,7 @@ class ace extends ace$1 {
         //     }
         //
         const orderBook = this.safeDict(response, 'attachment');
-        return this.parseOrderBook(orderBook, market['symbol'], undefined, 'bids', 'asks');
+        return this.parseOrderBook(orderBook, market['symbol'], undefined, 'bids', 'asks', 1, 0);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

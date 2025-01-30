@@ -69,7 +69,7 @@ public partial class xt : ccxt.xt
             url = add(url, "/private");
         }
         var client = this.client(url);
-        object token = this.safeDict(((WebSocketClient)client).subscriptions, "token");
+        object token = this.safeString(((WebSocketClient)client).subscriptions, "token");
         if (isTrue(isEqual(token, null)))
         {
             if (isTrue(isContract))

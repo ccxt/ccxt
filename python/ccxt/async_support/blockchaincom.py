@@ -250,10 +250,12 @@ class blockchaincom(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 100000,  # todo implementation
                         'untilDays': 100000,  # todo implementation
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
+                        'symbolRequired': False,
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
@@ -261,6 +263,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo implement
                     'fetchClosedOrders': {
@@ -271,6 +274,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': None,  # todo webapi
                 },

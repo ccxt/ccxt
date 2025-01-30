@@ -1122,17 +1122,20 @@ public partial class bybit : Exchange
                         { "limit", 100 },
                         { "daysBack", multiply(365, 2) },
                         { "untilDays", 7 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 50 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -1143,6 +1146,7 @@ public partial class bybit : Exchange
                         { "untilDays", 7 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1481,6 +1485,10 @@ public partial class bybit : Exchange
 
     public virtual object getPrice(object symbol, object price)
     {
+        if (isTrue(isEqual(price, null)))
+        {
+            return price;
+        }
         object market = this.market(symbol);
         object emptyPrecisionPrice = (isEqual(getValue(getValue(market, "precision"), "price"), null));
         if (!isTrue(emptyPrecisionPrice))
@@ -3439,7 +3447,19 @@ public partial class bybit : Exchange
                             ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(loan, interest);
                         }
                         ((IDictionary<string,object>)account)["total"] = this.safeString(coinEntry, "walletBalance");
-                        ((IDictionary<string,object>)account)["free"] = this.safeString2(coinEntry, "availableToWithdraw", "free");
+                        object free = this.safeString2(coinEntry, "availableToWithdraw", "free");
+                        if (isTrue(!isEqual(free, null)))
+                        {
+                            ((IDictionary<string,object>)account)["free"] = free;
+                        } else
+                        {
+                            object locked = this.safeString(coinEntry, "locked", "0");
+                            object totalPositionIm = this.safeString(coinEntry, "totalPositionIM", "0");
+                            object totalOrderIm = this.safeString(coinEntry, "totalOrderIM", "0");
+                            object totalUsed = Precise.stringAdd(locked, totalPositionIm);
+                            totalUsed = Precise.stringAdd(totalUsed, totalOrderIm);
+                            ((IDictionary<string,object>)account)["used"] = totalUsed;
+                        }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         object currencyId = this.safeString(coinEntry, "coin");
                         object code = this.safeCurrencyCode(currencyId);
@@ -4010,7 +4030,7 @@ public partial class bybit : Exchange
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-     * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+     * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
@@ -5005,7 +5025,7 @@ public partial class bybit : Exchange
 
     /**
      * @method
-     * @name bybit#fetchOrderClassic
+     * @name bybit#fetchOrder
      * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
@@ -5145,7 +5165,7 @@ public partial class bybit : Exchange
 
     /**
      * @method
-     * @name bybit#fetchOrders
+     * @name bybit#fetchOrdersClassic
      * @description fetches information on multiple orders made by the user *classic accounts only*
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -9420,7 +9440,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9455,7 +9475,7 @@ public partial class bybit : Exchange
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9527,7 +9547,7 @@ public partial class bybit : Exchange
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

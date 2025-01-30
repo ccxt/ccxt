@@ -226,6 +226,7 @@ public partial class krakenfutures : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", null },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
@@ -233,6 +234,7 @@ public partial class krakenfutures : Exchange
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -243,6 +245,7 @@ public partial class krakenfutures : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 5000 },
@@ -647,7 +650,7 @@ public partial class krakenfutures : Exchange
 
     /**
      * @method
-     * @name kraken#fetchOHLCV
+     * @name krakenfutures#fetchOHLCV
      * @see https://docs.futures.kraken.com/#http-api-charts-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1601,13 +1604,13 @@ public partial class krakenfutures : Exchange
 
     public virtual object parseOrderType(object orderType)
     {
-        object map = new Dictionary<string, object>() {
+        object typesMap = new Dictionary<string, object>() {
             { "lmt", "limit" },
             { "mkt", "market" },
             { "post", "limit" },
             { "ioc", "market" },
         };
-        return this.safeString(map, orderType, orderType);
+        return this.safeString(typesMap, orderType, orderType);
     }
 
     public virtual void verifyOrderActionSuccess(object status, object method, object omit = null)
@@ -2714,23 +2717,27 @@ public partial class krakenfutures : Exchange
         object marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
+        if (isTrue(isEqual(marginLevels, null)))
+        {
+            return tiers;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);
             object initialMargin = this.safeString(tier, "initialMargin");
-            object notionalFloor = this.safeNumber(tier, "contracts");
+            object minNotional = this.safeNumber(tier, "numNonContractUnits");
             if (isTrue(!isEqual(i, 0)))
             {
                 object tiersLength = getArrayLength(tiers);
                 object previousTier = getValue(tiers, subtract(tiersLength, 1));
-                ((IDictionary<string,object>)previousTier)["notionalCap"] = notionalFloor;
+                ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
-                { "notionalFloor", notionalFloor },
-                { "notionalCap", null },
+                { "minNotional", minNotional },
+                { "maxNotional", null },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)) },
                 { "info", tier },

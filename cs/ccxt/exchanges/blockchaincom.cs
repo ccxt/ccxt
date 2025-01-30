@@ -204,10 +204,12 @@ public partial class blockchaincom : Exchange
                         { "limit", 1000 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
+                        { "symbolRequired", false },
                         { "trailing", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
@@ -215,6 +217,7 @@ public partial class blockchaincom : Exchange
                         { "limit", 1000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -225,6 +228,7 @@ public partial class blockchaincom : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", null },
                 } },

@@ -336,17 +336,20 @@ export default class woofipro extends Exchange {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -357,6 +360,7 @@ export default class woofipro extends Exchange {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1430,6 +1434,7 @@ export default class woofipro extends Exchange {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
+            const childOrders = outterOrder['child_orders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
@@ -1440,7 +1445,7 @@ export default class woofipro extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder['child_orders'].push (stopLossOrder);
+                childOrders.push (stopLossOrder);
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
@@ -1451,7 +1456,7 @@ export default class woofipro extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder['child_orders'].push (takeProfitOrder);
+                outterOrder.push (takeProfitOrder);
             }
             request['child_orders'] = [ outterOrder ];
         }
@@ -1849,7 +1854,10 @@ export default class woofipro extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -2297,7 +2305,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
+        const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
+        const currency = this.safeValue (currencyRows, 0);
+        const rows = this.safeList (currencyRows, 1);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -2396,7 +2406,9 @@ export default class woofipro extends Exchange {
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {};
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currency = this.safeValue (currencyRows, 0);
+        const rows = this.safeList (currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -2679,7 +2691,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPosition (symbol: Str = undefined, params = {}) {
+    async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

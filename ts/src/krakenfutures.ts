@@ -299,6 +299,7 @@ export default class krakenfutures extends Exchange {
                         'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -306,6 +307,7 @@ export default class krakenfutures extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -316,6 +318,7 @@ export default class krakenfutures extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 5000,
@@ -702,7 +705,7 @@ export default class krakenfutures extends Exchange {
 
     /**
      * @method
-     * @name kraken#fetchOHLCV
+     * @name krakenfutures#fetchOHLCV
      * @see https://docs.futures.kraken.com/#http-api-charts-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1551,13 +1554,13 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const map: Dict = {
+        const typesMap: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
             'ioc': 'market',
         };
-        return this.safeString (map, orderType, orderType);
+        return this.safeString (typesMap, orderType, orderType);
     }
 
     verifyOrderActionSuccess (status, method, omit = []) {
@@ -2594,21 +2597,24 @@ export default class krakenfutures extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const tiers = [];
+        if (marginLevels === undefined) {
+            return tiers;
+        }
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString (tier, 'initialMargin');
-            const notionalFloor = this.safeNumber (tier, 'contracts');
+            const minNotional = this.safeNumber (tier, 'numNonContractUnits');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];
-                previousTier['notionalCap'] = notionalFloor;
+                previousTier['maxNotional'] = minNotional;
             }
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, market),
                 'currency': market['quote'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': undefined,
+                'minNotional': minNotional,
+                'maxNotional': undefined,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
                 'info': tier,

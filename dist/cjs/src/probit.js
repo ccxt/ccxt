@@ -87,7 +87,7 @@ class probit extends probit$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'sandbox': true,
+                'sandbox': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -167,6 +167,77 @@ class probit extends probit$1 {
                     'percentage': true,
                     'maker': this.parseNumber('0.002'),
                     'taker': this.parseNumber('0.002'),
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 4000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -932,6 +1003,7 @@ class probit extends probit$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -948,21 +1020,21 @@ class probit extends probit$1 {
             'limit': requestLimit, // max 1000
         };
         const now = this.milliseconds();
-        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const durationMilliseconds = this.parseTimeframe(timeframe) * 1000;
         let startTime = since;
-        let endTime = now;
+        let endTime = (until !== undefined) ? until - durationMilliseconds : now;
         if (since === undefined) {
             if (limit === undefined) {
                 limit = requestLimit;
             }
-            startTime = now - limit * duration * 1000;
+            const startLimit = limit - 1;
+            startTime = endTime - startLimit * durationMilliseconds;
         }
         else {
-            if (limit === undefined) {
-                endTime = now;
-            }
-            else {
-                endTime = this.sum(since, this.sum(limit, 1) * duration * 1000);
+            if (limit !== undefined) {
+                const endByLimit = this.sum(since, limit * durationMilliseconds);
+                endTime = Math.min(endTime, endByLimit);
             }
         }
         const startTimeNormalized = this.normalizeOHLCVTimestamp(startTime, timeframe);

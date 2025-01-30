@@ -157,6 +157,9 @@ class blofin extends blofin$1 {
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
                     'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
@@ -267,6 +270,7 @@ class blofin extends blofin$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -274,6 +278,7 @@ class blofin extends blofin$1 {
                         'limit': 100,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -284,9 +289,10 @@ class blofin extends blofin$1 {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'max': 1440,
+                        'limit': 1440,
                     },
                 },
                 'spot': {
@@ -314,6 +320,7 @@ class blofin extends blofin$1 {
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'limit': true,
+                            'price': undefined,
                         },
                         'hedged': true,
                     },
@@ -1955,7 +1962,7 @@ class blofin extends blofin$1 {
     }
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols
