@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Dict, Currencies, Transaction, Currency, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
+import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -939,19 +939,18 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (binaryMessage) {
+    hashOrderMessage (order) {
+        const accountHash = this.hash (this.ethAbiEncode ([
+            'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
+        ], order), keccak, 'binary');
         const DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
-        const prefix = this.base16ToBinary('1901');
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryDomainSeparator, binaryMessage), keccak, 'hex');
+        const prefix = this.base16ToBinary ('1901');
+        return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
     }
 
     signOrder (order, privateKey) {
-        const accountHash = this.hash(this.ethAbiEncode ([
-            'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
-        ], order), keccak, 'binary');
-        const signature = ecdsa (this.hashOrderMessage (accountHash).slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (27, signature['v']));
+        return this.signHash (this.hashOrderMessage (order).slice (-64), privateKey.slice (-64));
     }
 
     hashMessage (message) {
@@ -2109,7 +2108,7 @@ export default class derive extends Exchange {
         //
         const marketId = this.safeString (income, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        let amount = this.safeString (income, 'funding');
+        const amount = this.safeString (income, 'funding');
         const code = this.safeCurrencyCode ('USDC');
         const timestamp = this.safeInteger (income, 'timestamp');
         return {
@@ -2202,8 +2201,8 @@ export default class derive extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
             const collaterals = this.safeList (subaccount, 'collaterals', []);
-            for (let i = 0; i < collaterals.length; i++) {
-                const balance = collaterals[i];
+            for (let j = 0; j < collaterals.length; j++) {
+                const balance = collaterals[j];
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'amount');
