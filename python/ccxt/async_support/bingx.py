@@ -816,7 +816,7 @@ class bingx(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params) -> List[Market]:
         response = await self.spotV1PublicGetCommonSymbols(params)
         #
         #    {
@@ -2655,10 +2655,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return await self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return await self.create_order(symbol, 'market', side, cost, None, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2668,10 +2666,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2681,10 +2677,8 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'quoteOrderQty': cost,
-        }
-        return await self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
+        params['quoteOrderQty'] = cost
+        return await self.create_order(symbol, 'market', 'sell', cost, None, params)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -2867,7 +2861,10 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
-            request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
+            amountReq = amount
+            if not market['inverse']:
+                amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+            request['quantity'] = amountReq  # precision not available for inverse contracts
         params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 

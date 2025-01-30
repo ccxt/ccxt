@@ -1026,16 +1026,18 @@ class paradex(Exchange, ImplicitAPI):
     def prepare_paradex_domain(self, l1=False):
         systemConfig = self.get_system_config()
         if l1 is True:
-            return {
+            l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             }
-        return {
+            return l1D
+        domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         }
+        return domain
 
     def retrieve_account(self):
         cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')

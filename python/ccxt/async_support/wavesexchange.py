@@ -760,6 +760,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise AuthenticationError(self.id + ' apiKey must be a base58 encoded public key')
         if len(hexSecretKeyBytes) != 64:
             raise AuthenticationError(self.id + ' secret must be a base58 encoded private key')
+        return True
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

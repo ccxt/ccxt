@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1269,7 +1269,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.fetch_markets_v3(params)
         return self.fetch_markets_v2(params)
 
-    def fetch_markets_v2(self, params={}):
+    def fetch_markets_v2(self, params={}) -> List[Market]:
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_dict(response, 'currencies', {})
         exchangeRates = self.safe_dict(response, 'exchangeRates', {})
@@ -1288,7 +1288,7 @@ class coinbase(Exchange, ImplicitAPI):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    result.append({
+                    result.append(self.safe_market_structure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1335,10 +1335,10 @@ class coinbase(Exchange, ImplicitAPI):
                             },
                         },
                         'info': quoteCurrency,
-                    })
+                    }))
         return result
 
-    def fetch_markets_v3(self, params={}):
+    def fetch_markets_v3(self, params={}) -> List[Market]:
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchMarkets', 'usePrivate', False)
         spotUnresolvedPromises = []
@@ -1916,7 +1916,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.fetch_tickers_v3(symbols, params)
         return self.fetch_tickers_v2(symbols, params)
 
-    def fetch_tickers_v2(self, symbols: Strings = None, params={}):
+    def fetch_tickers_v2(self, symbols: Strings = None, params={}) -> Tickers:
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {
@@ -1949,7 +1949,7 @@ class coinbase(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_tickers_v3(self, symbols: Strings = None, params={}):
+    def fetch_tickers_v3(self, symbols: Strings = None, params={}) -> Tickers:
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {}

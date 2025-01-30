@@ -654,7 +654,8 @@ class ndax(Exchange, ImplicitAPI):
             bidask = self.parse_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
-            result[side].append(bidask)
+            resultSide = result[side]
+            resultSide.append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         result['timestamp'] = timestamp
