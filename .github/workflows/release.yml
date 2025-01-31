@@ -116,7 +116,7 @@ jobs:
                git push --tags
                echo "Creating github release..."
                gh release create "${NPM_VERSION}" --generate-notes --verify-tag
-               git push
+               git origin HEAD:master
 
       - name: Publish Go node_modules
         env:
