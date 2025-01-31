@@ -113,7 +113,7 @@ jobs:
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git tag -a "${NPM_VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "${COMMIT_MESSAGE}"
-               git push origin --tags HEAD:master
+               git push origin --tags HEAD
                echo "Creating github release..."
                gh release create "${NPM_VERSION}" --generate-notes --verify-tag
                git push
