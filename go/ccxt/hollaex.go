@@ -536,8 +536,8 @@ func  (this *hollaex) FetchOrderBooks(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes626423 := (<-this.LoadMarkets())
-            PanicOnError(retRes626423)
+            retRes770538 := (<-this.LoadMarkets())
+            PanicOnError(retRes770538)
         
             response:= (<-this.PublicGetOrderbooks(params))
             PanicOnError(response)
@@ -577,8 +577,8 @@ func  (this *hollaex) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes456429 := (<-this.LoadMarkets())
-            PanicOnError(retRes456429)
+            retRes450899 := (<-this.LoadMarkets())
+            PanicOnError(retRes450899)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -631,8 +631,8 @@ func  (this *hollaex) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes414677 := (<-this.LoadMarkets())
-            PanicOnError(retRes414677)
+            retRes126229 := (<-this.LoadMarkets())
+            PanicOnError(retRes126229)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -677,8 +677,8 @@ func  (this *hollaex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes502016 := (<-this.LoadMarkets())
-            PanicOnError(retRes502016)
+            retRes774270 := (<-this.LoadMarkets())
+            PanicOnError(retRes774270)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetTickers(params))
@@ -802,8 +802,8 @@ func  (this *hollaex) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes579278 := (<-this.LoadMarkets())
-            PanicOnError(retRes579278)
+            retRes25812 := (<-this.LoadMarkets())
+            PanicOnError(retRes25812)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -905,8 +905,8 @@ func  (this *hollaex) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes55000 := (<-this.LoadMarkets())
-            PanicOnError(retRes55000)
+            retRes397322 := (<-this.LoadMarkets())
+            PanicOnError(retRes397322)
         
             response:= (<-this.PublicGetTiers(params))
             PanicOnError(response)
@@ -991,8 +991,8 @@ func  (this *hollaex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes256091 := (<-this.LoadMarkets())
-            PanicOnError(retRes256091)
+            retRes455781 := (<-this.LoadMarkets())
+            PanicOnError(retRes455781)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1084,8 +1084,8 @@ func  (this *hollaex) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes663780 := (<-this.LoadMarkets())
-            PanicOnError(retRes663780)
+            retRes379838 := (<-this.LoadMarkets())
+            PanicOnError(retRes379838)
         
             response:= (<-this.PrivateGetUserBalance(params))
             PanicOnError(response)
@@ -1128,8 +1128,8 @@ func  (this *hollaex) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes800909 := (<-this.LoadMarkets())
-            PanicOnError(retRes800909)
+            retRes736319 := (<-this.LoadMarkets())
+            PanicOnError(retRes736319)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1195,9 +1195,9 @@ func  (this *hollaex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 "open": true,
             }
         
-                retRes598802 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes598802)
-                ch <- retRes598802
+                retRes382099 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes382099)
+                ch <- retRes382099
                 return nil
         
             }()
@@ -1231,9 +1231,9 @@ func  (this *hollaex) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
                 "open": false,
             }
         
-                retRes809993 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes809993)
-                ch <- retRes809993
+                retRes472452 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes472452)
+                ch <- retRes472452
                 return nil
         
             }()
@@ -1259,8 +1259,8 @@ func  (this *hollaex) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes620298 := (<-this.LoadMarkets())
-            PanicOnError(retRes620298)
+            retRes837736 := (<-this.LoadMarkets())
+            PanicOnError(retRes837736)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1325,8 +1325,8 @@ func  (this *hollaex) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes120900 := (<-this.LoadMarkets())
-            PanicOnError(retRes120900)
+            retRes875842 := (<-this.LoadMarkets())
+            PanicOnError(retRes875842)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1480,8 +1480,8 @@ func  (this *hollaex) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes929541 := (<-this.LoadMarkets())
-            PanicOnError(retRes929541)
+            retRes538964 := (<-this.LoadMarkets())
+            PanicOnError(retRes538964)
             var market interface{} = this.Market(symbol)
             var convertedAmount interface{} = ParseFloat(this.AmountToPrecision(symbol, amount))
             var request interface{} = map[string]interface{} {
@@ -1561,8 +1561,8 @@ func  (this *hollaex) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes612980 := (<-this.LoadMarkets())
-            PanicOnError(retRes612980)
+            retRes892842 := (<-this.LoadMarkets())
+            PanicOnError(retRes892842)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1611,8 +1611,8 @@ func  (this *hollaex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
         
-            retRes322897 := (<-this.LoadMarkets())
-            PanicOnError(retRes322897)
+            retRes86134 := (<-this.LoadMarkets())
+            PanicOnError(retRes86134)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             market = this.Market(symbol)
@@ -1667,8 +1667,8 @@ func  (this *hollaex) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes560657 := (<-this.LoadMarkets())
-            PanicOnError(retRes560657)
+            retRes737326 := (<-this.LoadMarkets())
+            PanicOnError(retRes737326)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1758,8 +1758,8 @@ func  (this *hollaex) FetchDepositAddresses(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes925148 := (<-this.LoadMarkets())
-            PanicOnError(retRes925148)
+            retRes957498 := (<-this.LoadMarkets())
+            PanicOnError(retRes957498)
             var network interface{} = this.SafeString(params, "network")
             params = this.Omit(params, "network")
         
@@ -1844,8 +1844,8 @@ func  (this *hollaex) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes701992 := (<-this.LoadMarkets())
-            PanicOnError(retRes701992)
+            retRes121311 := (<-this.LoadMarkets())
+            PanicOnError(retRes121311)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1912,8 +1912,8 @@ func  (this *hollaex) FetchWithdrawal(id interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes525524 := (<-this.LoadMarkets())
-            PanicOnError(retRes525524)
+            retRes360251 := (<-this.LoadMarkets())
+            PanicOnError(retRes360251)
             var request interface{} = map[string]interface{} {
                 "transaction_id": id,
             }
@@ -1982,8 +1982,8 @@ func  (this *hollaex) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes524700 := (<-this.LoadMarkets())
-            PanicOnError(retRes524700)
+            retRes295370 := (<-this.LoadMarkets())
+            PanicOnError(retRes295370)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2156,8 +2156,8 @@ func  (this *hollaex) Withdraw(code interface{}, amount interface{}, address int
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes490581 := (<-this.LoadMarkets())
-            PanicOnError(retRes490581)
+            retRes889110 := (<-this.LoadMarkets())
+            PanicOnError(retRes889110)
             var currency interface{} = this.Currency(code)
             if IsTrue(!IsEqual(tag, nil)) {
                 address = Add(address, Add(":", tag))

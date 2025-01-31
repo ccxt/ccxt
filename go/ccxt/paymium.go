@@ -169,8 +169,8 @@ func  (this *paymium) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes200906 := (<-this.LoadMarkets())
-            PanicOnError(retRes200906)
+            retRes604034 := (<-this.LoadMarkets())
+            PanicOnError(retRes604034)
         
             response:= (<-this.PrivateGetUser(params))
             PanicOnError(response)
@@ -201,8 +201,8 @@ func  (this *paymium) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes119929 := (<-this.LoadMarkets())
-            PanicOnError(retRes119929)
+            retRes423543 := (<-this.LoadMarkets())
+            PanicOnError(retRes423543)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "id"),
@@ -284,8 +284,8 @@ func  (this *paymium) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes120000 := (<-this.LoadMarkets())
-            PanicOnError(retRes120000)
+            retRes14500 := (<-this.LoadMarkets())
+            PanicOnError(retRes14500)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "id"),
@@ -367,8 +367,8 @@ func  (this *paymium) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes604096 := (<-this.LoadMarkets())
-            PanicOnError(retRes604096)
+            retRes632901 := (<-this.LoadMarkets())
+            PanicOnError(retRes632901)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "id"),
@@ -400,8 +400,8 @@ func  (this *paymium) CreateDepositAddress(code interface{}, optionalArgs ...int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes131310 := (<-this.LoadMarkets())
-            PanicOnError(retRes131310)
+            retRes132661 := (<-this.LoadMarkets())
+            PanicOnError(retRes132661)
         
             response:= (<-this.PrivatePostUserAddresses(params))
             PanicOnError(response)
@@ -437,8 +437,8 @@ func  (this *paymium) FetchDepositAddress(code interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes373236 := (<-this.LoadMarkets())
-            PanicOnError(retRes373236)
+            retRes518035 := (<-this.LoadMarkets())
+            PanicOnError(retRes518035)
             var request interface{} = map[string]interface{} {
                 "address": code,
             }
@@ -479,8 +479,8 @@ func  (this *paymium) FetchDepositAddresses(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes661168 := (<-this.LoadMarkets())
-            PanicOnError(retRes661168)
+            retRes560392 := (<-this.LoadMarkets())
+            PanicOnError(retRes560392)
         
             response:= (<-this.PrivateGetUserAddresses(params))
             PanicOnError(response)
@@ -545,8 +545,8 @@ func  (this *paymium) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes276046 := (<-this.LoadMarkets())
-            PanicOnError(retRes276046)
+            retRes971434 := (<-this.LoadMarkets())
+            PanicOnError(retRes971434)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "type": Add(this.Capitalize(typeVar), "Order"),
@@ -625,8 +625,8 @@ func  (this *paymium) Transfer(code interface{}, amount interface{}, fromAccount
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes522468 := (<-this.LoadMarkets())
-            PanicOnError(retRes522468)
+            retRes94574 := (<-this.LoadMarkets())
+            PanicOnError(retRes94574)
             var currency interface{} = this.Currency(code)
             if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
                 panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
