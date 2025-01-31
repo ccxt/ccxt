@@ -366,8 +366,8 @@ func  (this *bithumb) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes654785 := (<-this.LoadMarkets())
-            PanicOnError(retRes654785)
+            retRes56165 := (<-this.LoadMarkets())
+            PanicOnError(retRes56165)
             var request interface{} = map[string]interface{} {
                 "currency": "ALL",
             }
@@ -401,8 +401,8 @@ func  (this *bithumb) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes937466 := (<-this.LoadMarkets())
-            PanicOnError(retRes937466)
+            retRes325804 := (<-this.LoadMarkets())
+            PanicOnError(retRes325804)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -512,8 +512,8 @@ func  (this *bithumb) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes348095 := (<-this.LoadMarkets())
-            PanicOnError(retRes348095)
+            retRes306484 := (<-this.LoadMarkets())
+            PanicOnError(retRes306484)
             var result interface{} = map[string]interface{} {}
             var quoteCurrencies interface{} = this.SafeDict(this.Options, "quoteCurrencies", map[string]interface{} {})
             var quotes interface{} = ObjectKeys(quoteCurrencies)
@@ -589,8 +589,8 @@ func  (this *bithumb) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes776438 := (<-this.LoadMarkets())
-            PanicOnError(retRes776438)
+            retRes108516 := (<-this.LoadMarkets())
+            PanicOnError(retRes108516)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -667,8 +667,8 @@ func  (this *bithumb) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes700515 := (<-this.LoadMarkets())
-            PanicOnError(retRes700515)
+            retRes384111 := (<-this.LoadMarkets())
+            PanicOnError(retRes384111)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -811,8 +811,8 @@ func  (this *bithumb) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes275379 := (<-this.LoadMarkets())
-            PanicOnError(retRes275379)
+            retRes577335 := (<-this.LoadMarkets())
+            PanicOnError(retRes577335)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -871,8 +871,8 @@ func  (this *bithumb) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes402971 := (<-this.LoadMarkets())
-            PanicOnError(retRes402971)
+            retRes848231 := (<-this.LoadMarkets())
+            PanicOnError(retRes848231)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "order_currency": GetValue(market, "id"),
@@ -929,8 +929,8 @@ func  (this *bithumb) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes112527 := (<-this.LoadMarkets())
-            PanicOnError(retRes112527)
+            retRes77802 := (<-this.LoadMarkets())
+            PanicOnError(retRes77802)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
@@ -1113,8 +1113,8 @@ func  (this *bithumb) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
             }
         
-            retRes472067 := (<-this.LoadMarkets())
-            PanicOnError(retRes472067)
+            retRes357474 := (<-this.LoadMarkets())
+            PanicOnError(retRes357474)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 100
@@ -1219,9 +1219,9 @@ func  (this *bithumb) CancelUnifiedOrder(order interface{}, optionalArgs ...inte
                 "side": GetValue(order, "side"),
             }
         
-                retRes822777 :=  (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
-                PanicOnError(retRes822777)
-                ch <- retRes822777
+                retRes748504 :=  (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+                PanicOnError(retRes748504)
+                ch <- retRes748504
                 return nil
         
             }()
@@ -1253,8 +1253,8 @@ func  (this *bithumb) Withdraw(code interface{}, amount interface{}, address int
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes518487 := (<-this.LoadMarkets())
-            PanicOnError(retRes518487)
+            retRes807428 := (<-this.LoadMarkets())
+            PanicOnError(retRes807428)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "units": amount,

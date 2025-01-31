@@ -408,8 +408,8 @@ func  (this *yobit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes713154 := (<-this.LoadMarkets())
-            PanicOnError(retRes713154)
+            retRes986011 := (<-this.LoadMarkets())
+            PanicOnError(retRes986011)
         
             response:= (<-this.PrivatePostGetInfo(params))
             PanicOnError(response)
@@ -577,8 +577,8 @@ func  (this *yobit) FetchOrderBook(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes735175 := (<-this.LoadMarkets())
-            PanicOnError(retRes735175)
+            retRes470568 := (<-this.LoadMarkets())
+            PanicOnError(retRes470568)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -623,8 +623,8 @@ func  (this *yobit) FetchOrderBooks(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes439088 := (<-this.LoadMarkets())
-            PanicOnError(retRes439088)
+            retRes499725 := (<-this.LoadMarkets())
+            PanicOnError(retRes499725)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, "-")
@@ -757,8 +757,8 @@ func  (this *yobit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
                 panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")))
             }
         
-            retRes585412 := (<-this.LoadMarkets())
-            PanicOnError(retRes585412)
+            retRes660378 := (<-this.LoadMarkets())
+            PanicOnError(retRes660378)
             var promises interface{} = []interface{}{}
             var maxLength interface{} = this.SafeInteger(this.Options, "maxUrlLength", 2048)
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -933,8 +933,8 @@ func  (this *yobit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes861954 := (<-this.LoadMarkets())
-            PanicOnError(retRes861954)
+            retRes112354 := (<-this.LoadMarkets())
+            PanicOnError(retRes112354)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -990,8 +990,8 @@ func  (this *yobit) FetchTradingFees(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes612543 := (<-this.LoadMarkets())
-            PanicOnError(retRes612543)
+            retRes993453 := (<-this.LoadMarkets())
+            PanicOnError(retRes993453)
         
             response:= (<-this.PublicGetInfo(params))
             PanicOnError(response)
@@ -1067,8 +1067,8 @@ func  (this *yobit) CreateOrder(symbol interface{}, typeVar interface{}, side in
                 panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
             }
         
-            retRes924785 := (<-this.LoadMarkets())
-            PanicOnError(retRes924785)
+            retRes116893 := (<-this.LoadMarkets())
+            PanicOnError(retRes116893)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1128,8 +1128,8 @@ func  (this *yobit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes955669 := (<-this.LoadMarkets())
-            PanicOnError(retRes955669)
+            retRes669093 := (<-this.LoadMarkets())
+            PanicOnError(retRes669093)
             var request interface{} = map[string]interface{} {
                 "order_id": ParseInt(id),
             }
@@ -1296,8 +1296,8 @@ func  (this *yobit) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes909437 := (<-this.LoadMarkets())
-            PanicOnError(retRes909437)
+            retRes778274 := (<-this.LoadMarkets())
+            PanicOnError(retRes778274)
             var request interface{} = map[string]interface{} {
                 "order_id": ParseInt(id),
             }
@@ -1359,8 +1359,8 @@ func  (this *yobit) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
             }
         
-            retRes146541 := (<-this.LoadMarkets())
-            PanicOnError(retRes146541)
+            retRes99301 := (<-this.LoadMarkets())
+            PanicOnError(retRes99301)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1429,8 +1429,8 @@ func  (this *yobit) FetchMyTrades(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes652002 := (<-this.LoadMarkets())
-            PanicOnError(retRes652002)
+            retRes519235 := (<-this.LoadMarkets())
+            PanicOnError(retRes519235)
             var market interface{} = this.Market(symbol)
             // some derived classes use camelcase notation for request fields
             var request interface{} = map[string]interface{} {
@@ -1531,8 +1531,8 @@ func  (this *yobit) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes573159 := (<-this.LoadMarkets())
-            PanicOnError(retRes573159)
+            retRes611462 := (<-this.LoadMarkets())
+            PanicOnError(retRes611462)
             var currency interface{} = this.Currency(code)
             var currencyId interface{} = GetValue(currency, "id")
             var networks interface{} = this.SafeDict(this.Options, "networks", map[string]interface{} {})
@@ -1592,8 +1592,8 @@ func  (this *yobit) Withdraw(code interface{}, amount interface{}, address inter
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes756138 := (<-this.LoadMarkets())
-            PanicOnError(retRes756138)
+            retRes968624 := (<-this.LoadMarkets())
+            PanicOnError(retRes968624)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coinName": GetValue(currency, "id"),
