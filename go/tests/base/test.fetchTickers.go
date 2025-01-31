@@ -13,8 +13,8 @@ import "github.com/ccxt/ccxt/go/ccxt"
                         // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
                 // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
             
-                retRes707847 := (<-promiseAll([]interface{}{TestFetchTickersHelper(exchange, skippedProperties, nil), TestFetchTickersHelper(exchange, skippedProperties, []interface{}{symbol})}))
-                PanicOnError(retRes707847)
+                retRes4071 := (<-promiseAll([]interface{}{TestFetchTickersHelper(exchange, skippedProperties, nil), TestFetchTickersHelper(exchange, skippedProperties, []interface{}{symbol})}))
+                PanicOnError(retRes4071)
             
                 ch <- true
                 return nil

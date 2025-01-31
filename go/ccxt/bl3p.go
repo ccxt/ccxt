@@ -193,8 +193,8 @@ func  (this *bl3p) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes986592 := (<-this.LoadMarkets())
-            PanicOnError(retRes986592)
+            retRes812905 := (<-this.LoadMarkets())
+            PanicOnError(retRes812905)
         
             response:= (<-this.PrivatePostGENMKTMoneyInfo(params))
             PanicOnError(response)
@@ -440,8 +440,8 @@ func  (this *bl3p) FetchTradingFees(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes917030 := (<-this.LoadMarkets())
-            PanicOnError(retRes917030)
+            retRes694695 := (<-this.LoadMarkets())
+            PanicOnError(retRes694695)
         
             response:= (<-this.PrivatePostGENMKTMoneyInfo(params))
             PanicOnError(response)
@@ -601,8 +601,8 @@ func  (this *bl3p) CreateDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes535083 := (<-this.LoadMarkets())
-            PanicOnError(retRes535083)
+            retRes46168 := (<-this.LoadMarkets())
+            PanicOnError(retRes46168)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
