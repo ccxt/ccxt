@@ -12368,7 +12368,7 @@ class binance(Exchange, ImplicitAPI):
         #         "price": "10871.09",
         #         "avgPrice": "10913.21000",
         #         "origQty": "0.001",
-        #         "executedQty": "0.001",
+        #         "executedQty": "0.002",
         #         "cumQuote": "10.91321",
         #         "timeInForce": "IOC",
         #         "type": "LIMIT",
