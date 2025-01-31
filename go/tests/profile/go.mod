@@ -1,8 +1,8 @@
-module github.com/ccxt/cli
+module github.com/ccxt/tests/profile
 
 go 1.23.4
 
-replace github.com/ccxt/ccxt/v4 => ../ccxt
+replace github.com/ccxt/ccxt/v4 => ../../ccxt
 
 require github.com/ccxt/ccxt/v4 v4.0.0-00010101000000-000000000000
 

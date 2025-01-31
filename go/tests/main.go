@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "github.com/ccxt/ccxt/v4/go/ccxt"
 	"fmt"
 	"tests/base"
 )
