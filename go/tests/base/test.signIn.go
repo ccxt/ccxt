@@ -13,8 +13,8 @@ import "github.com/ccxt/ccxt/go/ccxt"
                         var method interface{} = "signIn"
                 if IsTrue(GetValue(exchange.GetHas(), method)) {
             
-                    retRes769571 := (<-exchange.SignIn())
-                    PanicOnError(retRes769571)
+                    retRes218227 := (<-exchange.SignIn())
+                    PanicOnError(retRes218227)
                 }
             
                 ch <- true
