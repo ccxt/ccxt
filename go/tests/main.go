@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"tests/base"
+
+	"github.com/ccxt/tests/base"
 )
 
 func main() {

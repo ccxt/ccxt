@@ -1572,7 +1572,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/v4/go/ccxt"' : '',
+                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/v4"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,

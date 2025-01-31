@@ -2,10 +2,6 @@ module github.com/ccxt/cli
 
 go 1.23.4
 
-replace github.com/ccxt/ccxt/v4 => ../ccxt
-
-require github.com/ccxt/ccxt/v4 v4.0.0-00010101000000-000000000000
-
 require (
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect

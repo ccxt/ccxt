@@ -1,0 +1,7 @@
+go 1.23.4
+
+use (
+	./ccxt
+	./tests/base
+	./cli
+)
