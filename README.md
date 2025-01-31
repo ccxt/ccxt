@@ -550,7 +550,7 @@ class Project {
 ```Go
 package main
 import (
-	"github.com/ccxt/ccxt/v4/go/ccxt/v4"
+	"github.com/ccxt/ccxt/v4"
 	"fmt"
 )
 
