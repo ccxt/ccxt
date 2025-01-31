@@ -138,7 +138,11 @@ interface Exchange {
     subAccountV1PrivatePostUpdateStatus(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetUid(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetApiKeyQuery(params?: {}): Promise<implicitReturnType>;
+    accountV1PrivateGetAccountApiPermissions(params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount(params?: {}): Promise<implicitReturnType>;
+    accountTransferV1PrivateGetSubAccountAssetTransferHistory(params?: {}): Promise<implicitReturnType>;
+    accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(params?: {}): Promise<implicitReturnType>;
+    accountTransferV1PrivatePostSubAccountTransferAsset(params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePostUserDataStream(params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePutUserDataStream(params?: {}): Promise<implicitReturnType>;
     userAuthPrivateDeleteUserDataStream(params?: {}): Promise<implicitReturnType>;

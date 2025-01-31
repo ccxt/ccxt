@@ -268,6 +268,113 @@ public partial class phemex : Exchange
                     { "maker", this.parseNumber("0.001") },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "mark", true },
+                            { "last", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 2 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 100000 },
+                        { "untilDays", 2 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerDirection", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "mark", true },
+                                { "last", true },
+                                { "index", true },
+                            } },
+                            { "price", true },
+                        } },
+                        { "hedged", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 2000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", true },
                 { "secret", true },
@@ -1177,7 +1284,7 @@ public partial class phemex : Exchange
 
     public virtual object fromEn(object en, object scale)
     {
-        if (isTrue(isEqual(en, null)))
+        if (isTrue(isTrue(isEqual(en, null)) || isTrue(isEqual(scale, null))))
         {
             return null;
         }
@@ -2218,8 +2325,11 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = ((bool) isTrue((isEqual(type, "swap")))) ? this.parseSwapBalance(response) : this.parseSpotBalance(response);
-        return result;
+        if (isTrue(isEqual(type, "swap")))
+        {
+            return this.parseSwapBalance(response);
+        }
+        return this.parseSpotBalance(response);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -2364,7 +2474,7 @@ public partial class phemex : Exchange
             };
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
+        object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
         object postOnly = (isEqual(timeInForce, "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -2379,8 +2489,7 @@ public partial class phemex : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -2536,7 +2645,7 @@ public partial class phemex : Exchange
             lastTradeTimestamp = null;
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
+        object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         object postOnly = (isEqual(timeInForce, "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object execInst = this.safeString(order, "execInst");
@@ -2576,8 +2685,7 @@ public partial class phemex : Exchange
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfit },
             { "stopLossPrice", stopLoss },
             { "amount", amount },
@@ -2970,7 +3078,7 @@ public partial class phemex : Exchange
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type = null, object side = null, object amount = null, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3014,15 +3122,15 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["baseQtyEV"] = this.toEv(amount, market);
             }
         }
-        object stopPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isUSDTSettled))
             {
-                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, triggerPrice);
             } else
             {
-                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(stopPrice, market);
+                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(triggerPrice, market);
             }
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
@@ -3875,6 +3983,7 @@ public partial class phemex : Exchange
      * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USD is the default
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
@@ -3884,7 +3993,8 @@ public partial class phemex : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object subType = null;
-        object code = this.safeString(parameters, "currency");
+        object code = this.safeString2(parameters, "currency", "code", "USD");
+        parameters = this.omit(parameters, new List<object>() {"currency", "code"});
         object settle = null;
         object market = null;
         object firstSymbol = this.safeString(symbols, 0);
@@ -3895,7 +4005,7 @@ public partial class phemex : Exchange
             code = getValue(market, "settle");
         } else
         {
-            var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "settle", "USD");
+            var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
             settle = ((IList<object>)settleparametersVariable)[0];
             parameters = ((IList<object>)settleparametersVariable)[1];
         }
@@ -3906,12 +4016,12 @@ public partial class phemex : Exchange
         if (isTrue(isUSDTSettled))
         {
             code = "USDT";
+        } else if (isTrue(isEqual(settle, "BTC")))
+        {
+            code = "BTC";
         } else if (isTrue(isEqual(code, null)))
         {
             code = ((bool) isTrue((isEqual(subType, "linear")))) ? "USD" : "BTC";
-        } else
-        {
-            parameters = this.omit(parameters, "code");
         }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {

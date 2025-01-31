@@ -253,7 +253,7 @@ class coinbaseinternational extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => false,
@@ -272,6 +272,11 @@ class coinbaseinternational extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => true, // todo => implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -279,17 +284,20 @@ class coinbaseinternational extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null,
@@ -297,21 +305,20 @@ class coinbaseinternational extends Exchange {
                         'limit' => 300,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
                     'inverse' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
                 ),
                 'future' => array(
-                    'linear' => array(
-                        'extends' => 'spot',
-                    ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -822,16 +829,32 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $networks = $this->safe_dict($currency, 'networks');
         if ($networks !== null) {
-            return;
+            return false;
         }
         $request = array(
             'asset' => $currency['id'],
         );
         $rawNetworks = $this->v1PublicGetAssetsAssetNetworks ($request);
         //
-        //    [
-        //        {
-        //            "asset_id" = $this->parse_networks($rawNetworks);
+        //    array(
+        //        array(
+        //            "asset_id":"1",
+        //            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //            "asset_name":"USDC",
+        //            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+        //            "min_withdrawal_amt":"1",
+        //            "max_withdrawal_amt":"100000000",
+        //            "network_confirms":35,
+        //            "processing_time":485,
+        //            "is_default":true,
+        //            "network_name":"ethereum",
+        //            "display_name":"Ethereum"
+        //        ),
+        //        ....
+        //    )
+        //
+        $currency['networks'] = $this->parse_networks($rawNetworks);
+        return true;
     }
 
     public function parse_networks($networks, $params = array ()) {
@@ -1695,7 +1718,7 @@ class coinbaseinternational extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] $price to trigger stop orders
+         * @param {float} [$params->stopPrice] alias for $triggerPrice
          * @param {float} [$params->triggerPrice] $price to trigger stop orders
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {bool} [$params->postOnly] true or false
@@ -1707,7 +1730,7 @@ class coinbaseinternational extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $typeId = strtoupper($type);
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
@@ -1717,13 +1740,13 @@ class coinbaseinternational extends Exchange {
             'instrument' => $market['id'],
             'size' => $this->amount_to_precision($market['symbol'], $amount),
         );
-        if ($stopPrice !== null) {
+        if ($triggerPrice !== null) {
             if ($type === 'limit') {
                 $typeId = 'STOP_LIMIT';
             } else {
                 $typeId = 'STOP';
             }
-            $request['stop_price'] = $stopPrice;
+            $request['stop_price'] = $triggerPrice;
         }
         $request['type'] = $typeId;
         if ($type === 'limit') {
@@ -1826,7 +1849,6 @@ class coinbaseinternational extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $this->safe_string($order, 'size'),
             'filled' => $this->safe_string($order, 'exec_qty'),
@@ -1971,9 +1993,9 @@ class coinbaseinternational extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-        if ($stopPrice !== null) {
-            $request['stop_price'] = $stopPrice;
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $triggerPrice;
         }
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {

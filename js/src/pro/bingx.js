@@ -8,7 +8,6 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class bingx extends bingxRest {
     describe() {
@@ -1483,12 +1482,10 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account();
+            const account = this.account();
+            account['info'] = balance;
+            account['used'] = this.safeString(balance, 'lk');
             account['free'] = this.safeString(balance, 'wb');
-            const balanceChange = this.safeString(balance, 'bc');
-            if (account['used'] !== undefined) {
-                account['used'] = Precise.stringSub(this.safeString(account, 'used'), balanceChange);
-            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);

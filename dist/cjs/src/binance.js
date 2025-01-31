@@ -9,7 +9,7 @@ var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
@@ -478,6 +478,7 @@ class binance extends binance$1 {
                         'portfolio/repay-futures-switch': 3,
                         'portfolio/margin-asset-leverage': 5,
                         'portfolio/balance': 2,
+                        'portfolio/negative-balance-exchange-record': 2,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -634,6 +635,8 @@ class binance extends binance$1 {
                         'portfolio/bnb-transfer': 150,
                         'portfolio/repay-futures-switch': 150,
                         'portfolio/repay-futures-negative-balance': 150,
+                        'portfolio/mint': 20,
+                        'portfolio/redeem': 20,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -962,6 +965,7 @@ class binance extends binance$1 {
                         'block/order/orders': 5,
                         'block/order/execute': 5,
                         'block/user-trades': 5,
+                        'blockTrades': 5,
                     },
                     'post': {
                         'order': 1,
@@ -1121,6 +1125,7 @@ class binance extends binance$1 {
                         'um/symbolConfig': 1,
                         'cm/accountConfig': 1,
                         'cm/symbolConfig': 1,
+                        'rateLimit/order': 1,
                     },
                     'post': {
                         'um/order': 1,
@@ -1323,6 +1328,7 @@ class binance extends binance$1 {
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL',
+                    'SOL': 'SOL', // we shouldn't rename SOL
                 },
                 // keeping this object for backward-compatibility
                 'reverseNetworks': {
@@ -1420,6 +1426,7 @@ class binance extends binance$1 {
                     'explorer.zensystem.io': 'ZEN',
                 },
                 'networksById': {
+                    'SOL': 'SOL',
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -1556,7 +1563,6 @@ class binance extends binance$1 {
                 },
             },
             'features': {
-                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
@@ -1574,24 +1580,31 @@ class binance extends binance$1 {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
-                        'trailing': true,
-                        'twap': false,
-                        'iceberg': true,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': {
+                            'expire_maker': true,
+                            'expire_taker': true,
+                            'expire_both': true,
+                            'none': true,
+                        },
+                        'trailing': false,
+                        'icebergAmount': true,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': undefined,
-                        'untilDays': 1, // days between start-end
+                        'untilDays': 1,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': true,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
@@ -1606,21 +1619,23 @@ class binance extends binance$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
                 },
-                'default': {
+                'forDerivatives': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
@@ -1644,9 +1659,10 @@ class binance extends binance$1 {
                         // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                     },
                     'createOrders': {
                         'max': 5,
@@ -1656,17 +1672,20 @@ class binance extends binance$1 {
                         'daysBack': undefined,
                         'limit': 1000,
                         'untilDays': 7,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 500,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -1675,15 +1694,17 @@ class binance extends binance$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,
@@ -1691,18 +1712,18 @@ class binance extends binance$1 {
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivatives',
                     },
                 },
             },
@@ -2402,22 +2423,72 @@ class binance extends binance$1 {
                 'portfolioMargin': {
                     'exact': {
                         //
-                        //        1xxx
+                        //        10xx General Server or Network Issues
                         //
+                        '-1000': errors.OperationFailed,
+                        '-1001': errors.ExchangeError,
+                        '-1002': errors.PermissionDenied,
+                        '-1003': errors.RateLimitExceeded,
+                        '-1004': errors.BadRequest,
                         '-1005': errors.PermissionDenied,
+                        '-1006': errors.BadResponse,
+                        '-1007': errors.BadResponse,
+                        '-1008': errors.OperationFailed,
+                        '-1010': errors.ExchangeError,
                         '-1011': errors.PermissionDenied,
+                        '-1013': errors.ExchangeError,
+                        '-1014': errors.InvalidOrder,
+                        '-1015': errors.InvalidOrder,
+                        '-1016': errors.NotSupported,
+                        '-1020': errors.NotSupported,
+                        '-1021': errors.BadRequest,
+                        '-1022': errors.BadRequest,
                         '-1023': errors.BadRequest,
+                        '-1099': errors.OperationFailed,
+                        //
+                        //        11xx Request Issues
+                        //
+                        '-1100': errors.BadRequest,
+                        '-1101': errors.BadRequest,
+                        '-1102': errors.BadRequest,
+                        '-1103': errors.BadRequest,
+                        '-1104': errors.BadRequest,
+                        '-1105': errors.BadRequest,
+                        '-1106': errors.BadRequest,
+                        '-1108': errors.BadRequest,
                         '-1109': errors.BadRequest,
                         '-1110': errors.BadSymbol,
+                        '-1111': errors.BadRequest,
+                        '-1112': errors.BadRequest,
                         '-1113': errors.BadRequest,
+                        '-1114': errors.BadRequest,
+                        '-1115': errors.BadRequest,
+                        '-1116': errors.BadRequest,
+                        '-1117': errors.BadRequest,
+                        '-1118': errors.BadRequest,
+                        '-1119': errors.BadRequest,
+                        '-1120': errors.BadRequest,
+                        '-1121': errors.BadSymbol,
+                        '-1125': errors.BadRequest,
+                        '-1127': errors.BadRequest,
                         '-1128': errors.BadRequest,
+                        '-1130': errors.BadRequest,
+                        '-1131': errors.BadRequest,
+                        '-1134': errors.BadRequest,
                         '-1136': errors.BadRequest,
+                        '-1145': errors.BadRequest,
+                        '-1151': errors.BadRequest,
                         //
-                        //        2xxx
+                        //        20xx Processing Issues
                         //
-                        '-2016': errors.OperationRejected,
-                        '-2018': errors.InsufficientFunds,
-                        '-2019': errors.InsufficientFunds,
+                        '-2010': errors.InvalidOrder,
+                        '-2011': errors.OperationRejected,
+                        '-2013': errors.OrderNotFound,
+                        '-2014': errors.OperationRejected,
+                        '-2015': errors.OperationRejected,
+                        '-2016': errors.OperationFailed,
+                        '-2018': errors.OperationFailed,
+                        '-2019': errors.OperationFailed,
                         '-2020': errors.OrderNotFillable,
                         '-2021': errors.OrderImmediatelyFillable,
                         '-2022': errors.InvalidOrder,
@@ -2428,12 +2499,67 @@ class binance extends binance$1 {
                         '-2027': errors.OperationRejected,
                         '-2028': errors.OperationRejected,
                         //
-                        //        4xxx
+                        //        4xxx Filters and other issues
                         //
+                        '-4000': errors.BadRequest,
+                        '-4001': errors.BadRequest,
+                        '-4002': errors.BadRequest,
+                        '-4003': errors.BadRequest,
+                        '-4004': errors.BadRequest,
+                        '-4005': errors.BadRequest,
+                        '-4006': errors.BadRequest,
+                        '-4007': errors.BadRequest,
+                        '-4008': errors.BadRequest,
+                        '-4009': errors.BadRequest,
+                        '-4010': errors.BadRequest,
+                        '-4011': errors.BadRequest,
+                        '-4012': errors.BadRequest,
+                        '-4013': errors.BadRequest,
+                        '-4014': errors.BadRequest,
+                        '-4015': errors.BadRequest,
+                        '-4016': errors.BadRequest,
+                        '-4017': errors.BadRequest,
+                        '-4018': errors.BadRequest,
+                        '-4019': errors.BadRequest,
+                        '-4020': errors.BadRequest,
+                        '-4021': errors.BadRequest,
+                        '-4022': errors.BadRequest,
+                        '-4023': errors.BadRequest,
+                        '-4024': errors.BadRequest,
+                        '-4025': errors.BadRequest,
+                        '-4026': errors.BadRequest,
+                        '-4027': errors.BadRequest,
+                        '-4028': errors.BadRequest,
+                        '-4029': errors.BadRequest,
+                        '-4030': errors.BadRequest,
+                        '-4031': errors.BadRequest,
+                        '-4032': errors.BadRequest,
+                        '-4033': errors.BadRequest,
+                        '-4044': errors.BadRequest,
+                        '-4045': errors.BadRequest,
+                        '-4046': errors.BadRequest,
+                        '-4047': errors.BadRequest,
+                        '-4048': errors.BadRequest,
+                        '-4049': errors.BadRequest,
+                        '-4050': errors.BadRequest,
+                        '-4051': errors.BadRequest,
+                        '-4052': errors.BadRequest,
+                        '-4053': errors.BadRequest,
+                        '-4054': errors.BadRequest,
+                        '-4055': errors.BadRequest,
+                        '-4056': errors.PermissionDenied,
+                        '-4057': errors.PermissionDenied,
+                        '-4058': errors.BadRequest,
+                        '-4059': errors.BadRequest,
+                        '-4060': errors.BadRequest,
+                        '-4061': errors.InvalidOrder,
+                        '-4062': errors.BadRequest,
                         '-4063': errors.BadRequest,
                         '-4064': errors.BadRequest,
                         '-4065': errors.BadRequest,
                         '-4066': errors.BadRequest,
+                        '-4067': errors.BadRequest,
+                        '-4068': errors.BadRequest,
                         '-4069': errors.BadRequest,
                         '-4070': errors.BadRequest,
                         '-4071': errors.BadRequest,
@@ -2447,47 +2573,39 @@ class binance extends binance$1 {
                         '-4079': errors.BadRequest,
                         '-4080': errors.PermissionDenied,
                         '-4081': errors.BadRequest,
+                        '-4082': errors.BadRequest,
+                        '-4083': errors.BadRequest,
+                        '-4084': errors.NotSupported,
                         '-4085': errors.BadRequest,
                         '-4086': errors.BadRequest,
                         '-4087': errors.PermissionDenied,
                         '-4088': errors.PermissionDenied,
+                        '-4104': errors.BadRequest,
                         '-4114': errors.BadRequest,
                         '-4115': errors.BadRequest,
                         '-4118': errors.OperationRejected,
                         '-4131': errors.OperationRejected,
-                        '-4140': errors.BadRequest,
+                        '-4135': errors.BadRequest,
+                        '-4137': errors.BadRequest,
+                        '-4138': errors.BadRequest,
+                        '-4139': errors.BadRequest,
+                        '-4140': errors.OrderImmediatelyFillable,
                         '-4141': errors.BadRequest,
+                        '-4142': errors.OrderImmediatelyFillable,
                         '-4144': errors.BadSymbol,
                         '-4161': errors.OperationRejected,
-                        '-4164': errors.OperationRejected,
+                        '-4164': errors.InvalidOrder,
                         '-4165': errors.BadRequest,
-                        '-4183': errors.BadRequest,
-                        '-4184': errors.BadRequest,
+                        '-4183': errors.InvalidOrder,
+                        '-4184': errors.InvalidOrder,
+                        '-4408': errors.InvalidOrder,
                         //
-                        //        5xxx
+                        //        5xxx Order Execution Issues
                         //
                         '-5021': errors.OrderNotFillable,
                         '-5022': errors.OrderNotFillable,
-                        //
-                        //        2xxxx
-                        //
-                        '-20121': errors.ExchangeError,
-                        '-20124': errors.ExchangeError,
-                        '-20130': errors.ExchangeError,
-                        '-20132': errors.ExchangeError,
-                        '-20194': errors.ExchangeError,
-                        '-20195': errors.ExchangeError,
-                        '-20196': errors.ExchangeError,
-                        '-20198': errors.ExchangeError,
-                        '-20204': errors.ExchangeError,
-                        //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
-                        '-21001': errors.BadRequest,
-                        '-21002': errors.BadRequest,
-                        '-21003': errors.BadResponse,
-                        '-21004': errors.OperationRejected,
-                        '-21005': errors.InsufficientFunds,
-                        '-21006': errors.OperationFailed,
-                        '-21007': errors.OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-5028': errors.OperationFailed,
+                        '-5041': errors.RateLimitExceeded, // Time out for too many requests from this account queueing at the same time.
                     },
                 },
                 'exact': {
@@ -3591,7 +3709,11 @@ class binance extends binance$1 {
                     account['total'] = this.safeString(entry, 'crossMarginAsset');
                 }
                 else {
-                    account['total'] = this.safeString(entry, 'totalWalletBalance');
+                    const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
+                    const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
+                    const totalUsed = Precise["default"].stringAdd(usedLinear, usedInverse);
+                    const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
+                    account['total'] = Precise["default"].stringAdd(totalUsed, totalWalletBalance);
                 }
                 result[code] = account;
             }
@@ -4397,12 +4519,11 @@ class binance extends binance$1 {
         const type = (timestamp === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString(entry, 'symbol');
         market = this.safeMarket(marketId, market, undefined, type);
-        const price = this.safeNumber(entry, 'price');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'price': price,
+            'price': this.safeNumberOmitZero(entry, 'price'),
             'side': undefined,
             'info': entry,
         };
@@ -4719,7 +4840,8 @@ class binance extends binance$1 {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const candles = this.parseOHLCVs(response, market, timeframe, since, limit);
+        return candles;
     }
     parseTrade(trade, market = undefined) {
         if ('isDustTrade' in trade) {
@@ -5046,12 +5168,14 @@ class binance extends binance$1 {
                 request['endTime'] = until;
             }
         }
-        if (limit !== undefined) {
-            const isFutureOrSwap = (market['swap'] || market['future']);
-            request['limit'] = isFutureOrSwap ? Math.min(limit, 1000) : limit; // default = 500, maximum = 1000
-        }
         let method = this.safeString(this.options, 'fetchTradesMethod');
         method = this.safeString2(params, 'fetchTradesMethod', 'method', method);
+        if (limit !== undefined) {
+            const isFutureOrSwap = (market['swap'] || market['future']);
+            const isHistoricalEndpoint = (method !== undefined) && (method.indexOf('GetHistoricalTrades') >= 0);
+            const maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
+            request['limit'] = isFutureOrSwap ? Math.min(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
+        }
         params = this.omit(params, ['until', 'fetchTradesMethod']);
         let response = undefined;
         if (market['option'] || method === 'eapiPublicGetTrades') {
@@ -6108,8 +6232,8 @@ class binance extends binance$1 {
      * @method
      * @name binance#createOrder
      * @description create a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
      * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
@@ -6136,6 +6260,8 @@ class binance extends binance$1 {
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+     * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+     * @param {float} [params.icebergAmount] set iceberg amount for limit orders
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
@@ -6521,7 +6647,7 @@ class binance extends binance$1 {
             }
         }
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.safeString(this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
             request['timeInForce'] = 'GTX';
@@ -6538,7 +6664,21 @@ class binance extends binance$1 {
             }
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
         }
-        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged']);
+        // unified stp
+        const selfTradePrevention = this.safeString(params, 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            if (market['spot']) {
+                request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            }
+        }
+        // unified iceberg
+        const icebergAmount = this.safeNumber(params, 'icebergAmount');
+        if (icebergAmount !== undefined) {
+            if (market['spot']) {
+                request['icebergQty'] = this.amountToPrecision(symbol, icebergAmount);
+            }
+        }
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount']);
         return this.extend(request, requestParams);
     }
     /**
@@ -7079,6 +7219,7 @@ class binance extends binance$1 {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
@@ -9732,20 +9873,24 @@ class binance extends binance$1 {
         //         "fundingTime": "1621267200000",
         //     }
         //
-        const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const timestamp = this.safeInteger(entry, 'fundingTime');
-            rates.push({
-                'info': entry,
-                'symbol': this.safeSymbol(this.safeString(entry, 'symbol'), undefined, undefined, 'swap'),
-                'fundingRate': this.safeNumber(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            });
-        }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+    parseFundingRateHistory(contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        const timestamp = this.safeInteger(contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(this.safeString(contract, 'symbol'), undefined, undefined, 'swap'),
+            'fundingRate': this.safeNumber(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     /**
      * @method
@@ -9776,8 +9921,7 @@ class binance extends binance$1 {
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        const result = this.parseFundingRates(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(response, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
@@ -10676,7 +10820,7 @@ class binance extends binance$1 {
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const side = this.safeStringLower(position, 'side');
         let quantity = this.safeString(position, 'quantity');
@@ -11934,7 +12078,7 @@ class binance extends binance$1 {
             marketType = 'option';
         }
         else if (url.startsWith('https://papi.' + hostname + '/')) {
-            marketType = 'portfoliomargin';
+            marketType = 'portfolioMargin';
         }
         if (marketType !== undefined) {
             const exceptionsForMarketType = this.safeDict(this.exceptions, marketType, {});
@@ -14055,8 +14199,7 @@ class binance extends binance$1 {
         //         },
         //     ]
         //
-        const result = this.parseFundingRates(response, market);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(response, symbols);
     }
     /**
      * @method

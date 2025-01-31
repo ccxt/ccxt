@@ -173,6 +173,84 @@ public partial class wavesexchange : Exchange
                     { "BEP20", "BSC" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "EGG", "Waves Ducks" },
             } },
@@ -515,7 +593,7 @@ public partial class wavesexchange : Exchange
         return result;
     }
 
-    public virtual void checkRequiredKeys()
+    public virtual object checkRequiredKeys()
     {
         if (isTrue(isEqual(this.apiKey, null)))
         {
@@ -551,6 +629,7 @@ public partial class wavesexchange : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " secret must be a base58 encoded private key")) ;
         }
+        return true;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -1233,7 +1312,7 @@ public partial class wavesexchange : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a stop order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1247,8 +1326,8 @@ public partial class wavesexchange : Exchange
         object amountAsset = this.getAssetId(getValue(market, "baseId"));
         object priceAsset = this.getAssetId(getValue(market, "quoteId"));
         object isMarketOrder = (isEqual(type, "market"));
-        object stopPrice = this.safeFloat2(parameters, "triggerPrice", "stopPrice");
-        object isStopOrder = (!isEqual(stopPrice, null));
+        object triggerPrice = this.safeFloat2(parameters, "triggerPrice", "stopPrice");
+        object isStopOrder = (!isEqual(triggerPrice, null));
         if (isTrue(isTrue((isMarketOrder)) && isTrue((isEqual(price, null)))))
         {
             throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders to determine the max price for buy and the min price for sell")) ;
@@ -1367,7 +1446,7 @@ public partial class wavesexchange : Exchange
                 { "c", new Dictionary<string, object>() {
                     { "t", "sp" },
                     { "v", new Dictionary<string, object>() {
-                        { "p", this.toRealSymbolPrice(symbol, stopPrice) },
+                        { "p", this.toRealSymbolPrice(symbol, triggerPrice) },
                     } },
                 } },
             };
@@ -1794,7 +1873,6 @@ public partial class wavesexchange : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },

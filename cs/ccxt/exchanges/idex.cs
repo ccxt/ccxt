@@ -154,6 +154,80 @@ public partial class idex : Exchange
                 { "defaultSelfTradePrevention", "cn" },
                 { "network", "MATIC" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", true },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 1000000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 1000000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "INVALID_ORDER_QUANTITY", typeof(InvalidOrder) },
@@ -1199,7 +1273,6 @@ public partial class idex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1267,14 +1340,15 @@ public partial class idex : Exchange
             { "takeProfit", 5 },
             { "takeProfitLimit", 6 },
         };
-        object stopPriceString = null;
-        if (isTrue(isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((inOp(parameters, "stopPrice")))))
+        object triggerPrice = this.safeString(parameters, "triggerPrice", "stopPrice");
+        object triggerPriceString = null;
+        if (isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))))
         {
-            if (!isTrue((inOp(parameters, "stopPrice"))))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new BadRequest ((string)add(add(add(this.id, " createOrder() stopPrice is a required parameter for "), type), "orders")) ;
+                throw new BadRequest ((string)add(add(add(this.id, " createOrder() triggerPrice is a required parameter for "), type), "orders")) ;
             }
-            stopPriceString = this.priceToPrecision(symbol, getValue(parameters, "stopPrice"));
+            triggerPriceString = this.priceToPrecision(symbol, triggerPrice);
         }
         object limitTypeEnums = new Dictionary<string, object>() {
             { "limit", 1 },
@@ -1362,7 +1436,7 @@ public partial class idex : Exchange
         }
         if (isTrue(inOp(stopLossTypeEnums, type)))
         {
-            object encodedPrice = this.encode(isTrue(stopPriceString) || isTrue(priceString));
+            object encodedPrice = this.encode(isTrue(triggerPriceString) || isTrue(priceString));
             ((IList<object>)byteArray).Add(encodedPrice);
         }
         object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -1396,7 +1470,7 @@ public partial class idex : Exchange
         }
         if (isTrue(inOp(stopLossTypeEnums, type)))
         {
-            ((IDictionary<string,object>)getValue(request, "parameters"))["stopPrice"] = isTrue(stopPriceString) || isTrue(priceString);
+            ((IDictionary<string,object>)getValue(request, "parameters"))["stopPrice"] = isTrue(triggerPriceString) || isTrue(priceString);
         }
         if (isTrue(isEqual(amountEnum, 0)))
         {
@@ -1892,7 +1966,7 @@ public partial class idex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code = null, object parameters = null)
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};

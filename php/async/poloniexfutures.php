@@ -182,6 +182,84 @@ class poloniexfutures extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo implementation
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => true, // deprecated?
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => true, // deprecated?
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => 7,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 200, // todo implement
+                    ),
+                ),
+                'spot' => null,
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // Bad Request -- Invalid request format
@@ -873,7 +951,7 @@ class poloniexfutures extends Exchange {
              * @param {string} [$params->postOnly] Post only flag, invalid when $timeInForce is IOC or FOK
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
-             * @param {string} [$params->stop] 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires $stopPrice
+             * @param {string} [$params->stop] 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires stopPrice
              * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to TP
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -896,12 +974,12 @@ class poloniexfutures extends Exchange {
                 'size' => $preciseAmount,
                 'leverage' => 1,
             );
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice) {
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
                 $stopPriceType = $this->safe_string($params, 'stopPriceType', 'TP');
                 $request['stopPriceType'] = $stopPriceType;
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             if ($type === 'limit') {
@@ -957,7 +1035,7 @@ class poloniexfutures extends Exchange {
                 'trades' => null,
                 'timeInForce' => null,
                 'postOnly' => null,
-                'stopPrice' => null,
+                'triggerPrice' => null,
                 'info' => $response,
             ), $market);
         }) ();
@@ -1296,7 +1374,7 @@ class poloniexfutures extends Exchange {
                     'trades' => null,
                     'timeInForce' => null,
                     'postOnly' => null,
-                    'stopPrice' => null,
+                    'triggerPrice' => null,
                     'info' => $response,
                 ));
             }
@@ -1457,7 +1535,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1643,7 +1721,7 @@ class poloniexfutures extends Exchange {
             'side' => $this->safe_string($order, 'side'),
             'amount' => $this->safe_string($order, 'size'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'cost' => $this->safe_string($order, 'dealValue'),
             'filled' => $filled,
             'remaining' => null,

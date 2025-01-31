@@ -341,6 +341,84 @@ class wavesexchange extends Exchange {
                     'BEP20' => 'BSC',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => true, // todo
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false, // todo
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ), // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => null, // todo
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'EGG' => 'Waves Ducks',
             ),
@@ -687,6 +765,7 @@ class wavesexchange extends Exchange {
         if (strlen($hexSecretKeyBytes) !== 64) {
             throw new AuthenticationError($this->id . ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1298,7 +1377,7 @@ class wavesexchange extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of $base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] The $price at which a stop order is triggered at
+         * @param {float} [$params->triggerPrice] The $price at which a stop order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->check_required_dependencies();
@@ -1309,8 +1388,8 @@ class wavesexchange extends Exchange {
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
         $isMarketOrder = ($type === 'market');
-        $stopPrice = $this->safe_float_2($params, 'triggerPrice', 'stopPrice');
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_float_2($params, 'triggerPrice', 'stopPrice');
+        $isStopOrder = ($triggerPrice !== null);
         if (($isMarketOrder) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
         }
@@ -1415,7 +1494,7 @@ class wavesexchange extends Exchange {
                 'c' => array(
                     't' => 'sp',
                     'v' => array(
-                        'p' => $this->to_real_symbol_price($symbol, $stopPrice),
+                        'p' => $this->to_real_symbol_price($symbol, $triggerPrice),
                     ),
                 ),
             );
@@ -1812,7 +1891,6 @@ class wavesexchange extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,

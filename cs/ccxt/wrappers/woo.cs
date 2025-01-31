@@ -767,7 +767,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-trades"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1334,7 +1334,7 @@ public partial class woo
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Position> FetchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);

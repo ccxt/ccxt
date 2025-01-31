@@ -93,6 +93,7 @@ class vertex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -328,6 +329,72 @@ class vertex(Exchange, ImplicitAPI):
                 'sandboxMode': False,
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'brokerId': 5930043274845996,
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': True,  # todo
+                        'takeProfitPrice': True,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': True,  # todo fix implementation
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo, only for trigger
+                    'fetchClosedOrders': None,  # todo through fetchOrders
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
         })
 
@@ -1329,15 +1396,73 @@ class vertex(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        value = self.safe_number(interest, 'open_interest_usd')
+        marketId = self.safe_string(interest, 'ticker_id')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
-            'openInterestAmount': None,
-            'openInterestValue': value,
+            'symbol': self.safe_symbol(marketId, market),
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': self.safe_number(interest, 'open_interest_usd'),
             'timestamp': None,
             'datetime': None,
             'info': interest,
         }, market)
+
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.v2ArchiveGetContracts(params)
+        #
+        #     {
+        #         "ADA-PERP_USDC": {
+        #             "ticker_id": "ADA-PERP_USDC",
+        #             "base_currency": "ADA-PERP",
+        #             "quote_currency": "USDC",
+        #             "last_price": 0.85506,
+        #             "base_volume": 1241320.0,
+        #             "quote_volume": 1122670.9080057142,
+        #             "product_type": "perpetual",
+        #             "contract_price": 0.8558601432685385,
+        #             "contract_price_currency": "USD",
+        #             "open_interest": 104040.0,
+        #             "open_interest_usd": 89043.68930565874,
+        #             "index_price": 0.8561952606869176,
+        #             "mark_price": 0.856293781088936,
+        #             "funding_rate": 0.000116153806226841,
+        #             "next_funding_rate_timestamp": 1734685200,
+        #             "price_change_percent_24h": -12.274325340321374
+        #         },
+        #     }
+        #
+        parsedSymbols = []
+        results = []
+        markets = list(response.keys())
+        if symbols is None:
+            symbols = []
+            for y in range(0, len(markets)):
+                tickerId = markets[y]
+                parsedTickerId = tickerId.split('-')
+                currentSymbol = parsedTickerId[0] + '/USDC:USDC'
+                if not self.in_array(currentSymbol, symbols):
+                    symbols.append(currentSymbol)
+        for i in range(0, len(markets)):
+            marketId = markets[i]
+            marketInner = self.safe_market(marketId)
+            openInterest = self.safe_dict(response, marketId, {})
+            for j in range(0, len(symbols)):
+                market = self.market(symbols[j])
+                tickerId = market['base'] + '_USDC'
+                if marketInner['marketId'] == tickerId:
+                    parsedSymbols.append(market['symbol'])
+                    results.append(self.parse_open_interest(openInterest, market))
+        return self.filter_by_array(results, 'symbol', parsedSymbols)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -2045,7 +2170,7 @@ class vertex(Exchange, ImplicitAPI):
             #       "product_id": 1,
             #       "orders": [
             #         {
-            #           "product_id": 1,
+            #           "product_id": 2,
             #           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             #           "price_x18": "1000000000000000000",
             #           "amount": "1000000000000000000",
@@ -2054,7 +2179,7 @@ class vertex(Exchange, ImplicitAPI):
             #           "order_type": "default",
             #           "unfilled_amount": "1000000000000000000",
             #           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            #           "placed_at": 1682437739,
+            #           "placed_at": 1682437737,
             #           "order_type": "ioc"
             #         }
             #       ]
@@ -2272,14 +2397,15 @@ class vertex(Exchange, ImplicitAPI):
             'digests': ids,
             'nonce': nonce,
         }
+        productIds = cancels['productIds']
         marketIdNum = self.parse_to_numeric(marketId)
         for i in range(0, len(ids)):
-            cancels['productIds'].append(marketIdNum)
+            productIds.append(marketIdNum)
         request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': self.number_to_string(cancels['nonce']),
                 },

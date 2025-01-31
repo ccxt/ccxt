@@ -6,7 +6,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class cryptocom
  * @augments Exchange
@@ -371,10 +371,12 @@ class cryptocom extends cryptocom$1 {
                             'GTD': false,
                         },
                         'hedged': false,
-                        // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': false,
                         'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -384,17 +386,20 @@ class cryptocom extends cryptocom$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 1,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -403,15 +408,17 @@ class cryptocom extends cryptocom$1 {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -489,6 +496,9 @@ class cryptocom extends cryptocom$1 {
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
                     '43005': errors.InvalidOrder,
+                    '43003': errors.InvalidOrder,
+                    '43004': errors.InvalidOrder,
+                    '43012': errors.BadRequest,
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },

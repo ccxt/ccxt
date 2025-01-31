@@ -89,6 +89,7 @@ class bitfinex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -406,6 +407,83 @@ class bitfinex extends Exchange {
                 ),
                 'networksById' => array(
                     'TETHERUSE' => 'ERC20',
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo => implement
+                        'leverage' => true, // todo => implement
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 75,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 2500,
+                        'daysBack' => null,
+                        'untilDays' => 100000, // todo => implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 10000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'exceptions' => array(
@@ -1098,7 +1176,8 @@ class bitfinex extends Exchange {
                 $signedAmount = $this->safe_string($order, 2);
                 $amount = Precise::string_abs($signedAmount);
                 $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
-                $result[$side][] = array( $price, $this->parse_number($amount) );
+                $resultSide = $result[$side];
+                $resultSide[] = array( $price, $this->parse_number($amount) );
             }
             $result['bids'] = $this->sort_by($result['bids'], 0, true);
             $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -3149,7 +3228,7 @@ class bitfinex extends Exchange {
             //       )
             //   )
             //
-            return $this->parse_funding_rates($response);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 
@@ -3337,6 +3416,61 @@ class bitfinex extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * Retrieves the open interest for a list of $symbols
+             *
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             *
+             * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+             * @param {array} [$params] exchange specific parameters
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = array( 'ALL' );
+            if ($symbols !== null) {
+                $marketIds = $this->market_ids($symbols);
+            }
+            $request = array(
+                'keys' => implode(',', $marketIds),
+            );
+            $response = Async\await($this->publicGetStatusDeriv ($this->extend($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "tXRPF0:USTF0",  // market id
+            //             1706256986000,   // millisecond timestamp
+            //             null,
+            //             0.512705,        // derivative mid price
+            //             0.512395,        // underlying spot mid price
+            //             null,
+            //             37671483.04,     // insurance fund balance
+            //             null,
+            //             1706284800000,   // timestamp of next funding
+            //             0.00002353,      // accrued funding for next period
+            //             317,             // next funding step
+            //             null,
+            //             0,               // current funding
+            //             null,
+            //             null,
+            //             0.5123016,       // mark price
+            //             null,
+            //             null,
+            //             2233562.03115,   // open interest in contracts
+            //             null,
+            //             null,
+            //             null,
+            //             0.0005,          // average spread without funding payment
+            //             0.0025           // funding payment cap
+            //         )
+            //     )
+            //
+            return $this->parse_open_interests($response, $symbols);
+        }) ();
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

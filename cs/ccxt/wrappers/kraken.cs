@@ -137,7 +137,7 @@ public partial class kraken
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-ohlc-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -588,7 +588,7 @@ public partial class kraken
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

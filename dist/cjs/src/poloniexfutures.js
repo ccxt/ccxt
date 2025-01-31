@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniexfutures
@@ -176,6 +176,84 @@ class poloniexfutures extends poloniexfutures$1 {
                             'level3/snapshot': 'v2',
                         },
                     },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implementation
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': true, // deprecated?
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 200, // todo implement
+                    },
+                },
+                'spot': undefined,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -867,12 +945,12 @@ class poloniexfutures extends poloniexfutures$1 {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString(params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (type === 'limit') {
@@ -929,7 +1007,7 @@ class poloniexfutures extends poloniexfutures$1 {
             'trades': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'info': response,
         }, market);
     }
@@ -1260,7 +1338,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'trades': undefined,
                 'timeInForce': undefined,
                 'postOnly': undefined,
-                'stopPrice': undefined,
+                'triggerPrice': undefined,
                 'info': response,
             }));
         }
@@ -1423,7 +1501,7 @@ class poloniexfutures extends poloniexfutures$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder(id = undefined, symbol = undefined, params = {}) {
+    async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
         let response = undefined;
@@ -1597,7 +1675,7 @@ class poloniexfutures extends poloniexfutures$1 {
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'stopPrice'),
+            'triggerPrice': this.safeString(order, 'stopPrice'),
             'cost': this.safeString(order, 'dealValue'),
             'filled': filled,
             'remaining': undefined,

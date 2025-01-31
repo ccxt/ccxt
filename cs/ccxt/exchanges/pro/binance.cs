@@ -2662,6 +2662,9 @@ public partial class binance : ccxt.binance
             if (isTrue(isPortfolioMargin))
             {
                 response = await this.papiPostListenKey(parameters);
+                parameters = this.extend(parameters, new Dictionary<string, object>() {
+                    { "portfolioMargin", true },
+                });
             } else if (isTrue(isEqual(type, "future")))
             {
                 response = await this.fapiPrivatePostListenKey(parameters);
@@ -2729,6 +2732,9 @@ public partial class binance : ccxt.binance
             if (isTrue(isPortfolioMargin))
             {
                 await this.papiPutListenKey(this.extend(request, parameters));
+                parameters = this.extend(parameters, new Dictionary<string, object>() {
+                    { "portfolioMargin", true },
+                });
             } else if (isTrue(isEqual(type, "future")))
             {
                 await this.fapiPrivatePutListenKey(this.extend(request, parameters));
@@ -4854,7 +4860,8 @@ public partial class binance : ccxt.binance
             ((WebSocketClient)client).reject(message, id);
         }
         // reset connection if 5xx error
-        if (isTrue(isEqual(this.safeString(code, 0), "5")))
+        object codeString = this.safeString(error, "code");
+        if (isTrue(isTrue((!isEqual(codeString, null))) && isTrue((isEqual(getValue(codeString, 0), "5")))))
         {
             ((WebSocketClient)client).reset(message);
         }

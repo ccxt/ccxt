@@ -180,6 +180,84 @@ export default class poloniexfutures extends Exchange {
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implementation
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': true, // deprecated?
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': true, // deprecated?
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 200, // todo implement
+                    },
+                },
+                'spot': undefined,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // Bad Request -- Invalid request format
@@ -875,12 +953,12 @@ export default class poloniexfutures extends Exchange {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        if (stopPrice) {
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (type === 'limit') {
@@ -936,7 +1014,7 @@ export default class poloniexfutures extends Exchange {
             'trades': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'info': response,
         }, market);
     }
@@ -1270,7 +1348,7 @@ export default class poloniexfutures extends Exchange {
                 'trades': undefined,
                 'timeInForce': undefined,
                 'postOnly': undefined,
-                'stopPrice': undefined,
+                'triggerPrice': undefined,
                 'info': response,
             }));
         }
@@ -1435,7 +1513,7 @@ export default class poloniexfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;
@@ -1608,7 +1686,7 @@ export default class poloniexfutures extends Exchange {
             'side': this.safeString (order, 'side'),
             'amount': this.safeString (order, 'size'),
             'price': this.safeString (order, 'price'),
-            'stopPrice': this.safeString (order, 'stopPrice'),
+            'triggerPrice': this.safeString (order, 'stopPrice'),
             'cost': this.safeString (order, 'dealValue'),
             'filled': filled,
             'remaining': undefined,

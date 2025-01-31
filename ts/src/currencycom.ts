@@ -250,6 +250,81 @@ export default class currencycom extends Exchange {
                 'leverage_markets_suffix': '_LEVERAGE',
                 'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true, // todo implementation
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': false,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': true,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implementation
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 'broad': {
                     'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
@@ -1224,7 +1299,6 @@ export default class currencycom extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1329,11 +1403,11 @@ export default class currencycom extends Exchange {
                 request['type'] = 'STOP';
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
-                const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+                const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
                 params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-                if (stopPrice !== undefined) {
+                if (triggerPrice !== undefined) {
                     request['type'] = 'STOP';
-                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['price'] = this.priceToPrecision (symbol, triggerPrice);
                 }
             }
         }

@@ -3,6 +3,7 @@
 var num = require('../num.js');
 var shortString = require('../shortString.js');
 
+// ----------------------------------------------------------------------------
 const guard = {
     isBN: (data, type, key) => {
         if (!num.isBigInt(data[key]))

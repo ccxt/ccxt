@@ -6,7 +6,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class tokocrypto
@@ -595,6 +595,84 @@ class tokocrypto extends tokocrypto$1 {
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     nonce() {
@@ -611,9 +689,14 @@ class tokocrypto extends tokocrypto$1 {
     async fetchTime(params = {}) {
         const response = await this.publicGetOpenV1CommonTime(params);
         //
+        // {
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
+        // }
         //
-        //
-        return this.safeInteger(response, 'serverTime');
+        return this.safeInteger(response, 'timestamp');
     }
     /**
      * @method
@@ -1549,8 +1632,6 @@ class tokocrypto extends tokocrypto$1 {
             timeInForce = 'PO';
         }
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
-        const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1565,8 +1646,7 @@ class tokocrypto extends tokocrypto$1 {
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice'))),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1591,7 +1671,6 @@ class tokocrypto extends tokocrypto$1 {
      * @name tokocrypto#createOrder
      * @description create a trade order
      * @see https://www.tokocrypto.com/apidocs/#new-order--signed
-     * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1614,8 +1693,8 @@ class tokocrypto extends tokocrypto$1 {
         params = this.omit(params, ['clientId', 'clientOrderId']);
         const initialUppercaseType = type.toUpperCase();
         let uppercaseType = initialUppercaseType;
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
@@ -1627,7 +1706,7 @@ class tokocrypto extends tokocrypto$1 {
         const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             }
             else {
                 throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -1666,7 +1745,7 @@ class tokocrypto extends tokocrypto$1 {
         }
         // additional required fields depending on the order type
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
+        let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         //
         // spot/margin
@@ -1714,7 +1793,7 @@ class tokocrypto extends tokocrypto$1 {
             quantityIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (market['linear'] || market['inverse']) {
                 priceIsRequired = true;
@@ -1722,7 +1801,7 @@ class tokocrypto extends tokocrypto$1 {
         }
         else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         }
         else if (uppercaseType === 'LIMIT_MAKER') {
@@ -1738,12 +1817,12 @@ class tokocrypto extends tokocrypto$1 {
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        if (triggerPriceIsRequired) {
+            if (triggerPrice === undefined) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         const response = await this.privatePostOpenV1Orders(this.extend(request, params));
@@ -1781,7 +1860,7 @@ class tokocrypto extends tokocrypto$1 {
     /**
      * @method
      * @name tokocrypto#fetchOrder
-     * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
+     * @see https://www.tokocrypto.com/apidocs/#query-order-signed
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2346,7 +2425,7 @@ class tokocrypto extends tokocrypto$1 {
     }
     /**
      * @method
-     * @name bybit#withdraw
+     * @name tokocrypto#withdraw
      * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
      * @description make a withdrawal
      * @param {string} code unified currency code

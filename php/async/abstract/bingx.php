@@ -418,8 +418,20 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function account_v1_private_get_apikey_query($params = array()) {
         return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function account_v1_private_get_account_apipermissions($params = array()) {
+        return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function account_transfer_v1_private_get_subaccount_asset_transferhistory($params = array()) {
+        return $this->request('subAccount/asset/transferHistory', array('account', 'transfer', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function account_transfer_v1_private_post_subaccount_transferasset_supportcoins($params = array()) {
+        return $this->request('subAccount/transferAsset/supportCoins', array('account', 'transfer', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function account_transfer_v1_private_post_subaccount_transferasset($params = array()) {
+        return $this->request('subAccount/transferAsset', array('account', 'transfer', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function user_auth_private_post_userdatastream($params = array()) {
         return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -865,8 +877,20 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function accountV1PrivateGetApiKeyQuery($params = array()) {
         return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function accountV1PrivateGetAccountApiPermissions($params = array()) {
+        return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function accountTransferV1PrivateGetSubAccountAssetTransferHistory($params = array()) {
+        return $this->request('subAccount/asset/transferHistory', array('account', 'transfer', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins($params = array()) {
+        return $this->request('subAccount/transferAsset/supportCoins', array('account', 'transfer', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function accountTransferV1PrivatePostSubAccountTransferAsset($params = array()) {
+        return $this->request('subAccount/transferAsset', array('account', 'transfer', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function userAuthPrivatePostUserDataStream($params = array()) {
         return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 2));

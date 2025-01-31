@@ -235,6 +235,69 @@ class ellipx(Exchange, ImplicitAPI):
                     'ETH': 'Ethereum',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,  # todo
+                        'daysBack': None,  # todo
+                        'untilDays': None,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -662,6 +725,7 @@ class ellipx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the API endpoint
+        :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns OHLCV[]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1264,7 +1328,6 @@ class ellipx(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': None,
             'cost': cost,
@@ -1323,7 +1386,6 @@ class ellipx(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': None,
             'price': None,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': None,
             'cost': None,
@@ -1562,7 +1624,7 @@ class ellipx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_trading_fee(self, symbol: str = None, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         Fetches the current trading fees(maker and taker) applicable to the user.
 
@@ -1796,10 +1858,11 @@ class ellipx(Exchange, ImplicitAPI):
         e = self.safe_integer(amount, 'e', None)
         if v is None or e is None:
             return None
-        preciseAmount = Precise(v)
-        preciseAmount.decimals = e
-        preciseAmount.reduce()
-        return str(preciseAmount)
+        precise = Precise(v)
+        precise.decimals = e
+        precise.reduce()
+        amountString = str(precise)
+        return amountString
 
     def to_amount(self, amount: float, precision: float) -> dict:
         v = str(amount)

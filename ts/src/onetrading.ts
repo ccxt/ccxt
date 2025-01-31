@@ -278,6 +278,7 @@ export default class onetrading extends Exchange {
                     'INTERNAL_SERVER_ERROR': ExchangeError,
                 },
                 'broad': {
+                    'Order not found.': OrderNotFound,
                 },
             },
             'commonCurrencies': {
@@ -289,6 +290,76 @@ export default class onetrading extends Exchange {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
                 'fiat': [ 'EUR', 'CHF' ],
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1 / 12, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -878,7 +949,8 @@ export default class onetrading extends Exchange {
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcv = this.safeList (response, 'candlesticks');
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1019,6 +1091,7 @@ export default class onetrading extends Exchange {
             'CLOSED': 'canceled',
             'FAILED': 'failed',
             'STOP_TRIGGERED': 'triggered',
+            'DONE': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1104,7 +1177,6 @@ export default class onetrading extends Exchange {
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
-        const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
         const postOnly = this.safeValue (rawOrder, 'is_post_only');
         const rawTrades = this.safeValue (order, 'trades', []);
         return this.safeOrder ({
@@ -1115,13 +1187,12 @@ export default class onetrading extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber (rawOrder, 'trigger_price'),
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -1131,6 +1202,13 @@ export default class onetrading extends Exchange {
             // 'fee': undefined,
             'trades': rawTrades,
         }, market);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'booked': 'limit',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1149,7 +1227,7 @@ export default class onetrading extends Exchange {
      * @description create a trade order
      * @see https://docs.onetrading.com/#create-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -1196,6 +1274,9 @@ export default class onetrading extends Exchange {
             request['client_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+        params = this.omit (params, 'timeInForce');
+        request['time_in_force'] = timeInForce;
         const response = await this.privatePostAccountOrders (this.extend (request, params));
         //
         //     {
@@ -1237,11 +1318,16 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateDeleteAccountOrdersOrderId') {
+            response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteAccountOrdersClientClientId (this.extend (request, params));
+        }
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder (response);
     }
 
     /**

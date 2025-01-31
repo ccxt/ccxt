@@ -190,6 +190,84 @@ class poloniexfutures(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo implementation
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': True,  # deprecated?
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': True,  # deprecated?
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': 7,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 200,  # todo implement
+                    },
+                },
+                'spot': None,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '400': BadRequest,  # Bad Request -- Invalid request format
@@ -857,12 +935,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'size': preciseAmount,
             'leverage': 1,
         }
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice:
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
             request['stopPriceType'] = stopPriceType
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if type == 'limit':
             if price is None:
@@ -911,7 +989,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'trades': None,
             'timeInForce': None,
             'postOnly': None,
-            'stopPrice': None,
+            'triggerPrice': None,
             'info': response,
         }, market)
 
@@ -1230,7 +1308,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'trades': None,
                 'timeInForce': None,
                 'postOnly': None,
-                'stopPrice': None,
+                'triggerPrice': None,
                 'info': response,
             }))
         return result
@@ -1371,7 +1449,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -1549,7 +1627,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'side'),
             'amount': self.safe_string(order, 'size'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'stopPrice'),
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'cost': self.safe_string(order, 'dealValue'),
             'filled': filled,
             'remaining': None,

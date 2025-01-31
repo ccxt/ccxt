@@ -1,5 +1,5 @@
 import Exchange from './abstract/vertex.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests } from './base/types.js';
 /**
  * @class vertex
  * @augments Exchange
@@ -134,6 +134,16 @@ export default class vertex extends Exchange {
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    /**
+     * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
     /**
      * @method
      * @name vertex#fetchOpenInterest

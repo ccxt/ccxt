@@ -457,6 +457,7 @@ class mexc(Exchange, ImplicitAPI):
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {
@@ -709,10 +710,12 @@ class mexc(Exchange, ImplicitAPI):
                             'PO': True,
                             'GTD': False,
                         },
-                        'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': False,
+                        'hedged': True,  # todo implement
                         'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -723,17 +726,20 @@ class mexc(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -742,15 +748,17 @@ class mexc(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -768,14 +776,14 @@ class mexc(Exchange, ImplicitAPI):
                             'mark': True,
                             'index': True,
                         },
-                        'triggerDirection': True,
+                        'triggerDirection': True,  # todo
                         'stopLossPrice': False,  # todo
-                        'takeProfitPrice': False,
+                        'takeProfitPrice': False,  # todo
                         'hedged': True,
+                        'leverage': True,  # todo
+                        'marketBuyByCost': False,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': None,  # todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
@@ -802,7 +810,7 @@ class mexc(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -1376,6 +1384,7 @@ class mexc(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
+            isLinear = quote == settle
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1393,8 +1402,8 @@ class mexc(Exchange, ImplicitAPI):
                 'option': False,
                 'active': (state == '0'),
                 'contract': True,
-                'linear': True,
-                'inverse': False,
+                'linear': isLinear,
+                'inverse': not isLinear,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
@@ -2226,7 +2235,7 @@ class mexc(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
-
+        :param str [params.timeInForce]: 'IOC' or 'FOK', default is 'GTC'
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
         :param long [params.positionId]: *contract only* it is recommended to hasattr(self, fill) parameter when closing a position
@@ -2281,6 +2290,13 @@ class mexc(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
         if postOnly:
             request['type'] = 'LIMIT_MAKER'
+        tif = self.safe_string(params, 'timeInForce')
+        if tif is not None:
+            params = self.omit(params, 'timeInForce')
+            if tif == 'IOC':
+                request['type'] = 'IMMEDIATE_OR_CANCEL'
+            elif tif == 'FOK':
+                request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
     def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
@@ -2441,11 +2457,11 @@ class mexc(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response = None
-        if stopPrice:
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
             request['trend'] = self.safe_integer(params, 'trend', 1)
@@ -3426,7 +3442,6 @@ class mexc(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
-            'stopPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'average': self.safe_number(order, 'dealAvgPrice'),
             'amount': self.safe_number_2(order, 'origQty', 'vol'),
@@ -4468,7 +4483,7 @@ class mexc(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, currencyId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -4617,7 +4632,7 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
             if rawNetwork is not None:
                 params = self.omit(params, 'network')
-                request['coin'] += '-' + rawNetwork
+                request['coin'] = request['coin'] + '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -5701,12 +5716,20 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/' + path
             else:
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
-            paramsEncoded = ''
+            urlParams = params
             if access == 'private':
-                params['timestamp'] = self.nonce()
-                params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
-            if params:
-                paramsEncoded = self.urlencode(params)
+                if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
+                    urlParams = {
+                        'timestamp': self.nonce(),
+                        'recvWindow': self.safe_integer(self.options, 'recvWindow', 5000),
+                    }
+                    body = self.json(params)
+                else:
+                    urlParams['timestamp'] = self.nonce()
+                    urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
+            paramsEncoded = ''
+            if urlParams:
+                paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
                 self.check_required_credentials()

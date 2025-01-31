@@ -1,0 +1,12 @@
+setuptools
+certifi
+requests
+cryptography
+typing_extensions
+aiohttp
+aiodns
+yarl
+ruff
+tox
+pyopenssl
+psutil

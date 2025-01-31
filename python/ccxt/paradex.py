@@ -270,6 +270,7 @@ class paradex(Exchange, ImplicitAPI):
                     '40112': PermissionDenied,  # Geo IP blocked
                 },
                 'broad': {
+                    'missing or malformed jwt': AuthenticationError,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -278,6 +279,78 @@ class paradex(Exchange, ImplicitAPI):
             'options': {
                 'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
+            },
+            'features': {
+                'spot': None,
+                'forSwap': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerDirection': True,  # todo
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': None,  # todo by from/to
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
         })
 
@@ -874,7 +947,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTC-USD-PERP",
-        #         "oracle_price": "68465.17449906",
+        #         "oracle_price": "68465.17449904",
         #         "mark_price": "68465.17449906",
         #         "last_traded_price": "68495.1",
         #         "bid": "68477.6",
@@ -953,16 +1026,18 @@ class paradex(Exchange, ImplicitAPI):
     def prepare_paradex_domain(self, l1=False):
         systemConfig = self.get_system_config()
         if l1 is True:
-            return {
+            l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             }
-        return {
+            return l1D
+        domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         }
+        return domain
 
     def retrieve_account(self):
         cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')
@@ -1016,7 +1091,8 @@ class paradex(Exchange, ImplicitAPI):
             if now < cachedExpires:
                 return cachedToken
         account = self.retrieve_account()
-        expires = now + 86400 * 7
+        # https://docs.paradex.trade/api-reference/general-information/authentication
+        expires = now + 180
         req = {
             'method': 'POST',
             'path': '/v1/auth',
@@ -1093,7 +1169,6 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
-        stopPrice = self.safe_string(order, 'trigger_price')
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         return self.safe_order({
             'id': orderId,
@@ -1110,8 +1185,7 @@ class paradex(Exchange, ImplicitAPI):
             'reduceOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'average': average,
@@ -1174,7 +1248,7 @@ class paradex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price a trigger order is triggered at
+        :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
@@ -1194,7 +1268,7 @@ class paradex(Exchange, ImplicitAPI):
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': self.amount_to_precision(symbol, amount),
         }
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1212,12 +1286,12 @@ class paradex(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-        if stopPrice is not None:
+        if triggerPrice is not None:
             if isMarket:
                 request['type'] = 'STOP_MARKET'
             else:
                 request['type'] = 'STOP_LIMIT'
-            request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
         account = self.retrieve_account()
         now = self.nonce()

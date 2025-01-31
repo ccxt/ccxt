@@ -176,6 +176,81 @@ class idex(Exchange, ImplicitAPI):
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo: revise
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': True,  # todo implementation
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 1000000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 1000000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -1098,7 +1173,6 @@ class idex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1163,11 +1237,12 @@ class idex(Exchange, ImplicitAPI):
             'takeProfit': 5,
             'takeProfitLimit': 6,
         }
-        stopPriceString = None
-        if (type == 'stopLossLimit') or (type == 'takeProfitLimit') or ('stopPrice' in params):
-            if not ('stopPrice' in params):
-                raise BadRequest(self.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders')
-            stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
+        triggerPrice = self.safe_string(params, 'triggerPrice', 'stopPrice')
+        triggerPriceString = None
+        if (type == 'stopLossLimit') or (type == 'takeProfitLimit'):
+            if triggerPrice is None:
+                raise BadRequest(self.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders')
+            triggerPriceString = self.price_to_precision(symbol, triggerPrice)
         limitTypeEnums: dict = {
             'limit': 1,
             'limitMaker': 2,
@@ -1245,7 +1320,7 @@ class idex(Exchange, ImplicitAPI):
             encodedPrice = self.encode(priceString)
             byteArray.append(encodedPrice)
         if type in stopLossTypeEnums:
-            encodedPrice = self.encode(stopPriceString or priceString)
+            encodedPrice = self.encode(triggerPriceString or priceString)
             byteArray.append(encodedPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1275,7 +1350,7 @@ class idex(Exchange, ImplicitAPI):
         if limitOrder:
             request['parameters']['price'] = priceString
         if type in stopLossTypeEnums:
-            request['parameters']['stopPrice'] = stopPriceString or priceString
+            request['parameters']['stopPrice'] = triggerPriceString or priceString
         if amountEnum == 0:
             request['parameters']['quantity'] = amountString
         else:
@@ -1701,7 +1776,7 @@ class idex(Exchange, ImplicitAPI):
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
 
-    def fetch_deposit_address(self, code: Str = None, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: Str, params={}) -> DepositAddress:
         """
         fetch the Polygon address of the wallet
 

@@ -255,13 +255,87 @@ public partial class paradex : Exchange
                     { "40111", typeof(AuthenticationError) },
                     { "40112", typeof(PermissionDenied) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "missing or malformed jwt", typeof(AuthenticationError) },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "paradexAccount", null },
                 { "broker", "CCXT" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", null },
+                { "forSwap", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forSwap" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
@@ -924,7 +998,7 @@ public partial class paradex : Exchange
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -1017,17 +1091,19 @@ public partial class paradex : Exchange
         object systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
-            return new Dictionary<string, object>() {
+            object l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
                 { "chainId", getValue(systemConfig, "l1_chain_id") },
                 { "version", "1" },
             };
+            return l1D;
         }
-        return new Dictionary<string, object>() {
+        object domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
             { "chainId", getValue(systemConfig, "starknet_chain_id") },
             { "version", 1 },
         };
+        return domain;
     }
 
     public async virtual Task<object> retrieveAccount()
@@ -1093,7 +1169,8 @@ public partial class paradex : Exchange
             }
         }
         object account = await this.retrieveAccount();
-        object expires = add(now, multiply(86400, 7));
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        object expires = add(now, 180);
         object req = new Dictionary<string, object>() {
             { "method", "POST" },
             { "path", "/v1/auth" },
@@ -1181,7 +1258,6 @@ public partial class paradex : Exchange
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
-        object stopPrice = this.safeString(order, "trigger_price");
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
@@ -1198,8 +1274,7 @@ public partial class paradex : Exchange
             { "reduceOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "trigger_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "average", average },
@@ -1274,7 +1349,7 @@ public partial class paradex : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
@@ -1297,7 +1372,7 @@ public partial class paradex : Exchange
             { "type", orderType },
             { "size", this.amountToPrecision(symbol, amount) },
         };
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -1324,7 +1399,7 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isMarket))
             {
@@ -1333,7 +1408,7 @@ public partial class paradex : Exchange
             {
                 ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
             }
-            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
         object account = await this.retrieveAccount();
@@ -1804,7 +1879,7 @@ public partial class paradex : Exchange
 
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

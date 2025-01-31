@@ -17,5 +17,6 @@ async function testFetchClosedOrders(exchange, skippedProperties, symbol) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, order, 'status', ['closed', 'canceled']);
     }
     testSharedMethods.assertTimestampOrder(exchange, method, symbol, orders);
+    return true;
 }
 export default testFetchClosedOrders;

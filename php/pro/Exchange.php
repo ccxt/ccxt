@@ -75,6 +75,7 @@ Exchange::$exchanges = array(
     'lbank',
     'luno',
     'mexc',
+    'myokx',
     'ndax',
     'okcoin',
     'okx',

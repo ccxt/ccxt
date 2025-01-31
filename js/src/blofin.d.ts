@@ -113,7 +113,7 @@ export default class blofin extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
-    parseBalanceByType(type: any, response: any): Balances;
+    parseBalanceByType(response: any): Balances;
     parseBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
@@ -299,7 +299,7 @@ export default class blofin extends Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols

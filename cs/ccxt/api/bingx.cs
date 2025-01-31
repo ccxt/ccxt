@@ -696,9 +696,29 @@ public partial class bingx : Exchange
         return await this.callAsync ("accountV1PrivateGetApiKeyQuery",parameters);
     }
 
+    public async Task<object> accountV1PrivateGetAccountApiPermissions (object parameters = null)
+    {
+        return await this.callAsync ("accountV1PrivateGetAccountApiPermissions",parameters);
+    }
+
     public async Task<object> accountV1PrivatePostInnerTransferAuthorizeSubAccount (object parameters = null)
     {
         return await this.callAsync ("accountV1PrivatePostInnerTransferAuthorizeSubAccount",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivateGetSubAccountAssetTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivateGetSubAccountAssetTransferHistory",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivatePostSubAccountTransferAsset (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivatePostSubAccountTransferAsset",parameters);
     }
 
     public async Task<object> userAuthPrivatePostUserDataStream (object parameters = null)

@@ -2215,6 +2215,7 @@ class binance(ccxt.async_support.binance):
             response = None
             if isPortfolioMargin:
                 response = await self.papiPostListenKey(params)
+                params = self.extend(params, {'portfolioMargin': True})
             elif type == 'future':
                 response = await self.fapiPrivatePostListenKey(params)
             elif type == 'delivery':
@@ -2259,6 +2260,7 @@ class binance(ccxt.async_support.binance):
         try:
             if isPortfolioMargin:
                 await self.papiPutListenKey(self.extend(request, params))
+                params = self.extend(params, {'portfolioMargin': True})
             elif type == 'future':
                 await self.fapiPrivatePutListenKey(self.extend(request, params))
             elif type == 'delivery':
@@ -3975,7 +3977,8 @@ class binance(ccxt.async_support.binance):
         if not rejected:
             client.reject(message, id)
         # reset connection if 5xx error
-        if self.safe_string(code, 0) == '5':
+        codeString = self.safe_string(error, 'code')
+        if (codeString is not None) and (codeString[0] == '5'):
             client.reset(message)
 
     def handle_message(self, client: Client, message):

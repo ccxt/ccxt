@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ export default class vertex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -323,6 +324,72 @@ export default class vertex extends Exchange {
                 'sandboxMode': false,
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'brokerId': 5930043274845996,
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true, // todo
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': true, // todo
+                        'takeProfitPrice': true, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true, // todo
+                        'marketBuyRequiresPrice': true, // todo fix implementation
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000, // todo
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined, // todo, only for trigger
+                    'fetchClosedOrders': undefined, // todo through fetchOrders
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -1368,15 +1435,80 @@ export default class vertex extends Exchange {
         //     }
         // }
         //
-        const value = this.safeNumber (interest, 'open_interest_usd');
+        const marketId = this.safeString (interest, 'ticker_id');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
-            'openInterestAmount': undefined,
-            'openInterestValue': value,
+            'symbol': this.safeSymbol (marketId, market),
+            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestValue': this.safeNumber (interest, 'open_interest_usd'),
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v2ArchiveGetContracts (params);
+        //
+        //     {
+        //         "ADA-PERP_USDC": {
+        //             "ticker_id": "ADA-PERP_USDC",
+        //             "base_currency": "ADA-PERP",
+        //             "quote_currency": "USDC",
+        //             "last_price": 0.85506,
+        //             "base_volume": 1241320.0,
+        //             "quote_volume": 1122670.9080057142,
+        //             "product_type": "perpetual",
+        //             "contract_price": 0.8558601432685385,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 104040.0,
+        //             "open_interest_usd": 89043.68930565874,
+        //             "index_price": 0.8561952606869176,
+        //             "mark_price": 0.856293781088936,
+        //             "funding_rate": 0.000116153806226841,
+        //             "next_funding_rate_timestamp": 1734685200,
+        //             "price_change_percent_24h": -12.274325340321374
+        //         },
+        //     }
+        //
+        const parsedSymbols = [];
+        const results = [];
+        const markets = Object.keys (response);
+        if (symbols === undefined) {
+            symbols = [];
+            for (let y = 0; y < markets.length; y++) {
+                const tickerId = markets[y];
+                const parsedTickerId = tickerId.split ('-');
+                const currentSymbol = parsedTickerId[0] + '/USDC:USDC';
+                if (!this.inArray (currentSymbol, symbols)) {
+                    symbols.push (currentSymbol);
+                }
+            }
+        }
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = markets[i];
+            const marketInner = this.safeMarket (marketId);
+            const openInterest = this.safeDict (response, marketId, {});
+            for (let j = 0; j < symbols.length; j++) {
+                const market = this.market (symbols[j]);
+                const tickerId = market['base'] + '_USDC';
+                if (marketInner['marketId'] === tickerId) {
+                    parsedSymbols.push (market['symbol']);
+                    results.push (this.parseOpenInterest (openInterest, market));
+                }
+            }
+        }
+        return this.filterByArray (results, 'symbol', parsedSymbols) as OpenInterests;
     }
 
     /**
@@ -2139,7 +2271,7 @@ export default class vertex extends Exchange {
             //       "product_id": 1,
             //       "orders": [
             //         {
-            //           "product_id": 1,
+            //           "product_id": 2,
             //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18": "1000000000000000000",
             //           "amount": "1000000000000000000",
@@ -2148,7 +2280,7 @@ export default class vertex extends Exchange {
             //           "order_type": "default",
             //           "unfilled_amount": "1000000000000000000",
             //           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at": 1682437739,
+            //           "placed_at": 1682437737,
             //           "order_type": "ioc"
             //         }
             //       ]
@@ -2378,15 +2510,16 @@ export default class vertex extends Exchange {
             'digests': ids,
             'nonce': nonce,
         };
+        const productIds = cancels['productIds'];
         const marketIdNum = this.parseToNumeric (marketId);
         for (let i = 0; i < ids.length; i++) {
-            cancels['productIds'].push (marketIdNum);
+            productIds.push (marketIdNum);
         }
         const request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': this.numberToString (cancels['nonce']),
                 },

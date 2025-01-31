@@ -163,7 +163,7 @@ public partial class wavesexchange
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a stop order is triggered at
     /// </description>

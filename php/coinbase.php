@@ -363,6 +363,8 @@ class coinbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
@@ -371,7 +373,7 @@ class coinbase extends Exchange {
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -389,6 +391,11 @@ class coinbase extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -396,17 +403,20 @@ class coinbase extends Exchange {
                         'limit' => 3000,
                         'daysBack' => null,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -415,35 +425,36 @@ class coinbase extends Exchange {
                         'untilDays' => 10000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 350,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -1278,6 +1289,9 @@ class coinbase extends Exchange {
          * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
         if ($method === 'fetchMarketsV3') {
             return $this->fetch_markets_v3($params);
@@ -1285,7 +1299,7 @@ class coinbase extends Exchange {
         return $this->fetch_markets_v2($params);
     }
 
-    public function fetch_markets_v2($params = array ()) {
+    public function fetch_markets_v2($params = array ()): array {
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_dict($response, 'currencies', array());
         $exchangeRates = $this->safe_dict($response, 'exchangeRates', array());
@@ -1304,7 +1318,7 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
-                    $result[] = array(
+                    $result[] = $this->safe_market_structure(array(
                         'id' => $baseId . '-' . $quoteId,
                         'symbol' => $base . '/' . $quote,
                         'base' => $base,
@@ -1351,14 +1365,14 @@ class coinbase extends Exchange {
                             ),
                         ),
                         'info' => $quoteCurrency,
-                    );
+                    ));
                 }
             }
         }
         return $result;
     }
 
-    public function fetch_markets_v3($params = array ()) {
+    public function fetch_markets_v3($params = array ()): array {
         $usePrivate = false;
         list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
         $spotUnresolvedPromises = array();
@@ -1955,7 +1969,7 @@ class coinbase extends Exchange {
         return $this->fetch_tickers_v2($symbols, $params);
     }
 
-    public function fetch_tickers_v2(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v2(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array(
@@ -1990,7 +2004,7 @@ class coinbase extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_tickers_v3(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v3(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
@@ -2455,7 +2469,7 @@ class coinbase extends Exchange {
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         // for $pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg => instance.last_json_response.pagination.next_starting_after
+        // eg => instance.last_http_response -> $pagination->next_starting_after
         $response = $this->v2PrivateGetAccountsAccountIdTransactions ($this->extend($request, $params));
         $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
         $length = count($ledger);
@@ -2890,7 +2904,7 @@ class coinbase extends Exchange {
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {bool} [$params->postOnly] true or false
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
-         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
@@ -2909,10 +2923,10 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-        $isStop = $stopPrice !== null;
+        $isStop = $triggerPrice !== null;
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2932,7 +2946,7 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                             'end_time' => $endTime,
                         ),
@@ -2942,29 +2956,29 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                         ),
                     );
                 }
             } elseif ($isStopLoss || $isTakeProfit) {
-                $triggerPrice = null;
+                $tpslPrice = null;
                 if ($isStopLoss) {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
                 $request['order_configuration'] = array(
                     'stop_limit_stop_limit_gtc' => array(
                         'base_size' => $this->amount_to_precision($symbol, $amount),
                         'limit_price' => $this->price_to_precision($symbol, $price),
-                        'stop_price' => $triggerPrice,
+                        'stop_price' => $tpslPrice,
                         'stop_direction' => $stopDirection,
                     ),
                 );
@@ -3233,7 +3247,6 @@ class coinbase extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $this->safe_string($order, 'filled_size'),
@@ -4909,6 +4922,10 @@ class coinbase extends Exchange {
         return $token;
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
@@ -4977,7 +4994,9 @@ class coinbase extends Exchange {
                     // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
                     $authorizationString = 'Bearer ' . $token;
                 } else {
-                    $timestampString = (string) $this->seconds();
+                    $nonce = $this->nonce();
+                    $timestamp = $this->parse_to_int($nonce / 1000);
+                    $timestampString = (string) $timestamp;
                     $auth = $timestampString . $method . $savedPath . $payload;
                     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                     $headers = array(

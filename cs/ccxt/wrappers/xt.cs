@@ -285,9 +285,15 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>

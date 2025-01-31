@@ -1101,6 +1101,11 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiGetPortfolioBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -1799,6 +1804,16 @@ public partial class binance : Exchange
     public async Task<object> sapiPostPortfolioRepayFuturesNegativeBalance (object parameters = null)
     {
         return await this.callAsync ("sapiPostPortfolioRepayFuturesNegativeBalance",parameters);
+    }
+
+    public async Task<object> sapiPostPortfolioMint (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioMint",parameters);
+    }
+
+    public async Task<object> sapiPostPortfolioRedeem (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioRedeem",parameters);
     }
 
     public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
@@ -2996,6 +3011,11 @@ public partial class binance : Exchange
         return await this.callAsync ("eapiPrivateGetBlockUserTrades",parameters);
     }
 
+    public async Task<object> eapiPrivateGetBlockTrades (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -3619,6 +3639,11 @@ public partial class binance : Exchange
     public async Task<object> papiGetCmSymbolConfig (object parameters = null)
     {
         return await this.callAsync ("papiGetCmSymbolConfig",parameters);
+    }
+
+    public async Task<object> papiGetRateLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("papiGetRateLimitOrder",parameters);
     }
 
     public async Task<object> papiPostUmOrder (object parameters = null)

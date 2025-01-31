@@ -539,7 +539,7 @@ public partial class coinbaseinternational
     /// <item>
     /// <term>params.stopPrice</term>
     /// <description>
-    /// float : price to trigger stop orders
+    /// float : alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>

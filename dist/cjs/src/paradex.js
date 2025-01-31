@@ -8,7 +8,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -266,13 +266,87 @@ class paradex extends paradex$1 {
                     '40111': errors.AuthenticationError,
                     '40112': errors.PermissionDenied, // Geo IP blocked
                 },
-                'broad': {},
+                'broad': {
+                    'missing or malformed jwt': errors.AuthenticationError,
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
             'options': {
                 'paradexAccount': undefined,
                 'broker': 'CCXT',
+            },
+            'features': {
+                'spot': undefined,
+                'forSwap': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo by from/to
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -886,7 +960,7 @@ class paradex extends paradex$1 {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -966,17 +1040,19 @@ class paradex extends paradex$1 {
     async prepareParadexDomain(l1 = false) {
         const systemConfig = await this.getSystemConfig();
         if (l1 === true) {
-            return {
+            const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             };
+            return l1D;
         }
-        return {
+        const domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         };
+        return domain;
     }
     async retrieveAccount() {
         const cachedAccount = this.safeDict(this.options, 'paradexAccount');
@@ -1029,7 +1105,8 @@ class paradex extends paradex$1 {
             }
         }
         const account = await this.retrieveAccount();
-        const expires = now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
@@ -1106,7 +1183,6 @@ class paradex extends paradex$1 {
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
-        const stopPrice = this.safeString(order, 'trigger_price');
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
         return this.safeOrder({
             'id': orderId,
@@ -1123,8 +1199,7 @@ class paradex extends paradex$1 {
             'reduceOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'trigger_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1187,7 +1262,7 @@ class paradex extends paradex$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
@@ -1208,7 +1283,7 @@ class paradex extends paradex$1 {
             'type': orderType,
             'size': this.amountToPrecision(symbol, amount),
         };
-        const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1232,14 +1307,14 @@ class paradex extends paradex$1 {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (isMarket) {
                 request['type'] = 'STOP_MARKET';
             }
             else {
                 request['type'] = 'STOP_LIMIT';
             }
-            request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
         const account = await this.retrieveAccount();
@@ -1650,7 +1725,7 @@ class paradex extends paradex$1 {
     }
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in

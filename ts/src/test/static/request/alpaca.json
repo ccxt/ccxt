@@ -5,6 +5,18 @@
     ],
     "outputType": "json",
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                    "LTC/USD",
+                    15
+                ],
+                "output": "{\"symbol\":\"LTC/USD\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"15\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ae433584bd694fcb96d0f3e1333ad236\"}"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

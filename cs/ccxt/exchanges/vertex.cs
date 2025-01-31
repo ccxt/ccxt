@@ -77,6 +77,7 @@ public partial class vertex : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -310,6 +311,72 @@ public partial class vertex : Exchange
                 { "sandboxMode", false },
                 { "timeDifference", 0 },
                 { "brokerId", 5930043274845996 },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
@@ -1410,15 +1477,88 @@ public partial class vertex : Exchange
         //     }
         // }
         //
-        object value = this.safeNumber(interest, "open_interest_usd");
+        object marketId = this.safeString(interest, "ticker_id");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
-            { "openInterestAmount", null },
-            { "openInterestValue", value },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "openInterestAmount", this.safeNumber(interest, "open_interest") },
+            { "openInterestValue", this.safeNumber(interest, "open_interest_usd") },
             { "timestamp", null },
             { "datetime", null },
             { "info", interest },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v2ArchiveGetContracts(parameters);
+        //
+        //     {
+        //         "ADA-PERP_USDC": {
+        //             "ticker_id": "ADA-PERP_USDC",
+        //             "base_currency": "ADA-PERP",
+        //             "quote_currency": "USDC",
+        //             "last_price": 0.85506,
+        //             "base_volume": 1241320.0,
+        //             "quote_volume": 1122670.9080057142,
+        //             "product_type": "perpetual",
+        //             "contract_price": 0.8558601432685385,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 104040.0,
+        //             "open_interest_usd": 89043.68930565874,
+        //             "index_price": 0.8561952606869176,
+        //             "mark_price": 0.856293781088936,
+        //             "funding_rate": 0.000116153806226841,
+        //             "next_funding_rate_timestamp": 1734685200,
+        //             "price_change_percent_24h": -12.274325340321374
+        //         },
+        //     }
+        //
+        object parsedSymbols = new List<object>() {};
+        object results = new List<object>() {};
+        object markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+            for (object y = 0; isLessThan(y, getArrayLength(markets)); postFixIncrement(ref y))
+            {
+                object tickerId = getValue(markets, y);
+                object parsedTickerId = ((string)tickerId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                object currentSymbol = add(getValue(parsedTickerId, 0), "/USDC:USDC");
+                if (!isTrue(this.inArray(currentSymbol, symbols)))
+                {
+                    ((IList<object>)symbols).Add(currentSymbol);
+                }
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(markets, i);
+            object marketInner = this.safeMarket(marketId);
+            object openInterest = this.safeDict(response, marketId, new Dictionary<string, object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+            {
+                object market = this.market(getValue(symbols, j));
+                object tickerId = add(getValue(market, "base"), "_USDC");
+                if (isTrue(isEqual(getValue(marketInner, "marketId"), tickerId)))
+                {
+                    ((IList<object>)parsedSymbols).Add(getValue(market, "symbol"));
+                    ((IList<object>)results).Add(this.parseOpenInterest(openInterest, market));
+                }
+            }
+        }
+        return this.filterByArray(results, "symbol", parsedSymbols);
     }
 
     /**
@@ -2453,16 +2593,17 @@ public partial class vertex : Exchange
             { "digests", ids },
             { "nonce", nonce },
         };
+        object productIds = getValue(cancels, "productIds");
         object marketIdNum = this.parseToNumeric(marketId);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((IList<object>)getValue(cancels, "productIds")).Add(marketIdNum);
+            ((IList<object>)productIds).Add(marketIdNum);
         }
         object request = new Dictionary<string, object>() {
             { "cancel_orders", new Dictionary<string, object>() {
                 { "tx", new Dictionary<string, object>() {
                     { "sender", getValue(cancels, "sender") },
-                    { "productIds", getValue(cancels, "productIds") },
+                    { "productIds", productIds },
                     { "digests", getValue(cancels, "digests") },
                     { "nonce", this.numberToString(getValue(cancels, "nonce")) },
                 } },

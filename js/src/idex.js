@@ -169,6 +169,81 @@ export default class idex extends Exchange {
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo: revise
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': true,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 1000000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -1123,7 +1198,6 @@ export default class idex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1188,12 +1262,13 @@ export default class idex extends Exchange {
             'takeProfit': 5,
             'takeProfitLimit': 6,
         };
-        let stopPriceString = undefined;
-        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
-            if (!('stopPrice' in params)) {
-                throw new BadRequest(this.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders');
+        const triggerPrice = this.safeString(params, 'triggerPrice', 'stopPrice');
+        let triggerPriceString = undefined;
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
+            if (triggerPrice === undefined) {
+                throw new BadRequest(this.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders');
             }
-            stopPriceString = this.priceToPrecision(symbol, params['stopPrice']);
+            triggerPriceString = this.priceToPrecision(symbol, triggerPrice);
         }
         const limitTypeEnums = {
             'limit': 1,
@@ -1283,7 +1358,7 @@ export default class idex extends Exchange {
             byteArray.push(encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.encode(stopPriceString || priceString);
+            const encodedPrice = this.encode(triggerPriceString || priceString);
             byteArray.push(encodedPrice);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -1317,7 +1392,7 @@ export default class idex extends Exchange {
             request['parameters']['price'] = priceString;
         }
         if (type in stopLossTypeEnums) {
-            request['parameters']['stopPrice'] = stopPriceString || priceString;
+            request['parameters']['stopPrice'] = triggerPriceString || priceString;
         }
         if (amountEnum === 0) {
             request['parameters']['quantity'] = amountString;
@@ -1771,7 +1846,7 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async fetchDepositAddress(code = undefined, params = {}) {
+    async fetchDepositAddress(code, params = {}) {
         const request = {};
         request['nonce'] = this.uuidv1();
         const response = await this.privateGetWallets(this.extend(request, params));

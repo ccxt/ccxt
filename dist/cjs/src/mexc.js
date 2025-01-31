@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class mexc
@@ -443,6 +443,7 @@ class mexc extends mexc$1 {
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {
@@ -695,10 +696,12 @@ class mexc extends mexc$1 {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
+                        'hedged': true,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -709,17 +712,20 @@ class mexc extends mexc$1 {
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -728,15 +734,17 @@ class mexc extends mexc$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -758,10 +766,10 @@ class mexc extends mexc$1 {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
@@ -788,7 +796,7 @@ class mexc extends mexc$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -1378,6 +1386,7 @@ class mexc extends mexc$1 {
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
             const state = this.safeString(market, 'state');
+            const isLinear = quote === settle;
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1395,8 +1404,8 @@ class mexc extends mexc$1 {
                 'option': false,
                 'active': (state === '0'),
                 'contract': true,
-                'linear': true,
-                'inverse': false,
+                'linear': isLinear,
+                'inverse': !isLinear,
                 'taker': this.safeNumber(market, 'takerFeeRate'),
                 'maker': this.safeNumber(market, 'makerFeeRate'),
                 'contractSize': this.safeNumber(market, 'contractSize'),
@@ -2288,7 +2297,7 @@ class mexc extends mexc$1 {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
-     *
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK', default is 'GTC'
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
      * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
@@ -2356,6 +2365,16 @@ class mexc extends mexc$1 {
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
+        }
+        const tif = this.safeString(params, 'timeInForce');
+        if (tif !== undefined) {
+            params = this.omit(params, 'timeInForce');
+            if (tif === 'IOC') {
+                request['type'] = 'IMMEDIATE_OR_CANCEL';
+            }
+            else if (tif === 'FOK') {
+                request['type'] = 'FILL_OR_KILL';
+            }
         }
         return this.extend(request, params);
     }
@@ -2540,11 +2559,11 @@ class mexc extends mexc$1 {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
-        if (stopPrice) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        if (triggerPrice) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
             request['trend'] = this.safeInteger(params, 'trend', 1);
@@ -3599,7 +3618,6 @@ class mexc extends mexc$1 {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
             'amount': this.safeNumber2(order, 'origQty', 'vol'),
@@ -4688,7 +4706,7 @@ class mexc extends mexc$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, currencyId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
         };
@@ -4850,7 +4868,7 @@ class mexc extends mexc$1 {
             const rawNetwork = this.safeString(params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit(params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {
@@ -5983,13 +6001,23 @@ class mexc extends mexc$1 {
             else {
                 url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             }
-            let paramsEncoded = '';
+            let urlParams = params;
             if (access === 'private') {
-                params['timestamp'] = this.nonce();
-                params['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
+                    urlParams = {
+                        'timestamp': this.nonce(),
+                        'recvWindow': this.safeInteger(this.options, 'recvWindow', 5000),
+                    };
+                    body = this.json(params);
+                }
+                else {
+                    urlParams['timestamp'] = this.nonce();
+                    urlParams['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                }
             }
-            if (Object.keys(params).length) {
-                paramsEncoded = this.urlencode(params);
+            let paramsEncoded = '';
+            if (Object.keys(urlParams).length) {
+                paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
             if (access === 'private') {

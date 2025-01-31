@@ -169,6 +169,84 @@ export default class hollaex extends Exchange {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo: no limit in request
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -349,7 +427,7 @@ export default class hollaex extends Exchange {
         //                 "verified":true,
         //                 "allow_deposit":true,
         //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0001,
+        //                 "withdrawal_fee":0.0002,
         //                 "min":0.001,
         //                 "max":100000,
         //                 "increment_unit":0.001,
@@ -758,13 +836,14 @@ export default class hollaex extends Exchange {
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -774,27 +853,20 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const duration = this.parseTimeframe(timeframe);
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            }
-            const end = this.seconds();
-            const start = end - duration * limit;
-            request['to'] = end;
-            request['from'] = start;
+        const until = this.safeInteger(params, 'until');
+        let end = this.seconds();
+        if (until !== undefined) {
+            end = this.parseToInt(until / 1000);
+        }
+        const defaultSpan = 2592000; // 30 days
+        if (since !== undefined) {
+            request['from'] = this.parseToInt(since / 1000);
         }
         else {
-            if (limit === undefined) {
-                request['from'] = this.parseToInt(since / 1000);
-                request['to'] = this.seconds();
-            }
-            else {
-                const start = this.parseToInt(since / 1000);
-                request['from'] = start;
-                request['to'] = this.sum(start, duration * limit);
-            }
+            request['from'] = end - defaultSpan;
         }
+        request['to'] = end;
+        params = this.omit(params, 'until');
         const response = await this.publicGetChart(this.extend(request, params));
         //
         //     [
@@ -1109,7 +1181,6 @@ export default class hollaex extends Exchange {
         const type = this.safeString(order, 'type');
         const side = this.safeString(order, 'side');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stop');
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filled');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -1128,8 +1199,7 @@ export default class hollaex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
@@ -1167,7 +1237,7 @@ export default class hollaex extends Exchange {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
         const meta = this.safeValue(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
@@ -1176,8 +1246,8 @@ export default class hollaex extends Exchange {
             const convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
             request['price'] = this.normalizeNumberIfNeeded(convertedPrice);
         }
-        if (stopPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, stopPrice)));
+        if (triggerPrice !== undefined) {
+            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
         }
         if (postOnly) {
             request['meta'] = { 'post_only': true };
@@ -1888,6 +1958,7 @@ export default class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;
         }
@@ -1895,7 +1966,7 @@ export default class hollaex extends Exchange {
             //
             //  { "message": "Invalid token" }
             //
-            // different errors return the same code eg:
+            // different errors return the same code eg
             //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //

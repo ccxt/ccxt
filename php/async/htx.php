@@ -104,6 +104,7 @@ class htx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -957,6 +958,8 @@ class htx extends Exchange {
                         'inverse' => true,
                     ),
                 ),
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV' => array(
                     'useHistoricalEndpointForSpot' => true,
                 ),
@@ -1259,9 +1262,11 @@ class htx extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
                         'iceberg' => false,
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -1271,17 +1276,20 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 120,
                         'untilDays' => 2,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 500,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -1290,6 +1298,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'untilDays' => 2,
                         'daysBack' => 180,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -1297,8 +1306,9 @@ class htx extends Exchange {
                         'trailing' => false,
                         'untilDays' => 2,
                         'limit' => 500,
-                        'daysBackClosed' => 180,
+                        'daysBack' => 180,
                         'daysBackCanceled' => 1 / 12,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // 2000 for non-historical
@@ -1338,7 +1348,7 @@ class htx extends Exchange {
                         'trailing' => false,
                         'untilDays' => 2,
                         'limit' => 50,
-                        'daysBackClosed' => 90,
+                        'daysBack' => 90,
                         'daysBackCanceled' => 1 / 12,
                     ),
                     'fetchOHLCV' => array(
@@ -1785,6 +1795,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $types = null;
             list($types, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'types', array());
             $allMarkets = array();
@@ -3356,7 +3369,10 @@ class htx extends Exchange {
                     $type = 'margin';
                 }
             }
-            $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+            $marketId = null;
+            if ($symbol !== null) {
+                $marketId = $this->market_id($symbol);
+            }
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
                 $info = $this->safe_value($account, 'info');
@@ -5245,7 +5261,6 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $stopPrice = $this->safe_string_2($order, 'stop-price', 'trigger_price');
         $average = $this->safe_string($order, 'trade_avg_price');
         $trades = $this->safe_value($order, 'trades');
         $reduceOnlyInteger = $this->safe_integer($order, 'reduce_only');
@@ -5266,8 +5281,7 @@ class htx extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string_2($order, 'stop-price', 'trigger_price'),
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -7246,8 +7260,7 @@ class htx extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = $this->parse_funding_rates($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 
@@ -7380,6 +7393,10 @@ class htx extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -7393,7 +7410,7 @@ class htx extends Exchange {
             $url .= '/' . $this->implode_params($path, $params);
             if ($api === 'private' || $api === 'v2Private') {
                 $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',
@@ -7468,18 +7485,20 @@ class htx extends Exchange {
                         }
                     }
                 }
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',
                     'AccessKeyId' => $this->apiKey,
                     'Timestamp' => $timestamp,
                 );
-                if ($method !== 'POST') {
-                    $request = $this->extend($request, $query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at => https://github.com/ccxt/ccxt/issues/24930 )
                 $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                if ($method !== 'POST') {
+                    $sortedQuery = $this->keysort($query);
+                    $request = $this->extend($request, $sortedQuery);
+                }
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -8568,6 +8587,105 @@ class htx extends Exchange {
         }) ();
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * Retrieves the open interest for a list of $symbols
+             *
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+             *
+             * @param {string[]} [$symbols] a list of unified CCXT $market $symbols
+             * @param {array} [$params] exchange specific parameters
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = null;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 0) {
+                    $first = $this->safe_string($symbols, 0);
+                    $market = $this->market($first);
+                }
+            }
+            $request = array();
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+            $response = null;
+            if ($marketType === 'future') {
+                $response = Async\await($this->contractPublicGetApiV1ContractOpenInterest ($this->extend($request, $params)));
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             {
+                //                 "volume" => 118850.000000000000000000,
+                //                 "amount" => 635.502025211544374189,
+                //                 "symbol" => "BTC",
+                //                 "contract_type" => "this_week",
+                //                 "contract_code" => "BTC220930",
+                //                 "trade_amount" => 1470.9400749347598691119206024033947897351,
+                //                 "trade_volume" => 286286,
+                //                 "trade_turnover" => 28628600.000000000000000000
+                //             }
+                //         ),
+                //         "ts" => 1664337928805
+                //     }
+                //
+            } elseif ($subType === 'inverse') {
+                $response = Async\await($this->contractPublicGetSwapApiV1SwapOpenInterest ($this->extend($request, $params)));
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             {
+                //                 "volume" => 518018.000000000000000000,
+                //                 "amount" => 2769.675777407074725180,
+                //                 "symbol" => "BTC",
+                //                 "contract_code" => "BTC-USD",
+                //                 "trade_amount" => 9544.4032080046491323463688602729806842458,
+                //                 "trade_volume" => 1848448,
+                //                 "trade_turnover" => 184844800.000000000000000000
+                //             }
+                //         ),
+                //         "ts" => 1664337226028
+                //     }
+                //
+            } else {
+                $request['contract_type'] = 'swap';
+                $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapOpenInterest ($this->extend($request, $params)));
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             {
+                //                 "volume" => 7192610.000000000000000000,
+                //                 "amount" => 7192.610000000000000000,
+                //                 "symbol" => "BTC",
+                //                 "value" => 134654290.332000000000000000,
+                //                 "contract_code" => "BTC-USDT",
+                //                 "trade_amount" => 70692.804,
+                //                 "trade_volume" => 70692804,
+                //                 "trade_turnover" => 1379302592.9518,
+                //                 "business_type" => "swap",
+                //                 "pair" => "BTC-USDT",
+                //                 "contract_type" => "swap",
+                //                 "trade_partition" => "USDT"
+                //             }
+                //         ),
+                //         "ts" => 1664336503144
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_open_interests($data, $symbols);
+        }) ();
+    }
+
     public function fetch_open_interest(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -8732,8 +8850,9 @@ class htx extends Exchange {
         $timestamp = $this->safe_integer($interest, 'ts');
         $amount = $this->safe_number($interest, 'volume');
         $value = $this->safe_number($interest, 'value');
+        $marketId = $this->safe_string($interest, 'contract_code');
         return $this->safe_open_interest(array(
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_symbol($marketId, $market),
             'baseVolume' => $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
             'openInterestAmount' => $amount,

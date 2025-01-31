@@ -134,6 +134,7 @@ class ImplicitAPI:
     private_get_v5_account_contract_transaction_log = privateGetV5AccountContractTransactionLog = Entry('v5/account/contract-transaction-log', 'private', 'GET', {'cost': 1})
     private_get_v5_account_smp_group = privateGetV5AccountSmpGroup = Entry('v5/account/smp-group', 'private', 'GET', {'cost': 1})
     private_get_v5_account_mmp_state = privateGetV5AccountMmpState = Entry('v5/account/mmp-state', 'private', 'GET', {'cost': 5})
+    private_get_v5_account_withdrawal = privateGetV5AccountWithdrawal = Entry('v5/account/withdrawal', 'private', 'GET', {'cost': 5})
     private_get_v5_asset_exchange_query_coin_list = privateGetV5AssetExchangeQueryCoinList = Entry('v5/asset/exchange/query-coin-list', 'private', 'GET', {'cost': 0.5})
     private_get_v5_asset_exchange_convert_result_query = privateGetV5AssetExchangeConvertResultQuery = Entry('v5/asset/exchange/convert-result-query', 'private', 'GET', {'cost': 0.5})
     private_get_v5_asset_exchange_query_convert_history = privateGetV5AssetExchangeQueryConvertHistory = Entry('v5/asset/exchange/query-convert-history', 'private', 'GET', {'cost': 0.5})

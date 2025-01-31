@@ -491,7 +491,19 @@
                 ]
             }
         ],
-        "fetchPositions": [
+    "fetchPositions": [
+            {
+                "description": "fetch btc positions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    null,
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
