@@ -1,10 +1,11 @@
 package base
 
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
 	"fmt"
 	"reflect"
 	"sync"
+
+	"github.com/ccxt/ccxt/v4/go/ccxt"
 )
 
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
