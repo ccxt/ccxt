@@ -427,8 +427,8 @@ func  (this *coinone) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes428532 := (<-this.LoadMarkets())
-            PanicOnError(retRes428532)
+            retRes294001 := (<-this.LoadMarkets())
+            PanicOnError(retRes294001)
         
             response:= (<-this.V2PrivatePostAccountBalance(params))
             PanicOnError(response)
@@ -459,8 +459,8 @@ func  (this *coinone) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes416028 := (<-this.LoadMarkets())
-            PanicOnError(retRes416028)
+            retRes65891 := (<-this.LoadMarkets())
+            PanicOnError(retRes65891)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "quote_currency": GetValue(market, "quote"),
@@ -523,8 +523,8 @@ func  (this *coinone) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes299005 := (<-this.LoadMarkets())
-            PanicOnError(retRes299005)
+            retRes905518 := (<-this.LoadMarkets())
+            PanicOnError(retRes905518)
             symbols = this.MarketSymbols(symbols)
             var request interface{} = map[string]interface{} {
                 "quote_currency": "KRW",
@@ -602,8 +602,8 @@ func  (this *coinone) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes787818 := (<-this.LoadMarkets())
-            PanicOnError(retRes787818)
+            retRes801366 := (<-this.LoadMarkets())
+            PanicOnError(retRes801366)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "quote_currency": GetValue(market, "quote"),
@@ -802,8 +802,8 @@ func  (this *coinone) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes439640 := (<-this.LoadMarkets())
-            PanicOnError(retRes439640)
+            retRes818137 := (<-this.LoadMarkets())
+            PanicOnError(retRes818137)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "quote_currency": GetValue(market, "quote"),
@@ -868,8 +868,8 @@ func  (this *coinone) CreateOrder(symbol interface{}, typeVar interface{}, side 
                 panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
             }
         
-            retRes510494 := (<-this.LoadMarkets())
-            PanicOnError(retRes510494)
+            retRes254271 := (<-this.LoadMarkets())
+            PanicOnError(retRes254271)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "price": price,
@@ -916,8 +916,8 @@ func  (this *coinone) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes275872 := (<-this.LoadMarkets())
-            PanicOnError(retRes275872)
+            retRes574573 := (<-this.LoadMarkets())
+            PanicOnError(retRes574573)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
@@ -1109,8 +1109,8 @@ func  (this *coinone) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ExchangeError(Add(this.Id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")))
             }
         
-            retRes404995 := (<-this.LoadMarkets())
-            PanicOnError(retRes404995)
+            retRes375755 := (<-this.LoadMarkets())
+            PanicOnError(retRes375755)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "id"),
@@ -1170,8 +1170,8 @@ func  (this *coinone) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes99228 := (<-this.LoadMarkets())
-            PanicOnError(retRes99228)
+            retRes754587 := (<-this.LoadMarkets())
+            PanicOnError(retRes754587)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "id"),
@@ -1235,8 +1235,8 @@ func  (this *coinone) CancelOrder(id interface{}, optionalArgs ...interface{}) <
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument.")))
             }
         
-            retRes135871 := (<-this.LoadMarkets())
-            PanicOnError(retRes135871)
+            retRes314060 := (<-this.LoadMarkets())
+            PanicOnError(retRes314060)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
                 "price": price,
@@ -1278,8 +1278,8 @@ func  (this *coinone) FetchDepositAddresses(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes592585 := (<-this.LoadMarkets())
-            PanicOnError(retRes592585)
+            retRes661656 := (<-this.LoadMarkets())
+            PanicOnError(retRes661656)
         
             response:= (<-this.V2PrivatePostAccountDepositAddress(params))
             PanicOnError(response)

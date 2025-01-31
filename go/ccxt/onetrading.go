@@ -529,15 +529,15 @@ func  (this *onetrading) FetchTradingFees(optionalArgs ...interface{}) <- chan i
             }
             if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
         
-                    retRes372896 :=  (<-this.FetchPrivateTradingFees(params))
-                    PanicOnError(retRes372896)
-                    ch <- retRes372896
+                    retRes748820 :=  (<-this.FetchPrivateTradingFees(params))
+                    PanicOnError(retRes748820)
+                    ch <- retRes748820
                     return nil
             } else if IsTrue(IsEqual(method, "fetchPublicTradingFees")) {
         
-                    retRes551134 :=  (<-this.FetchPublicTradingFees(params))
-                    PanicOnError(retRes551134)
-                    ch <- retRes551134
+                    retRes210108 :=  (<-this.FetchPublicTradingFees(params))
+                    PanicOnError(retRes210108)
+                    ch <- retRes210108
                     return nil
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
@@ -554,8 +554,8 @@ func  (this *onetrading) FetchPublicTradingFees(optionalArgs ...interface{}) <- 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes845430 := (<-this.LoadMarkets())
-            PanicOnError(retRes845430)
+            retRes406013 := (<-this.LoadMarkets())
+            PanicOnError(retRes406013)
         
             response:= (<-this.PublicGetFees(params))
             PanicOnError(response)
@@ -610,8 +610,8 @@ func  (this *onetrading) FetchPrivateTradingFees(optionalArgs ...interface{}) <-
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes633906 := (<-this.LoadMarkets())
-            PanicOnError(retRes633906)
+            retRes459157 := (<-this.LoadMarkets())
+            PanicOnError(retRes459157)
         
             response:= (<-this.PrivateGetAccountFees(params))
             PanicOnError(response)
@@ -754,8 +754,8 @@ func  (this *onetrading) FetchTicker(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes194495 := (<-this.LoadMarkets())
-            PanicOnError(retRes194495)
+            retRes96806 := (<-this.LoadMarkets())
+            PanicOnError(retRes96806)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "instrument_code": GetValue(market, "id"),
@@ -807,8 +807,8 @@ func  (this *onetrading) FetchTickers(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes737505 := (<-this.LoadMarkets())
-            PanicOnError(retRes737505)
+            retRes607756 := (<-this.LoadMarkets())
+            PanicOnError(retRes607756)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetMarketTicker(params))
@@ -866,8 +866,8 @@ func  (this *onetrading) FetchOrderBook(symbol interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes352383 := (<-this.LoadMarkets())
-            PanicOnError(retRes352383)
+            retRes403279 := (<-this.LoadMarkets())
+            PanicOnError(retRes403279)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "instrument_code": GetValue(market, "id"),
@@ -1004,8 +1004,8 @@ func  (this *onetrading) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes398887 := (<-this.LoadMarkets())
-            PanicOnError(retRes398887)
+            retRes726561 := (<-this.LoadMarkets())
+            PanicOnError(retRes726561)
             var market interface{} = this.Market(symbol)
             var periodUnit interface{} = this.SafeString(this.Timeframes, timeframe)
             periodunitVariable := Split(periodUnit, "/");
@@ -1162,8 +1162,8 @@ func  (this *onetrading) FetchBalance(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes980953 := (<-this.LoadMarkets())
-            PanicOnError(retRes980953)
+            retRes323085 := (<-this.LoadMarkets())
+            PanicOnError(retRes323085)
         
             response:= (<-this.PrivateGetAccountBalances(params))
             PanicOnError(response)
@@ -1352,8 +1352,8 @@ func  (this *onetrading) CreateOrder(symbol interface{}, typeVar interface{}, si
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes770646 := (<-this.LoadMarkets())
-            PanicOnError(retRes770646)
+            retRes310928 := (<-this.LoadMarkets())
+            PanicOnError(retRes310928)
             var market interface{} = this.Market(symbol)
             var uppercaseType interface{} = ToUpper(typeVar)
             var request interface{} = map[string]interface{} {
@@ -1433,8 +1433,8 @@ func  (this *onetrading) CancelOrder(id interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes908175 := (<-this.LoadMarkets())
-            PanicOnError(retRes908175)
+            retRes883264 := (<-this.LoadMarkets())
+            PanicOnError(retRes883264)
             var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_id")
             params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
             var method interface{} = "privateDeleteAccountOrdersOrderId"
@@ -1484,8 +1484,8 @@ func  (this *onetrading) CancelAllOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes522808 := (<-this.LoadMarkets())
-            PanicOnError(retRes522808)
+            retRes77097 := (<-this.LoadMarkets())
+            PanicOnError(retRes77097)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
                 var market interface{} = this.Market(symbol)
@@ -1526,8 +1526,8 @@ func  (this *onetrading) CancelOrders(ids interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes369812 := (<-this.LoadMarkets())
-            PanicOnError(retRes369812)
+            retRes33591 := (<-this.LoadMarkets())
+            PanicOnError(retRes33591)
             var request interface{} = map[string]interface{} {
                 "ids": Join(ids, ","),
             }
@@ -1566,8 +1566,8 @@ func  (this *onetrading) FetchOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes460490 := (<-this.LoadMarkets())
-            PanicOnError(retRes460490)
+            retRes222528 := (<-this.LoadMarkets())
+            PanicOnError(retRes222528)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1647,8 +1647,8 @@ func  (this *onetrading) FetchOpenOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes41902 := (<-this.LoadMarkets())
-            PanicOnError(retRes41902)
+            retRes616766 := (<-this.LoadMarkets())
+            PanicOnError(retRes616766)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1783,9 +1783,9 @@ func  (this *onetrading) FetchClosedOrders(optionalArgs ...interface{}) <- chan 
                 "with_cancelled_and_rejected": true,
             }
         
-                retRes395833 :=  (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes395833)
-                ch <- retRes395833
+                retRes433432 :=  (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes433432)
+                ch <- retRes433432
                 return nil
         
             }()
@@ -1817,8 +1817,8 @@ func  (this *onetrading) FetchOrderTrades(id interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes126977 := (<-this.LoadMarkets())
-            PanicOnError(retRes126977)
+            retRes155808 := (<-this.LoadMarkets())
+            PanicOnError(retRes155808)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1895,8 +1895,8 @@ func  (this *onetrading) FetchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes480986 := (<-this.LoadMarkets())
-            PanicOnError(retRes480986)
+            retRes858284 := (<-this.LoadMarkets())
+            PanicOnError(retRes858284)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
