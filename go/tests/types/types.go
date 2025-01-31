@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/ccxt/ccxt/v4/go/ccxt"
 )
 
 const (
