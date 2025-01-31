@@ -104,14 +104,14 @@ jobs:
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
           NPM_VERSION: ${{ env.NPM_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
                git tag -a "${NPM_VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "${COMMIT_MESSAGE}"
+               git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
                git push --tags
                echo "Creating github release..."
                gh release create "${NPM_VERSION}" --generate-notes --verify-tag
