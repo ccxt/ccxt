@@ -412,8 +412,8 @@ func  (this *latoken) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //
             if IsTrue(this.SafeValue(this.Options, "adjustForTimeDifference", true)) {
         
-                retRes409479 := (<-this.LoadTimeDifference())
-                PanicOnError(retRes409479)
+                retRes493767 := (<-this.LoadTimeDifference())
+                PanicOnError(retRes493767)
             }
             var currenciesById interface{} = this.IndexBy(currencies, "id")
             var result interface{} = []interface{}{}
@@ -632,8 +632,8 @@ func  (this *latoken) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes86519 := (<-this.LoadMarkets())
-            PanicOnError(retRes86519)
+            retRes745154 := (<-this.LoadMarkets())
+            PanicOnError(retRes745154)
         
             response:= (<-this.PrivateGetAuthAccount(params))
             PanicOnError(response)
@@ -717,8 +717,8 @@ func  (this *latoken) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes728710 := (<-this.LoadMarkets())
-            PanicOnError(retRes728710)
+            retRes857859 := (<-this.LoadMarkets())
+            PanicOnError(retRes857859)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "baseId"),
@@ -819,8 +819,8 @@ func  (this *latoken) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes433598 := (<-this.LoadMarkets())
-            PanicOnError(retRes433598)
+            retRes400984 := (<-this.LoadMarkets())
+            PanicOnError(retRes400984)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "base": GetValue(market, "baseId"),
@@ -875,8 +875,8 @@ func  (this *latoken) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes56680 := (<-this.LoadMarkets())
-            PanicOnError(retRes56680)
+            retRes45530 := (<-this.LoadMarkets())
+            PanicOnError(retRes45530)
         
             response:= (<-this.PublicGetTicker(params))
             PanicOnError(response)
@@ -1019,8 +1019,8 @@ func  (this *latoken) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes129102 := (<-this.LoadMarkets())
-            PanicOnError(retRes129102)
+            retRes743027 := (<-this.LoadMarkets())
+            PanicOnError(retRes743027)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "baseId"),
@@ -1069,15 +1069,15 @@ func  (this *latoken) FetchTradingFee(symbol interface{}, optionalArgs ...interf
             params = this.Omit(params, "method")
             if IsTrue(IsEqual(method, "fetchPrivateTradingFee")) {
         
-                    retRes240081 :=  (<-this.FetchPrivateTradingFee(symbol, params))
-                    PanicOnError(retRes240081)
-                    ch <- retRes240081
+                    retRes878305 :=  (<-this.FetchPrivateTradingFee(symbol, params))
+                    PanicOnError(retRes878305)
+                    ch <- retRes878305
                     return nil
             } else if IsTrue(IsEqual(method, "fetchPublicTradingFee")) {
         
-                    retRes525767 :=  (<-this.FetchPublicTradingFee(symbol, params))
-                    PanicOnError(retRes525767)
-                    ch <- retRes525767
+                    retRes317068 :=  (<-this.FetchPublicTradingFee(symbol, params))
+                    PanicOnError(retRes317068)
+                    ch <- retRes317068
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " not support this method")))
@@ -1094,8 +1094,8 @@ func  (this *latoken) FetchPublicTradingFee(symbol interface{}, optionalArgs ...
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes93353 := (<-this.LoadMarkets())
-            PanicOnError(retRes93353)
+            retRes634993 := (<-this.LoadMarkets())
+            PanicOnError(retRes634993)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "baseId"),
@@ -1134,8 +1134,8 @@ func  (this *latoken) FetchPrivateTradingFee(symbol interface{}, optionalArgs ..
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes230927 := (<-this.LoadMarkets())
-            PanicOnError(retRes230927)
+            retRes766633 := (<-this.LoadMarkets())
+            PanicOnError(retRes766633)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(market, "baseId"),
@@ -1192,8 +1192,8 @@ func  (this *latoken) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes293863 := (<-this.LoadMarkets())
-            PanicOnError(retRes293863)
+            retRes679994 := (<-this.LoadMarkets())
+            PanicOnError(retRes679994)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(limit, nil)) {
@@ -1396,8 +1396,8 @@ func  (this *latoken) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
             }
         
-            retRes816027 := (<-this.LoadMarkets())
-            PanicOnError(retRes816027)
+            retRes629263 := (<-this.LoadMarkets())
+            PanicOnError(retRes629263)
             var response interface{} = nil
             var isTrigger interface{} = this.SafeValue2(params, "trigger", "stop")
             params = this.Omit(params, "stop")
@@ -1474,8 +1474,8 @@ func  (this *latoken) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes293876 := (<-this.LoadMarkets())
-            PanicOnError(retRes293876)
+            retRes916113 := (<-this.LoadMarkets())
+            PanicOnError(retRes916113)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             var isTrigger interface{} = this.SafeValue2(params, "trigger", "stop")
@@ -1559,8 +1559,8 @@ func  (this *latoken) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes537692 := (<-this.LoadMarkets())
-            PanicOnError(retRes537692)
+            retRes942742 := (<-this.LoadMarkets())
+            PanicOnError(retRes942742)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1632,8 +1632,8 @@ func  (this *latoken) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes167450 := (<-this.LoadMarkets())
-            PanicOnError(retRes167450)
+            retRes885336 := (<-this.LoadMarkets())
+            PanicOnError(retRes885336)
             var market interface{} = this.Market(symbol)
             var uppercaseType interface{} = ToUpper(typeVar)
             var request interface{} = map[string]interface{} {
@@ -1703,8 +1703,8 @@ func  (this *latoken) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4424 := (<-this.LoadMarkets())
-            PanicOnError(retRes4424)
+            retRes843879 := (<-this.LoadMarkets())
+            PanicOnError(retRes843879)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1757,8 +1757,8 @@ func  (this *latoken) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes642672 := (<-this.LoadMarkets())
-            PanicOnError(retRes642672)
+            retRes713993 := (<-this.LoadMarkets())
+            PanicOnError(retRes713993)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             var isTrigger interface{} = this.SafeValue2(params, "trigger", "stop")
@@ -1829,8 +1829,8 @@ func  (this *latoken) FetchTransactions(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes33373 := (<-this.LoadMarkets())
-            PanicOnError(retRes33373)
+            retRes287837 := (<-this.LoadMarkets())
+            PanicOnError(retRes287837)
             var request interface{} = map[string]interface{} {}
         
             response:= (<-this.PrivateGetAuthTransaction(this.Extend(request, params)))
@@ -1979,8 +1979,8 @@ func  (this *latoken) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes353021 := (<-this.LoadMarkets())
-            PanicOnError(retRes353021)
+            retRes872977 := (<-this.LoadMarkets())
+            PanicOnError(retRes872977)
             var currency interface{} = this.Currency(code)
         
             response:= (<-this.PrivateGetAuthTransfer(params))
@@ -2046,8 +2046,8 @@ func  (this *latoken) Transfer(code interface{}, amount interface{}, fromAccount
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes153009 := (<-this.LoadMarkets())
-            PanicOnError(retRes153009)
+            retRes288539 := (<-this.LoadMarkets())
+            PanicOnError(retRes288539)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
