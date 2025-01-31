@@ -1106,8 +1106,8 @@ func  (this *coinex) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes339984 := (<-this.LoadMarkets())
-            PanicOnError(retRes339984)
+            retRes977078 := (<-this.LoadMarkets())
+            PanicOnError(retRes977078)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1198,8 +1198,8 @@ func  (this *coinex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes159007 := (<-this.LoadMarkets())
-            PanicOnError(retRes159007)
+            retRes226939 := (<-this.LoadMarkets())
+            PanicOnError(retRes226939)
             symbols = this.MarketSymbols(symbols)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
@@ -1330,8 +1330,8 @@ func  (this *coinex) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes297457 := (<-this.LoadMarkets())
-            PanicOnError(retRes297457)
+            retRes854040 := (<-this.LoadMarkets())
+            PanicOnError(retRes854040)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 20 // default
@@ -1460,8 +1460,8 @@ func  (this *coinex) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes469094 := (<-this.LoadMarkets())
-            PanicOnError(retRes469094)
+            retRes924503 := (<-this.LoadMarkets())
+            PanicOnError(retRes924503)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1521,8 +1521,8 @@ func  (this *coinex) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes201931 := (<-this.LoadMarkets())
-            PanicOnError(retRes201931)
+            retRes250513 := (<-this.LoadMarkets())
+            PanicOnError(retRes250513)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1563,8 +1563,8 @@ func  (this *coinex) FetchTradingFees(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes897696 := (<-this.LoadMarkets())
-            PanicOnError(retRes897696)
+            retRes186422 := (<-this.LoadMarkets())
+            PanicOnError(retRes186422)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -1653,8 +1653,8 @@ func  (this *coinex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes500500 := (<-this.LoadMarkets())
-            PanicOnError(retRes500500)
+            retRes566533 := (<-this.LoadMarkets())
+            PanicOnError(retRes566533)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1709,8 +1709,8 @@ func  (this *coinex) FetchMarginBalance(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes436941 := (<-this.LoadMarkets())
-            PanicOnError(retRes436941)
+            retRes62470 := (<-this.LoadMarkets())
+            PanicOnError(retRes62470)
         
             response:= (<-this.V2PrivateGetAssetsMarginBalance(params))
             PanicOnError(response)
@@ -1780,8 +1780,8 @@ func  (this *coinex) FetchSpotBalance(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes618016 := (<-this.LoadMarkets())
-            PanicOnError(retRes618016)
+            retRes906565 := (<-this.LoadMarkets())
+            PanicOnError(retRes906565)
         
             response:= (<-this.V2PrivateGetAssetsSpotBalance(params))
             PanicOnError(response)
@@ -1826,8 +1826,8 @@ func  (this *coinex) FetchSwapBalance(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes200184 := (<-this.LoadMarkets())
-            PanicOnError(retRes200184)
+            retRes594918 := (<-this.LoadMarkets())
+            PanicOnError(retRes594918)
         
             response:= (<-this.V2PrivateGetAssetsFuturesBalance(params))
             PanicOnError(response)
@@ -1875,8 +1875,8 @@ func  (this *coinex) FetchFinancialBalance(optionalArgs ...interface{}) <- chan 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes155942 := (<-this.LoadMarkets())
-            PanicOnError(retRes155942)
+            retRes357450 := (<-this.LoadMarkets())
+            PanicOnError(retRes357450)
         
             response:= (<-this.V2PrivateGetAssetsFinancialBalance(params))
             PanicOnError(response)
@@ -1943,27 +1943,27 @@ func  (this *coinex) FetchBalance(optionalArgs ...interface{}) <- chan interface
             var isMargin interface{} = IsTrue((!IsEqual(marginMode, nil))) || IsTrue((IsEqual(marketType, "margin")))
             if IsTrue(IsEqual(marketType, "swap")) {
         
-                    retRes42010 :=  (<-this.FetchSwapBalance(params))
-                    PanicOnError(retRes42010)
-                    ch <- retRes42010
+                    retRes132427 :=  (<-this.FetchSwapBalance(params))
+                    PanicOnError(retRes132427)
+                    ch <- retRes132427
                     return nil
             } else if IsTrue(IsEqual(marketType, "financial")) {
         
-                    retRes311310 :=  (<-this.FetchFinancialBalance(params))
-                    PanicOnError(retRes311310)
-                    ch <- retRes311310
+                    retRes349847 :=  (<-this.FetchFinancialBalance(params))
+                    PanicOnError(retRes349847)
+                    ch <- retRes349847
                     return nil
             } else if IsTrue(isMargin) {
         
-                    retRes84615 :=  (<-this.FetchMarginBalance(params))
-                    PanicOnError(retRes84615)
-                    ch <- retRes84615
+                    retRes373736 :=  (<-this.FetchMarginBalance(params))
+                    PanicOnError(retRes373736)
+                    ch <- retRes373736
                     return nil
             } else {
         
-                    retRes782566 :=  (<-this.FetchSpotBalance(params))
-                    PanicOnError(retRes782566)
-                    ch <- retRes782566
+                    retRes601232 :=  (<-this.FetchSpotBalance(params))
+                    PanicOnError(retRes601232)
+                    ch <- retRes601232
                     return nil
             }
                 return nil
@@ -2269,17 +2269,17 @@ func  (this *coinex) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes757539 := (<-this.LoadMarkets())
-            PanicOnError(retRes757539)
+            retRes109954 := (<-this.LoadMarkets())
+            PanicOnError(retRes109954)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
         
-                retRes206589 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-                PanicOnError(retRes206589)
-                ch <- retRes206589
+                retRes776218 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+                PanicOnError(retRes776218)
+                ch <- retRes776218
                 return nil
         
             }()
@@ -2427,8 +2427,8 @@ func  (this *coinex) CreateOrder(symbol interface{}, typeVar interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes408390 := (<-this.LoadMarkets())
-            PanicOnError(retRes408390)
+            retRes60922 := (<-this.LoadMarkets())
+            PanicOnError(retRes60922)
             var market interface{} = this.Market(symbol)
             var reduceOnly interface{} = this.SafeBool(params, "reduceOnly")
             var triggerPrice interface{} = this.SafeString2(params, "stopPrice", "triggerPrice")
@@ -2505,8 +2505,8 @@ func  (this *coinex) CreateOrders(orders interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes254981 := (<-this.LoadMarkets())
-            PanicOnError(retRes254981)
+            retRes261622 := (<-this.LoadMarkets())
+            PanicOnError(retRes261622)
             var ordersRequests interface{} = []interface{}{}
             var symbol interface{} = nil
             var reduceOnly interface{} = false
@@ -2632,8 +2632,8 @@ func  (this *coinex) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes376280 := (<-this.LoadMarkets())
-            PanicOnError(retRes376280)
+            retRes642787 := (<-this.LoadMarkets())
+            PanicOnError(retRes642787)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -2720,8 +2720,8 @@ func  (this *coinex) EditOrder(id interface{}, symbol interface{}, typeVar inter
                 panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a symbol argument")))
             }
         
-            retRes234361 := (<-this.LoadMarkets())
-            PanicOnError(retRes234361)
+            retRes674173 := (<-this.LoadMarkets())
+            PanicOnError(retRes674173)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -2813,8 +2813,8 @@ func  (this *coinex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes869899 := (<-this.LoadMarkets())
-            PanicOnError(retRes869899)
+            retRes8288 := (<-this.LoadMarkets())
+            PanicOnError(retRes8288)
             var market interface{} = this.Market(symbol)
             var isTriggerOrder interface{} = this.SafeBool2(params, "stop", "trigger")
             var swap interface{} = GetValue(market, "swap")
@@ -2923,8 +2923,8 @@ func  (this *coinex) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
         
-            retRes723243 := (<-this.LoadMarkets())
-            PanicOnError(retRes723243)
+            retRes376163 := (<-this.LoadMarkets())
+            PanicOnError(retRes376163)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -2982,8 +2982,8 @@ func  (this *coinex) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes71506 := (<-this.LoadMarkets())
-            PanicOnError(retRes71506)
+            retRes840789 := (<-this.LoadMarkets())
+            PanicOnError(retRes840789)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -3038,8 +3038,8 @@ func  (this *coinex) FetchOrdersByStatus(status interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes318123 := (<-this.LoadMarkets())
-            PanicOnError(retRes318123)
+            retRes544009 := (<-this.LoadMarkets())
+            PanicOnError(retRes544009)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -3193,9 +3193,9 @@ func  (this *coinex) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes192378 :=  (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
-                PanicOnError(retRes192378)
-                ch <- retRes192378
+                retRes719878 :=  (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
+                PanicOnError(retRes719878)
+                ch <- retRes719878
                 return nil
         
             }()
@@ -3219,8 +3219,8 @@ func  (this *coinex) CreateDepositAddress(code interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes499961 := (<-this.LoadMarkets())
-            PanicOnError(retRes499961)
+            retRes493017 := (<-this.LoadMarkets())
+            PanicOnError(retRes493017)
             var currency interface{} = this.Currency(code)
             var network interface{} = this.SafeString2(params, "chain", "network")
             if IsTrue(IsEqual(network, nil)) {
@@ -3270,8 +3270,8 @@ func  (this *coinex) FetchDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes720260 := (<-this.LoadMarkets())
-            PanicOnError(retRes720260)
+            retRes99822 := (<-this.LoadMarkets())
+            PanicOnError(retRes99822)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "ccy": GetValue(currency, "id"),
@@ -3364,8 +3364,8 @@ func  (this *coinex) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes497461 := (<-this.LoadMarkets())
-            PanicOnError(retRes497461)
+            retRes627851 := (<-this.LoadMarkets())
+            PanicOnError(retRes627851)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -3428,8 +3428,8 @@ func  (this *coinex) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes663083 := (<-this.LoadMarkets())
-            PanicOnError(retRes663083)
+            retRes314932 := (<-this.LoadMarkets())
+            PanicOnError(retRes314932)
             var defaultMethod interface{} = nil
             defaultMethodparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
             defaultMethod = GetValue(defaultMethodparamsVariable,0);
@@ -3535,8 +3535,8 @@ func  (this *coinex) FetchPosition(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes870990 := (<-this.LoadMarkets())
-            PanicOnError(retRes870990)
+            retRes640123 := (<-this.LoadMarkets())
+            PanicOnError(retRes640123)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market_type": "FUTURES",
@@ -3695,8 +3695,8 @@ func  (this *coinex) SetMarginMode(marginMode interface{}, optionalArgs ...inter
                 panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
             }
         
-            retRes198534 := (<-this.LoadMarkets())
-            PanicOnError(retRes198534)
+            retRes104298 := (<-this.LoadMarkets())
+            PanicOnError(retRes104298)
             var market interface{} = this.Market(symbol)
             if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
                 panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -3716,9 +3716,9 @@ func  (this *coinex) SetMarginMode(marginMode interface{}, optionalArgs ...inter
                 "leverage": leverage,
             }
         
-                retRes294917 :=  (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
-                PanicOnError(retRes294917)
-                ch <- retRes294917
+                retRes971779 :=  (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
+                PanicOnError(retRes971779)
+                ch <- retRes971779
                 return nil
         
             }()
@@ -3748,8 +3748,8 @@ func  (this *coinex) SetLeverage(leverage interface{}, optionalArgs ...interface
                 panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
             }
         
-            retRes13660 := (<-this.LoadMarkets())
-            PanicOnError(retRes13660)
+            retRes374571 := (<-this.LoadMarkets())
+            PanicOnError(retRes374571)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "swap")) {
                 panic(BadSymbol(Add(this.Id, " setLeverage() supports swap contracts only")))
@@ -3770,9 +3770,9 @@ func  (this *coinex) SetLeverage(leverage interface{}, optionalArgs ...interface
                 "leverage": leverage,
             }
         
-                retRes214372 :=  (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
-                PanicOnError(retRes214372)
-                ch <- retRes214372
+                retRes850479 :=  (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params)))
+                PanicOnError(retRes850479)
+                ch <- retRes850479
                 return nil
         
             }()
@@ -3797,8 +3797,8 @@ func  (this *coinex) FetchLeverageTiers(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes743573 := (<-this.LoadMarkets())
-            PanicOnError(retRes743573)
+            retRes582741 := (<-this.LoadMarkets())
+            PanicOnError(retRes582741)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbols, nil)) {
                 var marketIds interface{} = this.MarketIds(symbols)
@@ -3873,8 +3873,8 @@ func  (this *coinex) ModifyMarginHelper(symbol interface{}, amount interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes854269 := (<-this.LoadMarkets())
-            PanicOnError(retRes854269)
+            retRes753781 := (<-this.LoadMarkets())
+            PanicOnError(retRes753781)
             var market interface{} = this.Market(symbol)
             var rawAmount interface{} = this.AmountToPrecision(symbol, amount)
             var requestAmount interface{} = rawAmount
@@ -4031,9 +4031,9 @@ func  (this *coinex) AddMargin(symbol interface{}, amount interface{}, optionalA
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes512719 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-                PanicOnError(retRes512719)
-                ch <- retRes512719
+                retRes994067 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+                PanicOnError(retRes994067)
+                ch <- retRes994067
                 return nil
         
             }()
@@ -4057,9 +4057,9 @@ func  (this *coinex) ReduceMargin(symbol interface{}, amount interface{}, option
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes588779 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-                PanicOnError(retRes588779)
-                ch <- retRes588779
+                retRes451113 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+                PanicOnError(retRes451113)
+                ch <- retRes451113
                 return nil
         
             }()
@@ -4093,8 +4093,8 @@ func  (this *coinex) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
             }
         
-            retRes199099 := (<-this.LoadMarkets())
-            PanicOnError(retRes199099)
+            retRes725242 := (<-this.LoadMarkets())
+            PanicOnError(retRes725242)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -4174,8 +4174,8 @@ func  (this *coinex) FetchFundingRate(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes841258 := (<-this.LoadMarkets())
-            PanicOnError(retRes841258)
+            retRes27186 := (<-this.LoadMarkets())
+            PanicOnError(retRes27186)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "swap")) {
                 panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -4230,9 +4230,9 @@ func  (this *coinex) FetchFundingInterval(symbol interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes710080 :=  (<-this.FetchFundingRate(symbol, params))
-                PanicOnError(retRes710080)
-                ch <- retRes710080
+                retRes697443 :=  (<-this.FetchFundingRate(symbol, params))
+                PanicOnError(retRes697443)
+                ch <- retRes697443
                 return nil
         
             }()
@@ -4311,8 +4311,8 @@ func  (this *coinex) FetchFundingRates(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes696660 := (<-this.LoadMarkets())
-            PanicOnError(retRes696660)
+            retRes6541 := (<-this.LoadMarkets())
+            PanicOnError(retRes6541)
             symbols = this.MarketSymbols(symbols)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
@@ -4381,8 +4381,8 @@ func  (this *coinex) Withdraw(code interface{}, amount interface{}, address inte
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes103318 := (<-this.LoadMarkets())
-            PanicOnError(retRes103318)
+            retRes577691 := (<-this.LoadMarkets())
+            PanicOnError(retRes577691)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "ccy": GetValue(currency, "id"),
@@ -4481,17 +4481,17 @@ func  (this *coinex) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
             }
         
-            retRes534229 := (<-this.LoadMarkets())
-            PanicOnError(retRes534229)
+            retRes758081 := (<-this.LoadMarkets())
+            PanicOnError(retRes758081)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes724242 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-                    PanicOnError(retRes724242)
-                    ch <- retRes724242
+                    retRes801344 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
+                    PanicOnError(retRes801344)
+                    ch <- retRes801344
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -4680,8 +4680,8 @@ func  (this *coinex) Transfer(code interface{}, amount interface{}, fromAccount 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes632691 := (<-this.LoadMarkets())
-            PanicOnError(retRes632691)
+            retRes837832 := (<-this.LoadMarkets())
+            PanicOnError(retRes837832)
             var currency interface{} = this.Currency(code)
             var amountToPrecision interface{} = this.CurrencyToPrecision(code, amount)
             var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{} {})
@@ -4780,8 +4780,8 @@ func  (this *coinex) FetchTransfers(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes868503 := (<-this.LoadMarkets())
-            PanicOnError(retRes868503)
+            retRes225979 := (<-this.LoadMarkets())
+            PanicOnError(retRes225979)
             if IsTrue(IsEqual(code, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
             }
@@ -4863,8 +4863,8 @@ func  (this *coinex) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes488039 := (<-this.LoadMarkets())
-            PanicOnError(retRes488039)
+            retRes569386 := (<-this.LoadMarkets())
+            PanicOnError(retRes569386)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -4942,8 +4942,8 @@ func  (this *coinex) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes47867 := (<-this.LoadMarkets())
-            PanicOnError(retRes47867)
+            retRes959645 := (<-this.LoadMarkets())
+            PanicOnError(retRes959645)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -5047,8 +5047,8 @@ func  (this *coinex) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs ..
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes690514 := (<-this.LoadMarkets())
-            PanicOnError(retRes690514)
+            retRes674641 := (<-this.LoadMarkets())
+            PanicOnError(retRes674641)
             var code interface{} = this.SafeString(params, "code")
             if IsTrue(IsEqual(code, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchIsolatedBorrowRate() requires a code parameter")))
@@ -5113,8 +5113,8 @@ func  (this *coinex) FetchBorrowInterest(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes749917 := (<-this.LoadMarkets())
-            PanicOnError(retRes749917)
+            retRes253770 := (<-this.LoadMarkets())
+            PanicOnError(retRes253770)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -5212,8 +5212,8 @@ func  (this *coinex) BorrowIsolatedMargin(symbol interface{}, code interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes883355 := (<-this.LoadMarkets())
-            PanicOnError(retRes883355)
+            retRes374598 := (<-this.LoadMarkets())
+            PanicOnError(retRes374598)
             var market interface{} = this.Market(symbol)
             var currency interface{} = this.Currency(code)
             var isAutoRenew interface{} = this.SafeBool2(params, "isAutoRenew", "is_auto_renew", false)
@@ -5275,8 +5275,8 @@ func  (this *coinex) RepayIsolatedMargin(symbol interface{}, code interface{}, a
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes949338 := (<-this.LoadMarkets())
-            PanicOnError(retRes949338)
+            retRes310181 := (<-this.LoadMarkets())
+            PanicOnError(retRes310181)
             var market interface{} = this.Market(symbol)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
@@ -5351,8 +5351,8 @@ func  (this *coinex) FetchDepositWithdrawFee(code interface{}, optionalArgs ...i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes500278 := (<-this.LoadMarkets())
-            PanicOnError(retRes500278)
+            retRes545607 := (<-this.LoadMarkets())
+            PanicOnError(retRes545607)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "ccy": GetValue(currency, "id"),
@@ -5489,8 +5489,8 @@ func  (this *coinex) FetchLeverage(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes644350 := (<-this.LoadMarkets())
-            PanicOnError(retRes644350)
+            retRes844074 := (<-this.LoadMarkets())
+            PanicOnError(retRes844074)
             var code interface{} = this.SafeString(params, "code")
             if IsTrue(IsEqual(code, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchLeverage() requires a code parameter")))
@@ -5574,8 +5574,8 @@ func  (this *coinex) FetchPositionHistory(symbol interface{}, optionalArgs ...in
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes468811 := (<-this.LoadMarkets())
-            PanicOnError(retRes468811)
+            retRes636002 := (<-this.LoadMarkets())
+            PanicOnError(retRes636002)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market_type": "FUTURES",
@@ -5669,8 +5669,8 @@ func  (this *coinex) ClosePosition(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes882383 := (<-this.LoadMarkets())
-            PanicOnError(retRes882383)
+            retRes777361 := (<-this.LoadMarkets())
+            PanicOnError(retRes777361)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = this.SafeString(params, "type", "market")
             var request interface{} = map[string]interface{} {
@@ -5914,8 +5914,8 @@ func  (this *coinex) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes632797 := (<-this.LoadMarkets())
-            PanicOnError(retRes632797)
+            retRes839724 := (<-this.LoadMarkets())
+            PanicOnError(retRes839724)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory() requires a symbol argument")))
             }
