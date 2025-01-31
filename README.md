@@ -304,7 +304,7 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 [ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt)
 
 ```shell
-go get github.com/ccxt/ccxt
+go get github.com/ccxt/ccxt/v4
 ```
 
 ```Go
@@ -550,7 +550,7 @@ class Project {
 ```Go
 package main
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
+	"github.com/ccxt/ccxt/v4/go/ccxt/v4"
 	"fmt"
 )
 

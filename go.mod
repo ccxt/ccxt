@@ -1,4 +1,4 @@
-module github.com/ccxt/ccxt
+module github.com/ccxt/ccxt/v4
 
 go 1.23.4
 
