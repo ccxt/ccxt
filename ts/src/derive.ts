@@ -1064,7 +1064,8 @@ export default class derive extends Exchange {
     hashMessage (message) {
         // takes a utf8 encoded message
         const binaryMessage = this.encode (message);
-        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        const binaryMessageLength = binaryMessage.length;
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + this.numberToString (binaryMessageLength));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1110,20 +1111,22 @@ export default class derive extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
-        const nonce = this.now ();
+        const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        const priceString = price.toString ();
+        const maxFeeString = maxFee.toString ();
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             market['info']['base_asset_sub_id'],
-            this.parseUnits (price.toString ()),
+            this.parseUnits (priceString),
             this.parseUnits (this.amountToPrecision (symbol, amount.toString ())),
-            this.parseUnits (maxFee.toString ()),
+            this.parseUnits (maxFeeString),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'hex');
@@ -1289,19 +1292,21 @@ export default class derive extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
-        const nonce = this.now ();
+        const nonce = this.milliseconds ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        const priceString = price.toString ();
+        const maxFeeString = maxFee.toString ();
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             market['info']['base_asset_sub_id'],
-            this.parseUnits (price.toString ()),
+            this.parseUnits (priceString),
             this.parseUnits (this.amountToPrecision (symbol, amount.toString ())),
-            this.parseUnits (maxFee.toString ()),
+            this.parseUnits (maxFeeString),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'hex');
@@ -2485,7 +2490,7 @@ export default class derive extends Exchange {
             };
             if (api === 'private') {
                 this.checkRequiredCredentials ();
-                const now = this.now ().toString ();
+                const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
                 const contractWalletAddress = this.safeString (this.options, 'contractWalletAddress');
                 headers['X-LyraWallet'] = contractWalletAddress;
