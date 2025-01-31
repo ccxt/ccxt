@@ -1,7 +1,6 @@
 package base
 
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +8,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/ccxt/ccxt/v4/go/ccxt"
 )
 
 const (
