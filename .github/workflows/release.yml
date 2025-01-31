@@ -99,7 +99,7 @@ jobs:
             git config --global pull.rebase false
             git add go/
             git commit -m "[Automated changes] go"
-            git pull origin master
+            git pull -X ours origin master --no-edit
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
       - name: Commit files
