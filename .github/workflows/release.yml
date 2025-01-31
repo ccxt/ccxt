@@ -116,7 +116,7 @@ jobs:
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+               #  git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
                git tag -a "${NPM_VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "[Automated Changes] ${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
