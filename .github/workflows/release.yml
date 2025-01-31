@@ -23,7 +23,7 @@ jobs:
           echo "Input value: ${{ github.event.inputs.example_input }}"
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN2 }}
+          ssh-key: ${{secrets.SECRET_KEY}}
           fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
