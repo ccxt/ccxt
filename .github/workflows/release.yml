@@ -116,7 +116,7 @@ jobs:
         env:
           VERSION: ${{ env.NPM_VERSION }}
         run: |
-          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4/@$VERSION
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4@$VERSION
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: Deploy C#
