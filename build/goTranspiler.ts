@@ -1619,7 +1619,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const file = [
             'package base',
-            'import "github.com/ccxt/ccxt/v4/go/ccxt"',
+            'import "github.com/ccxt/ccxt/v4"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1733,7 +1733,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const fileHeaders = [
                 namespace,
-                'import "github.com/ccxt/ccxt/v4/go/ccxt"',
+                'import "github.com/ccxt/ccxt/v4"',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',

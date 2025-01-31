@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/ccxt/ccxt/v4/go/ccxt"
+	"github.com/ccxt/ccxt/v4"
 )
 
 const (
