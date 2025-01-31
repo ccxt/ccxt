@@ -127,7 +127,7 @@ export default class coinbaseinternational extends Exchange {
         info: any;
     }>;
     findDefaultNetwork(networks: any): any;
-    loadCurrencyNetworks(code: any, params?: {}): Promise<void>;
+    loadCurrencyNetworks(code: any, params?: {}): Promise<boolean>;
     parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;

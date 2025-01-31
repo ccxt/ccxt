@@ -628,7 +628,7 @@ export default class woo extends Exchange {
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    fetchPosition(symbol?: Str, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPosition(symbol: Str, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     /**

@@ -55,7 +55,7 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
 
 function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = null, $deep = false) {
     $log_text = log_template($exchange, $method, $entry);
-    assert($entry, 'item is null/undefined' . $log_text);
+    assert($entry !== null, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (gettype($format) === 'array' && array_is_list($format)) {
         assert(gettype($entry) === 'array' && array_is_list($entry), 'entry is not an array' . $log_text);

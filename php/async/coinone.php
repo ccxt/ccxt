@@ -223,17 +223,20 @@ class coinone extends Exchange {
                         'limit' => 100, // todo implement
                         'daysBack' => 100000, // todo implement
                         'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null, // todo implement

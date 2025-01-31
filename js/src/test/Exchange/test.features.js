@@ -9,33 +9,32 @@ async function testFeatures(exchange, skippedProperties) {
     const marketTypes = ['spot', 'swap', 'future', 'option'];
     const subTypes = ['linear', 'inverse'];
     const features = exchange.features;
-    if (features !== undefined) {
-        const keys = Object.keys(features);
-        for (let i = 0; i < keys.length; i++) {
-            testSharedMethods.assertInArray(exchange, skippedProperties, 'features', keys, i, marketTypes);
-            const marketType = keys[i];
-            const value = features[marketType];
-            // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-            if (value === undefined) {
-                continue;
-            }
-            if (marketType === 'spot') {
-                testFeaturesInner(exchange, skippedProperties, value);
-            }
-            else {
-                const subKeys = Object.keys(value);
-                for (let j = 0; j < subKeys.length; j++) {
-                    const subKey = subKeys[j];
-                    testSharedMethods.assertInArray(exchange, skippedProperties, 'features', subKeys, j, subTypes);
-                    const subValue = value[subKey];
-                    // sometimes it might not be available for exchange, eg. future>inverse)
-                    if (subValue !== undefined) {
-                        testFeaturesInner(exchange, skippedProperties, subValue);
-                    }
+    const keys = Object.keys(features);
+    for (let i = 0; i < keys.length; i++) {
+        testSharedMethods.assertInArray(exchange, skippedProperties, 'features', keys, i, marketTypes);
+        const marketType = keys[i];
+        const value = features[marketType];
+        // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
+        if (value === undefined) {
+            continue;
+        }
+        if (marketType === 'spot') {
+            testFeaturesInner(exchange, skippedProperties, value);
+        }
+        else {
+            const subKeys = Object.keys(value);
+            for (let j = 0; j < subKeys.length; j++) {
+                const subKey = subKeys[j];
+                testSharedMethods.assertInArray(exchange, skippedProperties, 'features', subKeys, j, subTypes);
+                const subValue = value[subKey];
+                // sometimes it might not be available for exchange, eg. future>inverse)
+                if (subValue !== undefined) {
+                    testFeaturesInner(exchange, skippedProperties, subValue);
                 }
             }
         }
     }
+    return true;
 }
 function testFeaturesInner(exchange, skippedProperties, featureObj) {
     const format = {
@@ -82,17 +81,20 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
+            'symbolRequired': false,
         },
         'fetchOrder': {
             'marginMode': false,
             'trigger': false,
             'trailing': false,
+            'symbolRequired': false,
         },
         'fetchOpenOrders': {
             'marginMode': false,
             'limit': 0,
             'trigger': false,
             'trailing': false,
+            'symbolRequired': false,
         },
         'fetchOrders': {
             'marginMode': false,
@@ -101,6 +103,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'untilDays': 0,
             'trigger': false,
             'trailing': false,
+            'symbolRequired': false,
         },
         'fetchClosedOrders': {
             'marginMode': false,
@@ -110,6 +113,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             'untilDays': 0,
             'trigger': false,
             'trailing': false,
+            'symbolRequired': false,
         },
         'fetchOHLCV': {
             'limit': 0,
@@ -121,5 +125,6 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
         testSharedMethods.assertInArray(exchange, skippedProperties, 'features', featureKeys, i, allMethods);
         testSharedMethods.assertStructure(exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
     }
+    // return true;
 }
 export default testFeatures;

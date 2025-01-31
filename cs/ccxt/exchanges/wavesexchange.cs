@@ -204,17 +204,20 @@ public partial class wavesexchange : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -223,6 +226,7 @@ public partial class wavesexchange : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -232,6 +236,7 @@ public partial class wavesexchange : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", null },
@@ -588,7 +593,7 @@ public partial class wavesexchange : Exchange
         return result;
     }
 
-    public virtual void checkRequiredKeys()
+    public virtual object checkRequiredKeys()
     {
         if (isTrue(isEqual(this.apiKey, null)))
         {
@@ -624,6 +629,7 @@ public partial class wavesexchange : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " secret must be a base58 encoded private key")) ;
         }
+        return true;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

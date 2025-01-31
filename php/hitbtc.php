@@ -317,12 +317,14 @@ class hitbtc extends Exchange {
                         'limit' => 1000,
                         'daysBack' => 100000,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOpenOrders' => array(
@@ -330,6 +332,7 @@ class hitbtc extends Exchange {
                         'limit' => 1000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOrders' => null,
@@ -341,6 +344,7 @@ class hitbtc extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                         'marketType' => true,
                     ),
                     'fetchOHLCV' => array(
@@ -1659,7 +1663,7 @@ class hitbtc extends Exchange {
         return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *

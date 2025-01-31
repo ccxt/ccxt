@@ -16,5 +16,6 @@ function test_fetch_order_book($exchange, $skipped_properties, $symbol) {
         $method = 'fetchOrderBook';
         $orderbook = Async\await($exchange->fetch_order_book($symbol));
         test_order_book($exchange, $skipped_properties, $method, $orderbook, $symbol);
+        return true;
     }) ();
 }

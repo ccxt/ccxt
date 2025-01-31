@@ -18,5 +18,6 @@ async function testFetchTrades(exchange, skippedProperties, symbol) {
     if (!('timestamp' in skippedProperties)) {
         testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
     }
+    return true;
 }
 export default testFetchTrades;

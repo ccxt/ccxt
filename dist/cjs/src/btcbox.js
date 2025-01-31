@@ -138,12 +138,14 @@ class btcbox extends btcbox$1 {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -152,6 +154,7 @@ class btcbox extends btcbox$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': undefined,
@@ -658,9 +661,6 @@ class btcbox extends btcbox$1 {
     async fetchOrdersByType(type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
         const market = this.market(symbol);
         const request = {
             'type': type,

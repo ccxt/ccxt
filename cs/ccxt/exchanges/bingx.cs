@@ -567,17 +567,20 @@ public partial class bingx : Exchange
                         { "limit", 512 },
                         { "daysBack", 30 },
                         { "untilDays", 30 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -586,6 +589,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -595,6 +599,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1440 },
@@ -607,19 +612,7 @@ public partial class bingx : Exchange
                         { "daysBack", null },
                         { "untilDays", null },
                     } },
-                    { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 1440 },
-                    } },
                     { "fetchOrders", null },
-                    { "fetchClosedOrders", new Dictionary<string, object>() {
-                        { "marginMode", false },
-                        { "limit", 1000 },
-                        { "daysBack", null },
-                        { "daysBackCanceled", null },
-                        { "untilDays", 7 },
-                        { "trigger", false },
-                        { "trailing", false },
-                    } },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
@@ -647,12 +640,16 @@ public partial class bingx : Exchange
                         { "extends", "defaultForInverse" },
                     } },
                 } },
+                { "defaultForFuture", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "fetchOrders", null },
+                } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "defaultForLinear" },
+                        { "extends", "defaultForFuture" },
                     } },
                     { "inverse", new Dictionary<string, object>() {
-                        { "extends", "defaultForInverse" },
+                        { "extends", "defaultForFuture" },
                     } },
                 } },
             } },
@@ -2693,10 +2690,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
     /**
@@ -2711,10 +2706,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
     /**
@@ -2729,10 +2722,8 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object req = new Dictionary<string, object>() {
-            { "quoteOrderQty", cost },
-        };
-        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2994,7 +2985,12 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
+            object amountReq = amount;
+            if (!isTrue(getValue(market, "inverse")))
+            {
+                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            }
+            ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
@@ -5742,7 +5738,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV1PrivateGetPositionSideDual(parameters);

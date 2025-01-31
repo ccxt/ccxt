@@ -48,7 +48,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
 
 function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
-    assert (entry, 'item is null/undefined' + logText);
+    assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);

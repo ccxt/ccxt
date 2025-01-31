@@ -377,17 +377,20 @@ export default class wavesexchange extends Exchange {
                         'limit': 100, // todo
                         'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -396,6 +399,7 @@ export default class wavesexchange extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     }, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -405,6 +409,7 @@ export default class wavesexchange extends Exchange {
                         'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': undefined, // todo
@@ -767,6 +772,7 @@ export default class wavesexchange extends Exchange {
         if (hexSecretKeyBytes.length !== 64) {
             throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

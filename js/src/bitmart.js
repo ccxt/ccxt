@@ -726,17 +726,20 @@ export default class bitmart extends Exchange {
                         'limit': 200,
                         'daysBack': undefined,
                         'untilDays': 99999,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 200,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -747,6 +750,7 @@ export default class bitmart extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // variable timespans for recent endpoint, 200 for historical
@@ -969,7 +973,7 @@ export default class bitmart extends Exchange {
             const minSellCost = this.safeString(market, 'min_sell_amount');
             const minCost = Precise.stringMax(minBuyCost, minSellCost);
             const baseMinSize = this.safeNumber(market, 'base_min_size');
-            result.push({
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -1018,7 +1022,7 @@ export default class bitmart extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1083,7 +1087,7 @@ export default class bitmart extends Exchange {
             if (!isFutures && (expiry === 0)) {
                 expiry = undefined;
             }
-            result.push({
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'numericId': undefined,
                 'symbol': symbol,
@@ -1132,7 +1136,7 @@ export default class bitmart extends Exchange {
                 },
                 'created': this.safeInteger(market, 'open_timestamp'),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -3745,7 +3749,7 @@ export default class bitmart extends Exchange {
             let network = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (network !== undefined) {
-                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = request['currency'] + '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 currency['code'] = request['currency']; // update currency code to filter
                 params = this.omit(params, 'network');
             }
@@ -4629,7 +4633,7 @@ export default class bitmart extends Exchange {
      * @description fetches historical funding rate prices
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}

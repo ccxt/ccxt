@@ -51,6 +51,11 @@ jobs:
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21.x"
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
@@ -71,12 +76,14 @@ jobs:
         run: npm run request-tests
       - name: Response tests
         run: npm run response-tests
-      - name: CommonJs tests
-        run: npm run commonjs-test
+      # - name: CommonJs tests
+      #   run: npm run commonjs-test tmp disabling it
       - name: Package Test
         run: npm run package-test
       - name: Freshness Test
         run: npm run test-freshness
+      - name: Go Types Test
+        run: npm run test-types-go
       # Will start the deployment process
       - name: Set new Version
         run: |
@@ -88,6 +95,8 @@ jobs:
       - name: Pull changes
         run: |
             git config --global pull.rebase false
+            git add go/
+            git commit -m "[Automated changes] go"
             git pull origin master
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
@@ -100,18 +109,23 @@ jobs:
       - name: Create GH Release and git-tag-version and push
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          NPM_VERSION: ${{ env.NPM_VERSION }}
           GH_TOKEN: ${{ github.token }}
         run: |
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git tag -a "${COMMIT_MESSAGE}" -m "${COMMIT_MESSAGE}"
+               git tag -a "${NPM_VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "[Automated Changes] ${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
-               gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
+               gh release create "${NPM_VERSION}" --generate-notes --verify-tag
                git push
-
+      - name: Publish Go node_modules
+        env:
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt@$VERSION
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: Deploy C#

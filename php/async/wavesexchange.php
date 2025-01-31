@@ -382,17 +382,20 @@ class wavesexchange extends Exchange {
                         'limit' => 100, // todo
                         'daysBack' => 100000, // todo
                         'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -401,6 +404,7 @@ class wavesexchange extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ), // todo
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -410,6 +414,7 @@ class wavesexchange extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => null, // todo
@@ -780,6 +785,7 @@ class wavesexchange extends Exchange {
         if (strlen($hexSecretKeyBytes) !== 64) {
             throw new AuthenticationError($this->id . ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

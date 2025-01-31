@@ -13,6 +13,7 @@ import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
+import { capitalize } from '../js/src/base/functions.js'
 
 const { keys, values, entries, fromEntries } = Object
 
@@ -686,6 +687,11 @@ async function exportEverything () {
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
         },
+        {
+            file: './go/ccxt/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} };`,
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
@@ -722,6 +728,7 @@ async function exportEverything () {
 
     unlimitedLog.bright.green ('Exported successfully.')
 }
+
 
 // ============================================================================
 // main entry point

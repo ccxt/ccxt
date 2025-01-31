@@ -118,12 +118,14 @@ public partial class btcbox : Exchange
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -132,6 +134,7 @@ public partial class btcbox : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", null },
@@ -692,10 +695,6 @@ public partial class btcbox : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
-        if (isTrue(isEqual(symbol, null)))
-        {
-            symbol = "BTC/JPY";
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },

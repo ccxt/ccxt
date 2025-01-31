@@ -862,17 +862,20 @@ public partial class kucoin : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", 7 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 500 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -883,6 +886,7 @@ public partial class kucoin : Exchange
                         { "untilDays", 7 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1500 },
@@ -1127,8 +1131,9 @@ public partial class kucoin : Exchange
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
-    public async virtual Task loadMigrationStatus(object force = null)
+    public async virtual Task<object> loadMigrationStatus(object force = null)
     {
         force ??= false;
         if (isTrue(isTrue(!isTrue((inOp(this.options, "hf"))) || isTrue((isEqual(getValue(this.options, "hf"), null)))) || isTrue(force)))
@@ -1136,6 +1141,7 @@ public partial class kucoin : Exchange
             object result = await this.privateGetHfAccountsOpened();
             ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
         }
+        return true;
     }
 
     public virtual object handleHfAndParams(object parameters = null)
@@ -2212,10 +2218,8 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
     /**
@@ -4145,7 +4149,11 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        object returnType = ((bool) isTrue(isolated)) ? result : this.safeBalance(result);
+        object returnType = result;
+        if (!isTrue(isolated))
+        {
+            returnType = this.safeBalance(result);
+        }
         return returnType;
     }
 
@@ -4951,7 +4959,8 @@ public partial class kucoin : Exchange
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
                 object borrowRateStructure = this.parseBorrowRate(item);
-                ((IList<object>)getValue(borrowRateHistories, code)).Add(borrowRateStructure);
+                object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
+                ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
         object keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
