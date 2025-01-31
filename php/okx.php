@@ -1820,7 +1820,8 @@ class okx extends Exchange {
                 $currencyActive = ($active) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                    $parts = explode(mb_substr('-', $networkId), 1);
+                    $idParts = explode('-', $networkId);
+                    $parts = $this->array_slice($idParts, 1);
                     $chainPart = implode('-', $parts);
                     $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
