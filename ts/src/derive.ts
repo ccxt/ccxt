@@ -2216,7 +2216,7 @@ export default class derive extends Exchange {
         //
         const marketId = this.safeString (income, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeString (income, 'funding');
+        const rate = this.safeString (income, 'funding');
         const code = this.safeCurrencyCode ('USDC');
         const timestamp = this.safeInteger (income, 'timestamp');
         return {
@@ -2226,8 +2226,8 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': undefined,
-            'amount': this.parseNumber (amount),
-            'rate': undefined,
+            'amount': undefined,
+            'rate': rate,
         };
     }
 
