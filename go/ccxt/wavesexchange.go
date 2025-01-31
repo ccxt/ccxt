@@ -305,8 +305,8 @@ func  (this *wavesexchange) GetFeesForAsset(symbol interface{}, side interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes992307 := (<-this.LoadMarkets())
-            PanicOnError(retRes992307)
+            retRes387765 := (<-this.LoadMarkets())
+            PanicOnError(retRes387765)
             var market interface{} = this.Market(symbol)
             amount = this.ToRealSymbolAmount(symbol, amount)
             price = this.ToRealSymbolPrice(symbol, price)
@@ -318,9 +318,9 @@ func  (this *wavesexchange) GetFeesForAsset(symbol interface{}, side interface{}
                 "price": price,
             }, params)
         
-                retRes752483 :=  (<-this.MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request))
-                PanicOnError(retRes752483)
-                ch <- retRes752483
+                retRes269244 :=  (<-this.MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request))
+                PanicOnError(retRes269244)
+                ch <- retRes269244
                 return nil
         
             }()
@@ -590,8 +590,8 @@ func  (this *wavesexchange) FetchOrderBook(symbol interface{}, optionalArgs ...i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes710933 := (<-this.LoadMarkets())
-            PanicOnError(retRes710933)
+            retRes170181 := (<-this.LoadMarkets())
+            PanicOnError(retRes170181)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.Extend(map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -926,8 +926,8 @@ func  (this *wavesexchange) FetchTicker(symbol interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes229066 := (<-this.LoadMarkets())
-            PanicOnError(retRes229066)
+            retRes687616 := (<-this.LoadMarkets())
+            PanicOnError(retRes687616)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairs": GetValue(market, "id"),
@@ -986,8 +986,8 @@ func  (this *wavesexchange) FetchTickers(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes660869 := (<-this.LoadMarkets())
-            PanicOnError(retRes660869)
+            retRes411854 := (<-this.LoadMarkets())
+            PanicOnError(retRes411854)
         
             response:= (<-this.MarketGetTickers(params))
             PanicOnError(response)
@@ -1052,8 +1052,8 @@ func  (this *wavesexchange) FetchOHLCV(symbol interface{}, optionalArgs ...inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes667243 := (<-this.LoadMarkets())
-            PanicOnError(retRes667243)
+            retRes706725 := (<-this.LoadMarkets())
+            PanicOnError(retRes706725)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "baseId": GetValue(market, "baseId"),
@@ -1179,8 +1179,8 @@ func  (this *wavesexchange) FetchDepositAddress(code interface{}, optionalArgs .
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes450871 := (<-this.SignIn())
-            PanicOnError(retRes450871)
+            retRes534131 := (<-this.SignIn())
+            PanicOnError(retRes534131)
             var networks interface{} = this.SafeValue(this.Options, "networks", map[string]interface{} {})
             var rawNetwork interface{} = this.SafeStringUpper(params, "network")
             var network interface{} = this.SafeString(networks, rawNetwork, rawNetwork)
@@ -1437,8 +1437,8 @@ func  (this *wavesexchange) CreateOrder(symbol interface{}, typeVar interface{},
             this.CheckRequiredDependencies()
             this.CheckRequiredKeys()
         
-            retRes317925 := (<-this.LoadMarkets())
-            PanicOnError(retRes317925)
+            retRes596824 := (<-this.LoadMarkets())
+            PanicOnError(retRes596824)
             var market interface{} = this.Market(symbol)
         
             matcherPublicKey:= (<-this.GetMatcherPublicKey())
@@ -1649,8 +1649,8 @@ func  (this *wavesexchange) CancelOrder(id interface{}, optionalArgs ...interfac
             this.CheckRequiredDependencies()
             this.CheckRequiredKeys()
         
-            retRes138656 := (<-this.SignIn())
-            PanicOnError(retRes138656)
+            retRes293493 := (<-this.SignIn())
+            PanicOnError(retRes293493)
         
             wavesAddress:= (<-this.GetWavesAddress())
             PanicOnError(wavesAddress)
@@ -1717,8 +1717,8 @@ func  (this *wavesexchange) FetchOrder(id interface{}, optionalArgs ...interface
             this.CheckRequiredDependencies()
             this.CheckRequiredKeys()
         
-            retRes551769 := (<-this.LoadMarkets())
-            PanicOnError(retRes551769)
+            retRes331038 := (<-this.LoadMarkets())
+            PanicOnError(retRes331038)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1773,8 +1773,8 @@ func  (this *wavesexchange) FetchOrders(optionalArgs ...interface{}) <- chan int
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
         
-            retRes955107 := (<-this.LoadMarkets())
-            PanicOnError(retRes955107)
+            retRes113785 := (<-this.LoadMarkets())
+            PanicOnError(retRes113785)
             var market interface{} = this.Market(symbol)
             var timestamp interface{} = this.Milliseconds()
             var byteArray interface{} = []interface{}{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
@@ -1838,11 +1838,11 @@ func  (this *wavesexchange) FetchOpenOrders(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes111730 := (<-this.LoadMarkets())
-            PanicOnError(retRes111730)
+            retRes497704 := (<-this.LoadMarkets())
+            PanicOnError(retRes497704)
         
-            retRes784612 := (<-this.SignIn())
-            PanicOnError(retRes784612)
+            retRes296738 := (<-this.SignIn())
+            PanicOnError(retRes296738)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1888,11 +1888,11 @@ func  (this *wavesexchange) FetchClosedOrders(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes679463 := (<-this.LoadMarkets())
-            PanicOnError(retRes679463)
+            retRes321377 := (<-this.LoadMarkets())
+            PanicOnError(retRes321377)
         
-            retRes762995 := (<-this.SignIn())
-            PanicOnError(retRes762995)
+            retRes551641 := (<-this.SignIn())
+            PanicOnError(retRes551641)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2129,8 +2129,8 @@ func  (this *wavesexchange) FetchBalance(optionalArgs ...interface{}) <- chan in
             this.CheckRequiredDependencies()
             this.CheckRequiredKeys()
         
-            retRes398244 := (<-this.LoadMarkets())
-            PanicOnError(retRes398244)
+            retRes845923 := (<-this.LoadMarkets())
+            PanicOnError(retRes845923)
         
             wavesAddress:= (<-this.GetWavesAddress())
             PanicOnError(wavesAddress)
@@ -2300,8 +2300,8 @@ func  (this *wavesexchange) FetchMyTrades(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes821885 := (<-this.LoadMarkets())
-            PanicOnError(retRes821885)
+            retRes981456 := (<-this.LoadMarkets())
+            PanicOnError(retRes981456)
         
             address:= (<-this.GetWavesAddress())
             PanicOnError(address)
@@ -2414,8 +2414,8 @@ func  (this *wavesexchange) FetchTrades(symbol interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes357534 := (<-this.LoadMarkets())
-            PanicOnError(retRes357534)
+            retRes159560 := (<-this.LoadMarkets())
+            PanicOnError(retRes159560)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "amountAsset": GetValue(market, "baseId"),
@@ -2694,8 +2694,8 @@ func  (this *wavesexchange) FetchDepositWithdrawFees(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes253645 := (<-this.LoadMarkets())
-            PanicOnError(retRes253645)
+            retRes584397 := (<-this.LoadMarkets())
+            PanicOnError(retRes584397)
             var data interface{} = []interface{}{}
             var promises interface{} = []interface{}{}
             AppendToArray(&promises,this.PrivateGetDepositCurrencies(params))
@@ -2828,8 +2828,8 @@ func  (this *wavesexchange) Withdraw(code interface{}, amount interface{}, addre
                 }
             }
         
-            retRes286967 := (<-this.LoadMarkets())
-            PanicOnError(retRes286967)
+            retRes994936 := (<-this.LoadMarkets())
+            PanicOnError(retRes994936)
             var hexChars interface{} = []interface{}{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
             var set interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(hexChars)); i++ {
@@ -2848,8 +2848,8 @@ func  (this *wavesexchange) Withdraw(code interface{}, amount interface{}, addre
                 }
             }
         
-            retRes292988 := (<-this.SignIn())
-            PanicOnError(retRes292988)
+            retRes962318 := (<-this.SignIn())
+            PanicOnError(retRes962318)
             var proxyAddress interface{} = nil
             if IsTrue(IsTrue(IsEqual(code, "WAVES")) && !IsTrue(isErc20)) {
                 proxyAddress = address
