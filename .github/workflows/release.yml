@@ -22,9 +22,8 @@ jobs:
           echo "This workflow was triggered manually."
           echo "Input value: ${{ github.event.inputs.example_input }}"
       - uses: actions/checkout@v4
-        if: github.ref == 'refs/heads/master'
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN2 }}
           fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
