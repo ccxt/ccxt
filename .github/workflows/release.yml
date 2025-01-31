@@ -64,8 +64,8 @@ jobs:
         run: pip install -r ci-requirements.txt
       - name: Install Wheel
         run: pip install wheel twine
-      - name: Transpile and Build
-        run: npm run force-build
+      # - name: Transpile and Build
+      #   run: npm run force-build
       - name: Base tests Rest
         run: npm run test-base-rest
       - name: Base tests Ws
@@ -97,8 +97,8 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             git config --global pull.rebase false
-            git add go/
-            git commit -m "[Automated changes] go"
+            # git add go/
+            # git commit -m "[Automated changes] go"
             git pull origin master
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
