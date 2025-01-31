@@ -1818,7 +1818,8 @@ export default class okx extends Exchange {
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
-                    const parts = networkId.split('-').slice(1);
+                    const idParts = networkId.split('-');
+                    const parts = this.arraySlice(idParts, 1);
                     const chainPart = parts.join('-');
                     const networkCode = this.networkIdToCode(chainPart, currency['code']);
                     const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
