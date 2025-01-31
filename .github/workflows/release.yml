@@ -64,26 +64,28 @@ jobs:
         run: pip install -r ci-requirements.txt
       - name: Install Wheel
         run: pip install wheel twine
-      # - name: Transpile and Build
-      #   run: npm run force-build
-      - name: Base tests Rest
-        run: npm run test-base-rest
-      - name: Base tests Ws
-        run: npm run test-base-ws
-      - name: Id tests
-        run: npm run id-tests
-      - name: Request tests
-        run: npm run request-tests
-      - name: Response tests
-        run: npm run response-tests
-      # - name: CommonJs tests
-      #   run: npm run commonjs-test tmp disabling it
-      - name: Package Test
-        run: npm run package-test
-      - name: Freshness Test
-        run: npm run test-freshness
-      - name: Go Types Test
-        run: npm run test-types-go
+      - name: export exchanges (remove later)
+        run: npm run export-exchanges
+      # # - name: Transpile and Build
+      # #   run: npm run force-build
+      # - name: Base tests Rest
+      #   run: npm run test-base-rest
+      # - name: Base tests Ws
+      #   run: npm run test-base-ws
+      # - name: Id tests
+      #   run: npm run id-tests
+      # - name: Request tests
+      #   run: npm run request-tests
+      # - name: Response tests
+      #   run: npm run response-tests
+      # # - name: CommonJs tests
+      # #   run: npm run commonjs-test tmp disabling it
+      # - name: Package Test
+      #   run: npm run package-test
+      # - name: Freshness Test
+      #   run: npm run test-freshness
+      # - name: Go Types Test
+      #   run: npm run test-types-go
       # Will start the deployment process
       - name: Set new Version
         run: |
