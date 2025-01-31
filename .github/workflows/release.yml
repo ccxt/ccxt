@@ -124,7 +124,7 @@ jobs:
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${NPM_VERSION}" --generate-notes --verify-tag
-               git push
+              #  git push push is not working for now why??
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}
