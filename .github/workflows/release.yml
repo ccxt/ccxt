@@ -64,6 +64,8 @@ jobs:
         run: pip install -r ci-requirements.txt
       - name: Install Wheel
         run: pip install wheel twine
+      - name: export exchanges (remove later)
+        run: npm run export-exchanges
       # # - name: Transpile and Build
       # #   run: npm run force-build
       # - name: Base tests Rest
