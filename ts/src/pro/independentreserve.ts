@@ -231,6 +231,7 @@ export default class independentreserve extends independentreserveRest {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {
