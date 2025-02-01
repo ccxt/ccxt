@@ -1,0 +1,27 @@
+{
+  "name": "@ccxt/cli",
+  "version": "1.0.0",
+  "description": "ccxt cli",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "ccxt": "dist/index.js"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ccxt team",
+  "license": "ISC",
+  "dependencies": {
+    "ccxt": "*",
+    "commander": "^12.0.0",
+    "ink": "^4.4.1",
+    "ink-spinner": "^5.0.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.2",
+    "typescript": "^5.4.3"
+  }
+}
