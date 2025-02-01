@@ -150,7 +150,7 @@ jobs:
         run: chmod +x main
       - name: Live tests
         if: env.important_modified == 'true'
-        run: npm run live-tests-rest-go
+        run: cd go/ && npm run live-tests-rest-go
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}"

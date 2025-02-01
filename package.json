@@ -133,7 +133,7 @@
     "ti-py": "python3 python/ccxt/test/tests_init.py",
     "ti-php": "php php/test/tests_init.php",
     "ti-cs": "dotnet run --project cs/tests/tests.csproj",
-    "ti-go": "cd go/ && go run ./go/tests/main.go",
+    "ti-go": "cd go/ && go run ./tests/main.go",
     "request-ts": "npm run ti-ts  -- --requestTests",
     "request-js": "npm run ti-js  -- --requestTests",
     "request-py-async": "npm run ti-py  -- --requestTests",
