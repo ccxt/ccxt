@@ -48,8 +48,8 @@ jobs:
           for exchange in $cleaned_rest_files; do
             tsx build/goTranspiler.ts -- $exchange
           done
-      - name: Install dependencies
-        run: cd go && go get ./ccxt && cd ..
+      # - name: Install dependencies
+      #   run: cd go && go get ./ccxt && cd ..
       - name: Build
         run: cd go && go build ./ccxt && cd ..
       - name: Build tests
