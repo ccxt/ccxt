@@ -51,6 +51,7 @@ export default class cryptocom extends cryptocomRest {
                 'watchOrderBook': {
                     'checksum': true,
                 },
+                'requestIdToHashes': {},
             },
             'streaming': {
             },
@@ -111,7 +112,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
-     * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+     * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100(to be deprecated) or 500 for snapshot subscription 100 or 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -130,13 +131,13 @@ export default class cryptocom extends cryptocomRest {
         let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        params['params']['book_subscription_type'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
         let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            params['params']['book_update_frequency'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -177,13 +178,13 @@ export default class cryptocom extends cryptocomRest {
         let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        params['params']['book_subscription_type'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
         let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            params['params']['book_update_frequency'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1092,7 +1093,7 @@ export default class cryptocom extends cryptocomRest {
             'method': 'private/create-order',
             'params': params,
         };
-        const messageHash = this.nonce ();
+        const messageHash = this.requestId ();
         return await this.watchPrivateRequest (messageHash, request);
     }
 
@@ -1133,7 +1134,7 @@ export default class cryptocom extends cryptocomRest {
             'method': 'private/cancel-order',
             'params': params,
         };
-        const messageHash = this.nonce ();
+        const messageHash = this.requestId ();
         return await this.watchPrivateRequest (messageHash, request);
     }
 
@@ -1157,7 +1158,7 @@ export default class cryptocom extends cryptocomRest {
             market = this.market (symbol);
             request['params']['instrument_name'] = market['id'];
         }
-        const messageHash = this.nonce ();
+        const messageHash = this.requestId ();
         return await this.watchPrivateRequest (messageHash, request);
     }
 
@@ -1189,13 +1190,19 @@ export default class cryptocom extends cryptocomRest {
 
     async watchPublicMultiple (messageHashes, topics, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce ();
+        const id = this.requestId ();
         const request: Dict = {
+            'id': id,
             'method': 'subscribe',
             'params': {
                 'channels': topics,
             },
-            'nonce': id,
+            'nonce': this.nonce (),
+        };
+        const requestIdToHashes = this.options['requestIdToHashes'];
+        requestIdToHashes[id] = {
+            'messageHashes': messageHashes,
+            'subscriptionHashes': messageHashes,
         };
         const message = this.deepExtend (request, params);
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
@@ -1228,7 +1235,7 @@ export default class cryptocom extends cryptocomRest {
         const url = this.urls['api']['ws']['private'];
         const request: Dict = {
             'id': nonce,
-            'nonce': nonce,
+            'nonce': this.nonce (),
         };
         const message = this.extend (request, params);
         return await this.watch (url, nonce.toString (), message, true);
@@ -1237,13 +1244,13 @@ export default class cryptocom extends cryptocomRest {
     async watchPrivateSubscribe (messageHash, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const id = this.nonce ();
         const request: Dict = {
+            'id': this.requestId (),
             'method': 'subscribe',
             'params': {
                 'channels': [ messageHash ],
             },
-            'nonce': id,
+            'nonce': this.nonce (),
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
@@ -1280,6 +1287,21 @@ export default class cryptocom extends cryptocomRest {
                 }
             } else {
                 client.reject (e, id);
+                const hashes = this.safeDict (this.options['requestIdToHashes'], id);
+                if (hashes) {
+                    const messageHashes = this.safeList (hashes, 'messageHashes');
+                    const subscriptionHashes = this.safeList (hashes, 'subscriptionHashes');
+                    for (let i = 0; i < messageHashes.length; i++) {
+                        const messageHash = messageHashes[i];
+                        client.reject (e, messageHash);
+                    }
+                    for (let i = 0; i < subscriptionHashes.length; i++) {
+                        const subscriptionHash = subscriptionHashes[i];
+                        if (subscriptionHash in client.subscriptions) {
+                            delete client.subscriptions[subscriptionHash];
+                        }
+                    }
+                }
             }
             return true;
         }
