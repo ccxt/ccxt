@@ -607,6 +607,15 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "attachment": 200,
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
         let id: Str;
         let timestamp: Int = undefined;
         let symbol: Str = undefined;
@@ -740,7 +749,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        return response;
+        return this.parseOrder (response);
     }
 
     /**
