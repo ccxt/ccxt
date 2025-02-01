@@ -12,7 +12,7 @@ import (
 
 const (
 	// ROOT_DIR = "/../../"
-	ROOT_DIR = "/../../../"
+	ROOT_DIR = "/../"
 	BASE_DIR = "go/tests/types/static/"
 )
 
