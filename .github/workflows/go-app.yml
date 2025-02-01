@@ -146,8 +146,8 @@ jobs:
       #   run: go build ./go/ccxt
       # - name: Build tests
       #   run: go build ./go/tests/main.go
-      - name: Adjust permissions
-        run: chmod +x main
+      # - name: Adjust permissions
+      #   run: cd go && chmod +x main
       - name: Live tests
         if: env.important_modified == 'true'
         run: cd go/ && npm run live-tests-rest-go
