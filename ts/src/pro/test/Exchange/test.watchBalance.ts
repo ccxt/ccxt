@@ -1,8 +1,9 @@
 
 import testBalance from '../../../test/Exchange/base/test.balance.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from "../../../../ccxt";
 
-async function testWatchBalance (exchange, skippedProperties, code) {
+async function testWatchBalance (exchange: Exchange, skippedProperties: object, code: string) {
     const method = 'watchBalance';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
