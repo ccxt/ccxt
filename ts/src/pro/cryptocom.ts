@@ -270,6 +270,7 @@ export default class cryptocom extends cryptocomRest {
         const marketId = this.safeString (message, 'instrument_name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
         let data = this.safeValue (message, 'data');
         data = this.safeValue (data, 0);
         const timestamp = this.safeInteger (data, 't');
@@ -294,7 +295,9 @@ export default class cryptocom extends cryptocomRest {
             if (currentNonce !== previousNonce) {
                 const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                 if (checksum) {
-                    throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                    const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                    client.reject (err, messageHash);
+                    delete client.subscriptions[messageHash];
                 }
             }
         }
@@ -302,7 +305,6 @@ export default class cryptocom extends cryptocomRest {
         this.handleDeltas (orderbook['bids'], this.safeValue (books, 'bids', []));
         orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -1192,7 +1194,7 @@ export default class cryptocom extends cryptocomRest {
         const url = this.urls['api']['ws']['public'];
         const id = this.requestId ();
         const request: Dict = {
-            'id': id,
+            'id': this.parseToInt (id),
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -1230,22 +1232,22 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtend));
     }
 
-    async watchPrivateRequest (nonce, params = {}) {
+    async watchPrivateRequest (id, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const request: Dict = {
-            'id': nonce,
+            'id': this.parseToInt (id),
             'nonce': this.nonce (),
         };
         const message = this.extend (request, params);
-        return await this.watch (url, nonce.toString (), message, true);
+        return await this.watch (url, id, message, true);
     }
 
     async watchPrivateSubscribe (messageHash, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const request: Dict = {
-            'id': this.requestId (),
+            'id': this.parseToInt (this.requestId ()),
             'method': 'subscribe',
             'params': {
                 'channels': [ messageHash ],
