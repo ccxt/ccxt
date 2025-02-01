@@ -336,8 +336,8 @@ func  (this *zaif) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes866701 := (<-this.LoadMarkets())
-            PanicOnError(retRes866701)
+            retRes120480 := (<-this.LoadMarkets())
+            PanicOnError(retRes120480)
         
             response:= (<-this.PrivatePostGetInfo(params))
             PanicOnError(response)
@@ -368,8 +368,8 @@ func  (this *zaif) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes463314 := (<-this.LoadMarkets())
-            PanicOnError(retRes463314)
+            retRes770802 := (<-this.LoadMarkets())
+            PanicOnError(retRes770802)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -443,8 +443,8 @@ func  (this *zaif) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes336616 := (<-this.LoadMarkets())
-            PanicOnError(retRes336616)
+            retRes316619 := (<-this.LoadMarkets())
+            PanicOnError(retRes316619)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -532,8 +532,8 @@ func  (this *zaif) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes402362 := (<-this.LoadMarkets())
-            PanicOnError(retRes402362)
+            retRes743158 := (<-this.LoadMarkets())
+            PanicOnError(retRes743158)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -590,8 +590,8 @@ func  (this *zaif) CreateOrder(symbol interface{}, typeVar interface{}, side int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes701727 := (<-this.LoadMarkets())
-            PanicOnError(retRes701727)
+            retRes709321 := (<-this.LoadMarkets())
+            PanicOnError(retRes709321)
             if IsTrue(!IsEqual(typeVar, "limit")) {
                 panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
             }
@@ -744,8 +744,8 @@ func  (this *zaif) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes350084 := (<-this.LoadMarkets())
-            PanicOnError(retRes350084)
+            retRes110727 := (<-this.LoadMarkets())
+            PanicOnError(retRes110727)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -787,8 +787,8 @@ func  (this *zaif) FetchClosedOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes667248 := (<-this.LoadMarkets())
-            PanicOnError(retRes667248)
+            retRes959781 := (<-this.LoadMarkets())
+            PanicOnError(retRes959781)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -831,8 +831,8 @@ func  (this *zaif) Withdraw(code interface{}, amount interface{}, address interf
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes86344 := (<-this.LoadMarkets())
-            PanicOnError(retRes86344)
+            retRes216892 := (<-this.LoadMarkets())
+            PanicOnError(retRes216892)
             var currency interface{} = this.Currency(code)
             if IsTrue(IsEqual(code, "JPY")) {
                 panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
