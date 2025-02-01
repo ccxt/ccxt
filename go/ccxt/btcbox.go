@@ -354,8 +354,8 @@ func  (this *btcbox) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes604326 := (<-this.LoadMarkets())
-            PanicOnError(retRes604326)
+            retRes135614 := (<-this.LoadMarkets())
+            PanicOnError(retRes135614)
         
             response:= (<-this.PrivatePostBalance(params))
             PanicOnError(response)
@@ -386,8 +386,8 @@ func  (this *btcbox) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes435513 := (<-this.LoadMarkets())
-            PanicOnError(retRes435513)
+            retRes758891 := (<-this.LoadMarkets())
+            PanicOnError(retRes758891)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             var numSymbols interface{} =     GetArrayLength(this.Symbols)
@@ -449,8 +449,8 @@ func  (this *btcbox) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes217935 := (<-this.LoadMarkets())
-            PanicOnError(retRes217935)
+            retRes844414 := (<-this.LoadMarkets())
+            PanicOnError(retRes844414)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             var numSymbols interface{} =     GetArrayLength(this.Symbols)
@@ -485,8 +485,8 @@ func  (this *btcbox) FetchTickers(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes810881 := (<-this.LoadMarkets())
-            PanicOnError(retRes810881)
+            retRes442000 := (<-this.LoadMarkets())
+            PanicOnError(retRes442000)
         
             response:= (<-this.PublicGetTickers(params))
             PanicOnError(response)
@@ -557,8 +557,8 @@ func  (this *btcbox) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes895867 := (<-this.LoadMarkets())
-            PanicOnError(retRes895867)
+            retRes109200 := (<-this.LoadMarkets())
+            PanicOnError(retRes109200)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             var numSymbols interface{} =     GetArrayLength(this.Symbols)
@@ -609,8 +609,8 @@ func  (this *btcbox) CreateOrder(symbol interface{}, typeVar interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes153491 := (<-this.LoadMarkets())
-            PanicOnError(retRes153491)
+            retRes865091 := (<-this.LoadMarkets())
+            PanicOnError(retRes865091)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "amount": amount,
@@ -654,8 +654,8 @@ func  (this *btcbox) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes974985 := (<-this.LoadMarkets())
-            PanicOnError(retRes974985)
+            retRes590611 := (<-this.LoadMarkets())
+            PanicOnError(retRes590611)
             // a special case for btcbox – default symbol is BTC/JPY
             if IsTrue(IsEqual(symbol, nil)) {
                 symbol = "BTC/JPY"
@@ -767,8 +767,8 @@ func  (this *btcbox) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes845460 := (<-this.LoadMarkets())
-            PanicOnError(retRes845460)
+            retRes860843 := (<-this.LoadMarkets())
+            PanicOnError(retRes860843)
             // a special case for btcbox – default symbol is BTC/JPY
             if IsTrue(IsEqual(symbol, nil)) {
                 symbol = "BTC/JPY"
@@ -814,8 +814,8 @@ func  (this *btcbox) FetchOrdersByType(typeVar interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes558274 := (<-this.LoadMarkets())
-            PanicOnError(retRes558274)
+            retRes555944 := (<-this.LoadMarkets())
+            PanicOnError(retRes555944)
             // a special case for btcbox – default symbol is BTC/JPY
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -877,9 +877,9 @@ func  (this *btcbox) FetchOrders(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes474133 :=  (<-this.FetchOrdersByType("all", symbol, since, limit, params))
-                PanicOnError(retRes474133)
-                ch <- retRes474133
+                retRes274213 :=  (<-this.FetchOrdersByType("all", symbol, since, limit, params))
+                PanicOnError(retRes274213)
+                ch <- retRes274213
                 return nil
         
             }()
@@ -910,9 +910,9 @@ func  (this *btcbox) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes71679 :=  (<-this.FetchOrdersByType("open", symbol, since, limit, params))
-                PanicOnError(retRes71679)
-                ch <- retRes71679
+                retRes388290 :=  (<-this.FetchOrdersByType("open", symbol, since, limit, params))
+                PanicOnError(retRes388290)
+                ch <- retRes388290
                 return nil
         
             }()
