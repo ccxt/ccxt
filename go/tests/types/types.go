@@ -7,12 +7,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ccxt/ccxt/v4/go/ccxt"
+	"github.com/ccxt/ccxt/v4"
 )
 
 const (
 	// ROOT_DIR = "/../../"
-	ROOT_DIR = "/../../../"
+	ROOT_DIR = "/../"
 	BASE_DIR = "go/tests/types/static/"
 )
 
