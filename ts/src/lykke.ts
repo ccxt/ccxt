@@ -268,7 +268,7 @@ export default class lykke extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
-        const currencies = this.safeValue (response, 'payload', []);
+        const currencies = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -307,9 +307,9 @@ export default class lykke extends Exchange {
             const name = this.safeString (currency, 'name');
             const rawType = this.safeString (currency, 'type');
             const type = (rawType === 'erc20Token') ? 'crypto' : 'other';
-            const deposit = this.safeValue (currency, 'blockchainDepositEnabled');
-            const withdraw = this.safeValue (currency, 'blockchainWithdrawal');
-            const isDisabled = this.safeValue (currency, 'isDisabled');
+            const deposit = this.safeBool (currency, 'blockchainDepositEnabled');
+            const withdraw = this.safeBool (currency, 'blockchainWithdrawal');
+            const isDisabled = this.safeBool (currency, 'isDisabled');
             const active = !isDisabled;
             result[code] = {
                 'id': id,
@@ -348,7 +348,7 @@ export default class lykke extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetAssetpairs (params);
-        const markets = this.safeValue (response, 'payload', []);
+        const markets = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -524,7 +524,7 @@ export default class lykke extends Exchange {
         } else {
             response = await this.publicGetTickers (this.extend (request, params));
         }
-        const ticker = this.safeValue (response, 'payload', []);
+        const ticker = this.safeList (response, 'payload', []);
         //
         // publicGetTickers
         //
@@ -573,7 +573,7 @@ export default class lykke extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
-        const tickers = this.safeValue (response, 'payload', []);
+        const tickers = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -614,7 +614,7 @@ export default class lykke extends Exchange {
             request['depth'] = limit; // default 0
         }
         const response = await this.publicGetOrderbooks (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -723,7 +723,7 @@ export default class lykke extends Exchange {
             request['take'] = limit;
         }
         const response = await this.publicGetTradesPublicAssetPairId (this.extend (request, params));
-        const result = this.safeValue (response, 'payload', []);
+        const result = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -779,7 +779,7 @@ export default class lykke extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -917,7 +917,7 @@ export default class lykke extends Exchange {
         //             "error":null
         //         }
         //
-        const payload = this.safeValue (result, 'payload');
+        const payload = this.safeDict (result, 'payload', {});
         const id = this.safeString (payload, 'orderId');
         if (type === 'market') {
             price = this.safeNumber (payload, 'price');
@@ -1019,7 +1019,7 @@ export default class lykke extends Exchange {
             'orderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload');
+        const payload = this.safeDict (response, 'payload', {});
         //
         //     {
         //         "payload":{
@@ -1067,7 +1067,7 @@ export default class lykke extends Exchange {
             request['take'] = limit;
         }
         const response = await this.privateGetOrdersActive (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload');
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -1117,7 +1117,7 @@ export default class lykke extends Exchange {
             request['take'] = limit;
         }
         const response = await this.privateGetOrdersClosed (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload');
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -1173,7 +1173,7 @@ export default class lykke extends Exchange {
             request['from'] = since;
         }
         const response = await this.privateGetTrades (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload');
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
@@ -1324,7 +1324,7 @@ export default class lykke extends Exchange {
             request['take'] = limit;
         }
         const response = await this.privateGetOperations (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         //
         //     {
         //         "payload":[
