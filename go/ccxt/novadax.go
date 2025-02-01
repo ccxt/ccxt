@@ -482,8 +482,8 @@ func  (this *novadax) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes617544 := (<-this.LoadMarkets())
-            PanicOnError(retRes617544)
+            retRes896980 := (<-this.LoadMarkets())
+            PanicOnError(retRes896980)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -536,8 +536,8 @@ func  (this *novadax) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes153823 := (<-this.LoadMarkets())
-            PanicOnError(retRes153823)
+            retRes333038 := (<-this.LoadMarkets())
+            PanicOnError(retRes333038)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetMarketTickers(params))
@@ -596,8 +596,8 @@ func  (this *novadax) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes658072 := (<-this.LoadMarkets())
-            PanicOnError(retRes658072)
+            retRes885342 := (<-this.LoadMarkets())
+            PanicOnError(retRes885342)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -739,8 +739,8 @@ func  (this *novadax) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes567219 := (<-this.LoadMarkets())
-            PanicOnError(retRes567219)
+            retRes436952 := (<-this.LoadMarkets())
+            PanicOnError(retRes436952)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -796,8 +796,8 @@ func  (this *novadax) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes779436 := (<-this.LoadMarkets())
-            PanicOnError(retRes779436)
+            retRes896975 := (<-this.LoadMarkets())
+            PanicOnError(retRes896975)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -901,8 +901,8 @@ func  (this *novadax) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes325099 := (<-this.LoadMarkets())
-            PanicOnError(retRes325099)
+            retRes54013 := (<-this.LoadMarkets())
+            PanicOnError(retRes54013)
         
             response:= (<-this.PrivateGetAccountGetBalance(params))
             PanicOnError(response)
@@ -951,8 +951,8 @@ func  (this *novadax) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes172825 := (<-this.LoadMarkets())
-            PanicOnError(retRes172825)
+            retRes518323 := (<-this.LoadMarkets())
+            PanicOnError(retRes518323)
             var market interface{} = this.Market(symbol)
             var uppercaseType interface{} = ToUpper(typeVar)
             var uppercaseSide interface{} = ToUpper(side)
@@ -1062,8 +1062,8 @@ func  (this *novadax) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes725400 := (<-this.LoadMarkets())
-            PanicOnError(retRes725400)
+            retRes653636 := (<-this.LoadMarkets())
+            PanicOnError(retRes653636)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1107,8 +1107,8 @@ func  (this *novadax) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes762284 := (<-this.LoadMarkets())
-            PanicOnError(retRes762284)
+            retRes854169 := (<-this.LoadMarkets())
+            PanicOnError(retRes854169)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1169,8 +1169,8 @@ func  (this *novadax) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes935139 := (<-this.LoadMarkets())
-            PanicOnError(retRes935139)
+            retRes18203 := (<-this.LoadMarkets())
+            PanicOnError(retRes18203)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1245,9 +1245,9 @@ func  (this *novadax) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 "status": "SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING",
             }
         
-                retRes734633 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes734633)
-                ch <- retRes734633
+                retRes335413 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes335413)
+                ch <- retRes335413
                 return nil
         
             }()
@@ -1281,9 +1281,9 @@ func  (this *novadax) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
                 "status": "FILLED,CANCELED,REJECTED",
             }
         
-                retRes593845 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes593845)
-                ch <- retRes593845
+                retRes378538 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes378538)
+                ch <- retRes378538
                 return nil
         
             }()
@@ -1315,8 +1315,8 @@ func  (this *novadax) FetchOrderTrades(id interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes935339 := (<-this.LoadMarkets())
-            PanicOnError(retRes935339)
+            retRes522650 := (<-this.LoadMarkets())
+            PanicOnError(retRes522650)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1462,8 +1462,8 @@ func  (this *novadax) Transfer(code interface{}, amount interface{}, fromAccount
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes830837 := (<-this.LoadMarkets())
-            PanicOnError(retRes830837)
+            retRes611011 := (<-this.LoadMarkets())
+            PanicOnError(retRes611011)
             var currency interface{} = this.Currency(code)
             if IsTrue(IsTrue(!IsEqual(fromAccount, "main")) && IsTrue(!IsEqual(toAccount, "main"))) {
                 panic(ExchangeError(Add(this.Id, " transfer() supports transfers between main account and subaccounts only")))
@@ -1558,8 +1558,8 @@ func  (this *novadax) Withdraw(code interface{}, amount interface{}, address int
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes617409 := (<-this.LoadMarkets())
-            PanicOnError(retRes617409)
+            retRes827153 := (<-this.LoadMarkets())
+            PanicOnError(retRes827153)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "code": GetValue(currency, "id"),
@@ -1666,9 +1666,9 @@ func  (this *novadax) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
                 "type": "coin_in",
             }
         
-                retRes21056 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes21056)
-                ch <- retRes21056
+                retRes289487 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes289487)
+                ch <- retRes289487
                 return nil
         
             }()
@@ -1702,9 +1702,9 @@ func  (this *novadax) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
                 "type": "coin_out",
             }
         
-                retRes47583 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes47583)
-                ch <- retRes47583
+                retRes183856 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes183856)
+                ch <- retRes183856
                 return nil
         
             }()
@@ -1735,8 +1735,8 @@ func  (this *novadax) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes616082 := (<-this.LoadMarkets())
-            PanicOnError(retRes616082)
+            retRes300313 := (<-this.LoadMarkets())
+            PanicOnError(retRes300313)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1890,8 +1890,8 @@ func  (this *novadax) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes960322 := (<-this.LoadMarkets())
-            PanicOnError(retRes960322)
+            retRes491554 := (<-this.LoadMarkets())
+            PanicOnError(retRes491554)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {

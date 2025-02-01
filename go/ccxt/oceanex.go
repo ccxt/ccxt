@@ -322,8 +322,8 @@ func  (this *oceanex) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes487927 := (<-this.LoadMarkets())
-            PanicOnError(retRes487927)
+            retRes377795 := (<-this.LoadMarkets())
+            PanicOnError(retRes377795)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -375,8 +375,8 @@ func  (this *oceanex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes59141 := (<-this.LoadMarkets())
-            PanicOnError(retRes59141)
+            retRes398254 := (<-this.LoadMarkets())
+            PanicOnError(retRes398254)
             symbols = this.MarketSymbols(symbols)
             if IsTrue(IsEqual(symbols, nil)) {
                 symbols = this.Symbols
@@ -483,8 +483,8 @@ func  (this *oceanex) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes227607 := (<-this.LoadMarkets())
-            PanicOnError(retRes227607)
+            retRes878522 := (<-this.LoadMarkets())
+            PanicOnError(retRes878522)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -545,8 +545,8 @@ func  (this *oceanex) FetchOrderBooks(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes447832 := (<-this.LoadMarkets())
-            PanicOnError(retRes447832)
+            retRes926258 := (<-this.LoadMarkets())
+            PanicOnError(retRes926258)
             if IsTrue(IsEqual(symbols, nil)) {
                 symbols = this.Symbols
             }
@@ -622,8 +622,8 @@ func  (this *oceanex) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes93775 := (<-this.LoadMarkets())
-            PanicOnError(retRes93775)
+            retRes283113 := (<-this.LoadMarkets())
+            PanicOnError(retRes283113)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -826,8 +826,8 @@ func  (this *oceanex) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes625696 := (<-this.LoadMarkets())
-            PanicOnError(retRes625696)
+            retRes771356 := (<-this.LoadMarkets())
+            PanicOnError(retRes771356)
         
             response:= (<-this.PrivateGetMembersMe(params))
             PanicOnError(response)
@@ -861,8 +861,8 @@ func  (this *oceanex) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes898087 := (<-this.LoadMarkets())
-            PanicOnError(retRes898087)
+            retRes604628 := (<-this.LoadMarkets())
+            PanicOnError(retRes604628)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -904,8 +904,8 @@ func  (this *oceanex) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes555917 := (<-this.LoadMarkets())
-            PanicOnError(retRes555917)
+            retRes717251 := (<-this.LoadMarkets())
+            PanicOnError(retRes717251)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -966,9 +966,9 @@ func  (this *oceanex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 "states": []interface{}{"wait"},
             }
         
-                retRes809449 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes809449)
-                ch <- retRes809449
+                retRes938225 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes938225)
+                ch <- retRes938225
                 return nil
         
             }()
@@ -1002,9 +1002,9 @@ func  (this *oceanex) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
                 "states": []interface{}{"done", "cancel"},
             }
         
-                retRes826547 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes826547)
-                ch <- retRes826547
+                retRes287336 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes287336)
+                ch <- retRes287336
                 return nil
         
             }()
@@ -1038,8 +1038,8 @@ func  (this *oceanex) FetchOrders(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
         
-            retRes567437 := (<-this.LoadMarkets())
-            PanicOnError(retRes567437)
+            retRes675912 := (<-this.LoadMarkets())
+            PanicOnError(retRes675912)
             var market interface{} = this.Market(symbol)
             var states interface{} = this.SafeValue(params, "states", []interface{}{"wait", "done", "cancel"})
             var query interface{} = this.Omit(params, "states")
@@ -1110,8 +1110,8 @@ func  (this *oceanex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes760687 := (<-this.LoadMarkets())
-            PanicOnError(retRes760687)
+            retRes165129 := (<-this.LoadMarkets())
+            PanicOnError(retRes165129)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1218,8 +1218,8 @@ func  (this *oceanex) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes76311 := (<-this.LoadMarkets())
-            PanicOnError(retRes76311)
+            retRes686528 := (<-this.LoadMarkets())
+            PanicOnError(retRes686528)
         
             response:= (<-this.PrivatePostOrderDelete(this.Extend(map[string]interface{} {
             "id": id,
@@ -1253,8 +1253,8 @@ func  (this *oceanex) CancelOrders(ids interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes427745 := (<-this.LoadMarkets())
-            PanicOnError(retRes427745)
+            retRes17013 := (<-this.LoadMarkets())
+            PanicOnError(retRes17013)
         
             response:= (<-this.PrivatePostOrderDeleteMulti(this.Extend(map[string]interface{} {
             "ids": ids,
@@ -1287,8 +1287,8 @@ func  (this *oceanex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes20881 := (<-this.LoadMarkets())
-            PanicOnError(retRes20881)
+            retRes979330 := (<-this.LoadMarkets())
+            PanicOnError(retRes979330)
         
             response:= (<-this.PrivatePostOrdersClear(params))
             PanicOnError(response)
@@ -1317,8 +1317,8 @@ func  (this *oceanex) FetchDepositAddressesByNetwork(code interface{}, optionalA
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes442791 := (<-this.LoadMarkets())
-            PanicOnError(retRes442791)
+            retRes104631 := (<-this.LoadMarkets())
+            PanicOnError(retRes104631)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
