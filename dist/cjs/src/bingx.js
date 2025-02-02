@@ -502,7 +502,9 @@ class bingx extends bingx$1 {
             'commonCurrencies': {
                 'SNOW': 'Snowman',
                 'OMNI': 'OmniCat',
-                'NAP': '$NAP', // NAP on SOL = SNAP
+                'NAP': '$NAP',
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
