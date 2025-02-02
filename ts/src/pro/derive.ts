@@ -63,15 +63,16 @@ export default class derive extends deriveRest {
         return newValue;
     }
 
-    async watchPublic (messageHash, message) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+    async watchPublic (messageHash, message, subscription) {
+        const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
-        const subscribe: Dict = {
+        const request = this.extend (message, {
             'id': requestId,
-        };
-        const request = this.extend (subscribe, message);
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        });
+        subscription = this.extend (subscription, {
+            'id': requestId,
+        });
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     /**
@@ -86,17 +87,12 @@ export default class derive extends deriveRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         if (limit === undefined) {
             limit = 10;
         }
         const market = this.market (symbol);
         const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limit);
-        const url = this.urls['api']['ws'];
-        const requestId = this.requestId (url);
         const request: Dict = {
-            'id': requestId,
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -105,13 +101,12 @@ export default class derive extends deriveRest {
             },
         };
         const subscription: Dict = {
-            'id': requestId.toString (),
             'name': topic,
             'symbol': symbol,
             'limit': limit,
             'params': params,
         };
-        const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
+        const orderbook = await this.watchPublic (topic, request, subscription);
         return orderbook.limit ();
     }
 
