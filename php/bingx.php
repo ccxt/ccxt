@@ -5776,7 +5776,7 @@ class bingx extends Exchange {
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
-            'amount' => $this->number_to_string($amount),
+            'amount' => $this->currency_to_precision($code, $amount),
             'walletType' => $walletType,
         );
         $network = $this->safe_string_upper($params, 'network');
