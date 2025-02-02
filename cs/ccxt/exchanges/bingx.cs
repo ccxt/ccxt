@@ -5434,7 +5434,7 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
-            { "amount", this.numberToString(amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "walletType", walletType },
         };
         object network = this.safeStringUpper(parameters, "network");
