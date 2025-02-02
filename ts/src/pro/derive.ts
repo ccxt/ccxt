@@ -23,7 +23,7 @@ export default class derive extends deriveRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchBidsAsks': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPositions': false,
             },
@@ -249,6 +249,64 @@ export default class derive extends deriveRest {
         return message;
     }
 
+    /**
+     * @method
+     * @name derive#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.derive.xyz/reference/trades-instrument_name
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'trades.' + market['id'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'symbol': symbol,
+            'params': params,
+        };
+        const trades = await this.watchPublic (topic, request, subscription);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleTrade (client: Client, message) {
+        //
+        //
+        const params = this.safeDict (message, 'params');
+        const data = this.safeDict (params, 'data');
+        const topic = this.safeValue (params, 'channel');
+        const parsedTopic = topic.split ('.');
+        const marketId = this.safeString (parsedTopic, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesArray = new ArrayCache (limit);
+        }
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (data[i]);
+            tradesArray.append (trade);
+        }
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, topic);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {
@@ -289,6 +347,7 @@ export default class derive extends deriveRest {
         const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'ticker': this.handleTicker,
+            'trades': this.handleTrade,
         };
         // call this.handleSubscribe if needed
         // or throw error if event is not subscribe
