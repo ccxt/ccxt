@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ccxt/ccxt/v4"
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 var Red = "\033[31m"
