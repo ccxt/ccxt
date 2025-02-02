@@ -2783,9 +2783,13 @@ class woofipro extends woofipro$1 {
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
+            let apiKey = this.apiKey;
+            if (apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + apiKey;
+            }
             headers = {
                 'orderly-account-id': this.accountId,
-                'orderly-key': this.apiKey,
+                'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;

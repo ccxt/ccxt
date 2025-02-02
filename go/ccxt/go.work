@@ -2,7 +2,4 @@ go 1.23.4
 
 use (
 	./
-	./go/cli
-	./go/tests
-
 )

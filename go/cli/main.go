@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ccxt/ccxt/v4"
 )
 
 var Red = "\033[31m"

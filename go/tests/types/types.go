@@ -1,17 +1,18 @@
 package main
 
 import (
-	"github.com/ccxt/ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/ccxt/ccxt/v4"
 )
 
 const (
 	// ROOT_DIR = "/../../"
-	ROOT_DIR = "/../../../"
+	ROOT_DIR = "/../"
 	BASE_DIR = "go/tests/types/static/"
 )
 

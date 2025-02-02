@@ -276,7 +276,7 @@ const testExchange = async (exchange) => {
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
-        { key: '--go',           language: 'GO',           exec: [ './main',          ...args] },
+        { key: '--go',           language: 'GO',           exec: [ 'cd go/ && go run tests/main.go',          ...args] },
     ];
 
     // select tests based on cli arguments
