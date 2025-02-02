@@ -505,6 +505,8 @@ export default class bingx extends Exchange {
                 'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
                 'NAP': '$NAP', // NAP on SOL = SNAP
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
