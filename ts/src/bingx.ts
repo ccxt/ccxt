@@ -5787,7 +5787,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper (params, 'network');
