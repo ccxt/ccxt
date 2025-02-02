@@ -3,6 +3,41 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "secondary currency with network",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "TRUMP",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "427fe6bbf571498eaf90ead4dd554994.86.17385181325368631",
+                    "data": {
+                        "currency": "TRUMP-SOL",
+                        "chain": "Solana",
+                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
+                        "address_memo": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "currency": "TRUMP-SOL",
+                        "chain": "Solana",
+                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
+                        "address_memo": ""
+                    },
+                    "currency": "TRUMP-SOL",
+                    "network": "Solana",
+                    "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
+                    "tag": null
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "Fetch swap closed orders",
