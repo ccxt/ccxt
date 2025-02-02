@@ -785,7 +785,7 @@ export default class derive extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'instrument_name');
-        const timestamp = this.safeIntegerOmitZero (ticker, 'timestamp'); // exchange bitget provided 0
+        const timestamp = this.safeIntegerOmitZero (ticker, 'timestamp');
         const symbol = this.safeSymbol (marketId, market);
         const stats = this.safeDict (ticker, 'stats');
         const change = this.safeString (stats, 'percent_change');
