@@ -255,8 +255,8 @@ func  (this *exmo) ModifyMarginHelper(symbol interface{}, amount interface{}, ty
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes321401 := (<-this.LoadMarkets())
-            PanicOnError(retRes321401)
+            retRes463270 := (<-this.LoadMarkets())
+            PanicOnError(retRes463270)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "position_id": GetValue(market, "id"),
@@ -326,9 +326,9 @@ func  (this *exmo) ReduceMargin(symbol interface{}, amount interface{}, optional
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes994493 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-                PanicOnError(retRes994493)
-                ch <- retRes994493
+                retRes657520 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+                PanicOnError(retRes657520)
+                ch <- retRes657520
                 return nil
         
             }()
@@ -352,9 +352,9 @@ func  (this *exmo) AddMargin(symbol interface{}, amount interface{}, optionalArg
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes870453 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-                PanicOnError(retRes870453)
-                ch <- retRes870453
+                retRes560418 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+                PanicOnError(retRes560418)
+                ch <- retRes560418
                 return nil
         
             }()
@@ -382,15 +382,15 @@ func  (this *exmo) FetchTradingFees(optionalArgs ...interface{}) <- chan interfa
             params = this.Omit(params, "method")
             if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
         
-                    retRes104868 :=  (<-this.FetchPrivateTradingFees(params))
-                    PanicOnError(retRes104868)
-                    ch <- retRes104868
+                    retRes863180 :=  (<-this.FetchPrivateTradingFees(params))
+                    PanicOnError(retRes863180)
+                    ch <- retRes863180
                     return nil
             } else {
         
-                    retRes985012 :=  (<-this.FetchPublicTradingFees(params))
-                    PanicOnError(retRes985012)
-                    ch <- retRes985012
+                    retRes257441 :=  (<-this.FetchPublicTradingFees(params))
+                    PanicOnError(retRes257441)
+                    ch <- retRes257441
                     return nil
             }
                 return nil
@@ -405,8 +405,8 @@ func  (this *exmo) FetchPrivateTradingFees(optionalArgs ...interface{}) <- chan 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes978823 := (<-this.LoadMarkets())
-            PanicOnError(retRes978823)
+            retRes180564 := (<-this.LoadMarkets())
+            PanicOnError(retRes180564)
         
             response:= (<-this.PrivatePostMarginPairList(params))
             PanicOnError(response)
@@ -473,8 +473,8 @@ func  (this *exmo) FetchPublicTradingFees(optionalArgs ...interface{}) <- chan i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes652097 := (<-this.LoadMarkets())
-            PanicOnError(retRes652097)
+            retRes699339 := (<-this.LoadMarkets())
+            PanicOnError(retRes699339)
         
             response:= (<-this.PublicGetPairSettings(params))
             PanicOnError(response)
@@ -554,8 +554,8 @@ func  (this *exmo) FetchTransactionFees(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes690013 := (<-this.LoadMarkets())
-            PanicOnError(retRes690013)
+            retRes625225 := (<-this.LoadMarkets())
+            PanicOnError(retRes625225)
         
             cryptoList:= (<-this.PublicGetPaymentsProvidersCryptoList(params))
             PanicOnError(cryptoList)
@@ -644,8 +644,8 @@ func  (this *exmo) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes865234 := (<-this.LoadMarkets())
-            PanicOnError(retRes865234)
+            retRes309752 := (<-this.LoadMarkets())
+            PanicOnError(retRes309752)
         
             response:= (<-this.PublicGetPaymentsProvidersCryptoList(params))
             PanicOnError(response)
@@ -1042,8 +1042,8 @@ func  (this *exmo) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes225066 := (<-this.LoadMarkets())
-            PanicOnError(retRes225066)
+            retRes812128 := (<-this.LoadMarkets())
+            PanicOnError(retRes812128)
             var market interface{} = this.Market(symbol)
             var until interface{} = this.SafeIntegerProduct(params, "until", 0.001)
             var untilIsDefined interface{} =     (!IsEqual(until, nil))
@@ -1167,8 +1167,8 @@ func  (this *exmo) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes606508 := (<-this.LoadMarkets())
-            PanicOnError(retRes606508)
+            retRes619921 := (<-this.LoadMarkets())
+            PanicOnError(retRes619921)
             var marginMode interface{} = nil
             marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params);
             marginMode = GetValue(marginModeparamsVariable,0);
@@ -1213,8 +1213,8 @@ func  (this *exmo) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes969655 := (<-this.LoadMarkets())
-            PanicOnError(retRes969655)
+            retRes698164 := (<-this.LoadMarkets())
+            PanicOnError(retRes698164)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1255,8 +1255,8 @@ func  (this *exmo) FetchOrderBooks(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes884885 := (<-this.LoadMarkets())
-            PanicOnError(retRes884885)
+            retRes30694 := (<-this.LoadMarkets())
+            PanicOnError(retRes30694)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, ",")
@@ -1353,8 +1353,8 @@ func  (this *exmo) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes793308 := (<-this.LoadMarkets())
-            PanicOnError(retRes793308)
+            retRes978849 := (<-this.LoadMarkets())
+            PanicOnError(retRes978849)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetTicker(params))
@@ -1407,8 +1407,8 @@ func  (this *exmo) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes830112 := (<-this.LoadMarkets())
-            PanicOnError(retRes830112)
+            retRes374377 := (<-this.LoadMarkets())
+            PanicOnError(retRes374377)
         
             response:= (<-this.PublicGetTicker(params))
             PanicOnError(response)
@@ -1535,8 +1535,8 @@ func  (this *exmo) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes717593 := (<-this.LoadMarkets())
-            PanicOnError(retRes717593)
+            retRes985412 := (<-this.LoadMarkets())
+            PanicOnError(retRes985412)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1613,8 +1613,8 @@ func  (this *exmo) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
                 panic(BadRequest(Add(this.Id, "only isolated margin is supported")))
             }
         
-            retRes1494 := (<-this.LoadMarkets())
-            PanicOnError(retRes1494)
+            retRes881167 := (<-this.LoadMarkets())
+            PanicOnError(retRes881167)
             var market interface{} = this.Market(symbol)
             var pair interface{} = GetValue(market, "id")
             var isSpot interface{} = !IsEqual(marginMode, "isolated")
@@ -1696,15 +1696,15 @@ func  (this *exmo) CreateMarketOrderWithCost(symbol interface{}, side interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes833521 := (<-this.LoadMarkets())
-            PanicOnError(retRes833521)
+            retRes854230 := (<-this.LoadMarkets())
+            PanicOnError(retRes854230)
             params = this.Extend(params, map[string]interface{} {
                 "cost": cost,
             })
         
-                retRes138562 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-                PanicOnError(retRes138562)
-                ch <- retRes138562
+                retRes376844 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
+                PanicOnError(retRes376844)
+                ch <- retRes376844
                 return nil
         
             }()
@@ -1728,15 +1728,15 @@ func  (this *exmo) CreateMarketBuyOrderWithCost(symbol interface{}, cost interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes715696 := (<-this.LoadMarkets())
-            PanicOnError(retRes715696)
+            retRes757731 := (<-this.LoadMarkets())
+            PanicOnError(retRes757731)
             params = this.Extend(params, map[string]interface{} {
                 "cost": cost,
             })
         
-                retRes925206 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-                PanicOnError(retRes925206)
-                ch <- retRes925206
+                retRes211592 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+                PanicOnError(retRes211592)
+                ch <- retRes211592
                 return nil
         
             }()
@@ -1760,15 +1760,15 @@ func  (this *exmo) CreateMarketSellOrderWithCost(symbol interface{}, cost interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes15946 := (<-this.LoadMarkets())
-            PanicOnError(retRes15946)
+            retRes349358 := (<-this.LoadMarkets())
+            PanicOnError(retRes349358)
             params = this.Extend(params, map[string]interface{} {
                 "cost": cost,
             })
         
-                retRes331866 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-                PanicOnError(retRes331866)
-                ch <- retRes331866
+                retRes109903 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+                PanicOnError(retRes109903)
+                ch <- retRes109903
                 return nil
         
             }()
@@ -1803,8 +1803,8 @@ func  (this *exmo) CreateOrder(symbol interface{}, typeVar interface{}, side int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes658934 := (<-this.LoadMarkets())
-            PanicOnError(retRes658934)
+            retRes387016 := (<-this.LoadMarkets())
+            PanicOnError(retRes387016)
             var market interface{} = this.Market(symbol)
             var isMarket interface{} = IsTrue((IsEqual(typeVar, "market"))) && IsTrue((IsEqual(price, nil)))
             var marginMode interface{} = nil
@@ -1929,8 +1929,8 @@ func  (this *exmo) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes467248 := (<-this.LoadMarkets())
-            PanicOnError(retRes467248)
+            retRes693350 := (<-this.LoadMarkets())
+            PanicOnError(retRes693350)
             var request interface{} = map[string]interface{} {}
             var trigger interface{} = this.SafeValue2(params, "trigger", "stop")
             params = this.Omit(params, []interface{}{"trigger", "stop"})
@@ -1987,8 +1987,8 @@ func  (this *exmo) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes646060 := (<-this.LoadMarkets())
-            PanicOnError(retRes646060)
+            retRes475105 := (<-this.LoadMarkets())
+            PanicOnError(retRes475105)
             var request interface{} = map[string]interface{} {
                 "order_id": ToString(id),
             }
@@ -2111,8 +2111,8 @@ func  (this *exmo) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes197577 := (<-this.LoadMarkets())
-            PanicOnError(retRes197577)
+            retRes935175 := (<-this.LoadMarkets())
+            PanicOnError(retRes935175)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2398,8 +2398,8 @@ func  (this *exmo) FetchCanceledOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes631663 := (<-this.LoadMarkets())
-            PanicOnError(retRes631663)
+            retRes601537 := (<-this.LoadMarkets())
+            PanicOnError(retRes601537)
             var marginMode interface{} = nil
             marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params);
             marginMode = GetValue(marginModeparamsVariable,0);
@@ -2527,8 +2527,8 @@ func  (this *exmo) EditOrder(id interface{}, symbol interface{}, typeVar interfa
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes111272 := (<-this.LoadMarkets())
-            PanicOnError(retRes111272)
+            retRes421888 := (<-this.LoadMarkets())
+            PanicOnError(retRes421888)
             var market interface{} = this.Market(symbol)
             var marginMode interface{} = nil
             marginModeparamsVariable := this.HandleMarginModeAndParams("editOrder", params);
@@ -2578,8 +2578,8 @@ func  (this *exmo) FetchDepositAddress(code interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes347510 := (<-this.LoadMarkets())
-            PanicOnError(retRes347510)
+            retRes246082 := (<-this.LoadMarkets())
+            PanicOnError(retRes246082)
         
             response:= (<-this.PrivatePostDepositAddress(params))
             PanicOnError(response)
@@ -2648,8 +2648,8 @@ func  (this *exmo) Withdraw(code interface{}, amount interface{}, address interf
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes926894 := (<-this.LoadMarkets())
-            PanicOnError(retRes926894)
+            retRes263229 := (<-this.LoadMarkets())
+            PanicOnError(retRes263229)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "amount": amount,
@@ -2848,8 +2848,8 @@ func  (this *exmo) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes503698 := (<-this.LoadMarkets())
-            PanicOnError(retRes503698)
+            retRes270584 := (<-this.LoadMarkets())
+            PanicOnError(retRes270584)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "date", this.ParseToInt(Divide(since, 1000)))
@@ -2923,8 +2923,8 @@ func  (this *exmo) FetchWithdrawals(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes775487 := (<-this.LoadMarkets())
-            PanicOnError(retRes775487)
+            retRes656223 := (<-this.LoadMarkets())
+            PanicOnError(retRes656223)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {
                 "type": "withdraw",
@@ -2993,8 +2993,8 @@ func  (this *exmo) FetchWithdrawal(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes389633 := (<-this.LoadMarkets())
-            PanicOnError(retRes389633)
+            retRes354161 := (<-this.LoadMarkets())
+            PanicOnError(retRes354161)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {
                 "order_id": id,
@@ -3062,8 +3062,8 @@ func  (this *exmo) FetchDeposit(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes166293 := (<-this.LoadMarkets())
-            PanicOnError(retRes166293)
+            retRes722982 := (<-this.LoadMarkets())
+            PanicOnError(retRes722982)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {
                 "order_id": id,
@@ -3136,8 +3136,8 @@ func  (this *exmo) FetchDeposits(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes240451 := (<-this.LoadMarkets())
-            PanicOnError(retRes240451)
+            retRes984391 := (<-this.LoadMarkets())
+            PanicOnError(retRes984391)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {
                 "type": "deposit",
