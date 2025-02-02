@@ -496,6 +496,8 @@ public partial class bingx : Exchange
                 { "SNOW", "Snowman" },
                 { "OMNI", "OmniCat" },
                 { "NAP", "$NAP" },
+                { "TRUMP", "TRUMPMAGA" },
+                { "TRUMPSOL", "TRUMP" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },

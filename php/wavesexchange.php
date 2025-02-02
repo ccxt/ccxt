@@ -1034,6 +1034,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, $open, high, low, close, volume
          */
         $this->load_markets();
@@ -1044,21 +1045,33 @@ class wavesexchange extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
+        $until = $this->safe_integer($params, 'until');
+        $untilIsDefined = $until !== null;
         if ($limit === null) {
             $limit = $allowedCandles;
         }
         $limit = min ($allowedCandles, $limit);
         $duration = $this->parse_timeframe($timeframe) * 1000;
         if ($since === null) {
-            $durationRoundedTimestamp = $this->parse_to_int($this->milliseconds() / $duration) * $duration;
+            $now = $this->milliseconds();
+            $timeEnd = $untilIsDefined ? $until : $now;
+            $durationRoundedTimestamp = $this->parse_to_int($timeEnd / $duration) * $duration;
             $delta = ($limit - 1) * $duration;
             $timeStart = $durationRoundedTimestamp - $delta;
             $request['timeStart'] = (string) $timeStart;
+            if ($untilIsDefined) {
+                $request['timeEnd'] = (string) $until;
+            }
         } else {
             $request['timeStart'] = (string) $since;
-            $timeEnd = $this->sum($since, $duration * $limit);
-            $request['timeEnd'] = (string) $timeEnd;
+            if ($untilIsDefined) {
+                $request['timeEnd'] = (string) $until;
+            } else {
+                $timeEnd = $this->sum($since, $duration * $limit);
+                $request['timeEnd'] = (string) $timeEnd;
+            }
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params));
         //
         //     {
