@@ -271,7 +271,9 @@
                 "expiry":"expiry is expected to be > 0",
                 "settle": "not defined when contract",
                 "settleId": "not defined when contract",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "taker": "missing",
+                "maker": "missing"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
