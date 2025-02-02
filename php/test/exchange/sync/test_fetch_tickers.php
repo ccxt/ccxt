@@ -13,6 +13,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     Promise\all([test_fetch_tickers_helper($exchange, $skipped_properties, null), test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol])]);
+    return true;
 }
 
 
@@ -31,4 +32,5 @@ function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $ticker = $values[$i];
         test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
     }
+    return true;
 }

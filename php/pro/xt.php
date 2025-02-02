@@ -72,7 +72,7 @@ class xt extends \ccxt\async\xt {
                 $url = $url . '/private';
             }
             $client = $this->client($url);
-            $token = $this->safe_dict($client->subscriptions, 'token');
+            $token = $this->safe_string($client->subscriptions, 'token');
             if ($token === null) {
                 if ($isContract) {
                     $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey ());

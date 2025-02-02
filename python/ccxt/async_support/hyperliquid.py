@@ -216,6 +216,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
                     'Order has zero size.': InvalidOrder,
                     'Insufficient spot balance asset': InsufficientFunds,
+                    'Insufficient balance for withdrawal': InsufficientFunds,
+                    'Insufficient balance for token transfer': InsufficientFunds,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -239,7 +241,6 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': False,
                             'PO': True,
@@ -261,17 +262,20 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'limit': 2000,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 2000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -280,15 +284,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 2000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 5000,
@@ -695,6 +701,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         price = self.safe_number(market, 'markPx', 0)
         pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
         pricePrecisionStr = self.number_to_string(pricePrecision)
+        isDelisted = self.safe_bool(market, 'isDelisted')
+        active = True
+        if isDelisted is not None:
+            active = not isDelisted
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -710,7 +720,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': True,
+            'active': active,
             'contract': contract,
             'linear': True,
             'inverse': False,
@@ -968,8 +978,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 self.safe_dict(assetCtxs, i, {})
             )
             result.append(data)
-        funding_rates = self.parse_funding_rates(result)
-        return self.filter_by_array(funding_rates, 'symbol', symbols)
+        return self.parse_funding_rates(result, symbols)
 
     def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
         #
@@ -1129,7 +1138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
 
@@ -1860,6 +1869,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         request: dict = {
             'type': 'fundingHistory',
@@ -2182,7 +2193,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.safe_integer_2(order, 'timestamp', 'statusTimestamp')
+        timestamp = self.safe_integer(entry, 'timestamp')
         status = self.safe_string_2(order, 'status', 'ccxtStatus')
         order = self.omit(order, ['ccxtStatus'])
         side = self.safe_string(entry, 'side')
@@ -2197,7 +2208,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': self.parse_order_type(self.safe_string_lower(entry, 'orderType')),
             'timeInForce': self.safe_string_upper(entry, 'tif'),
@@ -2752,7 +2763,26 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': sig,
         }
         response = await self.privatePostExchange(request)
-        return response
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return self.parse_transfer(response)
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        #
+        # {'response': {'type': 'default'}, 'status': 'ok'}
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok',
+        }
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
@@ -3148,8 +3178,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         swapMarkets = await self.fetch_swap_markets()
-        result = self.parse_open_interests(swapMarkets)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(swapMarkets, symbols)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """

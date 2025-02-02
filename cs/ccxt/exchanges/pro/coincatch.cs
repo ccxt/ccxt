@@ -634,7 +634,7 @@ public partial class coincatch : ccxt.coincatch
 
     /**
      * @method
-     * @name coincatch#watchOrderBook
+     * @name coincatch#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param symbols
@@ -798,7 +798,7 @@ public partial class coincatch : ccxt.coincatch
 
     /**
      * @method
-     * @name coincatch#watchTrades
+     * @name coincatch#watchTradesForSymbols
      * @description watches information on multiple trades made in a market
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param symbols

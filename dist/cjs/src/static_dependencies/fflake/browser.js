@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-// DEFLATE is a complex format; to read this code, you should probably check the RFC first:
+// ----------------------------------------------------------------------------
 // aliases for shorter compressed code (most minifers don't do this)
 var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
 // fixed length extra bits

@@ -163,3 +163,11 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
   To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.
 
   See more: [Unified API](Manual.md#unified-api)
+
+  ## How to differentiate between previousFundingRate, fundingRate and nextFundingRate in the funding rate structure?
+  The funding rate structure has three different funding rate values that can be returned:
+  1. `previousFundingRate`refers to the most recently completed rate.
+  2. `fundingRate` is the upcoming rate. This value is always changing until the funding time passes and then it becomes the previousFundingRate.
+  3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
+
+  As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.

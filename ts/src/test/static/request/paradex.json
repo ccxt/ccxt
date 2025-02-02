@@ -104,7 +104,8 @@
             }
         ],
         "createOrder": [
-            {
+            {   
+                "disabledGO": true,
                 "description": "limit buy order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -118,6 +119,7 @@
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1721903698000}"
             },
             {
+                "disabledGO": true,
                 "description": "create market buy order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -130,6 +132,7 @@
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"size\":\"0.1\",\"signature\":\"[\\\"960080708898797183928029809172791379248539766925379037410238144931416428683\\\",\\\"2105400033629372680154136446725663660284562666186469337283885745287960888896\\\"]\",\"signature_timestamp\":1721829169000}"
             },
             {
+                "disabledGO": true,
                 "description": "market sell order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -142,6 +145,8 @@
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"MARKET\",\"size\":\"0.1\",\"signature\":\"[\\\"1468894355587050285420949071350345737433437568442442138979146276284680442953\\\",\\\"2574741288777905528175391129576450744028621767206012283486121432563461556821\\\"]\",\"signature_timestamp\":1721829219000}"
             },
             {
+
+                "disabledGO": true,
                 "description": "trigger postOnly order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -159,6 +164,7 @@
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"size\":\"5\",\"instruction\":\"POST_ONLY\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"405019133243389523227124401986152572914421013989070242205295296137801865967\\\",\\\"1748135842845179971618758228738423761246707634334073467171466626514884721167\\\"]\",\"signature_timestamp\":1722426053000}"
             },
             {
+                "disabledGO": true,
                 "description": "stop market order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -175,6 +181,7 @@
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"size\":\"2\",\"trigger_price\":\"200\",\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
             },
             {
+                "disabledGO": true,
                 "description": "reduceOnly with clientOrderId",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -194,6 +201,7 @@
         ],
         "cancelOrder": [
             {
+                "disabledGO": true,
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders/1721905029980201703994490000?",
@@ -205,6 +213,7 @@
         ],
         "cancelAllOrders": [
             {
+                "disabledGO": true,
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
                 "url": "https://api.testnet.paradex.trade/v1/orders?market=SOL-USD-PERP",

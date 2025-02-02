@@ -295,7 +295,6 @@ class ascendex(Exchange, ImplicitAPI):
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
                     # 'TRC': 'TRC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -305,6 +304,102 @@ class ascendex(Exchange, ImplicitAPI):
                     'LTC': 'Litecoin',
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo with triggerprice
+                        'takeProfitPrice': False,  # todo with triggerprice
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo: implementation
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': False,
+                                'index': False,
+                            },
+                            'price': False,
+                        },
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -1093,6 +1188,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1106,15 +1202,28 @@ class ascendex(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         defaultLimit = self.safe_integer(options, 'limit', 500)
+        until = self.safe_integer(params, 'until')
         if since is not None:
             request['from'] = since
             if limit is None:
                 limit = defaultLimit
             else:
                 limit = min(limit, defaultLimit)
-            request['to'] = self.sum(since, limit * duration * 1000, 1)
+            toWithLimit = self.sum(since, limit * duration * 1000, 1)
+            if until is not None:
+                request['to'] = min(toWithLimit, until + 1)
+            else:
+                request['to'] = toWithLimit
+        elif until is not None:
+            request['to'] = until + 1
+            if limit is None:
+                limit = defaultLimit
+            else:
+                limit = min(limit, defaultLimit)
+            request['from'] = until - (limit * duration * 1000)
         elif limit is not None:
             request['n'] = limit  # max 500
+        params = self.omit(params, 'until')
         response = await self.v1PublicGetBarhist(self.extend(request, params))
         #
         #     {
@@ -2715,8 +2824,7 @@ class ascendex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         contracts = self.safe_list(data, 'contracts', [])
-        result = self.parse_funding_rates(contracts)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(contracts, symbols)
 
     async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()

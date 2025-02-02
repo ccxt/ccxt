@@ -432,27 +432,31 @@ class bitfinex extends Exchange {
                         'limit' => 2500,
                         'daysBack' => null,
                         'untilDays' => 100000, // todo => implement
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 10000,
@@ -1151,7 +1155,8 @@ class bitfinex extends Exchange {
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
             $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
-            $result[$side][] = array( $price, $this->parse_number($amount) );
+            $resultSide = $result[$side];
+            $resultSide[] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -3156,7 +3161,7 @@ class bitfinex extends Exchange {
         //       )
         //   )
         //
-        return $this->parse_funding_rates($response);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3393,8 +3398,7 @@ class bitfinex extends Exchange {
         //         )
         //     )
         //
-        $result = $this->parse_open_interests($response);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_open_interests($response, $symbols);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

@@ -20,6 +20,11 @@ public partial class myokx : okx
                     { "ws", "wss://wseeapap.okx.com:8443/ws/v5" },
                 } },
             } },
+            { "has", new Dictionary<string, object>() {
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+            } },
         });
     }
 }

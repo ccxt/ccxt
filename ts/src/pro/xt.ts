@@ -67,7 +67,7 @@ export default class xt extends xtRest {
             url = url + '/private';
         }
         const client = this.client (url);
-        const token = this.safeDict (client.subscriptions, 'token');
+        const token = this.safeString (client.subscriptions, 'token');
         if (token === undefined) {
             if (isContract) {
                 const response = await this.privateLinearGetFutureUserV1UserListenKey ();

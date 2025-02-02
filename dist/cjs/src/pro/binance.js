@@ -2355,6 +2355,7 @@ class binance extends binance$1 {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 response = await this.fapiPrivatePostListenKey(params);
@@ -2410,6 +2411,7 @@ class binance extends binance$1 {
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, params));
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 await this.fapiPrivatePutListenKey(this.extend(request, params));
@@ -4271,7 +4273,8 @@ class binance extends binance$1 {
             client.reject(message, id);
         }
         // reset connection if 5xx error
-        if (this.safeString(code, 0) === '5') {
+        const codeString = this.safeString(error, 'code');
+        if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset(message);
         }
     }

@@ -450,7 +450,7 @@ public partial class coinex : Exchange
                     { "ERC20", "ERC20" },
                     { "BRC20", "BRC20" },
                     { "SOL", "SOL" },
-                    { "TON", "SOL" },
+                    { "TON", "TON" },
                     { "BSV", "BSV" },
                     { "AVAXC", "AVA_C" },
                     { "AVAXX", "AVA" },
@@ -515,27 +515,31 @@ public partial class coinex : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 100000 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -3020,7 +3024,7 @@ public partial class coinex : Exchange
             { "currency", this.safeCurrencyCode(null, currency) },
             { "network", null },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "memo", tag) },
         };
     }
 
@@ -3900,8 +3904,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -3926,15 +3929,15 @@ public partial class coinex : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(tag))
-        {
-            address = add(add(address, ":"), tag);
-        }
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
             { "to_address", address },
             { "amount", this.numberToString(amount) },
         };
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["memo"] = tag;
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
