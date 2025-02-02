@@ -5530,7 +5530,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.number_to_string(amount),
+            'amount': self.currency_to_precision(code, amount),
             'walletType': walletType,
         }
         network = self.safe_string_upper(params, 'network')
