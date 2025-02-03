@@ -113,7 +113,7 @@ jobs:
                git commit -m "${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
-               gh release create "${VERSION}" --generate-notes --verify-tag
+               gh release create "go/${VERSION}" --generate-notes --verify-tag
                git push
 
       - name: Publish Go node_modules
