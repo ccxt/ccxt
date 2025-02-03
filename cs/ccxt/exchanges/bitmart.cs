@@ -3666,8 +3666,9 @@ public partial class bitmart : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
+        object currencyId = getValue(currency, "id");
         object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", currencyId },
         };
         if (isTrue(isEqual(code, "USDT")))
         {
@@ -3678,8 +3679,18 @@ public partial class bitmart : Exchange
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (isTrue(!isEqual(networkInner, null)))
             {
-                ((IDictionary<string,object>)request)["currency"] = add(add(getValue(request, "currency"), "-"), networkInner); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                ((IDictionary<string,object>)request)["currency"] = add(add(currencyId, "-"), networkInner); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 parameters = this.omit(parameters, "network");
+            }
+        } else
+        {
+            object networkCode = null;
+            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+            networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+            parameters = ((IList<object>)networkCodeparametersVariable)[1];
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)request)["currency"] = add(add(currencyId, "-"), this.networkCodeToId(networkCode));
             }
         }
         object response = await this.privateGetAccountV1DepositAddress(this.extend(request, parameters));
