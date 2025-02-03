@@ -685,8 +685,8 @@ func  (this *kuna) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes914130 := (<-this.LoadMarkets())
-            PanicOnError(retRes914130)
+            retRes368580 := (<-this.LoadMarkets())
+            PanicOnError(retRes368580)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairs": GetValue(market, "id"),
@@ -790,8 +790,8 @@ func  (this *kuna) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes888969 := (<-this.LoadMarkets())
-            PanicOnError(retRes888969)
+            retRes809569 := (<-this.LoadMarkets())
+            PanicOnError(retRes809569)
             if IsTrue(IsEqual(symbols, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchTickers () requires a symbols argument")))
             }
@@ -848,8 +848,8 @@ func  (this *kuna) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes258327 := (<-this.LoadMarkets())
-            PanicOnError(retRes258327)
+            retRes879591 := (<-this.LoadMarkets())
+            PanicOnError(retRes879591)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairs": GetValue(market, "id"),
@@ -906,9 +906,9 @@ func  (this *kuna) FetchL3OrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes589496 :=  (<-this.FetchOrderBook(symbol, limit, params))
-                PanicOnError(retRes589496)
-                ch <- retRes589496
+                retRes438293 :=  (<-this.FetchOrderBook(symbol, limit, params))
+                PanicOnError(retRes438293)
+                ch <- retRes438293
                 return nil
         
             }()
@@ -937,8 +937,8 @@ func  (this *kuna) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes397070 := (<-this.LoadMarkets())
-            PanicOnError(retRes397070)
+            retRes975672 := (<-this.LoadMarkets())
+            PanicOnError(retRes975672)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairs": GetValue(market, "id"),
@@ -1072,8 +1072,8 @@ func  (this *kuna) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes46399 := (<-this.LoadMarkets())
-            PanicOnError(retRes46399)
+            retRes197499 := (<-this.LoadMarkets())
+            PanicOnError(retRes197499)
         
             response:= (<-this.V4PrivateGetPrivateGetBalance(params))
             PanicOnError(response)
@@ -1122,8 +1122,8 @@ func  (this *kuna) CreateOrder(symbol interface{}, typeVar interface{}, side int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes138401 := (<-this.LoadMarkets())
-            PanicOnError(retRes138401)
+            retRes686452 := (<-this.LoadMarkets())
+            PanicOnError(retRes686452)
             var market interface{} = this.Market(symbol)
             var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
             params = this.Omit(params, []interface{}{"triggerPrice", "stopPrice"})
@@ -1191,8 +1191,8 @@ func  (this *kuna) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes705066 := (<-this.LoadMarkets())
-            PanicOnError(retRes705066)
+            retRes130679 := (<-this.LoadMarkets())
+            PanicOnError(retRes130679)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
@@ -1239,8 +1239,8 @@ func  (this *kuna) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes356386 := (<-this.LoadMarkets())
-            PanicOnError(retRes356386)
+            retRes604392 := (<-this.LoadMarkets())
+            PanicOnError(retRes604392)
             var request interface{} = map[string]interface{} {
                 "orderIds": ids,
             }
@@ -1378,8 +1378,8 @@ func  (this *kuna) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes141853 := (<-this.LoadMarkets())
-            PanicOnError(retRes141853)
+            retRes224634 := (<-this.LoadMarkets())
+            PanicOnError(retRes224634)
             var request interface{} = map[string]interface{} {
                 "id": id,
                 "withTrades": true,
@@ -1458,8 +1458,8 @@ func  (this *kuna) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes585354 := (<-this.LoadMarkets())
-            PanicOnError(retRes585354)
+            retRes841518 := (<-this.LoadMarkets())
+            PanicOnError(retRes841518)
             var until interface{} = this.SafeInteger(params, "until")
             params = this.Omit(params, []interface{}{"until"})
             var market interface{} = nil
@@ -1538,9 +1538,9 @@ func  (this *kuna) FetchClosedOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes846587 :=  (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-                PanicOnError(retRes846587)
-                ch <- retRes846587
+                retRes302161 :=  (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+                PanicOnError(retRes302161)
+                ch <- retRes302161
                 return nil
         
             }()
@@ -1576,8 +1576,8 @@ func  (this *kuna) FetchOrdersByStatus(status interface{}, optionalArgs ...inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes556250 := (<-this.LoadMarkets())
-            PanicOnError(retRes556250)
+            retRes161110 := (<-this.LoadMarkets())
+            PanicOnError(retRes161110)
             if IsTrue(IsEqual(status, "open")) {
         
                 ch <- this.FetchOpenOrders(symbol, since, limit, params)
@@ -1664,8 +1664,8 @@ func  (this *kuna) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes862863 := (<-this.LoadMarkets())
-            PanicOnError(retRes862863)
+            retRes754014 := (<-this.LoadMarkets())
+            PanicOnError(retRes754014)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1732,8 +1732,8 @@ func  (this *kuna) Withdraw(code interface{}, amount interface{}, address interf
             var chain interface{} = this.SafeString2(params, "chain", "network")
             params = this.Omit(params, []interface{}{"chain", "network"})
         
-            retRes946791 := (<-this.LoadMarkets())
-            PanicOnError(retRes946791)
+            retRes851079 := (<-this.LoadMarkets())
+            PanicOnError(retRes851079)
             var currency interface{} = this.Currency(code)
             if IsTrue(IsEqual(chain, nil)) {
                 if IsTrue(IsGreaterThan(GetIndexOf(GetValue(currency, "code"), "USD"), 0)) {
@@ -1804,8 +1804,8 @@ func  (this *kuna) FetchWithdrawals(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes228993 := (<-this.LoadMarkets())
-            PanicOnError(retRes228993)
+            retRes271081 := (<-this.LoadMarkets())
+            PanicOnError(retRes271081)
             var until interface{} = this.SafeInteger(params, "until")
             params = this.Omit(params, "until")
             var currency interface{} = nil
@@ -1880,8 +1880,8 @@ func  (this *kuna) FetchWithdrawal(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes890284 := (<-this.LoadMarkets())
-            PanicOnError(retRes890284)
+            retRes431201 := (<-this.LoadMarkets())
+            PanicOnError(retRes431201)
             var request interface{} = map[string]interface{} {
                 "withdrawId": id,
             }
@@ -1934,8 +1934,8 @@ func  (this *kuna) CreateDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes817613 := (<-this.LoadMarkets())
-            PanicOnError(retRes817613)
+            retRes659533 := (<-this.LoadMarkets())
+            PanicOnError(retRes659533)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "source": GetValue(currency, "id"),
@@ -1977,8 +1977,8 @@ func  (this *kuna) FetchDepositAddress(code interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes538570 := (<-this.LoadMarkets())
-            PanicOnError(retRes538570)
+            retRes754209 := (<-this.LoadMarkets())
+            PanicOnError(retRes754209)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "source": ToUpper(GetValue(currency, "id")),
@@ -2068,8 +2068,8 @@ func  (this *kuna) FetchDeposits(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes311200 := (<-this.LoadMarkets())
-            PanicOnError(retRes311200)
+            retRes217045 := (<-this.LoadMarkets())
+            PanicOnError(retRes217045)
             var until interface{} = this.SafeInteger(params, "until")
             params = this.Omit(params, "until")
             var currency interface{} = nil
@@ -2144,8 +2144,8 @@ func  (this *kuna) FetchDeposit(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes771150 := (<-this.LoadMarkets())
-            PanicOnError(retRes771150)
+            retRes948802 := (<-this.LoadMarkets())
+            PanicOnError(retRes948802)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
