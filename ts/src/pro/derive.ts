@@ -16,7 +16,7 @@ export default class derive extends deriveRest {
             'has': {
                 'ws': false,
                 'watchBalance': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -472,6 +472,67 @@ export default class derive extends deriveRest {
         client.resolve (this.orders, topic);
     }
 
+    /**
+     * @method
+     * @name derive#watchMyTrades
+     * @see https://docs.derive.xyz/reference/subaccount_id-trades
+     * @description watches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const topic = this.numberToString (subaccountId) + '.trades';
+        let messageHash = topic;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watchPrivate (messageHash, message, subscription);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        //
+        let myTrades = this.myTrades;
+        if (myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const params = this.safeDict (message, 'params');
+        const topic = this.safeString (params, 'channel');
+        const rawTrades = this.safeList (params, 'data');
+        for (let i = 0; i < rawTrades.length; i++) {
+            const trade = this.parseTrade (message);
+            myTrades.append (trade);
+            client.resolve (myTrades, topic);
+            const messageHash = topic + trade['symbol'];
+            client.resolve (myTrades, messageHash);
+        }
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {
@@ -514,6 +575,7 @@ export default class derive extends deriveRest {
             'ticker': this.handleTicker,
             'trades': this.handleTrade,
             'orders': this.handleOrder,
+            'mytrades': this.handleMyTrade,
         };
         let event = undefined;
         const params = this.safeDict (message, 'params');
@@ -521,8 +583,12 @@ export default class derive extends deriveRest {
             const channel = this.safeString (params, 'channel');
             if (channel !== undefined) {
                 const parsedChannel = channel.split ('.');
-                if (channel.indexOf ('orders') >= 0) {
+                if ((channel.indexOf ('orders') >= 0) || channel.indexOf ('trades') > 0) {
                     event = this.safeString (parsedChannel, 1);
+                    // {subaccounr_id}.trades
+                    if (event === 'trades') {
+                        event = 'mytrades';
+                    }
                 } else {
                     event = this.safeString (parsedChannel, 0);
                 }
