@@ -125,6 +125,7 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+    public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
