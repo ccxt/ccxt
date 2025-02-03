@@ -55,7 +55,7 @@ jobs:
       - name: Install python dependencies
         run: pip install -r ci-requirements.txt
       - name: Install Wheel
-        run: pip install wheel
+        run: pip install wheel twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
       - name: Transpile and Build
@@ -109,25 +109,25 @@ jobs:
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+               git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "${VERSION}" --generate-notes --verify-tag
                git push
 
-      # - name: Publish Go node_modules
-      #   env:
-      #     VERSION: ${{ env.NPM_VERSION }}
-      #   run: |
-      #     cd go/
-      #     GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4@$VERSION
-      #     cd ..
-      - name: C# Release Build
-        run: npm run buildCSRelease
-      - name: Deploy C#
+      - name: Publish Go node_modules
         env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          cd go/
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4@$VERSION
+          cd ..
+      # - name: C# Release Build
+      #   run: npm run buildCSRelease
+      # - name: Deploy C#
+      #   env:
+      #     NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
