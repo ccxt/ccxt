@@ -87,7 +87,7 @@ jobs:
       - name: Pull changes
         run: |
             git config --global pull.rebase false
-            git pull origin master
+            git pull -X ours origin master --no-edit
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
       - name: Commit files
