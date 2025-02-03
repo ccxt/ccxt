@@ -776,7 +776,7 @@ class coinbase extends Exchange {
                 }
             }
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code, specify an `account_id` extra param');
+                throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code ' . $code . ', specify an `account_id` extra param to target specific wallet');
             }
             $request = array(
                 'account_id' => $accountId,
@@ -4226,7 +4226,7 @@ class coinbase extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = null;
-            list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($currency['code']));
+            list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($currency['code'], null, $params));
             $response = Async\await($this->v2PrivateGetAccountsAccountIdAddresses ($this->extend($request, $params)));
             //
             //    {
@@ -4338,12 +4338,15 @@ class coinbase extends Exchange {
         $networkId = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code(null, $currency);
         $addressLabel = $this->safe_string($depositAddress, 'address_label');
-        $splitAddressLabel = explode(' ', $addressLabel);
-        $marketId = $this->safe_string($splitAddressLabel, 0);
+        $currencyId = null;
+        if ($addressLabel !== null) {
+            $splitAddressLabel = explode(' ', $addressLabel);
+            $currencyId = $this->safe_string($splitAddressLabel, 0);
+        }
         $addressInfo = $this->safe_dict($depositAddress, 'address_info');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($addressInfo, 'destination_tag'),
