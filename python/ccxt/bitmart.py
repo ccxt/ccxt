@@ -3409,8 +3409,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
         request: dict = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
@@ -3419,8 +3420,13 @@ class bitmart(Exchange, ImplicitAPI):
             networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
             if networkInner is not None:
-                request['currency'] = request['currency'] + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = currencyId + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
+        else:
+            networkCode = None
+            networkCode, params = self.handle_network_code_and_params(params)
+            if networkCode is not None:
+                request['currency'] = currencyId + '-' + self.network_code_to_id(networkCode)
         response = self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
         #    {
