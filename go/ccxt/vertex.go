@@ -865,8 +865,8 @@ func  (this *vertex) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes674849 := (<-this.LoadMarkets())
-            PanicOnError(retRes674849)
+            retRes811032 := (<-this.LoadMarkets())
+            PanicOnError(retRes811032)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = Add(GetValue(market, "baseId"), "_USDC")
             var request interface{} = map[string]interface{} {
@@ -933,8 +933,8 @@ func  (this *vertex) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes31577 := (<-this.LoadMarkets())
-            PanicOnError(retRes31577)
+            retRes680177 := (<-this.LoadMarkets())
+            PanicOnError(retRes680177)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchMyTrades", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -1160,8 +1160,8 @@ func  (this *vertex) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes950071 := (<-this.LoadMarkets())
-            PanicOnError(retRes950071)
+            retRes49843 := (<-this.LoadMarkets())
+            PanicOnError(retRes49843)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = Add(GetValue(market, "baseId"), "_USDC")
             if IsTrue(IsEqual(limit, nil)) {
@@ -1237,8 +1237,8 @@ func  (this *vertex) FetchTradingFees(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes974399 := (<-this.LoadMarkets())
-            PanicOnError(retRes974399)
+            retRes148057 := (<-this.LoadMarkets())
+            PanicOnError(retRes148057)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchTradingFees", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -1340,8 +1340,8 @@ func  (this *vertex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes739033 := (<-this.LoadMarkets())
-            PanicOnError(retRes739033)
+            retRes884418 := (<-this.LoadMarkets())
+            PanicOnError(retRes884418)
             var market interface{} = this.Market(symbol)
             var ohlcvRequest interface{} = map[string]interface{} {
                 "product_id": this.ParseToInt(GetValue(market, "id")),
@@ -1474,8 +1474,8 @@ func  (this *vertex) FetchFundingRate(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes813830 := (<-this.LoadMarkets())
-            PanicOnError(retRes813830)
+            retRes132352 := (<-this.LoadMarkets())
+            PanicOnError(retRes132352)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "funding_rate": map[string]interface{} {
@@ -1518,8 +1518,8 @@ func  (this *vertex) FetchFundingRates(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes671053 := (<-this.LoadMarkets())
-            PanicOnError(retRes671053)
+            retRes145363 := (<-this.LoadMarkets())
+            PanicOnError(retRes145363)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbols, nil)) {
                 symbols = this.MarketSymbols(symbols)
@@ -1622,8 +1622,8 @@ func  (this *vertex) FetchOpenInterests(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes381155 := (<-this.LoadMarkets())
-            PanicOnError(retRes381155)
+            retRes349849 := (<-this.LoadMarkets())
+            PanicOnError(retRes349849)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.V2ArchiveGetContracts(params))
@@ -1701,8 +1701,8 @@ func  (this *vertex) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes643722 := (<-this.LoadMarkets())
-            PanicOnError(retRes643722)
+            retRes166163 := (<-this.LoadMarkets())
+            PanicOnError(retRes166163)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "contract")) {
                 panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -1806,8 +1806,8 @@ func  (this *vertex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes802799 := (<-this.LoadMarkets())
-            PanicOnError(retRes802799)
+            retRes473812 := (<-this.LoadMarkets())
+            PanicOnError(retRes473812)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var request interface{} = map[string]interface{} {}
         
@@ -2064,8 +2064,8 @@ func  (this *vertex) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market order")))
             }
         
-            retRes103448 := (<-this.LoadMarkets())
-            PanicOnError(retRes103448)
+            retRes552927 := (<-this.LoadMarkets())
+            PanicOnError(retRes552927)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = this.ParseToInt(GetValue(market, "id"))
         
@@ -2189,8 +2189,8 @@ func  (this *vertex) EditOrder(id interface{}, symbol interface{}, typeVar inter
                 panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a price argument for market order")))
             }
         
-            retRes54617 := (<-this.LoadMarkets())
-            PanicOnError(retRes54617)
+            retRes242543 := (<-this.LoadMarkets())
+            PanicOnError(retRes242543)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = this.ParseToInt(GetValue(market, "id"))
             var defaultTimeInForce interface{} = Ternary(IsTrue((isMarketOrder)), "fok", nil)
@@ -2431,8 +2431,8 @@ func  (this *vertex) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes416851 := (<-this.LoadMarkets())
-            PanicOnError(retRes416851)
+            retRes565293 := (<-this.LoadMarkets())
+            PanicOnError(retRes565293)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "type": "order",
@@ -2497,8 +2497,8 @@ func  (this *vertex) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes222668 := (<-this.LoadMarkets())
-            PanicOnError(retRes222668)
+            retRes420329 := (<-this.LoadMarkets())
+            PanicOnError(retRes420329)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchOpenOrders", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -2594,8 +2594,8 @@ func  (this *vertex) FetchOrders(optionalArgs ...interface{}) <- chan interface{
             userAddress = GetValue(userAddressparamsVariable,0);
             params = GetValue(userAddressparamsVariable,1)
         
-            retRes835955 := (<-this.LoadMarkets())
-            PanicOnError(retRes835955)
+            retRes28335 := (<-this.LoadMarkets())
+            PanicOnError(retRes28335)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "type": "list_trigger_orders",
@@ -2691,8 +2691,8 @@ func  (this *vertex) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes758246 := (<-this.LoadMarkets())
-            PanicOnError(retRes758246)
+            retRes631180 := (<-this.LoadMarkets())
+            PanicOnError(retRes631180)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
@@ -2760,9 +2760,9 @@ func  (this *vertex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes657408 :=  (<-this.CancelOrders([]interface{}{id}, symbol, params))
-                PanicOnError(retRes657408)
-                ch <- retRes657408
+                retRes939860 :=  (<-this.CancelOrders([]interface{}{id}, symbol, params))
+                PanicOnError(retRes939860)
+                ch <- retRes939860
                 return nil
         
             }()
@@ -2793,8 +2793,8 @@ func  (this *vertex) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes127316 := (<-this.LoadMarkets())
-            PanicOnError(retRes127316)
+            retRes895447 := (<-this.LoadMarkets())
+            PanicOnError(retRes895447)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
         
@@ -3375,8 +3375,8 @@ func  (this *vertex) Withdraw(code interface{}, amount interface{}, address inte
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes201338 := (<-this.LoadMarkets())
-            PanicOnError(retRes201338)
+            retRes113106 := (<-this.LoadMarkets())
+            PanicOnError(retRes113106)
             var currency interface{} = this.Currency(code)
         
             contracts:= (<-this.QueryContracts())
