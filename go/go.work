@@ -1,7 +1,7 @@
 go 1.23.4
 
 use (
-	./ccxt
+	./v4
 	./tests
 	./tests/base
 	./cli
