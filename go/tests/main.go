@@ -1,9 +1,9 @@
 package main
 
 import (
-	// "github.com/ccxt/ccxt/go/ccxt"
 	"fmt"
-	"tests/base"
+
+	"github.com/ccxt/tests/base"
 )
 
 func main() {

@@ -2889,9 +2889,13 @@ class woofipro extends Exchange {
             $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
+            $apiKey = $this->apiKey;
+            if (mb_strpos($apiKey, 'ed25519:') === false) {
+                $apiKey = 'ed25519:' . $apiKey;
+            }
             $headers = array(
                 'orderly-account-id' => $this->accountId,
-                'orderly-key' => $this->apiKey,
+                'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
             );
             $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;

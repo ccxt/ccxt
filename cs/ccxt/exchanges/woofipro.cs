@@ -3002,9 +3002,14 @@ public partial class woofipro : Exchange
             object auth = "";
             object ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
+            object apiKey = this.apiKey;
+            if (isTrue(isLessThan(getIndexOf(apiKey, "ed25519:"), 0)))
+            {
+                apiKey = add("ed25519:", apiKey);
+            }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
-                { "orderly-key", this.apiKey },
+                { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
             auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);

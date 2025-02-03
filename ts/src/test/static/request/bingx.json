@@ -8,6 +8,23 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "withdraw": [
+            {
+                "description": "sol",
+                "method": "withdraw",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=1&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
+                "input": [
+                    "TRUMPSOL",
+                    2.31157,
+                    "eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "closeAllPositions": [
             {
                 "description": "Close all open positions",
