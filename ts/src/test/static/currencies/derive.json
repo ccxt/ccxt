@@ -1,0 +1,535 @@
+{
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "USDC",
+            "spot_price": "1.000082609400000128",
+            "spot_price_24h": "1.000399751699999872"
+        }
+    },
+    "TIA": {
+        "id": "TIA",
+        "code": "TIA",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "TIA",
+            "spot_price": "5.007599342633587712",
+            "spot_price_24h": "4.985166004770630656"
+        }
+    },
+    "DAI": {
+        "id": "DAI",
+        "code": "DAI",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "DAI",
+            "spot_price": "0.999644281305787776",
+            "spot_price_24h": "1.000245743521494912"
+        }
+    },
+    "SNX": {
+        "id": "SNX",
+        "code": "SNX",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SNX",
+            "spot_price": "2.050726989650000128",
+            "spot_price_24h": "2.053255083499999744"
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "ETH",
+            "spot_price": "3441.204122049999536128",
+            "spot_price_24h": "3403.441182450000068608"
+        }
+    },
+    "WIF": {
+        "id": "WIF",
+        "code": "WIF",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "WIF",
+            "spot_price": "1.963289910037157632",
+            "spot_price_24h": "1.934940535979696384"
+        }
+    },
+    "SUI": {
+        "id": "SUI",
+        "code": "SUI",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SUI",
+            "spot_price": "4.322232446179828736",
+            "spot_price_24h": "4.318822641901233664"
+        }
+    },
+    "SFP": {
+        "id": "SFP",
+        "code": "SFP",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SFP",
+            "spot_price": "1.040632160302450384",
+            "spot_price_24h": "0"
+        }
+    },
+    "LINK": {
+        "id": "LINK",
+        "code": "LINK",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "LINK",
+            "spot_price": "21.9641828544740352",
+            "spot_price_24h": "22.066484604998045696"
+        }
+    },
+    "BNB": {
+        "id": "BNB",
+        "code": "BNB",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "BNB",
+            "spot_price": "703.008738878477303808",
+            "spot_price_24h": "703.698248606233001984"
+        }
+    },
+    "WSTETH": {
+        "id": "WSTETH",
+        "code": "WSTETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "WSTETH",
+            "spot_price": "4090.493835952623976448",
+            "spot_price_24h": "4042.073707621718163456"
+        }
+    },
+    "NEAR": {
+        "id": "NEAR",
+        "code": "NEAR",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "NEAR",
+            "spot_price": "5.496847955723930624",
+            "spot_price_24h": "5.370873269870298112"
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "XRP",
+            "spot_price": "2.443918443633598464",
+            "spot_price_24h": "2.349731812558327808"
+        }
+    },
+    "WEETH": {
+        "id": "WEETH",
+        "code": "WEETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "WEETH",
+            "spot_price": "3638.94233565664641024",
+            "spot_price_24h": "3593.140446542841249792"
+        }
+    },
+    "SDAI": {
+        "id": "SDAI",
+        "code": "SDAI",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SDAI",
+            "spot_price": "1.130928773939470848",
+            "spot_price_24h": "1.131790424702691584"
+        }
+    },
+    "SOLVBTC": {
+        "id": "SOLVBTC",
+        "code": "SOLVBTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SOLVBTC",
+            "spot_price": "96273.146046078357864448",
+            "spot_price_24h": "95115.463605466517471232"
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "USDT",
+            "spot_price": "0.99940458245",
+            "spot_price_24h": "0.998714477350000128"
+        }
+    },
+    "AVAX": {
+        "id": "AVAX",
+        "code": "AVAX",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "AVAX",
+            "spot_price": "39.701212172446613504",
+            "spot_price_24h": "38.638250751871139840"
+        }
+    },
+    "PEPE": {
+        "id": "PEPE",
+        "code": "PEPE",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "PEPE",
+            "spot_price": "0.00002035147921932",
+            "spot_price_24h": "0.000020189500787274"
+        }
+    },
+    "WLD": {
+        "id": "WLD",
+        "code": "WLD",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "WLD",
+            "spot_price": "2.229143222356366848",
+            "spot_price_24h": "2.254555534118096640"
+        }
+    },
+    "RSETH": {
+        "id": "RSETH",
+        "code": "RSETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "RSETH",
+            "spot_price": "3553.848911517136715776",
+            "spot_price_24h": "3517.124084452525342720"
+        }
+    },
+    "DOGE": {
+        "id": "DOGE",
+        "code": "DOGE",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "DOGE",
+            "spot_price": "0.338607100322280128",
+            "spot_price_24h": "0.330414808294727680"
+        }
+    },
+    "LBTC": {
+        "id": "LBTC",
+        "code": "LBTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "LBTC",
+            "spot_price": "96368.72103276679528448",
+            "spot_price_24h": "95272.891000205680312320"
+        }
+    },
+    "SOL": {
+        "id": "SOL",
+        "code": "SOL",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SOL",
+            "spot_price": "207.881392066499969024",
+            "spot_price_24h": "205.203198732000002048"
+        }
+    },
+    "CBBTC": {
+        "id": "CBBTC",
+        "code": "CBBTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "CBBTC",
+            "spot_price": "96532.328073231958278144",
+            "spot_price_24h": "95353.214080808279605248"
+        }
+    },
+    "RSWETH": {
+        "id": "RSWETH",
+        "code": "RSWETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "RSWETH",
+            "spot_price": "3538.220918374341804032",
+            "spot_price_24h": "3497.169684628268646400"
+        }
+    },
+    "AAVE": {
+        "id": "AAVE",
+        "code": "AAVE",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "AAVE",
+            "spot_price": "322.397072822070214656",
+            "spot_price_24h": "330.851460995775594496"
+        }
+    },
+    "ARB": {
+        "id": "ARB",
+        "code": "ARB",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "ARB",
+            "spot_price": "0.768382744792017024",
+            "spot_price_24h": "0.760751485320624896"
+        }
+    },
+    "SUSDE": {
+        "id": "SUSDE",
+        "code": "SUSDE",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SUSDE",
+            "spot_price": "1.137761714938092032",
+            "spot_price_24h": "1.136799220817429760"
+        }
+    },
+    "UNI": {
+        "id": "UNI",
+        "code": "UNI",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "UNI",
+            "spot_price": "14.12141703405717504",
+            "spot_price_24h": "14.101321465948798976"
+        }
+    },
+    "SEI": {
+        "id": "SEI",
+        "code": "SEI",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SEI",
+            "spot_price": "0.423608989858707712",
+            "spot_price_24h": "0.428513552322703808"
+        }
+    },
+    "EBTC": {
+        "id": "EBTC",
+        "code": "EBTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "EBTC",
+            "spot_price": "96151.992977833959882752",
+            "spot_price_24h": "95151.649678490989494272"
+        }
+    },
+    "TAO": {
+        "id": "TAO",
+        "code": "TAO",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "TAO",
+            "spot_price": "527.657626963636846592",
+            "spot_price_24h": "516.974314765172473856"
+        }
+    },
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "BTC",
+            "spot_price": "96498.042901349988827136",
+            "spot_price_24h": "95389.685410899999850496"
+        }
+    },
+    "EIGEN": {
+        "id": "EIGEN",
+        "code": "EIGEN",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "EIGEN",
+            "spot_price": "3.625030429337839616",
+            "spot_price_24h": "3.677601254517445632"
+        }
+    },
+    "ENA": {
+        "id": "ENA",
+        "code": "ENA",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "ENA",
+            "spot_price": "1.02994841977645056",
+            "spot_price_24h": "1.010378473490425728"
+        }
+    },
+    "USDE": {
+        "id": "USDE",
+        "code": "USDE",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "USDE",
+            "spot_price": "0.997965813733260032",
+            "spot_price_24h": "0.998570717447466880"
+        }
+    },
+    "SOLVBTCBBN": {
+        "id": "SOLVBTCBBN",
+        "code": "SOLVBTCBBN",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "SOLVBTCBBN",
+            "spot_price": "95755.544034980493524992",
+            "spot_price_24h": "94735.459484176851402752"
+        }
+    },
+    "BITCOIN": {
+        "id": "BITCOIN",
+        "code": "BITCOIN",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "BITCOIN",
+            "spot_price": "0.192870093344113216",
+            "spot_price_24h": "0.169781461149500032"
+        }
+    },
+    "DEGEN": {
+        "id": "DEGEN",
+        "code": "DEGEN",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "DEGEN",
+            "spot_price": "0.009776853122775948",
+            "spot_price_24h": "0.009661096299337950"
+        }
+    },
+    "OP": {
+        "id": "OP",
+        "code": "OP",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "info": {
+            "currency": "OP",
+            "spot_price": "1.842845360719298304",
+            "spot_price_24h": "1.835316295078391808"
+        }
+    }
+}
