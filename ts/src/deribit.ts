@@ -487,9 +487,6 @@ export default class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
-                'fetchPositions': {
-                    'code': 'BTC',
-                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
@@ -2773,10 +2770,9 @@ export default class deribit extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const code = this.safeString (params, 'currency');
-        let currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
-            currency = this.currency (code);
+            const currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         const response = await this.privateGetGetPositions (this.extend (request, params));
