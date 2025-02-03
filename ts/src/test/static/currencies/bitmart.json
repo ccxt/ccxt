@@ -142,5 +142,31 @@
             "amount": {},
             "withdraw": {}
         }
+    },
+    "TRUMP": {
+        "id": "TRUMP",
+        "code": "TRUMP",
+        "name": "OFFICIAL TRUMP",
+        "info": {
+            "id": "TRUMP",
+            "name": "OFFICIAL TRUMP",
+            "withdraw_enabled": true,
+            "deposit_enabled": true
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }
