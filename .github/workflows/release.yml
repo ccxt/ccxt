@@ -58,8 +58,8 @@ jobs:
         run: pip install wheel twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
-      - name: Transpile and Build
-        run: npm run force-build
+      # - name: Transpile and Build
+      #   run: npm run force-build
       - name: Base tests Rest
         run: npm run test-base-rest
       - name: Base tests Ws
