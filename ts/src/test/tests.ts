@@ -264,7 +264,7 @@ class testMainClass {
             return true;
         }
         let skipMessage = undefined;
-        const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
+        const supportedByExchange = ((methodName in exchange.has) && exchange.has[methodName]) || methodName === 'rateLimit';
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
@@ -479,6 +479,7 @@ class testMainClass {
                 'watchOrderBookForSymbols': [ [ symbol ] ],
                 'watchTrades': [ symbol ],
                 'watchTradesForSymbols': [ [ symbol ] ],
+                'rateLimit': [ ]
             };
         }
         const market = exchange.market (symbol);

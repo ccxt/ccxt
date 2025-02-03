@@ -671,6 +671,82 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
+    public function get_ws_rate_limit_cost(string $url, string $type) {
+        /**
+         * @ignore
+         * Safely returns message or connection $cost for ws rate limit
+         * @return {number}
+         */
+        $wsOptions = $this->safe_dict($this->options, 'ws');
+        $rateLimits = $this->safe_dict($wsOptions, 'rateLimits', array());
+        $exchangeDefaultRateLimit = $this->safe_dict($rateLimits, 'default', array());
+        $cost = $this->safe_number($exchangeDefaultRateLimit, $type, 1);
+        $rateLimitsKeys = is_array($rateLimits) ? array_keys($rateLimits) : array();
+        for ($i = 0; $i < count($rateLimitsKeys); $i++) {
+            $rateLimitKey = $rateLimitsKeys[$i];
+            if (str_starts_with($url, $rateLimitKey)) {
+                $value = $this->safe_dict($rateLimits, $rateLimitKey);
+                $cost = $this->safe_number($value, $type, $cost);
+                break;
+            }
+        }
+        return $cost;
+    }
+
+    public function get_ws_rate_limit_config($url, $bucketHash = 'connections') {
+        /**
+         * @ignore
+         * Safely extract boolean $value from dictionary or list
+         * @return {array}
+         *
+         * The rate limits can be configured by setting the `options.ws.rateLimits` property in the exchange configuration. Here's an example:
+         *
+         * ```json
+         * 'options' => {
+         *     'ws' => {
+         *         'rateLimits' => {
+         *             'default' => array(  // set default rate limit for all rate limits
+         *                 'rateLimit' => 100,
+         *                 'connections' => 1, // $cost per connection
+         *                 'subscriptions' => 5,  // $cost per subscription
+         *             ),
+         *             'https://some_url' => {  // set the rate limit for a specific $url
+         *                 'rateLimit' => 100,
+         *                 'connections' => 2, // override $cost for a connection
+         *                 'subscriptions' => 3, // override $cost for a subscription
+         *             }
+         *         }
+         *     }
+         * }
+         * ```
+         *
+         * In this example, the default rate limit is set to 100, the $cost per connection is 1, and the $cost per subscription is 5. For the $url `https://some_url`, the rate limit is set to 100, the $cost per connection is overridden to 2, and the $cost per subscription is overridden to 3. The `$rateLimit` property sets the maximum number of requests that can be made per second, the `connections` property sets the $cost of creating a new connection, and the `subscriptions` property sets the $cost of creating a new subscription.
+         */
+        $wsOptions = $this->safe_dict($this->options, 'ws');
+        $rateLimits = $this->safe_dict($wsOptions, 'rateLimits', array());
+        $exchangeDefaultRateLimit = $this->safe_dict($rateLimits, 'default', array());
+        $cost = $this->safe_number($exchangeDefaultRateLimit, $bucketHash, 1);
+        $rateLimit = $this->safe_number($exchangeDefaultRateLimit, 'rateLimit');
+        $rateLimitsKeys = is_array($rateLimits) ? array_keys($rateLimits) : array();
+        for ($i = 0; $i < count($rateLimitsKeys); $i++) {
+            $rateLimitKey = $rateLimitsKeys[$i];
+            if (str_starts_with($url, $rateLimitKey)) {
+                $value = $this->safe_dict($rateLimits, $rateLimitKey);
+                $rateLimit = $this->safe_number($value, 'rateLimit', $rateLimit);
+                $cost = $this->safe_number($value, $bucketHash, $cost);
+                break;
+            }
+        }
+        $config = array();
+        if ($cost) {
+            $config['cost'] = $cost;
+        }
+        if ($rateLimit) {
+            $config['refillRate'] = 1 / $rateLimit;
+        }
+        return $config;
+    }
+
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
          * @ignore

@@ -266,7 +266,7 @@ public partial class testMainClass
             return true;
         }
         object skipMessage = null;
-        object supportedByExchange = isTrue((inOp(exchange.has, methodName))) && isTrue(getValue(exchange.has, methodName));
+        object supportedByExchange = isTrue((isTrue((inOp(exchange.has, methodName))) && isTrue(getValue(exchange.has, methodName)))) || isTrue(isEqual(methodName, "rateLimit"));
         if (isTrue(!isTrue(isLoadMarkets) && isTrue((isTrue(isGreaterThan(getArrayLength(this.onlySpecificTests), 0)) && !isTrue(exchange.inArray(methodName, this.onlySpecificTests))))))
         {
             skipMessage = "[INFO] IGNORED_TEST";
@@ -518,6 +518,7 @@ public partial class testMainClass
                 { "watchOrderBookForSymbols", new List<object>() {new List<object>() {symbol}} },
                 { "watchTrades", new List<object>() {symbol} },
                 { "watchTradesForSymbols", new List<object>() {new List<object>() {symbol}} },
+                { "rateLimit", new List<object>() {} },
             };
         }
         object market = exchange.market(symbol);

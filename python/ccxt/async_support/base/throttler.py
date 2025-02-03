@@ -39,6 +39,13 @@ class Throttler:
                 last_timestamp = now
                 self.config['tokens'] = min(self.config['tokens'] + elapsed * self.config['refillRate'], self.config['capacity'])
 
+    def clear(self):
+        while self.queue:
+            future, _ = self.queue.popleft()  # Remove the task from the queue
+            if not future.done():
+                future.cancel()  # Cancel the task if it's not already done
+        self.running = False
+
     def __call__(self, cost=None):
         future = asyncio.Future()
         if len(self.queue) > self.config['maxCapacity']:
