@@ -19,7 +19,7 @@ export default class derive extends deriveRest {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchBidsAsks': false,
@@ -307,6 +307,171 @@ export default class derive extends deriveRest {
         client.resolve (tradesArray, topic);
     }
 
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const requestId = this.requestId (url);
+            const now = this.milliseconds ().toString ();
+            const signature = this.signMessage (now, this.privateKey);
+            const contractWalletAddress = this.safeString (this.options, 'contractWalletAddress');
+            const request: Dict = {
+                'id': requestId,
+                'method': 'public/login',
+                'params': {
+                    'wallet': contractWalletAddress,
+                    'timestamp': now,
+                    'signature': signature,
+                },
+            };
+            // const subscription: Dict = {
+            //     'name': topic,
+            //     'symbol': symbol,
+            //     'params': params,
+            // };
+            const message = this.extend (request, params);
+            this.watch (url, messageHash, message, messageHash, message);
+        }
+        return await future;
+    }
+
+    async watchPrivate (messageHash, message, subscription) {
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const request = this.extend (message, {
+            'id': requestId,
+        });
+        subscription = this.extend (subscription, {
+            'id': requestId,
+        });
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchOrders
+     * @see https://docs.derive.xyz/reference/subaccount_id-orders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        const topic = this.numberToString (subaccountId) + '.orders';
+        let messageHash = topic;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const orders = await this.watchPrivate (messageHash, message, subscription);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // {
+        //     method: 'subscription',
+        //     params: {
+        //         channel: '130837.orders',
+        //         data: [
+        //             {
+        //                 subaccount_id: 130837,
+        //                 order_id: '1f44c564-5658-4b69-b8c4-4019924207d5',
+        //                 instrument_name: 'BTC-PERP',
+        //                 direction: 'buy',
+        //                 label: 'test1234',
+        //                 quote_id: null,
+        //                 creation_timestamp: 1738578974146,
+        //                 last_update_timestamp: 1738578974146,
+        //                 limit_price: '10000',
+        //                 amount: '0.01',
+        //                 filled_amount: '0',
+        //                 average_price: '0',
+        //                 order_fee: '0',
+        //                 order_type: 'limit',
+        //                 time_in_force: 'post_only',
+        //                 order_status: 'untriggered',
+        //                 max_fee: '219',
+        //                 signature_expiry_sec: 1746354973,
+        //                 nonce: 1738578973570,
+        //                 signer: '0x30CB7B06AdD6749BbE146A6827502B8f2a79269A',
+        //                 signature: '0xc6927095f74a0d3b1aeef8c0579d120056530479f806e9d2e6616df742a8934c69046361beae833b32b25c0145e318438d7d1624bb835add956f63aa37192f571c',
+        //                 cancel_reason: '',
+        //                 mmp: false,
+        //                 is_transfer: false,
+        //                 replaced_order_id: null,
+        //                 trigger_type: 'stoploss',
+        //                 trigger_price_type: 'mark',
+        //                 trigger_price: '102800',
+        //                 trigger_reject_message: null
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const params = this.safeDict (message, 'params');
+        const topic = this.safeString (params, 'channel');
+        const rawOrders = this.safeList (params, 'data');
+        for (let i = 0; i < rawOrders.length; i++) {
+            const data = rawOrders[i];
+            const parsed = this.parseOrder (data);
+            const symbol = this.safeString (parsed, 'symbol');
+            const orderId = this.safeString (parsed, 'id');
+            if (symbol !== undefined) {
+                if (this.orders === undefined) {
+                    const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                    this.orders = new ArrayCacheBySymbolById (limit);
+                }
+                const cachedOrders = this.orders;
+                const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                const order = this.safeValue (orders, orderId);
+                if (order !== undefined) {
+                    const fee = this.safeValue (order, 'fee');
+                    if (fee !== undefined) {
+                        parsed['fee'] = fee;
+                    }
+                    const fees = this.safeValue (order, 'fees');
+                    if (fees !== undefined) {
+                        parsed['fees'] = fees;
+                    }
+                    parsed['trades'] = this.safeValue (order, 'trades');
+                    parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                    parsed['datetime'] = this.safeString (order, 'datetime');
+                }
+                cachedOrders.append (parsed);
+                const messageHashSymbol = topic + ':' + symbol;
+                client.resolve (this.orders, messageHashSymbol);
+            }
+        }
+        client.resolve (this.orders, topic);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {
@@ -348,18 +513,19 @@ export default class derive extends deriveRest {
             'orderbook': this.handleOrderBook,
             'ticker': this.handleTicker,
             'trades': this.handleTrade,
+            'orders': this.handleOrder,
         };
-        // call this.handleSubscribe if needed
-        // or throw error if event is not subscribe
-        // const event = this.safeString (message, 'method');
-        // if (event === undefined) {}
         let event = undefined;
         const params = this.safeDict (message, 'params');
         if (params !== undefined) {
             const channel = this.safeString (params, 'channel');
             if (channel !== undefined) {
                 const parsedChannel = channel.split ('.');
-                event = this.safeString (parsedChannel, 0);
+                if (channel.indexOf ('orders') >= 0) {
+                    event = this.safeString (parsedChannel, 1);
+                } else {
+                    event = this.safeString (parsedChannel, 0);
+                }
             }
         }
         let method = this.safeValue (methods, event);
@@ -367,39 +533,27 @@ export default class derive extends deriveRest {
             method.call (this, client, message);
             return;
         }
-    }
-
-    handleSubscribe (client: Client, message) {
-        //
-        // {
-        //     id: 1,
-        //     result: {
-        //       status: { 'orderbook.BTC-PERP.10.1': 'ok' },
-        //       current_subscriptions: [ 'orderbook.BTC-PERP.10.1' ]
-        //     }
-        // }
-        //
-        // const id = this.safeString (message, 'id');
-        // const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        // const subscription = this.safeValue (subscriptionsById, id, {});
-        // const method = this.safeValue (subscription, 'method');
-        // if (method !== undefined) {
-        //     method.call (this, client, message, subscription);
-        // }
-        return message;
+        if ('id' in message) {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id, {});
+            if (('method' in subscription) && (subscription['method'] === 'public/login')) {
+                this.handleAuth (client, message);
+            }
+            // could handleSubscribe
+        }
     }
 
     handleAuth (client: Client, message) {
         //
-        //     {
-        //         "event": "auth",
-        //         "success": true,
-        //         "ts": 1657463158812
-        //     }
+        // {
+        //     id: 1,
+        //     result: [ 130837 ]
+        // }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
-        if (success) {
+        const ids = this.safeList (message, 'result');
+        if (ids.length > 0) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
