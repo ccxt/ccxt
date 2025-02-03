@@ -47,9 +47,9 @@ func  (this *binancecoinm) TransferIn(code interface{}, amount interface{}, opti
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes490215 :=  (<-this.FuturesTransfer(code, amount, 3, params))
-                PanicOnError(retRes490215)
-        ch <- retRes490215
+                retRes717140 :=  (<-this.FuturesTransfer(code, amount, 3, params))
+                PanicOnError(retRes717140)
+        ch <- retRes717140
                 return nil
         
             }()
@@ -64,9 +64,9 @@ func  (this *binancecoinm) TransferOut(code interface{}, amount interface{}, opt
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes820412 :=  (<-this.FuturesTransfer(code, amount, 4, params))
-                PanicOnError(retRes820412)
-        ch <- retRes820412
+                retRes674536 :=  (<-this.FuturesTransfer(code, amount, 4, params))
+                PanicOnError(retRes674536)
+        ch <- retRes674536
                 return nil
         
             }()
