@@ -738,8 +738,8 @@ func  (this *ndax) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes772365 := (<-this.LoadMarkets())
-            PanicOnError(retRes772365)
+            retRes49769 := (<-this.LoadMarkets())
+            PanicOnError(retRes49769)
             var market interface{} = this.Market(symbol)
             limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit) // default 100
             var request interface{} = map[string]interface{} {
@@ -865,8 +865,8 @@ func  (this *ndax) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes675143 := (<-this.LoadMarkets())
-            PanicOnError(retRes675143)
+            retRes210407 := (<-this.LoadMarkets())
+            PanicOnError(retRes210407)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "omsId": omsId,
@@ -957,8 +957,8 @@ func  (this *ndax) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes104109 := (<-this.LoadMarkets())
-            PanicOnError(retRes104109)
+            retRes787432 := (<-this.LoadMarkets())
+            PanicOnError(retRes787432)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "omsId": omsId,
@@ -1189,8 +1189,8 @@ func  (this *ndax) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes29192 := (<-this.LoadMarkets())
-            PanicOnError(retRes29192)
+            retRes274521 := (<-this.LoadMarkets())
+            PanicOnError(retRes274521)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "omsId": omsId,
@@ -1300,11 +1300,11 @@ func  (this *ndax) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes518079 := (<-this.LoadMarkets())
-            PanicOnError(retRes518079)
+            retRes972492 := (<-this.LoadMarkets())
+            PanicOnError(retRes972492)
         
-            retRes428309 := (<-this.LoadAccounts())
-            PanicOnError(retRes428309)
+            retRes985568 := (<-this.LoadAccounts())
+            PanicOnError(retRes985568)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId")
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             if IsTrue(IsEqual(accountId, nil)) {
@@ -1458,11 +1458,11 @@ func  (this *ndax) FetchLedger(optionalArgs ...interface{}) <- chan interface{} 
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes374583 := (<-this.LoadMarkets())
-            PanicOnError(retRes374583)
+            retRes339240 := (<-this.LoadMarkets())
+            PanicOnError(retRes339240)
         
-            retRes888900 := (<-this.LoadAccounts())
-            PanicOnError(retRes888900)
+            retRes894594 := (<-this.LoadAccounts())
+            PanicOnError(retRes894594)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -1638,11 +1638,11 @@ func  (this *ndax) CreateOrder(symbol interface{}, typeVar interface{}, side int
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes67241 := (<-this.LoadMarkets())
-            PanicOnError(retRes67241)
+            retRes995388 := (<-this.LoadMarkets())
+            PanicOnError(retRes995388)
         
-            retRes871490 := (<-this.LoadAccounts())
-            PanicOnError(retRes871490)
+            retRes743829 := (<-this.LoadAccounts())
+            PanicOnError(retRes743829)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             var clientOrderId interface{} = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1707,11 +1707,11 @@ func  (this *ndax) EditOrder(id interface{}, symbol interface{}, typeVar interfa
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes470821 := (<-this.LoadMarkets())
-            PanicOnError(retRes470821)
+            retRes794347 := (<-this.LoadMarkets())
+            PanicOnError(retRes794347)
         
-            retRes473948 := (<-this.LoadAccounts())
-            PanicOnError(retRes473948)
+            retRes352273 := (<-this.LoadAccounts())
+            PanicOnError(retRes352273)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             var clientOrderId interface{} = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -1779,11 +1779,11 @@ func  (this *ndax) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes655291 := (<-this.LoadMarkets())
-            PanicOnError(retRes655291)
+            retRes557153 := (<-this.LoadMarkets())
+            PanicOnError(retRes557153)
         
-            retRes925612 := (<-this.LoadAccounts())
-            PanicOnError(retRes925612)
+            retRes870508 := (<-this.LoadAccounts())
+            PanicOnError(retRes870508)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -1875,11 +1875,11 @@ func  (this *ndax) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes265279 := (<-this.LoadMarkets())
-            PanicOnError(retRes265279)
+            retRes938599 := (<-this.LoadMarkets())
+            PanicOnError(retRes938599)
         
-            retRes263542 := (<-this.LoadAccounts())
-            PanicOnError(retRes263542)
+            retRes446772 := (<-this.LoadAccounts())
+            PanicOnError(retRes446772)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -1933,11 +1933,11 @@ func  (this *ndax) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes971024 := (<-this.LoadMarkets())
-            PanicOnError(retRes971024)
+            retRes67155 := (<-this.LoadMarkets())
+            PanicOnError(retRes67155)
         
-            retRes551394 := (<-this.LoadAccounts())
-            PanicOnError(retRes551394)
+            retRes704346 := (<-this.LoadAccounts())
+            PanicOnError(retRes704346)
             // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
             // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
             // params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1995,11 +1995,11 @@ func  (this *ndax) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes734675 := (<-this.LoadMarkets())
-            PanicOnError(retRes734675)
+            retRes251014 := (<-this.LoadMarkets())
+            PanicOnError(retRes251014)
         
-            retRes825996 := (<-this.LoadAccounts())
-            PanicOnError(retRes825996)
+            retRes239385 := (<-this.LoadAccounts())
+            PanicOnError(retRes239385)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2097,11 +2097,11 @@ func  (this *ndax) FetchOrders(optionalArgs ...interface{}) <- chan interface{} 
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes230248 := (<-this.LoadMarkets())
-            PanicOnError(retRes230248)
+            retRes390354 := (<-this.LoadMarkets())
+            PanicOnError(retRes390354)
         
-            retRes198422 := (<-this.LoadAccounts())
-            PanicOnError(retRes198422)
+            retRes371421 := (<-this.LoadAccounts())
+            PanicOnError(retRes371421)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2201,11 +2201,11 @@ func  (this *ndax) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes529995 := (<-this.LoadMarkets())
-            PanicOnError(retRes529995)
+            retRes429523 := (<-this.LoadMarkets())
+            PanicOnError(retRes429523)
         
-            retRes834426 := (<-this.LoadAccounts())
-            PanicOnError(retRes834426)
+            retRes842192 := (<-this.LoadAccounts())
+            PanicOnError(retRes842192)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2303,11 +2303,11 @@ func  (this *ndax) FetchOrderTrades(id interface{}, optionalArgs ...interface{})
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes332795 := (<-this.LoadMarkets())
-            PanicOnError(retRes332795)
+            retRes399299 := (<-this.LoadMarkets())
+            PanicOnError(retRes399299)
         
-            retRes719519 := (<-this.LoadAccounts())
-            PanicOnError(retRes719519)
+            retRes594561 := (<-this.LoadAccounts())
+            PanicOnError(retRes594561)
             // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
             // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
             // params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2398,11 +2398,11 @@ func  (this *ndax) FetchDepositAddress(code interface{}, optionalArgs ...interfa
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes772822 := (<-this.LoadMarkets())
-            PanicOnError(retRes772822)
+            retRes625699 := (<-this.LoadMarkets())
+            PanicOnError(retRes625699)
         
-            retRes829098 := (<-this.LoadAccounts())
-            PanicOnError(retRes829098)
+            retRes109145 := (<-this.LoadAccounts())
+            PanicOnError(retRes109145)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2491,9 +2491,9 @@ func  (this *ndax) CreateDepositAddress(code interface{}, optionalArgs ...interf
                 "GenerateNewKey": true,
             }
         
-                retRes471632 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-                PanicOnError(retRes471632)
-                ch <- retRes471632
+                retRes193493 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+                PanicOnError(retRes193493)
+                ch <- retRes193493
                 return nil
         
             }()
@@ -2525,11 +2525,11 @@ func  (this *ndax) FetchDeposits(optionalArgs ...interface{}) <- chan interface{
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes62175 := (<-this.LoadMarkets())
-            PanicOnError(retRes62175)
+            retRes932644 := (<-this.LoadMarkets())
+            PanicOnError(retRes932644)
         
-            retRes748995 := (<-this.LoadAccounts())
-            PanicOnError(retRes748995)
+            retRes527984 := (<-this.LoadAccounts())
+            PanicOnError(retRes527984)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2610,11 +2610,11 @@ func  (this *ndax) FetchWithdrawals(optionalArgs ...interface{}) <- chan interfa
             _ = params
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes102144 := (<-this.LoadMarkets())
-            PanicOnError(retRes102144)
+            retRes396644 := (<-this.LoadMarkets())
+            PanicOnError(retRes396644)
         
-            retRes480861 := (<-this.LoadAccounts())
-            PanicOnError(retRes480861)
+            retRes55146 := (<-this.LoadAccounts())
+            PanicOnError(retRes55146)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
@@ -2847,11 +2847,11 @@ func  (this *ndax) Withdraw(code interface{}, amount interface{}, address interf
             this.CheckAddress(address)
             var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
         
-            retRes32238 := (<-this.LoadMarkets())
-            PanicOnError(retRes32238)
+            retRes806435 := (<-this.LoadMarkets())
+            PanicOnError(retRes806435)
         
-            retRes38497 := (<-this.LoadAccounts())
-            PanicOnError(retRes38497)
+            retRes560632 := (<-this.LoadAccounts())
+            PanicOnError(retRes560632)
             var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
             var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
             params = this.Omit(params, []interface{}{"accountId", "AccountId"})
