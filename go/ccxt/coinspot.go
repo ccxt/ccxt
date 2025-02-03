@@ -339,8 +339,8 @@ func  (this *coinspot) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes801188 := (<-this.LoadMarkets())
-            PanicOnError(retRes801188)
+            retRes936413 := (<-this.LoadMarkets())
+            PanicOnError(retRes936413)
             var method interface{} = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
         
             response:= (<-this.callDynamically(method, params))
@@ -388,8 +388,8 @@ func  (this *coinspot) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes837982 := (<-this.LoadMarkets())
-            PanicOnError(retRes837982)
+            retRes28821 := (<-this.LoadMarkets())
+            PanicOnError(retRes28821)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "cointype": GetValue(market, "id"),
@@ -458,8 +458,8 @@ func  (this *coinspot) FetchTicker(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes838212 := (<-this.LoadMarkets())
-            PanicOnError(retRes838212)
+            retRes598653 := (<-this.LoadMarkets())
+            PanicOnError(retRes598653)
             var market interface{} = this.Market(symbol)
         
             response:= (<-this.PublicGetLatest(params))
@@ -506,8 +506,8 @@ func  (this *coinspot) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes632193 := (<-this.LoadMarkets())
-            PanicOnError(retRes632193)
+            retRes655723 := (<-this.LoadMarkets())
+            PanicOnError(retRes655723)
         
             response:= (<-this.PublicGetLatest(params))
             PanicOnError(response)
@@ -570,8 +570,8 @@ func  (this *coinspot) FetchTrades(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes203177 := (<-this.LoadMarkets())
-            PanicOnError(retRes203177)
+            retRes143872 := (<-this.LoadMarkets())
+            PanicOnError(retRes143872)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "cointype": GetValue(market, "id"),
@@ -620,8 +620,8 @@ func  (this *coinspot) FetchMyTrades(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes449829 := (<-this.LoadMarkets())
-            PanicOnError(retRes449829)
+            retRes737226 := (<-this.LoadMarkets())
+            PanicOnError(retRes737226)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -769,8 +769,8 @@ func  (this *coinspot) CreateOrder(symbol interface{}, typeVar interface{}, side
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes979362 := (<-this.LoadMarkets())
-            PanicOnError(retRes979362)
+            retRes449209 := (<-this.LoadMarkets())
+            PanicOnError(retRes449209)
             var method interface{} = Add("privatePostMy", this.Capitalize(side))
             if IsTrue(IsEqual(typeVar, "market")) {
                 panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
@@ -782,9 +782,9 @@ func  (this *coinspot) CreateOrder(symbol interface{}, typeVar interface{}, side
                 "rate": price,
             }
         
-                retRes965969 :=  (<-this.callDynamically(method, this.Extend(request, params)))
-                PanicOnError(retRes965969)
-                ch <- retRes965969
+                retRes7839 :=  (<-this.callDynamically(method, this.Extend(request, params)))
+                PanicOnError(retRes7839)
+                ch <- retRes7839
                 return nil
         
             }()

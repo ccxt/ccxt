@@ -538,8 +538,8 @@ func  (this *lykke) FetchTicker(symbol interface{}, optionalArgs ...interface{})
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5352 := (<-this.LoadMarkets())
-            PanicOnError(retRes5352)
+            retRes689162 := (<-this.LoadMarkets())
+            PanicOnError(retRes689162)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "assetPairIds": GetValue(market, "id"),
@@ -616,8 +616,8 @@ func  (this *lykke) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes235887 := (<-this.LoadMarkets())
-            PanicOnError(retRes235887)
+            retRes687626 := (<-this.LoadMarkets())
+            PanicOnError(retRes687626)
         
             response:= (<-this.PublicGetTickers(params))
             PanicOnError(response)
@@ -666,8 +666,8 @@ func  (this *lykke) FetchOrderBook(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes553169 := (<-this.LoadMarkets())
-            PanicOnError(retRes553169)
+            retRes778798 := (<-this.LoadMarkets())
+            PanicOnError(retRes778798)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "assetPairId": GetValue(market, "id"),
@@ -793,8 +793,8 @@ func  (this *lykke) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes721349 := (<-this.LoadMarkets())
-            PanicOnError(retRes721349)
+            retRes310867 := (<-this.LoadMarkets())
+            PanicOnError(retRes310867)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "assetPairId": GetValue(market, "id"),
@@ -871,8 +871,8 @@ func  (this *lykke) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes132855 := (<-this.LoadMarkets())
-            PanicOnError(retRes132855)
+            retRes458520 := (<-this.LoadMarkets())
+            PanicOnError(retRes458520)
         
             response:= (<-this.PrivateGetBalance(params))
             PanicOnError(response)
@@ -991,8 +991,8 @@ func  (this *lykke) CreateOrder(symbol interface{}, typeVar interface{}, side in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes345936 := (<-this.LoadMarkets())
-            PanicOnError(retRes345936)
+            retRes464994 := (<-this.LoadMarkets())
+            PanicOnError(retRes464994)
             var market interface{} = this.Market(symbol)
             var query interface{} = map[string]interface{} {
                 "assetPairId": GetValue(market, "id"),
@@ -1122,8 +1122,8 @@ func  (this *lykke) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes261754 := (<-this.LoadMarkets())
-            PanicOnError(retRes261754)
+            retRes403624 := (<-this.LoadMarkets())
+            PanicOnError(retRes403624)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1168,8 +1168,8 @@ func  (this *lykke) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes224793 := (<-this.LoadMarkets())
-            PanicOnError(retRes224793)
+            retRes868143 := (<-this.LoadMarkets())
+            PanicOnError(retRes868143)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
@@ -1228,8 +1228,8 @@ func  (this *lykke) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes373250 := (<-this.LoadMarkets())
-            PanicOnError(retRes373250)
+            retRes886773 := (<-this.LoadMarkets())
+            PanicOnError(retRes886773)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1295,8 +1295,8 @@ func  (this *lykke) FetchClosedOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes427005 := (<-this.LoadMarkets())
-            PanicOnError(retRes427005)
+            retRes965444 := (<-this.LoadMarkets())
+            PanicOnError(retRes965444)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1362,8 +1362,8 @@ func  (this *lykke) FetchMyTrades(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes824292 := (<-this.LoadMarkets())
-            PanicOnError(retRes824292)
+            retRes989632 := (<-this.LoadMarkets())
+            PanicOnError(retRes989632)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(limit, nil)) {
@@ -1436,8 +1436,8 @@ func  (this *lykke) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes766013 := (<-this.LoadMarkets())
-            PanicOnError(retRes766013)
+            retRes853278 := (<-this.LoadMarkets())
+            PanicOnError(retRes853278)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "assetId": this.SafeString(currency, "id"),
@@ -1558,8 +1558,8 @@ func  (this *lykke) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes537209 := (<-this.LoadMarkets())
-            PanicOnError(retRes537209)
+            retRes33213 := (<-this.LoadMarkets())
+            PanicOnError(retRes33213)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "take", limit)
@@ -1616,8 +1616,8 @@ func  (this *lykke) Withdraw(code interface{}, amount interface{}, address inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes54395 := (<-this.LoadMarkets())
-            PanicOnError(retRes54395)
+            retRes530071 := (<-this.LoadMarkets())
+            PanicOnError(retRes530071)
             this.CheckAddress(address)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
