@@ -289,7 +289,7 @@ class Exchange {
     public $has = array();
     public $features = array();
 
-    public $precisionMode = DECIMAL_PLACES;
+    public $precisionMode = TICK_SIZE;
     public $paddingMode = NO_PADDING;
     public $number = 'floatval';
     public $handleContentTypeApplicationZip = false;
