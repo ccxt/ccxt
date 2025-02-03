@@ -301,12 +301,10 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 
 ### Go
 
-*warning* GO isn't publicly released yet, for now you need to build it from source (it will be officially released soon)
-
 [ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt)
 
 ```shell
-go get github.com/ccxt/ccxt/go/v4/go
+go get github.com/ccxt/ccxt/go/v4
 ```
 
 ```Go
