@@ -3604,8 +3604,9 @@ class bitmart extends bitmart$1 {
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
+        const currencyId = currency['id'];
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
         if (code === 'USDT') {
             const defaultNetworks = this.safeValue(this.options, 'defaultNetworks');
@@ -3614,8 +3615,15 @@ class bitmart extends bitmart$1 {
             let networkInner = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (networkInner !== undefined) {
-                request['currency'] = request['currency'] + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = currencyId + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = this.omit(params, 'network');
+            }
+        }
+        else {
+            let networkCode = undefined;
+            [networkCode, params] = this.handleNetworkCodeAndParams(params);
+            if (networkCode !== undefined) {
+                request['currency'] = currencyId + '-' + this.networkCodeToId(networkCode);
             }
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
