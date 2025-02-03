@@ -1324,7 +1324,7 @@
                         "network": "SOL"
                     }
                 ],
-                "output":  {\"amount\":\"0.017184\",\"ccy\":\"TRUMP\",\"chain\":\"SOL\",\"to_address\":\"Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A\"}
+                "output": "{\"amount\":\"1.863679\",\"ccy\":\"TRUMP\",\"chain\":\"SOL\",\"to_address\":\"Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A\"}"
             },
         {
           "description": "Withdraw USDT on the TRC20 chain",
