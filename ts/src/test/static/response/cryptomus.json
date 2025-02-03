@@ -1,0 +1,422 @@
+{
+    "exchange": "cryptomus",
+    "skipKeys": [ "timestamp", "datetime" ],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "disabled": true,
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "currency_pair": "ETH_USDT",
+                            "last_price": "2281.42629",
+                            "base_volume": "17.9874409855",
+                            "quote_volume": "40680.110271058"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "ETH_USDT",
+                        "lowercaseId": null,
+                        "symbol": "ETH/USDT",
+                        "base": "ETH",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "ETH",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.02,
+                        "maker": 0.02,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": null,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "currency_pair": "ETH_USDT",
+                            "last_price": "2281.42629",
+                            "base_volume": "17.9874409855",
+                            "quote_volume": "40680.110271058"
+                        },
+                        "percentage": true,
+                        "tierBased": null,
+                        "feeSide": "get"
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ETH/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "currency_pair": "ETH_USDT",
+                            "last_price": "2350.5",
+                            "base_volume": "1.6162657477127",
+                            "quote_volume": "3983.946998925"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2464.908388093347,
+                        "open": null,
+                        "close": 2350.5,
+                        "last": 2350.5,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 1.6162657477127,
+                        "quoteVolume": 3983.946998925,
+                        "info": {
+                            "currency_pair": "ETH_USDT",
+                            "last_price": "2350.5",
+                            "base_volume": "1.6162657477127",
+                            "quote_volume": "3983.946998925"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "trade_id": "01J916C9C1V650NA093B7NEXDC",
+                            "price": null,
+                            "base_volume": "15.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": "1727690843",
+                            "type": "buy"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01J916C9C1V650NA093B7NEXDC",
+                        "timestamp": 1727690843000,
+                        "datetime": "2024-09-30T10:07:23.000Z",
+                        "symbol": "ETH/USDT",
+                        "side": "buy",
+                        "price": null,
+                        "amount": null,
+                        "cost": 15,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "trade_id": "01J916C9C1V650NA093B7NEXDC",
+                            "price": null,
+                            "base_volume": "15.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": "1727690843",
+                            "type": "buy"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Limit buy order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    2400
+                ],
+                "httpResponse": {
+                    "state": "0",
+                    "result": {
+                        "order_id": "0",
+                        "uuid": "31d40b4f-6856-44cc-9153-922117ee61e5",
+                        "convert_amount_from": "24",
+                        "convert_amount_to": "0.01",
+                        "executed_amount_from": "24",
+                        "executed_amount_to": "0.01",
+                        "convert_currency_from": "USDT",
+                        "convert_currency_to": "ETH",
+                        "type": "limit",
+                        "status": "active",
+                        "created_at": "2024-09-30T14:15:02+03:00",
+                        "current_rate": "2400",
+                        "limit": "2400",
+                        "expires_at": null
+                    }
+                },
+                "parsedResponse": {
+                    "id": "31d40b4f-6856-44cc-9153-922117ee61e5",
+                    "clientOrderId": null,
+                    "timestamp": 1727694902000,
+                    "datetime": "2024-09-30T11:15:02.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 2400,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": 24,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "0",
+                        "uuid": "31d40b4f-6856-44cc-9153-922117ee61e5",
+                        "convert_amount_from": "24",
+                        "convert_amount_to": "0.01",
+                        "executed_amount_from": "24",
+                        "executed_amount_to": "0.01",
+                        "convert_currency_from": "USDT",
+                        "convert_currency_to": "ETH",
+                        "type": "limit",
+                        "status": "active",
+                        "created_at": "2024-09-30T14:15:02+03:00",
+                        "current_rate": "2400",
+                        "limit": "2400",
+                        "expires_at": null
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders",
+                "method": "fetchOrders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                  "state": "0",
+                  "result": {
+                        "items": [
+                            {
+                                "order_id": "0",
+                                "uuid": "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f",
+                                "convert_amount_from": "15.4",
+                                "convert_amount_to": "0.007",
+                                "executed_amount_from": "15.4",
+                                "executed_amount_to": "0.007",
+                                "convert_currency_from": "USDT",
+                                "convert_currency_to": "ETH",
+                                "type": "limit",
+                                "status": "cancelled",
+                                "created_at": "2024-09-18T14:09:36+03:00",
+                                "current_rate": null,
+                                "limit": "2200",
+                                "expires_at": null
+                            }
+                        ],
+                        "paginate": {
+                            "count": "7",
+                            "hasPages": false,
+                            "nextCursor": null,
+                            "previousCursor": null,
+                            "perPage": "15"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f",
+                        "clientOrderId": null,
+                        "timestamp": 1726657776000,
+                        "datetime": "2024-09-18T11:09:36.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "ETH/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 2200,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.007,
+                        "cost": 15.4,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "order_id": "0",
+                            "uuid": "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f",
+                            "convert_amount_from": "15.4",
+                            "convert_amount_to": "0.007",
+                            "executed_amount_from": "15.4",
+                            "executed_amount_to": "0.007",
+                            "convert_currency_from": "USDT",
+                            "convert_currency_to": "ETH",
+                            "type": "limit",
+                            "status": "cancelled",
+                            "created_at": "2024-09-18T14:09:36+03:00",
+                            "current_rate": null,
+                            "limit": "2200",
+                            "expires_at": null
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f"
+                ],
+                "httpResponse": {
+                    "state": "0",
+                    "result": {
+                        "order_id": "0",
+                        "uuid": "f9687602-f28e-4719-a376-1aa4f2b7d8a3",
+                        "convert_amount_from": "24",
+                        "convert_amount_to": "0.01",
+                        "executed_amount_from": "24",
+                        "executed_amount_to": "0.01",
+                        "convert_currency_from": "USDT",
+                        "convert_currency_to": "ETH",
+                        "type": "limit",
+                        "status": "cancelled",
+                        "created_at": "2024-09-30T13:31:55+03:00",
+                        "current_rate": null,
+                        "limit": "2400",
+                        "expires_at": null
+                    }
+                },
+                "parsedResponse": {
+                    "id": "f9687602-f28e-4719-a376-1aa4f2b7d8a3",
+                    "clientOrderId": null,
+                    "timestamp": 1727692315000,
+                    "datetime": "2024-09-30T10:31:55.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 2400,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": 24,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "0",
+                        "uuid": "f9687602-f28e-4719-a376-1aa4f2b7d8a3",
+                        "convert_amount_from": "24",
+                        "convert_amount_to": "0.01",
+                        "executed_amount_from": "24",
+                        "executed_amount_to": "0.01",
+                        "convert_currency_from": "USDT",
+                        "convert_currency_to": "ETH",
+                        "type": "limit",
+                        "status": "cancelled",
+                        "created_at": "2024-09-30T13:31:55+03:00",
+                        "current_rate": null,
+                        "limit": "2400",
+                        "expires_at": null
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ]
+    }
+}
