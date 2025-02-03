@@ -1,0 +1,35 @@
+{
+    "name": "ringcentral/psr7",
+    "type": "library",
+    "description": "PSR-7 message implementation",
+    "keywords": ["message", "stream", "http", "uri"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michael Dowling",
+            "email": "mtdowling@gmail.com",
+            "homepage": "https://github.com/mtdowling"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "psr/http-message": "~1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0"
+    },
+    "provide": {
+        "psr/http-message-implementation": "1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RingCentral\\Psr7\\": "src/"
+        },
+        "files": ["src/functions_include.php"]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
