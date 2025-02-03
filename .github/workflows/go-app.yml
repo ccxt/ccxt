@@ -51,7 +51,7 @@ jobs:
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
-        run: cd go && go build ./ccxt && cd ..
+        run: cd go && go build ./v4 && cd ..
       - name: Build tests
         run: cd go && go build ./tests/main.go && cd ..
       - name: Test GO Types

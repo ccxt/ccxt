@@ -121,7 +121,6 @@ jobs:
           VERSION: ${{ env.NPM_VERSION }}
         run: |
           cd go/
-          cp ccxt/* v4
           GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
           cd ..
       # - name: C# Release Build
