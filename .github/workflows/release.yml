@@ -86,6 +86,8 @@ jobs:
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
       - name: Pull changes
         run: |
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
             git config --global pull.rebase false
             git add go/
             git commit -m "[Automated changes] GO"
