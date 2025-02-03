@@ -128,7 +128,7 @@ jobs:
       # - name: Deploy C#
       #   env:
       #     NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-        run: ./cs/deploy.sh;
+        # run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
