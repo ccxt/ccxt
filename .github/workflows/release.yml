@@ -58,24 +58,24 @@ jobs:
         run: pip install wheel
       - name: export exchanges (remove later)
         run: npm run export-exchanges
-      # - name: Transpile and Build
-      #   run: npm run force-build
-      # - name: Base tests Rest
-      #   run: npm run test-base-rest
-      # - name: Base tests Ws
-      #   run: npm run test-base-ws
-      # - name: Id tests
-      #   run: npm run id-tests
-      # - name: Request tests
-      #   run: npm run request-tests
-      # - name: Response tests
-      #   run: npm run response-tests
-      # - name: CommonJs tests
-      #   run: npm run commonjs-test
-      # - name: Package Test
-      #   run: npm run package-test
-      # - name: Freshness Test
-      #   run: npm run test-freshness
+      - name: Transpile and Build
+        run: npm run force-build
+      - name: Base tests Rest
+        run: npm run test-base-rest
+      - name: Base tests Ws
+        run: npm run test-base-ws
+      - name: Id tests
+        run: npm run id-tests
+      - name: Request tests
+        run: npm run request-tests
+      - name: Response tests
+        run: npm run response-tests
+      - name: CommonJs tests
+        run: npm run commonjs-test
+      - name: Package Test
+        run: npm run package-test
+      - name: Freshness Test
+        run: npm run test-freshness
       # Will start the deployment process
       - name: Set new Version
         run: |
@@ -87,7 +87,7 @@ jobs:
       - name: Pull changes
         run: |
             git config --global pull.rebase false
-            git pull origin master
+            git pull -X ours origin master --no-edit
       - name: vss and copy python-files
         run: npm run vss && npm run copy-python-files
       - name: Commit files
@@ -112,13 +112,13 @@ jobs:
                gh release create "${VERSION}" --generate-notes --verify-tag
                git push
 
-      - name: Publish Go node_modules
-        env:
-          VERSION: ${{ env.NPM_VERSION }}
-        run: |
-          cd go/
-          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4@$VERSION
-          cd ..
+      # - name: Publish Go node_modules
+      #   env:
+      #     VERSION: ${{ env.NPM_VERSION }}
+      #   run: |
+      #     cd go/
+      #     GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/v4@$VERSION
+      #     cd ..
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: Deploy C#

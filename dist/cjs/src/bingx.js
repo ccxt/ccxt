@@ -502,7 +502,9 @@ class bingx extends bingx$1 {
             'commonCurrencies': {
                 'SNOW': 'Snowman',
                 'OMNI': 'OmniCat',
-                'NAP': '$NAP', // NAP on SOL = SNAP
+                'NAP': '$NAP',
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -5792,7 +5794,7 @@ class bingx extends bingx$1 {
         const request = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString(amount),
+            'amount': this.currencyToPrecision(code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper(params, 'network');

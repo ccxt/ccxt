@@ -519,6 +519,8 @@ class bingx(Exchange, ImplicitAPI):
                 'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
                 'NAP': '$NAP',  # NAP on SOL = SNAP
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -5528,7 +5530,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.number_to_string(amount),
+            'amount': self.currency_to_precision(code, amount),
             'walletType': walletType,
         }
         network = self.safe_string_upper(params, 'network')

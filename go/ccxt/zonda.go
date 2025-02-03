@@ -422,8 +422,8 @@ func  (this *zonda) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes474187 := (<-this.LoadMarkets())
-            PanicOnError(retRes474187)
+            retRes56216 := (<-this.LoadMarkets())
+            PanicOnError(retRes56216)
             var request interface{} = map[string]interface{} {}
             // todo pair
         
@@ -522,8 +522,8 @@ func  (this *zonda) FetchMyTrades(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes422015 := (<-this.LoadMarkets())
-            PanicOnError(retRes422015)
+            retRes23401 := (<-this.LoadMarkets())
+            PanicOnError(retRes23401)
             var request interface{} = map[string]interface{} {}
             if IsTrue(symbol) {
                 var markets interface{} = []interface{}{this.MarketId(symbol)}
@@ -605,8 +605,8 @@ func  (this *zonda) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes529103 := (<-this.LoadMarkets())
-            PanicOnError(retRes529103)
+            retRes947668 := (<-this.LoadMarkets())
+            PanicOnError(retRes947668)
         
             response:= (<-this.V1_01PrivateGetBalancesBITBAYBalance(params))
             PanicOnError(response)
@@ -637,8 +637,8 @@ func  (this *zonda) FetchOrderBook(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes803523 := (<-this.LoadMarkets())
-            PanicOnError(retRes803523)
+            retRes923129 := (<-this.LoadMarkets())
+            PanicOnError(retRes923129)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -766,8 +766,8 @@ func  (this *zonda) FetchTicker(symbol interface{}, optionalArgs ...interface{})
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes133786 := (<-this.LoadMarkets())
-            PanicOnError(retRes133786)
+            retRes251705 := (<-this.LoadMarkets())
+            PanicOnError(retRes251705)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -816,8 +816,8 @@ func  (this *zonda) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes357311 := (<-this.LoadMarkets())
-            PanicOnError(retRes357311)
+            retRes45804 := (<-this.LoadMarkets())
+            PanicOnError(retRes45804)
             var method interface{} = "v1_01PublicGetTradingTicker"
             var defaultMethod interface{} = this.SafeString(this.Options, "fetchTickersMethod", method)
             var fetchTickersMethod interface{} = this.SafeString2(params, "method", "fetchTickersMethod", defaultMethod)
@@ -1260,8 +1260,8 @@ func  (this *zonda) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes291991 := (<-this.LoadMarkets())
-            PanicOnError(retRes291991)
+            retRes696596 := (<-this.LoadMarkets())
+            PanicOnError(retRes696596)
             var market interface{} = this.Market(symbol)
             var tradingSymbol interface{} = Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId"))
             var request interface{} = map[string]interface{} {
@@ -1405,8 +1405,8 @@ func  (this *zonda) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes771853 := (<-this.LoadMarkets())
-            PanicOnError(retRes771853)
+            retRes301942 := (<-this.LoadMarkets())
+            PanicOnError(retRes301942)
             var market interface{} = this.Market(symbol)
             var tradingSymbol interface{} = Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId"))
             var request interface{} = map[string]interface{} {
@@ -1452,8 +1452,8 @@ func  (this *zonda) CreateOrder(symbol interface{}, typeVar interface{}, side in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes877301 := (<-this.LoadMarkets())
-            PanicOnError(retRes877301)
+            retRes839275 := (<-this.LoadMarkets())
+            PanicOnError(retRes839275)
             var market interface{} = this.Market(symbol)
             var tradingSymbol interface{} = Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId"))
             amount = ParseFloat(this.AmountToPrecision(symbol, amount))
@@ -1604,8 +1604,8 @@ func  (this *zonda) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
                 panic(ExchangeError(Add(this.Id, " cancelOrder() requires a `price` parameter (float or string)")))
             }
         
-            retRes311207 := (<-this.LoadMarkets())
-            PanicOnError(retRes311207)
+            retRes591097 := (<-this.LoadMarkets())
+            PanicOnError(retRes591097)
             var market interface{} = this.Market(symbol)
             var tradingSymbol interface{} = Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId"))
             var request interface{} = map[string]interface{} {
@@ -1675,8 +1675,8 @@ func  (this *zonda) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes202208 := (<-this.LoadMarkets())
-            PanicOnError(retRes202208)
+            retRes780209 := (<-this.LoadMarkets())
+            PanicOnError(retRes780209)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
@@ -1725,8 +1725,8 @@ func  (this *zonda) FetchDepositAddresses(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes954090 := (<-this.LoadMarkets())
-            PanicOnError(retRes954090)
+            retRes284871 := (<-this.LoadMarkets())
+            PanicOnError(retRes284871)
         
             response:= (<-this.V1_01PrivateGetApiPaymentsDepositsCryptoAddresses(params))
             PanicOnError(response)
@@ -1771,8 +1771,8 @@ func  (this *zonda) Transfer(code interface{}, amount interface{}, fromAccount i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes344969 := (<-this.LoadMarkets())
-            PanicOnError(retRes344969)
+            retRes669251 := (<-this.LoadMarkets())
+            PanicOnError(retRes669251)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "source": fromAccount,
@@ -1906,8 +1906,8 @@ func  (this *zonda) Withdraw(code interface{}, amount interface{}, address inter
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes764773 := (<-this.LoadMarkets())
-            PanicOnError(retRes764773)
+            retRes746051 := (<-this.LoadMarkets())
+            PanicOnError(retRes746051)
             var response interface{} = nil
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
