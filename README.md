@@ -187,7 +187,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
-- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt)
+- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/v4)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -301,7 +301,7 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 
 ### Go
 
-[ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt)
+[ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt/v4)
 
 ```shell
 go get github.com/ccxt/ccxt/go/v4
