@@ -362,8 +362,8 @@ func  (this *independentreserve) FetchBalance(optionalArgs ...interface{}) <- ch
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes529900 := (<-this.LoadMarkets())
-            PanicOnError(retRes529900)
+            retRes302800 := (<-this.LoadMarkets())
+            PanicOnError(retRes302800)
         
             response:= (<-this.PrivatePostGetAccounts(params))
             PanicOnError(response)
@@ -393,8 +393,8 @@ func  (this *independentreserve) FetchOrderBook(symbol interface{}, optionalArgs
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes290517 := (<-this.LoadMarkets())
-            PanicOnError(retRes290517)
+            retRes353487 := (<-this.LoadMarkets())
+            PanicOnError(retRes353487)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "primaryCurrencyCode": GetValue(market, "baseId"),
@@ -476,8 +476,8 @@ func  (this *independentreserve) FetchTicker(symbol interface{}, optionalArgs ..
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes878539 := (<-this.LoadMarkets())
-            PanicOnError(retRes878539)
+            retRes855874 := (<-this.LoadMarkets())
+            PanicOnError(retRes855874)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "primaryCurrencyCode": GetValue(market, "baseId"),
@@ -652,8 +652,8 @@ func  (this *independentreserve) FetchOrder(id interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes389496 := (<-this.LoadMarkets())
-            PanicOnError(retRes389496)
+            retRes681021 := (<-this.LoadMarkets())
+            PanicOnError(retRes681021)
         
             response:= (<-this.PrivatePostGetOrderDetails(this.Extend(map[string]interface{} {
             "orderGuid": id,
@@ -694,8 +694,8 @@ func  (this *independentreserve) FetchOpenOrders(optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes572006 := (<-this.LoadMarkets())
-            PanicOnError(retRes572006)
+            retRes531471 := (<-this.LoadMarkets())
+            PanicOnError(retRes531471)
             var request interface{} = this.Ordered(map[string]interface{} {})
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -743,8 +743,8 @@ func  (this *independentreserve) FetchClosedOrders(optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes125809 := (<-this.LoadMarkets())
-            PanicOnError(retRes125809)
+            retRes913262 := (<-this.LoadMarkets())
+            PanicOnError(retRes913262)
             var request interface{} = this.Ordered(map[string]interface{} {})
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -792,8 +792,8 @@ func  (this *independentreserve) FetchMyTrades(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes666745 := (<-this.LoadMarkets())
-            PanicOnError(retRes666745)
+            retRes553178 := (<-this.LoadMarkets())
+            PanicOnError(retRes553178)
             var pageIndex interface{} = this.SafeInteger(params, "pageIndex", 1)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 50
@@ -880,8 +880,8 @@ func  (this *independentreserve) FetchTrades(symbol interface{}, optionalArgs ..
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes57505 := (<-this.LoadMarkets())
-            PanicOnError(retRes57505)
+            retRes134153 := (<-this.LoadMarkets())
+            PanicOnError(retRes134153)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "primaryCurrencyCode": GetValue(market, "baseId"),
@@ -913,8 +913,8 @@ func  (this *independentreserve) FetchTradingFees(optionalArgs ...interface{}) <
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes291973 := (<-this.LoadMarkets())
-            PanicOnError(retRes291973)
+            retRes771261 := (<-this.LoadMarkets())
+            PanicOnError(retRes771261)
         
             response:= (<-this.PrivatePostGetBrokerageFees(params))
             PanicOnError(response)
@@ -981,8 +981,8 @@ func  (this *independentreserve) CreateOrder(symbol interface{}, typeVar interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes252364 := (<-this.LoadMarkets())
-            PanicOnError(retRes252364)
+            retRes914494 := (<-this.LoadMarkets())
+            PanicOnError(retRes914494)
             var market interface{} = this.Market(symbol)
             var orderType interface{} = this.Capitalize(typeVar)
             orderType = Add(orderType, Ternary(IsTrue((IsEqual(side, "sell"))), "Offer", "Bid"))
@@ -1033,8 +1033,8 @@ func  (this *independentreserve) CancelOrder(id interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes106011 := (<-this.LoadMarkets())
-            PanicOnError(retRes106011)
+            retRes35120 := (<-this.LoadMarkets())
+            PanicOnError(retRes35120)
             var request interface{} = map[string]interface{} {
                 "orderGuid": id,
             }
@@ -1080,8 +1080,8 @@ func  (this *independentreserve) FetchDepositAddress(code interface{}, optionalA
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes467038 := (<-this.LoadMarkets())
-            PanicOnError(retRes467038)
+            retRes89739 := (<-this.LoadMarkets())
+            PanicOnError(retRes89739)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "primaryCurrencyCode": GetValue(currency, "id"),
@@ -1153,8 +1153,8 @@ func  (this *independentreserve) Withdraw(code interface{}, amount interface{}, 
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes788362 := (<-this.LoadMarkets())
-            PanicOnError(retRes788362)
+            retRes799058 := (<-this.LoadMarkets())
+            PanicOnError(retRes799058)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "primaryCurrencyCode": GetValue(currency, "id"),
