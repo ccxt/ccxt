@@ -51,7 +51,7 @@ jobs:
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
-        run: cd go && go build ./ccxt && cd ..
+        run: cd go && go build ./v4 && cd ..
       - name: Build tests
         run: cd go && go build ./tests/main.go && cd ..
       - name: Test GO Types
@@ -108,7 +108,7 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             rm -f ./go/tests/main
-            rm -f ./go/ccxt/ccxt
+            rm -f ./go/v4/ccxt
             rm -f ./go/main
             git add go/
             git commit -m "[Automated changes] GO files" || echo "No changes to commit."
@@ -144,9 +144,9 @@ jobs:
       - name: Export exchanges
         run: npm run export-exchanges
       # - name: Install dependencies
-      #   run: go get ./go/ccxt
+      #   run: go get ./go/v4
       # - name: Build
-      #   run: go build ./go/ccxt
+      #   run: go build ./go/v4
       # - name: Build tests
       #   run: go build ./go/tests/main.go
       # - name: Adjust permissions
