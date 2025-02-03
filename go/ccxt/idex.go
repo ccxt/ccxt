@@ -433,8 +433,8 @@ func  (this *idex) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes922656 := (<-this.LoadMarkets())
-            PanicOnError(retRes922656)
+            retRes66751 := (<-this.LoadMarkets())
+            PanicOnError(retRes66751)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -487,8 +487,8 @@ func  (this *idex) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes756813 := (<-this.LoadMarkets())
-            PanicOnError(retRes756813)
+            retRes816794 := (<-this.LoadMarkets())
+            PanicOnError(retRes816794)
             // [
             //   {
             //     "market": "DIL-ETH",
@@ -590,8 +590,8 @@ func  (this *idex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes216295 := (<-this.LoadMarkets())
-            PanicOnError(retRes216295)
+            retRes311718 := (<-this.LoadMarkets())
+            PanicOnError(retRes311718)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -674,8 +674,8 @@ func  (this *idex) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes898189 := (<-this.LoadMarkets())
-            PanicOnError(retRes898189)
+            retRes412733 := (<-this.LoadMarkets())
+            PanicOnError(retRes412733)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -803,8 +803,8 @@ func  (this *idex) FetchTradingFees(optionalArgs ...interface{}) <- chan interfa
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes822470 := (<-this.LoadMarkets())
-            PanicOnError(retRes822470)
+            retRes870388 := (<-this.LoadMarkets())
+            PanicOnError(retRes870388)
             var nonce interface{} = this.Uuidv1()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce,
@@ -867,8 +867,8 @@ func  (this *idex) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes952282 := (<-this.LoadMarkets())
-            PanicOnError(retRes952282)
+            retRes957649 := (<-this.LoadMarkets())
+            PanicOnError(retRes957649)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1030,8 +1030,8 @@ func  (this *idex) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes999903 := (<-this.LoadMarkets())
-            PanicOnError(retRes999903)
+            retRes378508 := (<-this.LoadMarkets())
+            PanicOnError(retRes378508)
             var nonce1 interface{} = this.Uuidv1()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce1,
@@ -1063,8 +1063,8 @@ func  (this *idex) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                                         if IsTrue(IsInstance(e, InvalidAddress)) {
                         var walletAddress interface{} = GetValue(extendedRequest, "wallet")
             
-                        retRes447154 := (<-this.AssociateWallet(walletAddress))
-                        PanicOnError(retRes447154)
+                        retRes460738 := (<-this.AssociateWallet(walletAddress))
+                        PanicOnError(retRes460738)
                         
             response = (<-this.PrivateGetBalances(extendedRequest))
                         PanicOnError(response)
@@ -1118,8 +1118,8 @@ func  (this *idex) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes333697 := (<-this.LoadMarkets())
-            PanicOnError(retRes333697)
+            retRes601434 := (<-this.LoadMarkets())
+            PanicOnError(retRes601434)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "nonce": this.Uuidv1(),
@@ -1172,8 +1172,8 @@ func  (this *idex) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
                                         if IsTrue(IsInstance(e, InvalidAddress)) {
                         var walletAddress interface{} = GetValue(extendedRequest, "wallet")
             
-                        retRes185401 := (<-this.AssociateWallet(walletAddress))
-                        PanicOnError(retRes185401)
+                        retRes691983 := (<-this.AssociateWallet(walletAddress))
+                        PanicOnError(retRes691983)
                         
             response = (<-this.PrivateGetFills(extendedRequest))
                         PanicOnError(response)
@@ -1224,9 +1224,9 @@ func  (this *idex) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
                 "orderId": id,
             }
         
-                retRes191373 :=  (<-this.FetchOrdersHelper(symbol, nil, nil, this.Extend(request, params)))
-                PanicOnError(retRes191373)
-                ch <- retRes191373
+                retRes13604 :=  (<-this.FetchOrdersHelper(symbol, nil, nil, this.Extend(request, params)))
+                PanicOnError(retRes13604)
+                ch <- retRes13604
                 return nil
         
             }()
@@ -1260,9 +1260,9 @@ func  (this *idex) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
                 "closed": false,
             }
         
-                retRes706425 :=  (<-this.FetchOrdersHelper(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes706425)
-                ch <- retRes706425
+                retRes707393 :=  (<-this.FetchOrdersHelper(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes707393)
+                ch <- retRes707393
                 return nil
         
             }()
@@ -1296,9 +1296,9 @@ func  (this *idex) FetchClosedOrders(optionalArgs ...interface{}) <- chan interf
                 "closed": true,
             }
         
-                retRes428255 :=  (<-this.FetchOrdersHelper(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes428255)
-                ch <- retRes428255
+                retRes349025 :=  (<-this.FetchOrdersHelper(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes349025)
+                ch <- retRes349025
                 return nil
         
             }()
@@ -1318,8 +1318,8 @@ func  (this *idex) FetchOrdersHelper(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes467809 := (<-this.LoadMarkets())
-            PanicOnError(retRes467809)
+            retRes360983 := (<-this.LoadMarkets())
+            PanicOnError(retRes360983)
             var request interface{} = map[string]interface{} {
                 "nonce": this.Uuidv1(),
                 "wallet": this.WalletAddress,
@@ -1557,8 +1557,8 @@ func  (this *idex) CreateOrder(symbol interface{}, typeVar interface{}, side int
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes753092 := (<-this.LoadMarkets())
-            PanicOnError(retRes753092)
+            retRes936590 := (<-this.LoadMarkets())
+            PanicOnError(retRes936590)
             var testOrder interface{} = this.SafeBool(params, "test", false)
             params = this.Omit(params, "test")
             var market interface{} = this.Market(symbol)
@@ -1766,8 +1766,8 @@ func  (this *idex) Withdraw(code interface{}, amount interface{}, address interf
             params = GetValue(tagparamsVariable,1)
             this.CheckRequiredCredentials()
         
-            retRes124842 := (<-this.LoadMarkets())
-            PanicOnError(retRes124842)
+            retRes811570 := (<-this.LoadMarkets())
+            PanicOnError(retRes811570)
             var nonce interface{} = this.Uuidv1()
             var amountString interface{} = this.CurrencyToPrecision(code, amount)
             var currency interface{} = this.Currency(code)
@@ -1827,8 +1827,8 @@ func  (this *idex) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes17868 := (<-this.LoadMarkets())
-            PanicOnError(retRes17868)
+            retRes676444 := (<-this.LoadMarkets())
+            PanicOnError(retRes676444)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1882,8 +1882,8 @@ func  (this *idex) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes575405 := (<-this.LoadMarkets())
-            PanicOnError(retRes575405)
+            retRes8747 := (<-this.LoadMarkets())
+            PanicOnError(retRes8747)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1943,8 +1943,8 @@ func  (this *idex) FetchDeposit(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12477 := (<-this.LoadMarkets())
-            PanicOnError(retRes12477)
+            retRes499333 := (<-this.LoadMarkets())
+            PanicOnError(retRes499333)
             var nonce interface{} = this.Uuidv1()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce,
@@ -1989,9 +1989,9 @@ func  (this *idex) FetchDeposits(optionalArgs ...interface{}) <- chan interface{
                 "method": "privateGetDeposits",
             }, params)
         
-                retRes804533 :=  (<-this.FetchTransactionsHelper(code, since, limit, params))
-                PanicOnError(retRes804533)
-                ch <- retRes804533
+                retRes551874 :=  (<-this.FetchTransactionsHelper(code, since, limit, params))
+                PanicOnError(retRes551874)
+                ch <- retRes551874
                 return nil
         
             }()
@@ -2076,8 +2076,8 @@ func  (this *idex) FetchWithdrawal(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes177698 := (<-this.LoadMarkets())
-            PanicOnError(retRes177698)
+            retRes738468 := (<-this.LoadMarkets())
+            PanicOnError(retRes738468)
             var nonce interface{} = this.Uuidv1()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce,
@@ -2122,9 +2122,9 @@ func  (this *idex) FetchWithdrawals(optionalArgs ...interface{}) <- chan interfa
                 "method": "privateGetWithdrawals",
             }, params)
         
-                retRes244773 :=  (<-this.FetchTransactionsHelper(code, since, limit, params))
-                PanicOnError(retRes244773)
-                ch <- retRes244773
+                retRes842333 :=  (<-this.FetchTransactionsHelper(code, since, limit, params))
+                PanicOnError(retRes842333)
+                ch <- retRes842333
                 return nil
         
             }()
@@ -2144,8 +2144,8 @@ func  (this *idex) FetchTransactionsHelper(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes749301 := (<-this.LoadMarkets())
-            PanicOnError(retRes749301)
+            retRes615812 := (<-this.LoadMarkets())
+            PanicOnError(retRes615812)
             var nonce interface{} = this.Uuidv1()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce,
