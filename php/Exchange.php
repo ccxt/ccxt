@@ -416,7 +416,6 @@ class Exchange {
         'latoken',
         'lbank',
         'luno',
-        'lykke',
         'mercado',
         'mexc',
         'myokx',

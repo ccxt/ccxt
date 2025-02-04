@@ -1226,30 +1226,6 @@
             "watchOHLCV": "some timestamp issues"
         }
     },
-    "lykke": {
-        "skip": "network forbidden",
-        "until": "2025-02-02",
-        "httpsProxy": "http://51.83.140.52:11230",
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed codes"
-            },
-            "fetchCurrencies": {
-                "fee":"not provided"
-            },
-            "orderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "close": "might be negative https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4657",
-                "open": "same",
-                "low": "same",
-                "high": "same",
-                "average": "same"
-            }
-        }
-    },
     "mercado": {
         "skipMethods": {
             "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",

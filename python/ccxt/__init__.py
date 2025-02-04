@@ -163,7 +163,6 @@ from ccxt.kuna import kuna                                            # noqa: F4
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
-from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
@@ -277,7 +276,6 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
-    'lykke',
     'mercado',
     'mexc',
     'myokx',
