@@ -236,7 +236,7 @@ func (this *Exchange) WarmUpCache() {
 	}
 }
 
-func (this *Exchange) initThrottler() {
+func (this *Exchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
