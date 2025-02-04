@@ -326,17 +326,20 @@ public partial class hashkey : Exchange
                         { "limit", 1000 },
                         { "daysBack", 30 },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -2535,10 +2538,8 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
         }
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
     /**

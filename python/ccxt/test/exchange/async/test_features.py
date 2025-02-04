@@ -37,6 +37,7 @@ async def test_features(exchange, skipped_properties):
                 # sometimes it might not be available for exchange, eg. future>inverse)
                 if sub_value is not None:
                     test_features_inner(exchange, skipped_properties, sub_value)
+    return True
 
 
 def test_features_inner(exchange, skipped_properties, feature_obj):
@@ -78,17 +79,20 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
+            'symbolRequired': False,
         },
         'fetchOrder': {
             'marginMode': False,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOpenOrders': {
             'marginMode': False,
             'limit': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOrders': {
             'marginMode': False,
@@ -97,6 +101,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'untilDays': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchClosedOrders': {
             'marginMode': False,
@@ -106,6 +111,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'untilDays': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOHLCV': {
             'limit': 0,

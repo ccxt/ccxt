@@ -1940,10 +1940,10 @@ public partial class bitget : Exchange
             object amountDecimals = this.safeInteger(market, "volumePlace");
             object priceStep = this.safeString(market, "priceEndStep");
             object amountStep = this.safeString(market, "minTradeNum");
-            var precisePrice = new Precise(priceStep);
-            precisePrice.decimals = mathMax(precisePrice.decimals, priceDecimals);
-            precisePrice.reduce();
-            object priceString = ((object)precisePrice).ToString();
+            var precise = new Precise(priceStep);
+            precise.decimals = mathMax(precise.decimals, priceDecimals);
+            precise.reduce();
+            object priceString = ((object)precise).ToString();
             pricePrecision = this.parseNumber(priceString);
             var preciseAmount = new Precise(amountStep);
             preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
@@ -9619,7 +9619,7 @@ public partial class bitget : Exchange
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9673,7 +9673,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -1093,7 +1093,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple $orders
          *
@@ -1131,7 +1131,7 @@ class bitso extends Exchange {
         return $orders;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
         /**
          * cancel all open orders
          *

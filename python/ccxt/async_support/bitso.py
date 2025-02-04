@@ -1067,7 +1067,7 @@ class bitso(Exchange, ImplicitAPI):
             'id': orderId,
         })
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -1101,7 +1101,7 @@ class bitso(Exchange, ImplicitAPI):
             orders.append(self.parse_order(id, market))
         return orders
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders
 

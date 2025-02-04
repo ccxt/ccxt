@@ -1,8 +1,8 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://img.shields.io/travis/com/ccxt/ccxt)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-112-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
+[![Build Status](https://img.shields.io/travis/com/ccxt/ccxt)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![NuGet version](https://badge.fury.io/nu/ccxt.svg)](https://badge.fury.io/nu/ccxt) [![GoDoc](https://pkg.go.dev/badge/github.com/ccxt/ccxt/go/v4?utm_source=godoc)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-112-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
-A JavaScript / Python / PHP / C# library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A JavaScript / Python / PHP / C# / Go library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
 
@@ -61,7 +61,7 @@ Current feature list:
 
 ## Supported Cryptocurrency Exchanges
 
-The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                          | id                    | name                                                                                         | ver                                                                                                                                              | type                                                                                                   | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -140,7 +140,6 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
 | [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                      | latoken               | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.com/login/?icode=7QCY)                                      | lbank                 | [LBank](https://www.lbank.com/login/?icode=7QCY)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.com/en-US/docs/index.html)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                            | luno                  | [luno](https://www.luno.com/invite/44893A)                                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                       | lykke                 | [Lykke](https://www.lykke.com)                                                               | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                          | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![myokx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.my.okx.com/join/CCXT2023)                                        | myokx                 | [MyOKX (EEA)](https://www.my.okx.com/join/CCXT2023)                                          | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://my.okx.com/docs-v5/en/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -187,12 +186,15 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
+- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
 - [js/](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
-- [python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
-- [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
+- [python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from TS)
+- [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from TS)
+- [cs/](https://github.com/ccxt/ccxt/blob/master/cs/)  in C# (generated from TS)
+- [go/](https://github.com/ccxt/ccxt/blob/master/go/)  in Go (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -229,13 +231,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.52/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.4.52/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.56/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.4.56/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.52/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.56/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -294,6 +296,19 @@ The library supports concurrent asynchronous mode using tools from [ReactPHP](ht
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
+```
+
+### Go
+
+[ccxt in GO with **PKG**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
+
+```shell
+go get github.com/ccxt/ccxt/go/v4
+```
+
+```Go
+import "ccxt"
+fmt.Println(ccxt.Exchanges)
 ```
 
 ### Docker
@@ -528,6 +543,73 @@ class Project {
     }
 }
 ```
+
+### Go
+
+```Go
+package main
+import (
+	"github.com/ccxt/ccxt/go/v4/go"
+	"fmt"
+)
+
+func main() {
+	exchange := ccxt.NewBinance(map[string]interface{}{
+		"apiKey": "MY KEY",
+		"secret": "MY SECRET",
+	})
+	orderParams := map[string]interface{}{
+		"clientOrderId": "myOrderId68768678",
+	}
+
+    <-exchange.LoadMarkets()
+
+	order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
+	if err != nil {
+		if ccxtError, ok := err.(*ccxt.Error); ok {
+			if ccxtError.Type == "InvalidOrder" {
+				fmt.Println("Invalid order")
+			} else {
+				fmt.Println("Some other error")
+			}
+		}
+	} else {
+		fmt.Println(*order.Id)
+	}
+
+
+    // fetching OHLCV
+	ohlcv, err := exchange.FetchOHLCV("BTC/USDT", ccxt.WithFetchOHLCVTimeframe("5m"), ccxt.WithFetchOHLCVLimit(100))
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+	} else {
+		fmt.Println("Got OHLCV!")
+	}
+}
+```
+
+#### Optional parameters
+
+Unlike Javascript/Python/PHP/C# Go does not support "traditional" optional parameters like `function a(optional = false)`. However, the CCXT language and structure have some methods with optional params, and since the Go language is transpiled from the Typescript source, we had to find a way of representing them.
+
+We have decided to "go" (pun intended) with Option structs and the `WithX` methods.
+
+For example, this function `FetchMyTrades` supports 4 different "optional" parameters, symbol, since, limit, and params.
+
+```Golang
+func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
+```
+
+And we can provide them by doing
+
+```Golang
+trades, error := exchange.FetchMyTrades(ccxt.withFetchMyTradesSymbol("BTC/USDT"), ccxt.WithFetchOHLCVLimit(5), ccxt.WithFetchMyTradesParams(orderParams))
+```
+
+Lastly, just because the signature dictates that some argument like `symbol` is optional, it will depend from exchange to exchange and you might need to provide it to avoid getting a `SymbolRequired` error.
+
+You can check different examples in the `examples/go` folder.
 
 ## Contributing
 

@@ -1271,17 +1271,20 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                         'limit': 500,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -1290,6 +1293,7 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -1299,6 +1303,7 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
@@ -3363,7 +3368,10 @@ export default class htx extends Exchange {
                 type = 'margin';
             }
         }
-        const marketId = (symbol === undefined) ? undefined : this.marketId(symbol);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            marketId = this.marketId(symbol);
+        }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue(account, 'info');

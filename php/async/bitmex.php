@@ -996,7 +996,8 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4927
                 // the exchange sometimes returns null $price in the orderbook
                 if ($price !== null) {
-                    $result[$side][] = array( $price, $amount );
+                    $resultSide = $result[$side];
+                    $resultSide[] = array( $price, $amount );
                 }
             }
             $result['bids'] = $this->sort_by($result['bids'], 0, true);

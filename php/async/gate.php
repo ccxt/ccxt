@@ -748,17 +748,20 @@ class gate extends Exchange {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 100,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -769,6 +772,7 @@ class gate extends Exchange {
                         'untilDays' => 30,
                         'daysBack' => null,
                         'daysBackCanceled' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,

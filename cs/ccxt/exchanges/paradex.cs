@@ -297,17 +297,20 @@ public partial class paradex : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -316,6 +319,7 @@ public partial class paradex : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1087,17 +1091,19 @@ public partial class paradex : Exchange
         object systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
-            return new Dictionary<string, object>() {
+            object l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
                 { "chainId", getValue(systemConfig, "l1_chain_id") },
                 { "version", "1" },
             };
+            return l1D;
         }
-        return new Dictionary<string, object>() {
+        object domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
             { "chainId", getValue(systemConfig, "starknet_chain_id") },
             { "version", 1 },
         };
+        return domain;
     }
 
     public async virtual Task<object> retrieveAccount()

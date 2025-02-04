@@ -819,7 +819,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const currency = this.currency(code);
         const networks = this.safeDict(currency, 'networks');
         if (networks !== undefined) {
-            return;
+            return false;
         }
         const request = {
             'asset': currency['id'],
@@ -844,6 +844,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //    ]
         //
         currency['networks'] = this.parseNetworks(rawNetworks);
+        return true;
     }
     parseNetworks(networks, params = {}) {
         const result = {};

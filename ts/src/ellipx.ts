@@ -262,12 +262,14 @@ export default class ellipx extends Exchange {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -276,6 +278,7 @@ export default class ellipx extends Exchange {
                         'untilDays': undefined, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -1694,7 +1697,7 @@ export default class ellipx extends Exchange {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    async fetchTradingFee (symbol: string = undefined, params = {}): Promise<TradingFeeInterface> {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const response = await this.privateGetMarketTradeFeeQuery (params);
         //
@@ -1918,10 +1921,11 @@ export default class ellipx extends Exchange {
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const preciseAmount = new Precise (v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce ();
-        return preciseAmount.toString ();
+        const precise = new Precise (v);
+        precise.decimals = e;
+        precise.reduce ();
+        const amountString = precise.toString ();
+        return amountString;
     }
 
     toAmount (amount: number, precision: number): Dict {

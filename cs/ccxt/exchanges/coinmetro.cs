@@ -1376,10 +1376,10 @@ public partial class coinmetro : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["orderType"] = type;
-        object precisedAmount = null;
+        object formattedAmount = null;
         if (isTrue(!isEqual(amount, null)))
         {
-            precisedAmount = this.amountToPrecision(symbol, amount);
+            formattedAmount = this.amountToPrecision(symbol, amount);
         }
         object cost = this.safeValue(parameters, "cost");
         parameters = this.omit(parameters, "cost");
@@ -1390,7 +1390,7 @@ public partial class coinmetro : Exchange
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a price or params.cost argument for a "), type), " order")) ;
             } else if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(amount, null)))))
             {
-                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(precisedAmount));
+                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(formattedAmount));
                 cost = this.parseToNumeric(costString);
             }
         }
@@ -1401,10 +1401,10 @@ public partial class coinmetro : Exchange
         }
         if (isTrue(isEqual(side, "sell")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), formattedAmount, precisedCost, request);
         } else if (isTrue(isEqual(side, "buy")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, formattedAmount, request);
         }
         object timeInForce = this.safeValue(parameters, "timeInForce");
         if (isTrue(!isEqual(timeInForce, null)))

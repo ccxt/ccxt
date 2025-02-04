@@ -1176,7 +1176,8 @@ class bitfinex extends Exchange {
                 $signedAmount = $this->safe_string($order, 2);
                 $amount = Precise::string_abs($signedAmount);
                 $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
-                $result[$side][] = array( $price, $this->parse_number($amount) );
+                $resultSide = $result[$side];
+                $resultSide[] = array( $price, $this->parse_number($amount) );
             }
             $result['bids'] = $this->sort_by($result['bids'], 0, true);
             $result['asks'] = $this->sort_by($result['asks'], 0);

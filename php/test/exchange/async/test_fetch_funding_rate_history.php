@@ -21,5 +21,6 @@ function test_fetch_funding_rate_history($exchange, $skipped_properties, $symbol
             test_funding_rate_history($exchange, $skipped_properties, $method, $funding_rates_history[$i], $symbol);
         }
         assert_timestamp_order($exchange, $method, $symbol, $funding_rates_history);
+        return true;
     }) ();
 }

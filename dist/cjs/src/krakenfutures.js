@@ -298,6 +298,7 @@ class krakenfutures extends krakenfutures$1 {
                         'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -305,6 +306,7 @@ class krakenfutures extends krakenfutures$1 {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -315,6 +317,7 @@ class krakenfutures extends krakenfutures$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 5000,
@@ -1544,13 +1547,13 @@ class krakenfutures extends krakenfutures$1 {
         return this.parseOrders(canceledAndRejected, market, since, limit);
     }
     parseOrderType(orderType) {
-        const map = {
+        const typesMap = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
             'ioc': 'market',
         };
-        return this.safeString(map, orderType, orderType);
+        return this.safeString(typesMap, orderType, orderType);
     }
     verifyOrderActionSuccess(status, method, omit = []) {
         const errors$1 = {

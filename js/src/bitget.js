@@ -1969,10 +1969,10 @@ export default class bitget extends Exchange {
             const amountDecimals = this.safeInteger(market, 'volumePlace');
             const priceStep = this.safeString(market, 'priceEndStep');
             const amountStep = this.safeString(market, 'minTradeNum');
-            const precisePrice = new Precise(priceStep);
-            precisePrice.decimals = Math.max(precisePrice.decimals, priceDecimals);
-            precisePrice.reduce();
-            const priceString = precisePrice.toString();
+            const precise = new Precise(priceStep);
+            precise.decimals = Math.max(precise.decimals, priceDecimals);
+            precise.reduce();
+            const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new Precise(amountStep);
             preciseAmount.decimals = Math.max(preciseAmount.decimals, amountDecimals);

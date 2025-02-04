@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
         {
             deep ??= false;
             object logText = logTemplate(exchange, method, entry);
-            assert(entry, add("item is null/undefined", logText));
+            assert(!isEqual(entry, null), add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
             if (isTrue(((format is IList<object>) || (format.GetType().IsGenericType && format.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {

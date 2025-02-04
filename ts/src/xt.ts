@@ -708,6 +708,7 @@ export default class xt extends Exchange {
                         'untilDays': 100000, // todo
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -715,6 +716,7 @@ export default class xt extends Exchange {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
@@ -723,6 +725,7 @@ export default class xt extends Exchange {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -733,6 +736,7 @@ export default class xt extends Exchange {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
@@ -744,6 +748,7 @@ export default class xt extends Exchange {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo for derivatives

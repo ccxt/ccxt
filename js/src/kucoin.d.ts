@@ -47,8 +47,9 @@ export default class kucoin extends Exchange {
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
-    loadMigrationStatus(force?: boolean): Promise<void>;
+    loadMigrationStatus(force?: boolean): Promise<boolean>;
     handleHfAndParams(params?: {}): {}[];
     /**
      * @method

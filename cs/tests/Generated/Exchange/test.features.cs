@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFeatures(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFeatures(Exchange exchange, object skippedProperties)
     {
         object marketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
@@ -42,6 +42,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
+        return true;
     }
     public static void testFeaturesInner(Exchange exchange, object skippedProperties, object featureObj)
     {
@@ -83,17 +84,20 @@ public partial class testMainClass : BaseTest
                 { "daysBack", 0 },
                 { "limit", 0 },
                 { "untilDays", 0 },
+                { "symbolRequired", false },
             } },
             { "fetchOrder", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOpenOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "limit", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
@@ -102,6 +106,7 @@ public partial class testMainClass : BaseTest
                 { "untilDays", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchClosedOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
@@ -111,6 +116,7 @@ public partial class testMainClass : BaseTest
                 { "untilDays", 0 },
                 { "trigger", false },
                 { "trailing", false },
+                { "symbolRequired", false },
             } },
             { "fetchOHLCV", new Dictionary<string, object>() {
                 { "limit", 0 },

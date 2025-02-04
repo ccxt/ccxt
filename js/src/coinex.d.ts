@@ -25,7 +25,7 @@ export default class coinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params: any): Promise<any[]>;
+    fetchSpotMarkets(params: any): Promise<Market[]>;
     fetchContractMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**

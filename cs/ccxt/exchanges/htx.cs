@@ -1171,17 +1171,20 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "daysBack", 120 },
                         { "untilDays", 2 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
                         { "limit", 500 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1190,6 +1193,7 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "untilDays", 2 },
                         { "daysBack", 180 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1199,6 +1203,7 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "daysBack", 180 },
                         { "daysBackCanceled", divide(1, 12) },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -3354,7 +3359,11 @@ public partial class htx : Exchange
                 type = "margin";
             }
         }
-        object marketId = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.marketId(symbol);
+        object marketId = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            marketId = this.marketId(symbol);
+        }
         for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);

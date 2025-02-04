@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -327,17 +327,20 @@ class deribit(Exchange, ImplicitAPI):
                         'limit': 100,  # todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -348,6 +351,7 @@ class deribit(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,  # todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo: recheck
@@ -760,7 +764,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account, currency: Currency = None):
+    def parse_account(self, account):
         #
         #      {
         #          "username": "someusername_1",
@@ -779,7 +783,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': account,
             'id': self.safe_string(account, 'id'),
             'type': self.safe_string(account, 'type'),
-            'code': self.safe_currency_code(None, currency),
+            'code': None,
         }
 
     async def fetch_markets(self, params={}) -> List[Market]:

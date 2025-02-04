@@ -1150,7 +1150,8 @@ public partial class bitfinex : Exchange
             object signedAmount = this.safeString(order, 2);
             object amount = Precise.stringAbs(signedAmount);
             object side = ((bool) isTrue(Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
-            ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
+            object resultSide = getValue(result, side);
+            ((IList<object>)resultSide).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);

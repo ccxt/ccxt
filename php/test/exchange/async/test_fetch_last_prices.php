@@ -34,5 +34,6 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
             $at_least_one_passed = $at_least_one_passed || ($exchange->safe_number($values[$i], 'price') > 0);
         }
         assert($at_least_one_passed, $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' at least one symbol should pass the test');
+        return true;
     }) ();
 }

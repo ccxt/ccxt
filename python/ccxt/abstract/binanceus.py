@@ -816,4 +816,3 @@ class ImplicitAPI:
     papi_delete_margin_allopenorders = papiDeleteMarginAllOpenOrders = Entry('margin/allOpenOrders', 'papi', 'DELETE', {'cost': 5})
     papi_delete_margin_orderlist = papiDeleteMarginOrderList = Entry('margin/orderList', 'papi', 'DELETE', {'cost': 2})
     papi_delete_listenkey = papiDeleteListenKey = Entry('listenKey', 'papi', 'DELETE', {'cost': 0.2})
-    papiv2_get_um_account = papiV2GetUmAccount = Entry('um/account', 'papiV2', 'GET', {'cost': 1})

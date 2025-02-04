@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchOrderBooks(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchOrderBooks(Exchange exchange, object skippedProperties)
     {
         object method = "fetchOrderBooks";
         object symbol = getValue(exchange.symbols, 0);
@@ -20,6 +20,7 @@ public partial class testMainClass : BaseTest
             object symbolInner = getValue(orderBookKeys, i);
             testOrderBook(exchange, skippedProperties, method, getValue(orderBooks, symbolInner), symbolInner);
         }
+        return true;
     }
 
 }
