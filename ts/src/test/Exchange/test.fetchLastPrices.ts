@@ -25,6 +25,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
         atLeastOnePassed = atLeastOnePassed || (exchange.safeNumber (values[i], 'price') > 0);
     }
     assert (atLeastOnePassed, exchange.id + ' ' + method + ' ' + checkedSymbol + ' at least one symbol should pass the test');
+    return true;
 }
 
 export default testFetchLastPrices;

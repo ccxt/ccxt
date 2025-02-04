@@ -394,17 +394,20 @@ class hashkey(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 30,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 1000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo
@@ -2396,10 +2399,8 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is supported for spot markets only')
-        req = {
-            'cost': cost,
-        }
-        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
+        params['cost'] = cost
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """

@@ -314,17 +314,20 @@ class deribit extends deribit$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -335,6 +338,7 @@ class deribit extends deribit$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: recheck
@@ -755,7 +759,7 @@ class deribit extends deribit$1 {
         const result = this.safeValue(response, 'result', []);
         return this.parseAccounts(result);
     }
-    parseAccount(account, currency = undefined) {
+    parseAccount(account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -774,7 +778,7 @@ class deribit extends deribit$1 {
             'info': account,
             'id': this.safeString(account, 'id'),
             'type': this.safeString(account, 'type'),
-            'code': this.safeCurrencyCode(undefined, currency),
+            'code': undefined,
         };
     }
     /**

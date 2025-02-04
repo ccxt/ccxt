@@ -282,12 +282,14 @@ public partial class hitbtc : Exchange
                         { "limit", 1000 },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                         { "marketType", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                         { "marketType", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
@@ -295,6 +297,7 @@ public partial class hitbtc : Exchange
                         { "limit", 1000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                         { "marketType", true },
                     } },
                     { "fetchOrders", null },
@@ -306,6 +309,7 @@ public partial class hitbtc : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                         { "marketType", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {

@@ -316,17 +316,20 @@ export default class deribit extends Exchange {
                         'limit': 100, // todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -337,6 +340,7 @@ export default class deribit extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: recheck
@@ -763,7 +767,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    parseAccount (account, currency: Currency = undefined) {
+    parseAccount (account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -782,7 +786,7 @@ export default class deribit extends Exchange {
             'info': account,
             'id': this.safeString (account, 'id'),
             'type': this.safeString (account, 'type'),
-            'code': this.safeCurrencyCode (undefined, currency),
+            'code': undefined,
         };
     }
 

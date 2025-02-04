@@ -371,17 +371,20 @@ export default class hashkey extends Exchange {
                         'limit': 1000,
                         'daysBack': 30,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined, // todo
@@ -2472,10 +2475,8 @@ export default class hashkey extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     /**

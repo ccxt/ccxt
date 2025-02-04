@@ -11,5 +11,6 @@ async function testFetchTradingFee(exchange, skippedProperties, symbol) {
     const fee = await exchange.fetchTradingFee(symbol);
     assert(typeof fee === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(fee));
     testTradingFee(exchange, skippedProperties, method, symbol, fee);
+    return true;
 }
 export default testFetchTradingFee;

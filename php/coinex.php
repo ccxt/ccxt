@@ -806,7 +806,7 @@ class coinex extends Exchange {
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): array {
         $response = $this->v2PublicGetSpotMarket ($params);
         //
         //     {
@@ -4792,7 +4792,7 @@ class coinex extends Exchange {
         $request = array(
             'ccy' => $currency['id'],
             'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-            'amount' => $this->number_to_string($amount), // the actual $amount without fees, https://www.coinex.com/fees
+            'amount' => $this->currency_to_precision($code, $amount), // the actual $amount without fees, https://www.coinex.com/fees
         );
         if ($tag !== null) {
             $request['memo'] = $tag;

@@ -349,17 +349,20 @@ class vertex extends Exchange {
                         'limit' => 500,
                         'daysBack' => 100000, // todo
                         'untilDays' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // todo, only for trigger
                     'fetchClosedOrders' => null, // todo through fetchOrders
@@ -2498,15 +2501,16 @@ class vertex extends Exchange {
             'digests' => $ids,
             'nonce' => $nonce,
         );
+        $productIds = $cancels['productIds'];
         $marketIdNum = $this->parse_to_numeric($marketId);
         for ($i = 0; $i < count($ids); $i++) {
-            $cancels['productIds'][] = $marketIdNum;
+            $productIds[] = $marketIdNum;
         }
         $request = array(
             'cancel_orders' => array(
                 'tx' => array(
                     'sender' => $cancels['sender'],
-                    'productIds' => $cancels['productIds'],
+                    'productIds' => $productIds,
                     'digests' => $cancels['digests'],
                     'nonce' => $this->number_to_string($cancels['nonce']),
                 ),

@@ -706,6 +706,7 @@ class xt extends xt$1 {
                         'untilDays': 100000,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -713,6 +714,7 @@ class xt extends xt$1 {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
@@ -721,6 +723,7 @@ class xt extends xt$1 {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -731,6 +734,7 @@ class xt extends xt$1 {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
@@ -742,6 +746,7 @@ class xt extends xt$1 {
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo for derivatives

@@ -372,17 +372,20 @@ class wavesexchange extends Exchange {
                         'limit' => 100, // todo
                         'daysBack' => 100000, // todo
                         'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -391,6 +394,7 @@ class wavesexchange extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ), // todo
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -400,6 +404,7 @@ class wavesexchange extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => null, // todo
@@ -760,6 +765,7 @@ class wavesexchange extends Exchange {
         if (strlen($hexSecretKeyBytes) !== 64) {
             throw new AuthenticationError($this->id . ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1028,6 +1034,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, $open, high, low, close, volume
          */
         $this->load_markets();
@@ -1038,21 +1045,33 @@ class wavesexchange extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
+        $until = $this->safe_integer($params, 'until');
+        $untilIsDefined = $until !== null;
         if ($limit === null) {
             $limit = $allowedCandles;
         }
         $limit = min ($allowedCandles, $limit);
         $duration = $this->parse_timeframe($timeframe) * 1000;
         if ($since === null) {
-            $durationRoundedTimestamp = $this->parse_to_int($this->milliseconds() / $duration) * $duration;
+            $now = $this->milliseconds();
+            $timeEnd = $untilIsDefined ? $until : $now;
+            $durationRoundedTimestamp = $this->parse_to_int($timeEnd / $duration) * $duration;
             $delta = ($limit - 1) * $duration;
             $timeStart = $durationRoundedTimestamp - $delta;
             $request['timeStart'] = (string) $timeStart;
+            if ($untilIsDefined) {
+                $request['timeEnd'] = (string) $until;
+            }
         } else {
             $request['timeStart'] = (string) $since;
-            $timeEnd = $this->sum($since, $duration * $limit);
-            $request['timeEnd'] = (string) $timeEnd;
+            if ($untilIsDefined) {
+                $request['timeEnd'] = (string) $until;
+            } else {
+                $timeEnd = $this->sum($since, $duration * $limit);
+                $request['timeEnd'] = (string) $timeEnd;
+            }
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params));
         //
         //     {

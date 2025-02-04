@@ -1022,17 +1022,20 @@ export default class kucoin extends Exchange {
                         'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': 7, // per  implementation comments
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1043,6 +1046,7 @@ export default class kucoin extends Exchange {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,
@@ -1317,12 +1321,14 @@ export default class kucoin extends Exchange {
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
     async loadMigrationStatus (force: boolean = false) {
         if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
             this.options['hf'] = this.safeBool (result, 'data');
         }
+        return true;
     }
 
     handleHfAndParams (params = {}) {
@@ -2311,10 +2317,8 @@ export default class kucoin extends Exchange {
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', side, 0, undefined, this.extend (req, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
     /**
@@ -4046,7 +4050,10 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        const returnType = isolated ? result : this.safeBalance (result);
+        let returnType = result;
+        if (!isolated) {
+            returnType = this.safeBalance (result);
+        }
         return returnType as Balances;
     }
 
@@ -4800,7 +4807,8 @@ export default class kucoin extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
-                borrowRateHistories[code].push (borrowRateStructure);
+                const borrowRateHistoriesCode = borrowRateHistories[code];
+                borrowRateHistoriesCode.push (borrowRateStructure);
             }
         }
         const keys = Object.keys (borrowRateHistories);

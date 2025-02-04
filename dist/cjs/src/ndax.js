@@ -294,18 +294,21 @@ class ndax extends ndax$1 {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000, // todo
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -314,6 +317,7 @@ class ndax extends ndax$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -654,7 +658,8 @@ class ndax extends ndax$1 {
             const bidask = this.parseBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
             const side = levelSide ? asksKey : bidsKey;
-            result[side].push(bidask);
+            const resultSide = result[side];
+            resultSide.push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);

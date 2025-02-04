@@ -8,7 +8,11 @@ import ccxt from '../../ts/ccxt.js';
 const methodsDict = {
     'rest': {
       'symbol':  [
-        'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades',
+        'fetchOrder',
+        'fetchOrders',
+        'fetchOpenOrders',
+        'fetchClosedOrders',
+        'fetchMyTrades',
         // 'fetchOrderTrades', 'cancelOrders', 'cancelOrder', 'cancelAllOrders'
       ], 
       'code': [
@@ -42,23 +46,25 @@ const methodsDict = {
            (marketType !== 'spot' && (ex.features[marketType]['linear'] !== undefined || ex.features[marketType]['inverse'] !== undefined))
         ) {
           for (const method of allMethods) {
-            ex.defaultType = marketType;
+            ex.options['defaultType'] = marketType;
             try {
-              await ex[method]();
+                const arg1 = ['fetchOrder', 'cancelOrder'].includes(method) ? 'id123456' : undefined;
+                const args = [arg1];
+                await ex[method](...args);
             } catch(e: any) {
-              const supportedMethod = !(e.message.includes ('is not supported yet'));
-              // we are only interested in supported methods
-              if (supportedMethod) {
-                results[ex.id] = results[ex.id] || {};
-                results[ex.id][marketType] = results[ex.id][marketType] || {};
-                if (e.constructor.name === 'ArgumentsRequired') {
-                  results[ex.id][marketType][method] = {res:true, msg: e.message};
+                const supportedMethod = !(e.message.includes ('is not supported yet'));
+                // we are only interested in supported methods
+                if (supportedMethod) {
+                    results[ex.id] = results[ex.id] || {};
+                    results[ex.id][marketType] = results[ex.id][marketType] || {};
+                    if (e.constructor.name === 'ArgumentsRequired') {
+                        results[ex.id][marketType][method] = {res:true, msg: e.message};
+                    } else {
+                        results[ex.id][marketType][method] = {res:false, msg: e.message};
+                    }
                 } else {
-                  results[ex.id][marketType][method] = {res:false, msg: e.message};
-                }
-              } else {
                 // console.log('unsupported:', ex.id, method);
-              }
+                }
             }
           }
         }
