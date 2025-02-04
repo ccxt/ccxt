@@ -1181,7 +1181,7 @@ export default class valr extends Exchange {
             'amount': this.safeString2 (order, 'executedQuantity', 'originalQuantity'),
             'cost': this.safeString (order, 'total'),
             'average': this.safeString (order, 'averagePrice'),
-            'filled': undefined,
+            'filled': this.safeString (order, 'totalExecutedQuantity'),
             'remaining': this.safeString (order, 'remainingQuantity'),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': postOnly,
@@ -1280,15 +1280,14 @@ export default class valr extends Exchange {
          * @param {float} [amount] how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency. If included in market order, use quote amount
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.matchRetain] If true (default) keeps original order and if false, cancle original order
+         * @param {string} [params.matchRetain] RETAIN_ORIGINAL (default) keeps original order, CANCEL_ORIGINAL to cancle original order or REPRICE to reprice within one tick
          * @param {boolean} [params.setTotal] If true (default), new amount will takes current fill quantity into account, otherwise it simply forces new amount to be set.
          * @param {object} [params.clientOrderId] an optional field which can be specified by clients to track this order using their own internal order management systems
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with only the id and symbol added
          */
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const modifyMatchStrategy = this.safeBool (params, 'matchRetain', true);
-        const modifyMethod = (modifyMatchStrategy) ? 'RETAIN_ORIGINAL' : 'CANCEL_ORIGINAL';
+        const modifyMethod = this.safeString (params, 'matchRetain', 'RETAIN_ORIGINAL');
         const orderFormat = {
             'orderId': id,
             'pair': marketId,
