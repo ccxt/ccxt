@@ -9190,6 +9190,9 @@ export default class bybit extends Exchange {
             } else {
                 feedback = this.id + ' ' + body;
             }
+            if (body.indexOf ('Withdraw address chain or destination tag are not equal')) {
+                feedback = feedback + '; You might also need to ensure the address is whitelisted';
+            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
