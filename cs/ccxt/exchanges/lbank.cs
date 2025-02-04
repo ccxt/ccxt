@@ -291,17 +291,20 @@ public partial class lbank : Exchange
                         { "limit", 100 },
                         { "daysBack", 100000 },
                         { "untilDays", 2 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 200 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -310,6 +313,7 @@ public partial class lbank : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -2935,7 +2939,8 @@ public partial class lbank : Exchange
                             ((IDictionary<string,object>)result)[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            ((IList<object>)getValue(getValue(result, code), "info")).Add(fee);
+                            object resultCodeInfo = getValue(getValue(result, code), "info");
+                            ((IList<object>)resultCodeInfo).Add(fee);
                         }
                         object chain = this.safeString(fee, "chain");
                         object networkCode = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);

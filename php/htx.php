@@ -1265,17 +1265,20 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 120,
                         'untilDays' => 2,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 500,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -1284,6 +1287,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'untilDays' => 2,
                         'daysBack' => 180,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -1293,6 +1297,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 180,
                         'daysBackCanceled' => 1 / 12,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // 2000 for non-historical
@@ -3318,7 +3323,10 @@ class htx extends Exchange {
                 $type = 'margin';
             }
         }
-        $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+        $marketId = null;
+        if ($symbol !== null) {
+            $marketId = $this->market_id($symbol);
+        }
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_value($account, 'info');

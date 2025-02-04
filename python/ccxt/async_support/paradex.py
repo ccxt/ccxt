@@ -312,17 +312,20 @@ class paradex(Exchange, ImplicitAPI):
                         'limit': 100,  # todo
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -331,6 +334,7 @@ class paradex(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': None,  # todo
                     'fetchOHLCV': {
@@ -1022,16 +1026,18 @@ class paradex(Exchange, ImplicitAPI):
     async def prepare_paradex_domain(self, l1=False):
         systemConfig = await self.get_system_config()
         if l1 is True:
-            return {
+            l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             }
-        return {
+            return l1D
+        domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         }
+        return domain
 
     async def retrieve_account(self):
         cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')

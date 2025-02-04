@@ -16,6 +16,7 @@ function tcoDebug(exchange, symbol, message) {
         // for c# fix, extra step to convert them to string
         console.log(' >>>>> testCreateOrder [', (exchange['id']).toString(), ' : ', symbol, '] ', message);
     }
+    return true;
 }
 // ----------------------------------------------------------------------------
 async function testCreateOrder(exchange, skippedProperties, symbol) {
@@ -51,7 +52,12 @@ async function testCreateOrder(exchange, skippedProperties, symbol) {
     }
     tcoDebug(exchange, symbol, '### SCENARIO 2 PASSED ###');
     // **************** [Scenario 3 - START] **************** //
+    return true;
     // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
+    //
+    //
+    // re
+    //
 }
 // ----------------------------------------------------------------------------
 async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSell, predefinedAmount = undefined) {
@@ -95,6 +101,7 @@ async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProp
     catch (e) {
         throw new Error(logPrefix + ' failed for Scenario 1: ' + e.toString());
     }
+    return true;
 }
 async function tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSellString, predefinedAmount = undefined) {
     try {
@@ -130,6 +137,7 @@ async function tcoCreateFillableOrder(exchange, market, logPrefix, skippedProper
     catch (e) {
         throw new Error('failed for Scenario 2: ' + e.toString());
     }
+    return true;
 }
 function tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, createdOrder, fetchedOrder, requestedSide, requestedAmount) {
     // test filled amount
@@ -149,6 +157,7 @@ function tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, cr
     // ensure that order side matches
     testSharedMethods.assertInArray(exchange, skippedProperties, 'createdOrder', createdOrder, 'side', [undefined, requestedSide]);
     testSharedMethods.assertInArray(exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [undefined, requestedSide]);
+    return true;
 }
 // ----------------------------------------------------------------------------
 async function tcoCancelOrder(exchange, symbol, orderId = undefined) {
@@ -177,6 +186,7 @@ async function tcoCancelOrder(exchange, symbol, orderId = undefined) {
     // todo:
     // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
     // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
+    return true;
 }
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -257,5 +267,6 @@ async function tcoTryCancelOrder(exchange, symbol, order, skippedProperties) {
     else {
         tcoDebug(exchange, symbol, 'order is already closed/filled, no need to cancel it');
     }
+    return true;
 }
 export default testCreateOrder;

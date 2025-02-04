@@ -1,0 +1,5 @@
+package base
+
+func TestLanguageSpecific() {
+
+}

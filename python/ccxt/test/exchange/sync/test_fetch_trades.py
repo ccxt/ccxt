@@ -25,3 +25,4 @@ def test_fetch_trades(exchange, skipped_properties, symbol):
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, trades[i], 'takerOrMaker', ['taker', None])
     if not ('timestamp' in skipped_properties):
         test_shared_methods.assert_timestamp_order(exchange, method, symbol, trades)
+    return True

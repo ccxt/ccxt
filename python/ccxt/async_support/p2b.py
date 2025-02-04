@@ -219,6 +219,7 @@ class p2b(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,  # todo
                         'untilDays': 1,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': None,  # todo
                     'fetchOpenOrders': {
@@ -226,6 +227,7 @@ class p2b(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,  # todo
                     'fetchClosedOrders': {
@@ -236,6 +238,7 @@ class p2b(Exchange, ImplicitAPI):
                         'untilDays': 1,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 500,

@@ -310,17 +310,20 @@ export default class paradex extends Exchange {
                         'limit': 100, // todo
                         'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -329,6 +332,7 @@ export default class paradex extends Exchange {
                         'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
@@ -1052,17 +1056,19 @@ export default class paradex extends Exchange {
     async prepareParadexDomain (l1 = false) {
         const systemConfig = await this.getSystemConfig ();
         if (l1 === true) {
-            return {
+            const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             };
+            return l1D;
         }
-        return {
+        const domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         };
+        return domain;
     }
 
     async retrieveAccount () {

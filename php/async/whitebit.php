@@ -315,6 +315,7 @@ class whitebit extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -322,6 +323,7 @@ class whitebit extends Exchange {
                         'limit' => 100,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // todo
                     'fetchClosedOrders' => array(
@@ -332,6 +334,7 @@ class whitebit extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,
@@ -1374,11 +1377,9 @@ class whitebit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            $req = array(
-                'cost' => $cost,
-            );
+            $params['cost'] = $cost;
             // only buy $side is supported
-            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params)));
+            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
         }) ();
     }
 

@@ -265,6 +265,7 @@ public partial class coinspot : Exchange
                         { "limit", null },
                         { "daysBack", 100000 },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", null },
                     { "fetchOpenOrders", null },

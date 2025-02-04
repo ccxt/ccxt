@@ -281,25 +281,27 @@ class digifinex(Exchange, ImplicitAPI):
                     },
                     'createOrders': {
                         'max': 10,
-                        'marginMode': True,
                     },
                     'fetchMyTrades': {
                         'marginMode': True,
                         'limit': 500,
                         'daysBack': 100000,  # todo
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                         'marketType': True,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -308,6 +310,7 @@ class digifinex(Exchange, ImplicitAPI):
                         'untilDays': 30,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': None,
                     'fetchOHLCV': {
@@ -567,10 +570,11 @@ class digifinex(Exchange, ImplicitAPI):
                 },
             }
             if code in result:
-                if isinstance(result[code]['info'], list):
-                    result[code]['info'].append(currency)
+                resultCodeInfo = result[code]['info']
+                if isinstance(resultCodeInfo, list):
+                    resultCodeInfo.append(currency)
                 else:
-                    result[code]['info'] = [result[code]['info'], currency]
+                    resultCodeInfo = [resultCodeInfo, currency]
                 if withdraw:
                     result[code]['withdraw'] = True
                     result[code]['limits']['withdraw']['min'] = min(result[code]['limits']['withdraw']['min'], minWithdraw)
@@ -3971,7 +3975,8 @@ class digifinex(Exchange, ImplicitAPI):
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
                     depositWithdrawFees[code]['info'] = []
-                depositWithdrawFees[code]['info'].append(entry)
+                depositWithdrawInfo = depositWithdrawFees[code]['info']
+                depositWithdrawInfo.append(entry)
                 networkId = self.safe_string(entry, 'chain')
                 withdrawFee = self.safe_value(entry, 'min_withdraw_fee')
                 withdrawResult: dict = {

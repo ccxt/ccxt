@@ -314,17 +314,20 @@ class deribit extends deribit$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -335,6 +338,7 @@ class deribit extends deribit$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: recheck
@@ -755,7 +759,7 @@ class deribit extends deribit$1 {
         const result = this.safeValue(response, 'result', []);
         return this.parseAccounts(result);
     }
-    parseAccount(account, currency = undefined) {
+    parseAccount(account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -774,7 +778,7 @@ class deribit extends deribit$1 {
             'info': account,
             'id': this.safeString(account, 'id'),
             'type': this.safeString(account, 'type'),
-            'code': this.safeCurrencyCode(undefined, currency),
+            'code': undefined,
         };
     }
     /**
@@ -3170,10 +3174,13 @@ class deribit extends deribit$1 {
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const eachItemDuration = '1h';
         if (paginate) {
-            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '1h', params, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
         }
+        const duration = this.parseTimeframe(eachItemDuration) * 1000;
         let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
@@ -3193,6 +3200,11 @@ class deribit extends deribit$1 {
         }
         else {
             request['end_timestamp'] = time;
+        }
+        if ('isDeribitPaginationCall' in params) {
+            params = this.omit(params, 'isDeribitPaginationCall');
+            const maxUntil = this.sum(since, limit * duration);
+            request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
         }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
         //

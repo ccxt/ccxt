@@ -34,3 +34,4 @@ async def test_fetch_last_prices(exchange, skipped_properties, symbol):
         test_last_price(exchange, skipped_properties, method, values[i], checked_symbol)
         at_least_one_passed = at_least_one_passed or (exchange.safe_number(values[i], 'price') > 0)
     assert at_least_one_passed, exchange.id + ' ' + method + ' ' + checked_symbol + ' at least one symbol should pass the test'
+    return True

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchLastPrices(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchLastPrices(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
@@ -32,6 +32,7 @@ public partial class testMainClass : BaseTest
             atLeastOnePassed = isTrue(atLeastOnePassed) || isTrue((isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0)));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
+        return true;
     }
 
 }
