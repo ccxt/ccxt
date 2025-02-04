@@ -449,11 +449,13 @@ export default class coincatch extends Exchange {
                         'limit': 500,
                         'daysBack': 100000, // todo implement
                         'untilDays': 100000, // todo implement
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
@@ -461,6 +463,7 @@ export default class coincatch extends Exchange {
                         'trigger': true,
                         'trailing': false,
                         'marketType': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined, // todo implement

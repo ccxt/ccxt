@@ -217,17 +217,20 @@ class probit(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 100000,  # todo
                         'untilDays': 100000,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -238,6 +241,7 @@ class probit(Exchange, ImplicitAPI):
                         'untilDays': 90,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 4000,
@@ -990,6 +994,7 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1005,18 +1010,19 @@ class probit(Exchange, ImplicitAPI):
             'limit': requestLimit,  # max 1000
         }
         now = self.milliseconds()
-        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
+        durationMilliseconds = self.parse_timeframe(timeframe) * 1000
         startTime = since
-        endTime = now
+        endTime = until - durationMilliseconds if (until is not None) else now
         if since is None:
             if limit is None:
                 limit = requestLimit
-            startTime = now - limit * duration * 1000
+            startLimit = limit - 1
+            startTime = endTime - startLimit * durationMilliseconds
         else:
-            if limit is None:
-                endTime = now
-            else:
-                endTime = self.sum(since, self.sum(limit, 1) * duration * 1000)
+            if limit is not None:
+                endByLimit = self.sum(since, limit * durationMilliseconds)
+                endTime = min(endTime, endByLimit)
         startTimeNormalized = self.normalize_ohlcv_timestamp(startTime, timeframe)
         endTimeNormalized = self.normalize_ohlcv_timestamp(endTime, timeframe, True)
         request['start_time'] = startTimeNormalized

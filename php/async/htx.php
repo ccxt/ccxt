@@ -1276,17 +1276,20 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 120,
                         'untilDays' => 2,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 500,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -1295,6 +1298,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'untilDays' => 2,
                         'daysBack' => 180,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -1304,6 +1308,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 180,
                         'daysBackCanceled' => 1 / 12,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // 2000 for non-historical
@@ -3364,7 +3369,10 @@ class htx extends Exchange {
                     $type = 'margin';
                 }
             }
-            $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+            $marketId = null;
+            if ($symbol !== null) {
+                $marketId = $this->market_id($symbol);
+            }
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
                 $info = $this->safe_value($account, 'info');
@@ -7484,11 +7492,13 @@ class htx extends Exchange {
                     'AccessKeyId' => $this->apiKey,
                     'Timestamp' => $timestamp,
                 );
-                if ($method !== 'POST') {
-                    $request = $this->extend($request, $query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at => https://github.com/ccxt/ccxt/issues/24930 )
                 $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                if ($method !== 'POST') {
+                    $sortedQuery = $this->keysort($query);
+                    $request = $this->extend($request, $sortedQuery);
+                }
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');

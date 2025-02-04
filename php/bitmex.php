@@ -271,106 +271,111 @@ class bitmex extends Exchange {
                     'SOL' => 'sol',
                     'ADA' => 'ada',
                 ),
-                'features' => array(
-                    'default' => array(
-                        'sandbox' => true,
-                        'createOrder' => array(
-                            'marginMode' => true,
-                            'triggerPrice' => true,
-                            'triggerPriceType' => array(
-                                'last' => true,
-                                'mark' => true,
-                            ),
-                            'triggerDirection' => true,
-                            'stopLossPrice' => false,
-                            'takeProfitPrice' => false,
-                            'attachedStopLossTakeProfit' => null,
-                            'timeInForce' => array(
-                                'IOC' => true,
-                                'FOK' => true,
-                                'PO' => true,
-                                'GTD' => false,
-                            ),
-                            'hedged' => false,
-                            'trailing' => true,
-                            'marketBuyRequiresPrice' => false,
-                            'marketBuyByCost' => false,
-                            // exchange-supported features
-                            // 'selfTradePrevention' => true,
-                            // 'twap' => false,
-                            // 'iceberg' => false,
-                            // 'oco' => false,
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
                         ),
-                        'createOrders' => null,
-                        'fetchMyTrades' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBack' => null,
-                            'untilDays' => 1000000,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
                         ),
-                        'fetchOrder' => array(
-                            'marginMode' => false,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOpenOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBack' => null,
-                            'untilDays' => 1000000,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchClosedOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBackClosed' => null,
-                            'daysBackCanceled' => null,
-                            'untilDays' => 1000000,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOHLCV' => array(
-                            'limit' => 10000,
+                        'hedged' => false,
+                        'trailing' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        // exchange-supported features
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 1000000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 1000000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 1000000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 10000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPriceType' => array(
+                            'index' => false,
                         ),
                     ),
-                    'spot' => array(
-                        'extends' => 'default',
-                        'createOrder' => array(
-                            'triggerPriceType' => array(
-                                'index' => false,
-                            ),
+                ),
+                'derivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPriceType' => array(
+                            'index' => true,
                         ),
                     ),
-                    'forDeriv' => array(
-                        'extends' => 'default',
-                        'createOrder' => array(
-                            'triggerPriceType' => array(
-                                'index' => true,
-                            ),
-                        ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'derivatives',
                     ),
-                    'swap' => array(
-                        'linear' => array(
-                            'extends' => 'forDeriv',
-                        ),
-                        'inverse' => array(
-                            'extends' => 'forDeriv',
-                        ),
+                    'inverse' => array(
+                        'extends' => 'derivatives',
                     ),
-                    'future' => array(
-                        'linear' => array(
-                            'extends' => 'forDeriv',
-                        ),
-                        'inverse' => array(
-                            'extends' => 'forDeriv',
-                        ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'derivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'derivatives',
                     ),
                 ),
             ),
@@ -974,7 +979,8 @@ class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null $price in the orderbook
             if ($price !== null) {
-                $result[$side][] = array( $price, $amount );
+                $resultSide = $result[$side];
+                $resultSide[] = array( $price, $amount );
             }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);

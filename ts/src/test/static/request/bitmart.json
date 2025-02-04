@@ -611,6 +611,18 @@
         ],
         "fetchDepositAddress": [
             {
+                "description": "secondary currency with network",
+                "method": "fetchDepositAddress",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=TRUMP-SOL",
+                "input": [
+                    "TRUMP",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch USDT deposit address",
                 "method": "fetchDepositAddress",
                 "url": "https://api-cloud-v2.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",

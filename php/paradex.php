@@ -302,17 +302,20 @@ class paradex extends Exchange {
                         'limit' => 100, // todo
                         'daysBack' => 100000, // todo
                         'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -321,6 +324,7 @@ class paradex extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => null, // todo
                     'fetchOHLCV' => array(
@@ -959,7 +963,7 @@ class paradex extends Exchange {
         //
         //     {
         //         "symbol" => "BTC-USD-PERP",
-        //         "oracle_price" => "68465.17449906",
+        //         "oracle_price" => "68465.17449904",
         //         "mark_price" => "68465.17449906",
         //         "last_traded_price" => "68495.1",
         //         "bid" => "68477.6",
@@ -1044,17 +1048,19 @@ class paradex extends Exchange {
     public function prepare_paradex_domain($l1 = false) {
         $systemConfig = $this->get_system_config();
         if ($l1 === true) {
-            return array(
+            $l1D = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['l1_chain_id'],
                 'version' => '1',
             );
+            return $l1D;
         }
-        return array(
+        $domain = array(
             'name' => 'Paradex',
             'chainId' => $systemConfig['starknet_chain_id'],
             'version' => 1,
         );
+        return $domain;
     }
 
     public function retrieve_account() {

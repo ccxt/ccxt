@@ -8,15 +8,42 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
+    - name: Print vars
+      run: |
+        echo "GitHub Actor: $GITHUB_ACTOR"
+        echo "Repository: $GITHUB_REPOSITORY"
+        echo "Event Name: $GITHUB_EVENT_NAME"
+        echo "Workflow Name: $GITHUB_WORKFLOW"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Run Number: $GITHUB_RUN_NUMBER"
+        echo "Job Name: $GITHUB_JOB"
+        echo "Ref: $GITHUB_REF"
+        echo "SHA: $GITHUB_SHA"
+        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -95,6 +122,31 @@ jobs:
       with:
         name: js-files
         path: js/
+    - name: Push JS changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add js/ dist/ wiki/ README.md
+          git commit -m "[Automated changes] JS files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull origin master
+          git push
+    - name: Push To CCXT.WIKI
+      if: github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd build/ccxt.wiki
+        cp -R ../../wiki/* .
+        git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
+        git remote remove origin
+        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
+        git push origin HEAD:master
+        cd ../..
 
   live-tests:
     needs: build

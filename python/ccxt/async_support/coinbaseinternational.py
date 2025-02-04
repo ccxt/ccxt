@@ -296,17 +296,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': 10000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,
@@ -797,7 +800,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networks = self.safe_dict(currency, 'networks')
         if networks is not None:
-            return
+            return False
         request: dict = {
             'asset': currency['id'],
         }
@@ -805,7 +808,23 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            "asset_id" = self.parse_networks(rawNetworks)
+        #            "asset_id":"1",
+        #            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        #            "asset_name":"USDC",
+        #            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+        #            "min_withdrawal_amt":"1",
+        #            "max_withdrawal_amt":"100000000",
+        #            "network_confirms":35,
+        #            "processing_time":485,
+        #            "is_default":true,
+        #            "network_name":"ethereum",
+        #            "display_name":"Ethereum"
+        #        },
+        #        ....
+        #    ]
+        #
+        currency['networks'] = self.parse_networks(rawNetworks)
+        return True
 
     def parse_networks(self, networks, params={}):
         result: dict = {}

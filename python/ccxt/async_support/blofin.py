@@ -166,6 +166,9 @@ class blofin(Exchange, ImplicitAPI):
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
                     'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
@@ -276,6 +279,7 @@ class blofin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -283,6 +287,7 @@ class blofin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -293,6 +298,7 @@ class blofin(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -323,6 +329,7 @@ class blofin(Exchange, ImplicitAPI):
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
                             'limit': True,
+                            'price': None,
                         },
                         'hedged': True,
                     },

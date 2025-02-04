@@ -230,12 +230,14 @@ public partial class ellipx : Exchange
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -244,6 +246,7 @@ public partial class ellipx : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1734,7 +1737,7 @@ public partial class ellipx : Exchange
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    public async override Task<object> fetchTradingFee(object symbol = null, object parameters = null)
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1970,10 +1973,11 @@ public partial class ellipx : Exchange
         {
             return null;
         }
-        var preciseAmount = new Precise(v);
-        preciseAmount.decimals = e;
-        preciseAmount.reduce();
-        return ((object)preciseAmount).ToString();
+        var precise = new Precise(v);
+        precise.decimals = e;
+        precise.reduce();
+        object amountString = ((object)precise).ToString();
+        return amountString;
     }
 
     public virtual object toAmount(object amount, object precision)

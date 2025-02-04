@@ -1017,17 +1017,20 @@ class kucoin extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => 7, // per  implementation comments
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1038,6 +1041,7 @@ class kucoin extends Exchange {
                         'untilDays' => 7,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1500,
@@ -1313,11 +1317,13 @@ class kucoin extends Exchange {
          *
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
          *
+         * @return {any} ignore
          */
         if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
             $result = $this->privateGetHfAccountsOpened ();
             $this->options['hf'] = $this->safe_bool($result, 'data');
         }
+        return true;
     }
 
     public function handle_hf_and_params($params = array ()) {
@@ -2306,10 +2312,8 @@ class kucoin extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
-        $req = array(
-            'cost' => $cost,
-        );
-        return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
+        $params['cost'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -3212,15 +3216,15 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
         $method = $this->options['fetchMyTradesMethod'];
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);
         if ($hf) {
             // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
             if ($since !== null) {
                 // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;
@@ -4041,7 +4045,10 @@ class kucoin extends Exchange {
                 }
             }
         }
-        $returnType = $isolated ? $result : $this->safe_balance($result);
+        $returnType = $result;
+        if (!$isolated) {
+            $returnType = $this->safe_balance($result);
+        }
         return $returnType;
     }
 
@@ -4795,7 +4802,8 @@ class kucoin extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrowRateHistoriesCode = $borrowRateHistories[$code];
+                $borrowRateHistoriesCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();

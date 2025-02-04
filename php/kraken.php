@@ -453,17 +453,20 @@ class kraken extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -474,6 +477,7 @@ class kraken extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 720,
@@ -1528,10 +1532,8 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         // only buy orders are supported by the endpoint
-        $req = array(
-            'cost' => $cost,
-        );
-        return $this->create_order($symbol, 'market', $side, 1, null, $this->extend($req, $params));
+        $params['cost'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {

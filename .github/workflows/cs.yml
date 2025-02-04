@@ -13,10 +13,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '7.0.x'
@@ -82,11 +96,24 @@ jobs:
           name: shared_env
           path: shared_env.txt
 
-    - name: Upload Python Files
+    - name: Upload Cs Files
       uses: actions/upload-artifact@v4
       with:
         name: cs-files
         path: cs/
+    - name: Push C# changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add cs/
+          git commit -m "[Automated changes] C# files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull origin master
+          git push
 
   live-tests:
     needs: build
@@ -97,7 +124,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - name: Download Py Files
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+      - name: Download CS Files
         uses: actions/download-artifact@v4
         with:
           name: cs-files

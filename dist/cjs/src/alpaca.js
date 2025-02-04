@@ -304,17 +304,20 @@ class alpaca extends alpaca$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -323,6 +326,7 @@ class alpaca extends alpaca$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -332,6 +336,7 @@ class alpaca extends alpaca$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -436,7 +441,7 @@ class alpaca extends alpaca$1 {
         //         "status": "active",
         //         "tradable": true,
         //         "marginable": false,
-        //         "maintenance_margin_requirement": 100,
+        //         "maintenance_margin_requirement": 101,
         //         "shortable": false,
         //         "easy_to_borrow": false,
         //         "fractionable": true,

@@ -244,10 +244,12 @@ export default class blockchaincom extends Exchange {
                         'limit': 1000,
                         'daysBack': 100000, // todo implementation
                         'untilDays': 100000, // todo implementation
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
+                        'symbolRequired': false,
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
@@ -255,6 +257,7 @@ export default class blockchaincom extends Exchange {
                         'limit': 1000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined, // todo implement
                     'fetchClosedOrders': {
@@ -265,6 +268,7 @@ export default class blockchaincom extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': undefined, // todo webapi
                 },

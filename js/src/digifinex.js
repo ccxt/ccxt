@@ -264,25 +264,27 @@ export default class digifinex extends Exchange {
                     },
                     'createOrders': {
                         'max': 10,
-                        'marginMode': true,
                     },
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 500,
                         'daysBack': 100000,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                         'marketType': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -291,6 +293,7 @@ export default class digifinex extends Exchange {
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -552,11 +555,12 @@ export default class digifinex extends Exchange {
                 },
             };
             if (code in result) {
-                if (Array.isArray(result[code]['info'])) {
-                    result[code]['info'].push(currency);
+                let resultCodeInfo = result[code]['info'];
+                if (Array.isArray(resultCodeInfo)) {
+                    resultCodeInfo.push(currency);
                 }
                 else {
-                    result[code]['info'] = [result[code]['info'], currency];
+                    resultCodeInfo = [resultCodeInfo, currency];
                 }
                 if (withdraw) {
                     result[code]['withdraw'] = true;
@@ -4228,7 +4232,8 @@ export default class digifinex extends Exchange {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                     depositWithdrawFees[code]['info'] = [];
                 }
-                depositWithdrawFees[code]['info'].push(entry);
+                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
                 const withdrawResult = {

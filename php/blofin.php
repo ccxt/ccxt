@@ -154,6 +154,9 @@ class blofin extends Exchange {
                 'api' => array(
                     'rest' => 'https://openapi.blofin.com',
                 ),
+                'test' => array(
+                    'rest' => 'https://demo-trading-openapi.blofin.com',
+                ),
                 'referral' => array(
                     'url' => 'https://blofin.com/register?referral_code=f79EsS',
                     'discount' => 0.05,
@@ -264,6 +267,7 @@ class blofin extends Exchange {
                         'limit' => 100,
                         'daysBack' => 100000,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
@@ -271,6 +275,7 @@ class blofin extends Exchange {
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -281,6 +286,7 @@ class blofin extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,
@@ -311,6 +317,7 @@ class blofin extends Exchange {
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
                             'limit' => true,
+                            'price' => null,
                         ),
                         'hedged' => true,
                     ),

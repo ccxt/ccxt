@@ -169,6 +169,7 @@ class coinspot extends Exchange {
                         'limit' => null,
                         'daysBack' => 100000,
                         'untilDays' => 100000, // todo implement
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => null,
                     'fetchOpenOrders' => null, // todo implement

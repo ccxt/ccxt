@@ -316,17 +316,20 @@ export default class deribit extends Exchange {
                         'limit': 100, // todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -337,6 +340,7 @@ export default class deribit extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: recheck
@@ -763,7 +767,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    parseAccount (account, currency: Currency = undefined) {
+    parseAccount (account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -782,7 +786,7 @@ export default class deribit extends Exchange {
             'info': account,
             'id': this.safeString (account, 'id'),
             'type': this.safeString (account, 'type'),
-            'code': this.safeCurrencyCode (undefined, currency),
+            'code': undefined,
         };
     }
 
@@ -3186,7 +3190,7 @@ export default class deribit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3195,19 +3199,36 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const eachItemDuration = '1h';
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720) as FundingRateHistory[];
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest) as FundingRateHistory[];
         }
-        const time = this.milliseconds ();
+        const duration = this.parseTimeframe (eachItemDuration) * 1000;
+        let time = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
             since = time - month;
+        } else {
+            time = since + month;
         }
         const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         };
+        const until = this.safeInteger2 (params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['end_timestamp'] = until;
+        } else {
+            request['end_timestamp'] = time;
+        }
+        if ('isDeribitPaginationCall' in params) {
+            params = this.omit (params, 'isDeribitPaginationCall');
+            const maxUntil = this.sum (since, limit * duration);
+            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+        }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
         //
         //    {
