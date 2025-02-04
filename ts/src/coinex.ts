@@ -4798,7 +4798,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'ccy': currency['id'],
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'amount': this.currencyToPrecision (code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (tag !== undefined) {
             request['memo'] = tag;

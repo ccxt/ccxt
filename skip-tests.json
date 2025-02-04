@@ -271,7 +271,9 @@
                 "expiry":"expiry is expected to be > 0",
                 "settle": "not defined when contract",
                 "settleId": "not defined when contract",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "taker": "missing",
+                "maker": "missing"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
@@ -1222,30 +1224,6 @@
                 "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
             },
             "watchOHLCV": "some timestamp issues"
-        }
-    },
-    "lykke": {
-        "skip": "network forbidden",
-        "until": "2025-02-02",
-        "httpsProxy": "http://51.83.140.52:11230",
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed codes"
-            },
-            "fetchCurrencies": {
-                "fee":"not provided"
-            },
-            "orderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "close": "might be negative https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4657",
-                "open": "same",
-                "low": "same",
-                "high": "same",
-                "average": "same"
-            }
         }
     },
     "mercado": {

@@ -929,6 +929,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -943,6 +944,8 @@ public partial class wavesexchange : Exchange
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         object allowedCandles = this.safeInteger(this.options, "allowedCandles", 1440);
+        object until = this.safeInteger(parameters, "until");
+        object untilIsDefined = !isEqual(until, null);
         if (isTrue(isEqual(limit, null)))
         {
             limit = allowedCandles;
@@ -951,16 +954,29 @@ public partial class wavesexchange : Exchange
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
         if (isTrue(isEqual(since, null)))
         {
-            object durationRoundedTimestamp = multiply(this.parseToInt(divide(this.milliseconds(), duration)), duration);
+            object now = this.milliseconds();
+            object timeEnd = ((bool) isTrue(untilIsDefined)) ? until : now;
+            object durationRoundedTimestamp = multiply(this.parseToInt(divide(timeEnd, duration)), duration);
             object delta = multiply((subtract(limit, 1)), duration);
             object timeStart = subtract(durationRoundedTimestamp, delta);
             ((IDictionary<string,object>)request)["timeStart"] = ((object)timeStart).ToString();
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)until).ToString();
+            }
         } else
         {
             ((IDictionary<string,object>)request)["timeStart"] = ((object)since).ToString();
-            object timeEnd = this.sum(since, multiply(duration, limit));
-            ((IDictionary<string,object>)request)["timeEnd"] = ((object)timeEnd).ToString();
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)until).ToString();
+            } else
+            {
+                object timeEnd = this.sum(since, multiply(duration, limit));
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)timeEnd).ToString();
+            }
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandlesBaseIdQuoteId(this.extend(request, parameters));
         //
         //     {

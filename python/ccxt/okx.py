@@ -1819,7 +1819,8 @@ class okx(Exchange, ImplicitAPI):
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if (networkId is not None) and (networkId.find('-') >= 0):
-                    parts = networkId.split('-')[1:]
+                    idParts = networkId.split('-')
+                    parts = self.array_slice(idParts, 1)
                     chainPart = '-'.join(parts)
                     networkCode = self.network_id_to_code(chainPart, currency['code'])
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
