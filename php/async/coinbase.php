@@ -447,7 +447,7 @@ class coinbase extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 350,
+                        'limit' => 300,
                     ),
                 ),
                 'spot' => array(

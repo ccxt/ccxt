@@ -3932,7 +3932,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
             { "to_address", address },
-            { "amount", this.numberToString(amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         if (isTrue(!isEqual(tag, null)))
         {

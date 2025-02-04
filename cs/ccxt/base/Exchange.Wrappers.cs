@@ -1283,7 +1283,6 @@ public class  Kuna: kuna { public Kuna(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
-public class  Lykke: lykke { public Lykke(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
 public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }

@@ -9913,6 +9913,10 @@ public partial class bybit : Exchange
             {
                 feedback = add(add(this.id, " "), body);
             }
+            if (isTrue(getIndexOf(body, "Withdraw address chain or destination tag are not equal")))
+            {
+                feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
+            }
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
