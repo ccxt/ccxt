@@ -181,12 +181,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
-	this.InitRestRateLimiter()
 	this.AfterConstruct()
-
-	if (this.Markets != nil) && (len(this.Markets) > 0) {
-		this.SetMarkets(this.Markets, nil)
-	}
 
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
@@ -207,26 +202,6 @@ func NewExchange() IExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
-}
-
-func (this *Exchange) InitRestRateLimiter() {
-	if this.RateLimit == -1 {
-		panic("this.RateLimit is not set")
-	}
-
-	refillRate := math.MaxFloat64
-	if this.RateLimit > 0 {
-		refillRate = 1 / this.RateLimit
-	}
-	this.TokenBucket = map[string]interface{}{
-		"delay":       0.001,
-		"capacity":    1,
-		"cost":        1,
-		"maxCapacity": 1000,
-		"refillRate":  refillRate,
-	}
-
-	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
 func (this *Exchange) WarmUpCache() {
@@ -259,6 +234,10 @@ func (this *Exchange) WarmUpCache() {
 
 		this.methodCache.Store(cacheKey, cacheValue)
 	}
+}
+
+func (this *Exchange) initThrottler() {
+	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
