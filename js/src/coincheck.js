@@ -186,6 +186,7 @@ export default class coincheck extends Exchange {
                         'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -193,6 +194,7 @@ export default class coincheck extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,

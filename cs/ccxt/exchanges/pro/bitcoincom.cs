@@ -18,10 +18,7 @@ public partial class bitcoincom : hitbtc
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg" },
                 { "api", new Dictionary<string, object>() {
-                    { "ws", new Dictionary<string, object>() {
-                        { "public", "wss://api.fmfw.io/api/3/ws/public" },
-                        { "private", "wss://api.fmfw.io/api/3/ws/trading" },
-                    } },
+                    { "ws", "wss://api.fmfw.io/api/2/ws" },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

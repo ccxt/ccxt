@@ -280,7 +280,6 @@ class ascendex extends Exchange {
                     'AVAX' => 'avalanche C chain',
                     'OMNI' => 'Omni',
                     // 'TRC' => 'TRC20',
-                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'ERC20' => 'ERC20',
                     'GO20' => 'GO20',
@@ -326,6 +325,7 @@ class ascendex extends Exchange {
                         'trigger' => false,
                         'trailing' => false,
                         'marketType' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
@@ -333,6 +333,7 @@ class ascendex extends Exchange {
                         'trigger' => false,
                         'trailing' => false,
                         'marketType' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null,

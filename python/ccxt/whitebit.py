@@ -322,6 +322,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -329,6 +330,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # todo
                     'fetchClosedOrders': {
@@ -339,6 +341,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -1314,11 +1317,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        req = {
-            'cost': cost,
-        }
+        params['cost'] = cost
         # only buy side is supported
-        return self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
+        return self.create_order(symbol, 'market', side, 0, None, params)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """

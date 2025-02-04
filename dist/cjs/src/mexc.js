@@ -712,17 +712,20 @@ class mexc extends mexc$1 {
                         'limit': 100,
                         'daysBack': 30,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': true,
@@ -731,6 +734,7 @@ class mexc extends mexc$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
@@ -740,6 +744,7 @@ class mexc extends mexc$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -2252,10 +2257,8 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
     }
     /**
      * @method
@@ -2273,10 +2276,8 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, this.extend(req, params));
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
     }
     /**
      * @method
@@ -4867,7 +4868,7 @@ class mexc extends mexc$1 {
             const rawNetwork = this.safeString(params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit(params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {

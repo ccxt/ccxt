@@ -60,7 +60,7 @@ def assert_type(exchange, skipped_properties, entry, key, format):
 
 def assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for=None, deep=False):
     log_text = log_template(exchange, method, entry)
-    assert entry, 'item is null/undefined' + log_text
+    assert entry is not None, 'item is null/undefined' + log_text
     # get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if isinstance(format, list):
         assert isinstance(entry, list), 'entry is not an array' + log_text

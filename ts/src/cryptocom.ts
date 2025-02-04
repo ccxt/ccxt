@@ -387,17 +387,20 @@ export default class cryptocom extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 1,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -406,6 +409,7 @@ export default class cryptocom extends Exchange {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -415,6 +419,7 @@ export default class cryptocom extends Exchange {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,

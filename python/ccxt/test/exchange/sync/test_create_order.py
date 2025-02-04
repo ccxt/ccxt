@@ -29,6 +29,7 @@ def tco_debug(exchange, symbol, message):
     if debug_create_order:
         # for c# fix, extra step to convert them to string
         print(' >>>>> testCreateOrder [', str((exchange['id'])), ' : ', symbol, '] ', message)
+    return True
 
 
 # ----------------------------------------------------------------------------
@@ -62,6 +63,8 @@ def test_create_order(exchange, skipped_properties, symbol):
         # for swap markets, we test sell orders too
         tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell', None)
     tco_debug(exchange, symbol, '### SCENARIO 2 PASSED ###')
+    # **************** [Scenario 3 - START] **************** #
+    return True
 
 
 # ----------------------------------------------------------------------------
@@ -99,6 +102,7 @@ def tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties
         tco_cancel_order(exchange, symbol, created_order['id'])
     except Exception as e:
         raise Error(log_prefix + ' failed for Scenario 1: ' + str(e))
+    return True
 
 
 def tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, buy_or_sell_string, predefined_amount=None):
@@ -132,6 +136,7 @@ def tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, 
         tco_assert_filled_order(exchange, market, log_prefix, skipped_properties, exitorder_filled, exitorder_fetched, exit_side, amount_to_close)
     except Exception as e:
         raise Error('failed for Scenario 2: ' + str(e))
+    return True
 
 
 def tco_assert_filled_order(exchange, market, log_prefix, skipped_properties, created_order, fetched_order, requested_side, requested_amount):
@@ -152,6 +157,7 @@ def tco_assert_filled_order(exchange, market, log_prefix, skipped_properties, cr
     # ensure that order side matches
     test_shared_methods.assert_in_array(exchange, skipped_properties, 'createdOrder', created_order, 'side', [None, requested_side])
     test_shared_methods.assert_in_array(exchange, skipped_properties, 'fetchedOrder', fetched_order, 'side', [None, requested_side])
+    return True
 
 
 # ----------------------------------------------------------------------------
@@ -168,6 +174,10 @@ def tco_cancel_order(exchange, symbol, order_id=None):
     elif exchange.has['cancelOrders']:
         raise Error(log_prefix + ' cancelOrders method is not unified yet, coming soon...')
     tco_debug(exchange, symbol, 'canceled order using ' + used_method + ':' + cancel_result['id'])
+    # todo:
+    # testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
+    # testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
+    return True
 
 
 # ----------------------------------------------------------------------------
@@ -240,3 +250,4 @@ def tco_try_cancel_order(exchange, symbol, order, skipped_properties):
             tco_debug(exchange, symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + str(e))
     else:
         tco_debug(exchange, symbol, 'order is already closed/filled, no need to cancel it')
+    return True

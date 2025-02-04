@@ -187,6 +187,7 @@ class coincheck(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -194,6 +195,7 @@ class coincheck(Exchange, ImplicitAPI):
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,

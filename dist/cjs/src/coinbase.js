@@ -407,17 +407,20 @@ class coinbase extends coinbase$1 {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -426,6 +429,7 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -435,6 +439,7 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 350,
@@ -749,7 +754,7 @@ class coinbase extends coinbase$1 {
             }
         }
         if (accountId === undefined) {
-            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param');
+            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet');
         }
         const request = {
             'account_id': accountId,
@@ -1305,7 +1310,7 @@ class coinbase extends coinbase$1 {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1352,7 +1357,7 @@ class coinbase extends coinbase$1 {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }
@@ -4108,7 +4113,7 @@ class coinbase extends coinbase$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         let request = undefined;
-        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code']);
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code'], undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, params));
         //
         //    {
@@ -4218,12 +4223,15 @@ class coinbase extends coinbase$1 {
         const networkId = this.safeString(depositAddress, 'network');
         const code = this.safeCurrencyCode(undefined, currency);
         const addressLabel = this.safeString(depositAddress, 'address_label');
-        const splitAddressLabel = addressLabel.split(' ');
-        const marketId = this.safeString(splitAddressLabel, 0);
+        let currencyId = undefined;
+        if (addressLabel !== undefined) {
+            const splitAddressLabel = addressLabel.split(' ');
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         const addressInfo = this.safeDict(depositAddress, 'address_info');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(marketId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),

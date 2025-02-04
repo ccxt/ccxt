@@ -161,6 +161,7 @@ class btcturk extends btcturk$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 30,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -168,6 +169,7 @@ class btcturk extends btcturk$1 {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -176,6 +178,7 @@ class btcturk extends btcturk$1 {
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {

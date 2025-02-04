@@ -203,17 +203,20 @@ export default class probit extends Exchange {
                         'limit': 1000,
                         'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -224,6 +227,7 @@ export default class probit extends Exchange {
                         'untilDays': 90,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 4000,

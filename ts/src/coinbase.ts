@@ -409,17 +409,20 @@ export default class coinbase extends Exchange {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -428,6 +431,7 @@ export default class coinbase extends Exchange {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -437,6 +441,7 @@ export default class coinbase extends Exchange {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 350,
@@ -757,7 +762,7 @@ export default class coinbase extends Exchange {
             }
         }
         if (accountId === undefined) {
-            throw new ExchangeError (this.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param');
+            throw new ExchangeError (this.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet');
         }
         const request: Dict = {
             'account_id': accountId,
@@ -1300,7 +1305,7 @@ export default class coinbase extends Exchange {
         return await this.fetchMarketsV2 (params);
     }
 
-    async fetchMarketsV2 (params = {}) {
+    async fetchMarketsV2 (params = {}): Promise<Market[]> {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeDict (response, 'currencies', {});
         const exchangeRates = this.safeDict (response, 'exchangeRates', {});
@@ -1319,7 +1324,7 @@ export default class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString (quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode (quoteId);
-                    result.push ({
+                    result.push (this.safeMarketStructure ({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1366,14 +1371,14 @@ export default class coinbase extends Exchange {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }
         return result;
     }
 
-    async fetchMarketsV3 (params = {}) {
+    async fetchMarketsV3 (params = {}): Promise<Market[]> {
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
         const spotUnresolvedPromises = [];
@@ -1970,7 +1975,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTickersV2 (symbols, params);
     }
 
-    async fetchTickersV2 (symbols: Strings = undefined, params = {}) {
+    async fetchTickersV2 (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -2005,7 +2010,7 @@ export default class coinbase extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
+    async fetchTickersV3 (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
@@ -4129,7 +4134,7 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let request = undefined;
-        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (currency['code']);
+        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (currency['code'], undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
         //
         //    {
@@ -4240,12 +4245,15 @@ export default class coinbase extends Exchange {
         const networkId = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (undefined, currency);
         const addressLabel = this.safeString (depositAddress, 'address_label');
-        const splitAddressLabel = addressLabel.split (' ');
-        const marketId = this.safeString (splitAddressLabel, 0);
+        let currencyId = undefined;
+        if (addressLabel !== undefined) {
+            const splitAddressLabel = addressLabel.split (' ');
+            currencyId = this.safeString (splitAddressLabel, 0);
+        }
         const addressInfo = this.safeDict (depositAddress, 'address_info');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode (marketId, currency),
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': this.safeString (addressInfo, 'destination_tag'),

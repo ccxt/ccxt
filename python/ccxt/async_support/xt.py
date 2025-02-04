@@ -721,6 +721,7 @@ class xt(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'marketType': True,
                         'subType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
@@ -728,6 +729,7 @@ class xt(Exchange, ImplicitAPI):
                         'trailing': False,
                         'marketType': True,
                         'subType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
@@ -736,6 +738,7 @@ class xt(Exchange, ImplicitAPI):
                         'trailing': False,
                         'marketType': True,
                         'subType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -746,6 +749,7 @@ class xt(Exchange, ImplicitAPI):
                         'trailing': False,
                         'marketType': True,
                         'subType': True,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': True,
@@ -757,6 +761,7 @@ class xt(Exchange, ImplicitAPI):
                         'trailing': False,
                         'marketType': True,
                         'subType': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo for derivatives

@@ -360,17 +360,20 @@ public partial class coinbase : Exchange
                         { "limit", 3000 },
                         { "daysBack", null },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -379,6 +382,7 @@ public partial class coinbase : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -388,6 +392,7 @@ public partial class coinbase : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 350 },
@@ -730,7 +735,7 @@ public partial class coinbase : Exchange
         }
         if (isTrue(isEqual(accountId, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param")) ;
+            throw new ExchangeError ((string)add(add(add(this.id, " createDepositAddress() could not find the account with matching currency code "), code), ", specify an `account_id` extra param to target specific wallet")) ;
         }
         object request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -1340,7 +1345,7 @@ public partial class coinbase : Exchange
                     object quoteCurrency = getValue(data, j);
                     object quoteId = this.safeString(quoteCurrency, "id");
                     object quote = this.safeCurrencyCode(quoteId);
-                    ((IList<object>)result).Add(new Dictionary<string, object>() {
+                    ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                         { "id", add(add(baseId, "-"), quoteId) },
                         { "symbol", add(add(bs, "/"), quote) },
                         { "base", bs },
@@ -1387,7 +1392,7 @@ public partial class coinbase : Exchange
                             } },
                         } },
                         { "info", quoteCurrency },
-                    });
+                    }));
                 }
             }
         }
@@ -4412,7 +4417,7 @@ public partial class coinbase : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object request = null;
-        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"));
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"), null, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
@@ -4526,12 +4531,16 @@ public partial class coinbase : Exchange
         object networkId = this.safeString(depositAddress, "network");
         object code = this.safeCurrencyCode(null, currency);
         object addressLabel = this.safeString(depositAddress, "address_label");
-        object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(splitAddressLabel, 0);
+        object currencyId = null;
+        if (isTrue(!isEqual(addressLabel, null)))
+        {
+            object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         object addressInfo = this.safeDict(depositAddress, "address_info");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(addressInfo, "destination_tag") },
@@ -4826,7 +4835,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4851,7 +4860,7 @@ public partial class coinbase : Exchange
      * @param {strng} params.toCode the unified currency code that was converted into
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

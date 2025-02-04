@@ -1199,17 +1199,20 @@ class bybit extends Exchange {
                         'limit' => 100,
                         'daysBack' => 365 * 2, // 2 years
                         'untilDays' => 7, // days between start-end
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1220,6 +1223,7 @@ class bybit extends Exchange {
                         'untilDays' => 7,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -1529,6 +1533,9 @@ class bybit extends Exchange {
     }
 
     public function get_price(string $symbol, string $price) {
+        if ($price === null) {
+            return $price;
+        }
         $market = $this->market($symbol);
         $emptyPrecisionPrice = ($market['precision']['price'] === null);
         if (!$emptyPrecisionPrice) {
@@ -1756,7 +1763,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'category' => 'spot',
@@ -1876,7 +1883,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_future_markets($params) {
+    public function fetch_future_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $params = $this->extend($params);
             $params['limit'] = 1000; // minimize number of requests
@@ -2073,7 +2080,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_option_markets($params) {
+    public function fetch_option_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $request = array(
                 'category' => 'option',

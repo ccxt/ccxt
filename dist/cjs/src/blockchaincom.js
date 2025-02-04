@@ -243,11 +243,13 @@ class blockchaincom extends blockchaincom$1 {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000, // todo implementation
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
+                        'symbolRequired': false,
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
@@ -255,6 +257,7 @@ class blockchaincom extends blockchaincom$1 {
                         'limit': 1000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -265,6 +268,7 @@ class blockchaincom extends blockchaincom$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': undefined, // todo webapi
                 },
