@@ -109,6 +109,7 @@ export default class onetrading extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
+    parseOrderType(type: Str): string;
     parseTimeInForce(timeInForce: Str): string;
     /**
      * @method
@@ -116,7 +117,7 @@ export default class onetrading extends Exchange {
      * @description create a trade order
      * @see https://docs.onetrading.com/#create-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -135,7 +136,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name onetrading#cancelAllOrders

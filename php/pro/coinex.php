@@ -265,7 +265,10 @@ class coinex extends \ccxt\async\coinex {
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, 'spot');
             Async\await($this->authenticate($type));
             $url = $this->urls['api']['ws'][$type];
-            $currencies = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
+            // coinex throws a closes the websocket when subscribing over 1422 $currencies, therefore we filter out inactive $currencies
+            $activeCurrencies = $this->filter_by($this->currencies_by_id, 'active', true);
+            $activeCurrenciesById = $this->index_by($activeCurrencies, 'id');
+            $currencies = is_array($activeCurrenciesById) ? array_keys($activeCurrenciesById) : array();
             if ($currencies === null) {
                 $currencies = array();
             }
@@ -1326,7 +1329,7 @@ class coinex extends \ccxt\async\coinex {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $timestamp = $this->safe_timestamp($ticker, 'updated_at');
+        $timestamp = $this->safe_integer($ticker, 'updated_at');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, $defaultType),
             'timestamp' => $timestamp,

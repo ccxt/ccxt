@@ -1399,6 +1399,7 @@ class bitfinex1 extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1415,9 +1416,17 @@ class bitfinex1 extends Exchange {
             'sort' => 1,
             'limit' => $limit,
         );
+        $until = $this->safe_integer($params, 'until');
         if ($since !== null) {
             $request['start'] = $since;
+        } elseif ($until !== null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $request['start'] = $until - (($limit - 1) * $duration * 1000);
         }
+        if ($until !== null) {
+            $request['end'] = $until;
+        }
+        $params = $this->omit($params, 'until');
         $response = $this->v2GetCandlesTradeTimeframeSymbolHist ($this->extend($request, $params));
         //
         //     [

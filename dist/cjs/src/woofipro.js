@@ -9,7 +9,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woofipro
@@ -334,27 +334,31 @@ class woofipro extends woofipro$1 {
                         'limit': 500,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -371,7 +375,7 @@ class woofipro extends woofipro$1 {
                         'attachedStopLossTakeProfit': {
                             // todo: implementation needs unification
                             'triggerPriceType': undefined,
-                            'limitPrice': false,
+                            'price': false,
                         },
                     },
                 },
@@ -964,8 +968,7 @@ class woofipro extends woofipro$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'rows', []);
-        const result = this.parseFundingRates(rows);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method
@@ -1410,6 +1413,7 @@ class woofipro extends woofipro$1 {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
+            const childOrders = outterOrder['child_orders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
@@ -1420,7 +1424,7 @@ class woofipro extends woofipro$1 {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder['child_orders'].push(stopLossOrder);
+                childOrders.push(stopLossOrder);
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
@@ -1431,7 +1435,7 @@ class woofipro extends woofipro$1 {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder['child_orders'].push(takeProfitOrder);
+                outterOrder.push(takeProfitOrder);
             }
             request['child_orders'] = [outterOrder];
         }
@@ -1833,7 +1837,10 @@ class woofipro extends woofipro$1 {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
@@ -2276,7 +2283,9 @@ class woofipro extends woofipro$1 {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2370,7 +2379,9 @@ class woofipro extends woofipro$1 {
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -2644,7 +2655,7 @@ class woofipro extends woofipro$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPosition(symbol = undefined, params = {}) {
+    async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2772,9 +2783,13 @@ class woofipro extends woofipro$1 {
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
+            let apiKey = this.apiKey;
+            if (apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + apiKey;
+            }
             headers = {
                 'orderly-account-id': this.accountId,
-                'orderly-key': this.apiKey,
+                'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;

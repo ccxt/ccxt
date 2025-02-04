@@ -326,17 +326,20 @@ public partial class hashkey : Exchange
                         { "limit", 1000 },
                         { "daysBack", 30 },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -1421,10 +1424,17 @@ public partial class hashkey : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         object takerOrMaker = null;
-        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker", "ibm"});
+        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker"});
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        }
+        object isBuyerMaker = this.safeBool(trade, "ibm");
+        // if public trade
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         object feeCost = this.safeString(trade, "commission");
         object feeCurrncyId = this.safeString(trade, "commissionAsset");
@@ -2528,10 +2538,8 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
         }
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
     /**
@@ -3660,8 +3668,7 @@ public partial class hashkey : Exchange
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        object fundingRates = this.parseFundingRates(response);
-        return this.filterByArray(fundingRates, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

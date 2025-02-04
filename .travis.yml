@@ -4,10 +4,24 @@ python:
 - 3.8.3
 git:
   depth: 2
+addons:
+  artifacts:
+    debug: true
 cache:
   directories:
   - ".cache"
 before_install:
+- |
+    if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+      if [[ "$TRAVIS_COMMIT_MESSAGE" == "[Automated Changes]"* ]]; then
+        echo "Skipping build for automated commit: $TRAVIS_COMMIT_MESSAGE"
+        exit 0
+      fi
+      if [[ "$TRAVIS_COMMIT_MESSAGE" == "Merge branch 'master' of "* ]]; then
+        echo "Skipping build for master merge commit: $TRAVIS_COMMIT_MESSAGE"
+        exit 0
+      fi
+    fi
 - set -e
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
@@ -33,31 +47,35 @@ before_install:
 - sudo apt-get install -y dotnet-runtime-7.0
 - dotnet --version
 - dotnet --info
+- wget https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
+- sudo tar -xvf go1.21.6.linux-amd64.tar.gz -C /usr/local
+- echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
+- go version
 - type -p curl >/dev/null || ( apt update &&  apt install curl -y)
 - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
 
 script:
 - ./build.sh 2>&1
-- git checkout master composer.json
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-    export SHOULD_DEPLOY=false;
-    DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
-    echo "----------------";
-    echo "${DEPLOY_OUTPUT}";
-    echo "${SHOULD_DEPLOY}";
-    echo "----------------";
-    if $SHOULD_DEPLOY; then
-      echo "Publishing";
-      npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
-      npm run vss && npm run copy-python-files && npm run buildCSRelease;
-      env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
-      ./cs/deploy.sh;
-      cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
-    else
-      echo "Not publishing";
-      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} GH_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
-    fi;
-  fi
+# - git checkout master composer.json
+# - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+#     export SHOULD_DEPLOY=false;
+#     DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
+#     echo "----------------";
+#     echo "${DEPLOY_OUTPUT}";
+#     echo "${SHOULD_DEPLOY}";
+#     echo "----------------";
+#     if $SHOULD_DEPLOY; then
+#       echo "Publishing";
+#       npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
+#       npm run vss && npm run copy-python-files && npm run buildCSRelease;
+#       env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+#       ./cs/deploy.sh;
+#       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
+#     else
+#       echo "Not publishing";
+#       env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} GH_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+#     fi;
+#   fi
 after_failure:
 - sleep 10
 before_deploy:
@@ -73,6 +91,7 @@ after_deploy:
 - cat ~/.npm/_logs/*-debug.log
 env:
   global:
+  - GO111MODULE=on
   # PYPI_TOKEN
   - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
   # new new GITHUB_TOKEN

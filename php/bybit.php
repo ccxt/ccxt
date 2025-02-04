@@ -334,6 +334,7 @@ class bybit extends Exchange {
                         'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
+                        'v5/account/withdrawal' => 5,
                         // asset
                         'v5/asset/exchange/query-coin-list' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query' => 0.5, // 100/s => cost = 50 / 100 = 0.5
@@ -1051,8 +1052,78 @@ class bybit extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
+                    'SOL' => 'SOL',
+                    'ACA' => 'ACA',
+                    'ADA' => 'ADA',
+                    'ALGO' => 'ALGO',
+                    'APT' => 'APTOS',
+                    'AR' => 'AR',
+                    'ARBONE' => 'ARBI',
+                    'AVAXC' => 'CAVAX',
+                    'AVAXX' => 'XAVAX',
+                    'ATOM' => 'ATOM',
+                    'BCH' => 'BCH',
+                    'BEP2' => 'BNB',
+                    'CHZ' => 'CHZ',
+                    'DCR' => 'DCR',
+                    'DGB' => 'DGB',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EGLD' => 'EGLD',
+                    'EOS' => 'EOS',
+                    'ETC' => 'ETC',
+                    'ETHF' => 'ETHF',
+                    'ETHW' => 'ETHW',
+                    'FIL' => 'FIL',
+                    'STEP' => 'FITFI',
+                    'FLOW' => 'FLOW',
+                    'FTM' => 'FTM',
+                    'GLMR' => 'GLMR',
+                    'HBAR' => 'HBAR',
+                    'HNT' => 'HNT',
+                    'ICP' => 'ICP',
+                    'ICX' => 'ICX',
+                    'KDA' => 'KDA',
+                    'KLAY' => 'KLAY',
+                    'KMA' => 'KMA',
+                    'KSM' => 'KSM',
+                    'LTC' => 'LTC',
+                    // 'TERRA' => 'LUNANEW',
+                    // 'TERRACLASSIC' => 'LUNA',
+                    'MATIC' => 'MATIC',
+                    'MINA' => 'MINA',
+                    'MOVR' => 'MOVR',
+                    'NEAR' => 'NEAR',
+                    'NEM' => 'NEM',
+                    'OASYS' => 'OAS',
+                    'OASIS' => 'ROSE',
                     'OMNI' => 'OMNI',
-                    'SPL' => 'SOL',
+                    'ONE' => 'ONE',
+                    'OPTIMISM' => 'OP',
+                    'POKT' => 'POKT',
+                    'QTUM' => 'QTUM',
+                    'RVN' => 'RVN',
+                    'SC' => 'SC',
+                    'SCRT' => 'SCRT',
+                    'STX' => 'STX',
+                    'THETA' => 'THETA',
+                    'TON' => 'TON',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'WAXP',
+                    'XDC' => 'XDC',
+                    'XEC' => 'XEC',
+                    'XLM' => 'XLM',
+                    'XRP' => 'XRP',
+                    'XTZ' => 'XTZ',
+                    'XYM' => 'XYM',
+                    'ZEN' => 'ZEN',
+                    'ZIL' => 'ZIL',
+                    'ZKSYNC' => 'ZKSYNC',
+                    // todo => uncomment after consensus
+                    // 'CADUCEUS' => 'CMP',
+                    // 'KON' => 'KON', // konpay, "konchain"
+                    // 'AURORA' => 'AURORA',
+                    // 'BITCOINGOLD' => 'BTG',
                 ),
                 'networksById' => array(
                     'ETH' => 'ERC20',
@@ -1094,7 +1165,7 @@ class bybit extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1118,27 +1189,31 @@ class bybit extends Exchange {
                         'limit' => 100,
                         'daysBack' => 365 * 2, // 2 years
                         'untilDays' => 7, // days between start-end
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
-                        'daysBackClosed' => 365 * 2, // 2 years
+                        'daysBack' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -1151,7 +1226,7 @@ class bybit extends Exchange {
                         'triggerDirection' => false,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'marketBuyRequiresPrice' => true,
                     ),
@@ -1239,7 +1314,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID => "Account Transfer"
         // MASTER UID => "Account Transfer", "Subaccount Transfer", "Withdrawal"
         $enableUnifiedMargin = $this->safe_bool($this->options, 'enableUnifiedMargin');
@@ -1444,6 +1519,9 @@ class bybit extends Exchange {
     }
 
     public function get_price(string $symbol, string $price) {
+        if ($price === null) {
+            return $price;
+        }
         $market = $this->market($symbol);
         $emptyPrecisionPrice = ($market['precision']['price'] === null);
         if (!$emptyPrecisionPrice) {
@@ -1665,7 +1743,7 @@ class bybit extends Exchange {
         return $this->array_concat($spotMarkets, $derivativeMarkets);
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): array {
         $request = array(
             'category' => 'spot',
         );
@@ -1783,7 +1861,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_future_markets($params) {
+    public function fetch_future_markets($params): array {
         $params = $this->extend($params);
         $params['limit'] = 1000; // minimize number of requests
         $preLaunchMarkets = array();
@@ -1978,7 +2056,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_option_markets($params) {
+    public function fetch_option_markets($params): array {
         $request = array(
             'category' => 'option',
         );
@@ -2697,8 +2775,7 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($tickerList); $i++) {
             $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
         }
-        $result = $this->parse_funding_rates($tickerList);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($tickerList, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3241,7 +3318,17 @@ class bybit extends Exchange {
                             $account['debt'] = Precise::string_add($loan, $interest);
                         }
                         $account['total'] = $this->safe_string($coinEntry, 'walletBalance');
-                        $account['free'] = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        $free = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        if ($free !== null) {
+                            $account['free'] = $free;
+                        } else {
+                            $locked = $this->safe_string($coinEntry, 'locked', '0');
+                            $totalPositionIm = $this->safe_string($coinEntry, 'totalPositionIM', '0');
+                            $totalOrderIm = $this->safe_string($coinEntry, 'totalOrderIM', '0');
+                            $totalUsed = Precise::string_add($locked, $totalPositionIm);
+                            $totalUsed = Precise::string_add($totalUsed, $totalOrderIm);
+                            $account['used'] = $totalUsed;
+                        }
                         // $account['used'] = $this->safe_string($coinEntry, 'locked');
                         $currencyId = $this->safe_string($coinEntry, 'coin');
                         $code = $this->safe_currency_code($currencyId);
@@ -3761,7 +3848,7 @@ class bybit extends Exchange {
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
          * @param {string} [$params->positionIdx] *contracts only* 0 for one-way mode, 1 buy $side of hedged mode, 2 sell $side of hedged mode
          * @param {bool} [$params->hedged] *contracts only* true for hedged mode, false for one way mode, default is false
-         * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {int} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
          * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
@@ -5325,12 +5412,11 @@ class bybit extends Exchange {
         $address = $this->safe_string($depositAddress, 'addressDeposit');
         $tag = $this->safe_string($depositAddress, 'tagDeposit');
         $code = $this->safe_string($currency, 'code');
-        $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $chain,
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -5351,6 +5437,11 @@ class bybit extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['chainType'] = $this->network_code_to_id($networkCode, $code);
+        }
         $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $params));
         //
         //     {
@@ -5392,41 +5483,11 @@ class bybit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
         $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
-        if ($networkId !== null) {
-            $request['chainType'] = $networkId;
-        }
-        $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $query));
-        //
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "success",
-        //         "result" => {
-        //             "coin" => "USDT",
-        //             "chains" => array(
-        //                 array(
-        //                     "chainType" => "ERC20",
-        //                     "addressDeposit" => "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        //                     "tagDeposit" => "",
-        //                     "chain" => "ETH"
-        //                 }
-        //             )
-        //         ),
-        //         "retExtInfo" => array(),
-        //         "time" => 1672192792860
-        //     }
-        //
-        $result = $this->safe_dict($response, 'result', array());
-        $chains = $this->safe_list($result, 'chains', array());
-        $chainsIndexedById = $this->index_by($chains, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
-        $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
-        return $this->parse_deposit_address($addressObject, $currency);
+        list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+        $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
+        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        return $indexedAddresses[$selectedNetworkCode];
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -9118,6 +9179,9 @@ class bybit extends Exchange {
                 $feedback = $this->id . ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions => "Account Transfer", "Subaccount Transfer", "Withdrawal" ' . $body;
             } else {
                 $feedback = $this->id . ' ' . $body;
+            }
+            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal')) {
+                $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
             }
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

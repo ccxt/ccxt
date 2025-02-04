@@ -1375,6 +1375,7 @@ class NewTranspiler {
                 contentIndentend = this.regexAll (contentIndentend, [
                     [ /public void/g, 'public static void' ], // make tests static
                     [ /async public Task/g, 'async static public Task' ], // make tests static
+                    [ /public object /g, 'public static object ' ],
                 ])
                 csharp = [
                     ...fileHeaders,

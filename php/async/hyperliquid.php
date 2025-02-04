@@ -209,6 +209,8 @@ class hyperliquid extends Exchange {
                     'Order price cannot be more than 80% away from the reference price' => '\\ccxt\\InvalidOrder',
                     'Order has zero size.' => '\\ccxt\\InvalidOrder',
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -232,7 +234,6 @@ class hyperliquid extends Exchange {
                         'takeProfitPrice' => false,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => false,
                             'PO' => true,
@@ -254,17 +255,20 @@ class hyperliquid extends Exchange {
                         'limit' => 2000,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 2000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -273,15 +277,17 @@ class hyperliquid extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 2000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 5000,
@@ -711,6 +717,11 @@ class hyperliquid extends Exchange {
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
+        $isDelisted = $this->safe_bool($market, 'isDelisted');
+        $active = true;
+        if ($isDelisted !== null) {
+            $active = !$isDelisted;
+        }
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -726,7 +737,7 @@ class hyperliquid extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => true,
+            'active' => $active,
             'contract' => $contract,
             'linear' => true,
             'inverse' => false,
@@ -1000,8 +1011,7 @@ class hyperliquid extends Exchange {
                 );
                 $result[] = $data;
             }
-            $funding_rates = $this->parse_funding_rates($result);
-            return $this->filter_by_array($funding_rates, 'symbol', $symbols);
+            return $this->parse_funding_rates($result, $symbols);
         }) ();
     }
 
@@ -1171,7 +1181,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1979,6 +1989,9 @@ class hyperliquid extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
             $market = $this->market($symbol);
             $request = array(
                 'type' => 'fundingHistory',
@@ -2329,7 +2342,7 @@ class hyperliquid extends Exchange {
             $market = $this->safe_market($marketId, $market);
         }
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer_2($order, 'timestamp', 'statusTimestamp');
+        $timestamp = $this->safe_integer($entry, 'timestamp');
         $status = $this->safe_string_2($order, 'status', 'ccxtStatus');
         $order = $this->omit($order, array( 'ccxtStatus' ));
         $side = $this->safe_string($entry, 'side');
@@ -2345,7 +2358,7 @@ class hyperliquid extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($order, 'statusTimestamp'),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
             'timeInForce' => $this->safe_string_upper($entry, 'tif'),
@@ -2951,8 +2964,28 @@ class hyperliquid extends Exchange {
                 'signature' => $sig,
             );
             $response = Async\await($this->privatePostExchange ($request));
-            return $response;
+            //
+            // array('response' => array('type' => 'default'), 'status' => 'ok')
+            //
+            return $this->parse_transfer($response);
         }) ();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        // array('response' => array('type' => 'default'), 'status' => 'ok')
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'ok',
+        );
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
@@ -3381,8 +3414,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $swapMarkets = Async\await($this->fetch_swap_markets());
-            $result = $this->parse_open_interests($swapMarkets);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_open_interests($swapMarkets, $symbols);
         }) ();
     }
 

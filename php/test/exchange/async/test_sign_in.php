@@ -16,5 +16,6 @@ function test_sign_in($exchange, $skipped_properties) {
         if ($exchange->has[$method]) {
             Async\await($exchange->sign_in());
         }
+        return true;
     }) ();
 }

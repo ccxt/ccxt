@@ -20,4 +20,9 @@ class myokx(okx):
                     'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
                 },
             },
+            'has': {
+                'swap': False,
+                'future': False,
+                'option': False,
+            },
         })

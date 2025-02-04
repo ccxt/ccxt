@@ -1,7 +1,7 @@
 {
     "exchange": "digifinex",
     "skipKeys": [],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "createOrder": [
             {
@@ -107,6 +107,7 @@
         "createOrders": [
             {
                 "description": "Spot create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/spot/order/batch_new",
                 "input": [
@@ -131,6 +132,7 @@
             },
             {
                 "description": "Spot margin create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/margin/order/batch_new",
                 "input": [
@@ -607,16 +609,82 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "Fetch OHLCV - spot",
+                "description": "fetchOHLCV with since",
                 "method": "fetchOHLCV",
-                "url": "https://openapi.digifinex.com/v3/kline?end_time=1699457938&period=1&start_time=1699457638&symbol=LTC_USDT",
+                "url": "https://openapi.digifinex.com/v3/kline?period=60&start_time=1735862400&symbol=BTC_USDT",
                 "input": [
-                    "LTC/USDT",
-                    "1m",
-                    1699457638000,
-                    5
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
                 ]
             },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735228800&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735876799&period=60&start_time=1735862399&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735862400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735934400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735876800&period=60&start_time=1735862400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },              
             {
                 "description": "Fetch OHLCV - swap",
                 "method": "fetchOHLCV",
