@@ -1018,6 +1018,9 @@ export default class bybit extends Exchange {
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
                 },
+                'fetchBalance': {
+                    'type': 'fund', // fund, spot, unified
+                },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
