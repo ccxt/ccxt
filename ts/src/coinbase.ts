@@ -1545,8 +1545,8 @@ export default class coinbase extends Exchange {
     market (symbol: string): MarketInterface {
         // as they are aliases, we need to return the original market
         const originalInput = symbol;
-        if (originalInput in this.options['aliasCbMarketIds']) {
-            const originalId = originalInput.replace ('/', '-');
+        const originalId = originalInput.replace ('/', '-');
+        if (originalId in this.options['aliasCbMarketIds']) {
             const newInput = this.options['aliasCbMarketIds'][originalId];
             return super.market (newInput);
         }
