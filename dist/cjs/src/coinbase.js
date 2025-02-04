@@ -442,7 +442,7 @@ class coinbase extends coinbase$1 {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
