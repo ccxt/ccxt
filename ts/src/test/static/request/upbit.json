@@ -253,7 +253,123 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&count=200&to=2025-01-01T03%3A20%3A00.000Z",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735689600000
+                ]
+              },
+              {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&count=4",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  null,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T01%3A01%3A00.000Z&count=200",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1735693200000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&count=4&to=2025-01-01T00%3A04%3A00.000Z",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735689600000,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T01%3A01%3A00.000Z&count=60000",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735689600000,
+                  null,
+                  {
+                    "until": 1735693200000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T01%3A01%3A00.000Z&count=4",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1735693200000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since less than limit",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T00%3A55%3A00.060Z",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735692900000,
+                  2,
+                  {
+                    "until": 1735693080000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since equal to limit",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T00%3A55%3A00.120Z",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735692900000,
+                  3,
+                  {
+                    "until": 1735693080000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since greater than limit",
+                "method": "fetchOHLCV",
+                "url": "https://sg-api.upbit.com/v1/candles/minutes/1?market=SGD-BTC&to=2025-01-01T00%3A55%3A00.180Z",
+                "input": [
+                  "BTC/SGD",
+                  "1m",
+                  1735692900000,
+                  4,
+                  {
+                    "until": 1735693080000
+                  }
+                ]
+              }              
         ],
         "fetchOpenOrders": [
             {
