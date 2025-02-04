@@ -3442,6 +3442,8 @@ export default class bitmart extends Exchange {
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
             if (marginMode === 'isolated') {
                 request['orderMode'] = 'iso_margin';
+            } else if (marginMode === 'cross') {
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() does not support cross margin orders');
             }
             response = await this.privatePostSpotV4QueryHistoryOrders (this.extend (request, params));
         } else {
