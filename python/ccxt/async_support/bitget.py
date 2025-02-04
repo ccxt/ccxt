@@ -1595,17 +1595,20 @@ class bitget(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': 90,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 100,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -1616,6 +1619,7 @@ class bitget(Exchange, ImplicitAPI):
                         'untilDays': 90,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # variable timespans for recent endpoint, 200 for historical
@@ -1950,10 +1954,10 @@ class bitget(Exchange, ImplicitAPI):
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
             amountStep = self.safe_string(market, 'minTradeNum')
-            precisePrice = Precise(priceStep)
-            precisePrice.decimals = max(precisePrice.decimals, priceDecimals)
-            precisePrice.reduce()
-            priceString = str(precisePrice)
+            precise = Precise(priceStep)
+            precise.decimals = max(precise.decimals, priceDecimals)
+            precise.reduce()
+            priceString = str(precise)
             pricePrecision = self.parse_number(priceString)
             preciseAmount = Precise(amountStep)
             preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)

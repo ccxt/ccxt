@@ -242,18 +242,21 @@ export default class coinmate extends Exchange {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000, // todo implement
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -262,6 +265,7 @@ export default class coinmate extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': undefined,

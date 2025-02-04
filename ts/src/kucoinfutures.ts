@@ -400,17 +400,20 @@ export default class kucoinfutures extends kucoin {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 7,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -421,6 +424,7 @@ export default class kucoinfutures extends kucoin {
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
@@ -2185,7 +2189,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;

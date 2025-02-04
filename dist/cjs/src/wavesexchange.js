@@ -374,18 +374,21 @@ class wavesexchange extends wavesexchange$1 {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000, // todo
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -394,6 +397,7 @@ class wavesexchange extends wavesexchange$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -403,6 +407,7 @@ class wavesexchange extends wavesexchange$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': undefined, // todo
@@ -761,6 +766,7 @@ class wavesexchange extends wavesexchange$1 {
         if (hexSecretKeyBytes.length !== 64) {
             throw new errors.AuthenticationError(this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -1029,6 +1035,7 @@ class wavesexchange extends wavesexchange$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1040,22 +1047,35 @@ class wavesexchange extends wavesexchange$1 {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger(this.options, 'allowedCandles', 1440);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = until !== undefined;
         if (limit === undefined) {
             limit = allowedCandles;
         }
         limit = Math.min(allowedCandles, limit);
         const duration = this.parseTimeframe(timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = this.parseToInt(this.milliseconds() / duration) * duration;
+            const now = this.milliseconds();
+            const timeEnd = untilIsDefined ? until : now;
+            const durationRoundedTimestamp = this.parseToInt(timeEnd / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
         }
         else {
             request['timeStart'] = since.toString();
-            const timeEnd = this.sum(since, duration * limit);
-            request['timeEnd'] = timeEnd.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
+            else {
+                const timeEnd = this.sum(since, duration * limit);
+                request['timeEnd'] = timeEnd.toString();
+            }
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetCandlesBaseIdQuoteId(this.extend(request, params));
         //
         //     {

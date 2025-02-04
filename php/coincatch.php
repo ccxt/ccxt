@@ -444,11 +444,13 @@ class coincatch extends Exchange {
                         'limit' => 500,
                         'daysBack' => 100000, // todo implement
                         'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
@@ -456,6 +458,7 @@ class coincatch extends Exchange {
                         'trigger' => true,
                         'trailing' => false,
                         'marketType' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null, // todo implement

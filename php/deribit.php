@@ -310,17 +310,20 @@ class deribit extends Exchange {
                         'limit' => 100, // todo => revise
                         'daysBack' => 100000,
                         'untilDays' => 100000,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -331,6 +334,7 @@ class deribit extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true, // todo
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // todo => recheck
@@ -757,7 +761,7 @@ class deribit extends Exchange {
         return $this->parse_accounts($result);
     }
 
-    public function parse_account($account, ?array $currency = null) {
+    public function parse_account($account) {
         //
         //      {
         //          "username" => "someusername_1",
@@ -776,7 +780,7 @@ class deribit extends Exchange {
             'info' => $account,
             'id' => $this->safe_string($account, 'id'),
             'type' => $this->safe_string($account, 'type'),
-            'code' => $this->safe_currency_code(null, $currency),
+            'code' => null,
         );
     }
 
@@ -3189,10 +3193,13 @@ class deribit extends Exchange {
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        $maxEntriesPerRequest = 744; // seems exchange returns max 744 items per $request
+        $eachItemDuration = '1h';
         if ($paginate) {
-            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '1h', $params, 720);
+            // fix for => https://github.com/ccxt/ccxt/issues/25040
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, $eachItemDuration, $this->extend($params, array( 'isDeribitPaginationCall' => true )), $maxEntriesPerRequest);
         }
+        $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $time = $this->milliseconds();
         $month = 30 * 24 * 60 * 60 * 1000;
         if ($since === null) {
@@ -3210,6 +3217,11 @@ class deribit extends Exchange {
             $request['end_timestamp'] = $until;
         } else {
             $request['end_timestamp'] = $time;
+        }
+        if (is_array($params) && array_key_exists('isDeribitPaginationCall', $params)) {
+            $params = $this->omit($params, 'isDeribitPaginationCall');
+            $maxUntil = $this->sum($since, $limit * $duration);
+            $request['end_timestamp'] = min ($request['end_timestamp'], $maxUntil);
         }
         $response = $this->publicGetGetFundingRateHistory ($this->extend($request, $params));
         //

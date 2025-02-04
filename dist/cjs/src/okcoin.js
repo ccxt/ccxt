@@ -242,18 +242,21 @@ class okcoin extends okcoin$1 {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 90, // todo
+                        'untilDays': 90,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
-                        'trailing': true, // todo
+                        'trailing': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -264,6 +267,7 @@ class okcoin extends okcoin$1 {
                         'untilDays': 90,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense

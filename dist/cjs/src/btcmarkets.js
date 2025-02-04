@@ -183,17 +183,20 @@ class btcmarkets extends btcmarkets$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -202,6 +205,7 @@ class btcmarkets extends btcmarkets$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -211,6 +215,7 @@ class btcmarkets extends btcmarkets$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,

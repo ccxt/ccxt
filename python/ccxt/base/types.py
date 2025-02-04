@@ -280,7 +280,7 @@ class Ticker(TypedDict):
 
 Tickers = Dict[str, Ticker]
 
-
+OrderBooks = Dict[str, OrderBook]
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str

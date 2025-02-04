@@ -31,3 +31,5 @@ def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     now = exchange.milliseconds()
     for i in range(0, len(ohlcvs)):
         test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)
+    # todo: sorted timestamps check
+    return True

@@ -51,11 +51,11 @@ export default class deribit extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
-    parseAccount(account: any, currency?: Currency): {
+    parseAccount(account: any): {
         info: any;
         id: string;
         type: string;
-        code: string;
+        code: any;
     };
     /**
      * @method

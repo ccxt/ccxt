@@ -1570,17 +1570,20 @@ class bitget extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 90,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1591,6 +1594,7 @@ class bitget extends Exchange {
                         'untilDays' => 90,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
@@ -1951,10 +1955,10 @@ class bitget extends Exchange {
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
-            $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
-            $precisePrice->reduce ();
-            $priceString = (string) $precisePrice;
+            $precise = new Precise ($priceStep);
+            $precise->decimals = max ($precise->decimals, $priceDecimals);
+            $precise->reduce ();
+            $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
             $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);

@@ -308,17 +308,20 @@ class paradex extends Exchange {
                         'limit' => 100, // todo
                         'daysBack' => 100000, // todo
                         'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -327,6 +330,7 @@ class paradex extends Exchange {
                         'untilDays' => 100000, // todo
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => null, // todo
                     'fetchOHLCV' => array(
@@ -1071,17 +1075,19 @@ class paradex extends Exchange {
         return Async\async(function () use ($l1) {
             $systemConfig = Async\await($this->get_system_config());
             if ($l1 === true) {
-                return array(
+                $l1D = array(
                     'name' => 'Paradex',
                     'chainId' => $systemConfig['l1_chain_id'],
                     'version' => '1',
                 );
+                return $l1D;
             }
-            return array(
+            $domain = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['starknet_chain_id'],
                 'version' => 1,
             );
+            return $domain;
         }) ();
     }
 

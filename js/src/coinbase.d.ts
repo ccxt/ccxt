@@ -139,8 +139,8 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsV2(params?: {}): Promise<any[]>;
-    fetchMarketsV3(params?: {}): Promise<any[]>;
+    fetchMarketsV2(params?: {}): Promise<Market[]>;
+    fetchMarketsV3(params?: {}): Promise<Market[]>;
     parseSpotMarket(market: any, feeTier: any): MarketInterface;
     parseContractMarket(market: any, feeTier: any): MarketInterface;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
@@ -166,8 +166,8 @@ export default class coinbase extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchTickersV2(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchTickersV3(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickersV2(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickersV3(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name coinbase#fetchTicker

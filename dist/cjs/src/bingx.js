@@ -502,7 +502,9 @@ class bingx extends bingx$1 {
             'commonCurrencies': {
                 'SNOW': 'Snowman',
                 'OMNI': 'OmniCat',
-                'NAP': '$NAP', // NAP on SOL = SNAP
+                'NAP': '$NAP',
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -573,18 +575,21 @@ class bingx extends bingx$1 {
                         'marginMode': false,
                         'limit': 512,
                         'daysBack': 30,
-                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays': 30,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -593,6 +598,7 @@ class bingx extends bingx$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -602,6 +608,7 @@ class bingx extends bingx$1 {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -614,19 +621,7 @@ class bingx extends bingx$1 {
                         'daysBack': undefined,
                         'untilDays': undefined,
                     },
-                    'fetchOHLCV': {
-                        'limit': 1440,
-                    },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'daysBack': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 7,
-                        'trigger': false,
-                        'trailing': false,
-                    },
                 },
                 //
                 'spot': {
@@ -655,12 +650,16 @@ class bingx extends bingx$1 {
                         'extends': 'defaultForInverse',
                     },
                 },
+                'defaultForFuture': {
+                    'extends': 'defaultForLinear',
+                    'fetchOrders': undefined,
+                },
                 'future': {
                     'linear': {
-                        'extends': 'defaultForLinear',
+                        'extends': 'defaultForFuture',
                     },
                     'inverse': {
-                        'extends': 'defaultForInverse',
+                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -2744,10 +2743,8 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        const req = {
-            'quoteOrderQty': cost,
-        };
-        return await this.createOrder(symbol, 'market', side, cost, undefined, this.extend(req, params));
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
     /**
      * @method
@@ -2759,10 +2756,8 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        const req = {
-            'quoteOrderQty': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     /**
      * @method
@@ -2774,10 +2769,8 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        const req = {
-            'quoteOrderQty': cost,
-        };
-        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -3005,7 +2998,11 @@ class bingx extends bingx$1 {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
+            let amountReq = amount;
+            if (!market['inverse']) {
+                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            }
+            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
@@ -5797,7 +5794,7 @@ class bingx extends bingx$1 {
         const request = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString(amount),
+            'amount': this.currencyToPrecision(code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper(params, 'network');

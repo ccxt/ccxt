@@ -16,5 +16,6 @@ function test_fetch_status($exchange, $skipped_properties) {
         $method = 'fetchStatus';
         $status = Async\await($exchange->fetch_status());
         test_status($exchange, $skipped_properties, $method, $status, $exchange->milliseconds());
+        return true;
     }) ();
 }

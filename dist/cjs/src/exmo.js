@@ -239,17 +239,20 @@ class exmo extends exmo$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -2624,7 +2627,7 @@ class exmo extends exmo$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDeposit(id = undefined, code = undefined, params = {}) {
+    async fetchDeposit(id, code = undefined, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         const request = {

@@ -245,17 +245,20 @@ export default class okcoin extends Exchange {
                         'limit': 100,
                         'daysBack': 90,
                         'untilDays': 90, // todo
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': true, // todo
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -266,6 +269,7 @@ export default class okcoin extends Exchange {
                         'untilDays': 90, // todo
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense

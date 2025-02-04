@@ -515,17 +515,20 @@ public partial class coinex : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 100000 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -536,6 +539,7 @@ public partial class coinex : Exchange
                         { "untilDays", null },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },

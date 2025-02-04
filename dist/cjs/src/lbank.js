@@ -327,17 +327,20 @@ class lbank extends lbank$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 2,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 200,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -346,6 +349,7 @@ class lbank extends lbank$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -2771,7 +2775,8 @@ class lbank extends lbank$1 {
                             result[code] = this.depositWithdrawFee([fee]);
                         }
                         else {
-                            result[code]['info'].push(fee);
+                            const resultCodeInfo = result[code]['info'];
+                            resultCodeInfo.push(fee);
                         }
                         const chain = this.safeString(fee, 'chain');
                         const networkCode = this.safeString(this.options['inverse-networks'], chain, chain);

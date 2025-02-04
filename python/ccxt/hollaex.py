@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -205,17 +205,20 @@ class hollaex(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -224,6 +227,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -233,6 +237,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'untilDays': 100000,  # todo
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # todo: no limit in request
@@ -491,7 +496,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
