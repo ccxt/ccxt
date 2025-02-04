@@ -187,7 +187,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
-- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt)
+- [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -232,13 +232,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.54/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.4.54/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.56/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.4.56/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.54/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.56/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -301,12 +301,10 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 
 ### Go
 
-*warning* GO isn't publicly released yet, for now you need to build it from source (it will be officially released soon)
-
-[ccxt in GO with] (https://pkg.go.dev/github.com/ccxt/ccxt)
+[ccxt in GO with](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
 
 ```shell
-go get github.com/ccxt/ccxt/go/v4/go
+go get github.com/ccxt/ccxt/go/v4
 ```
 
 ```Go

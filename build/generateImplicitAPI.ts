@@ -9,7 +9,7 @@ const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
-const GO_PATH = './go/ccxt/'
+const GO_PATH = './go/v4/'
 const IDEN = '    ';
 
 
