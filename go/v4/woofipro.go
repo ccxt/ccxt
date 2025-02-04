@@ -866,8 +866,8 @@ func  (this *woofipro) FetchTrades(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes715261 := (<-this.LoadMarkets())
-            PanicOnError(retRes715261)
+            retRes230848 := (<-this.LoadMarkets())
+            PanicOnError(retRes230848)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -972,9 +972,9 @@ func  (this *woofipro) FetchFundingInterval(symbol interface{}, optionalArgs ...
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes657418 :=  (<-this.FetchFundingRate(symbol, params))
-                PanicOnError(retRes657418)
-                ch <- retRes657418
+                retRes775990 :=  (<-this.FetchFundingRate(symbol, params))
+                PanicOnError(retRes775990)
+                ch <- retRes775990
                 return nil
         
             }()
@@ -997,8 +997,8 @@ func  (this *woofipro) FetchFundingRate(symbol interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes83363 := (<-this.LoadMarkets())
-            PanicOnError(retRes83363)
+            retRes584250 := (<-this.LoadMarkets())
+            PanicOnError(retRes584250)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1048,8 +1048,8 @@ func  (this *woofipro) FetchFundingRates(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes939622 := (<-this.LoadMarkets())
-            PanicOnError(retRes939622)
+            retRes193774 := (<-this.LoadMarkets())
+            PanicOnError(retRes193774)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.V1PublicGetPublicFundingRates(params))
@@ -1107,17 +1107,17 @@ func  (this *woofipro) FetchFundingRateHistory(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes830028 := (<-this.LoadMarkets())
-            PanicOnError(retRes830028)
+            retRes478361 := (<-this.LoadMarkets())
+            PanicOnError(retRes478361)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes513731 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-                    PanicOnError(retRes513731)
-                    ch <- retRes513731
+                    retRes765231 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+                    PanicOnError(retRes765231)
+                    ch <- retRes765231
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -1193,8 +1193,8 @@ func  (this *woofipro) FetchTradingFees(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes155364 := (<-this.LoadMarkets())
-            PanicOnError(retRes155364)
+            retRes32245 := (<-this.LoadMarkets())
+            PanicOnError(retRes32245)
         
             response:= (<-this.V1PrivateGetClientInfo(params))
             PanicOnError(response)
@@ -1267,8 +1267,8 @@ func  (this *woofipro) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes831081 := (<-this.LoadMarkets())
-            PanicOnError(retRes831081)
+            retRes457158 := (<-this.LoadMarkets())
+            PanicOnError(retRes457158)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1337,8 +1337,8 @@ func  (this *woofipro) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes715680 := (<-this.LoadMarkets())
-            PanicOnError(retRes715680)
+            retRes686084 := (<-this.LoadMarkets())
+            PanicOnError(retRes686084)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1663,8 +1663,8 @@ func  (this *woofipro) CreateOrder(symbol interface{}, typeVar interface{}, side
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes596278 := (<-this.LoadMarkets())
-            PanicOnError(retRes596278)
+            retRes254704 := (<-this.LoadMarkets())
+            PanicOnError(retRes254704)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
             var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
@@ -1709,8 +1709,8 @@ func  (this *woofipro) CreateOrders(orders interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes287508 := (<-this.LoadMarkets())
-            PanicOnError(retRes287508)
+            retRes832704 := (<-this.LoadMarkets())
+            PanicOnError(retRes832704)
             var ordersRequests interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
                 var rawOrder interface{} = GetValue(orders, i)
@@ -1792,8 +1792,8 @@ func  (this *woofipro) EditOrder(id interface{}, symbol interface{}, typeVar int
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes38984 := (<-this.LoadMarkets())
-            PanicOnError(retRes38984)
+            retRes343956 := (<-this.LoadMarkets())
+            PanicOnError(retRes343956)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
@@ -1892,8 +1892,8 @@ func  (this *woofipro) CancelOrder(id interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes12949 := (<-this.LoadMarkets())
-            PanicOnError(retRes12949)
+            retRes851009 := (<-this.LoadMarkets())
+            PanicOnError(retRes851009)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1990,8 +1990,8 @@ func  (this *woofipro) CancelOrders(ids interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes593259 := (<-this.LoadMarkets())
-            PanicOnError(retRes593259)
+            retRes872308 := (<-this.LoadMarkets())
+            PanicOnError(retRes872308)
             var clientOrderIds interface{} = this.SafeListN(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
             params = this.Omit(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
             var request interface{} = map[string]interface{} {}
@@ -2046,8 +2046,8 @@ func  (this *woofipro) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes485957 := (<-this.LoadMarkets())
-            PanicOnError(retRes485957)
+            retRes568352 := (<-this.LoadMarkets())
+            PanicOnError(retRes568352)
             var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
             params = this.Omit(params, []interface{}{"stop", "trigger"})
             var request interface{} = map[string]interface{} {}
@@ -2114,8 +2114,8 @@ func  (this *woofipro) FetchOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes51670 := (<-this.LoadMarkets())
-            PanicOnError(retRes51670)
+            retRes956103 := (<-this.LoadMarkets())
+            PanicOnError(retRes956103)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2216,8 +2216,8 @@ func  (this *woofipro) FetchOrders(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes538843 := (<-this.LoadMarkets())
-            PanicOnError(retRes538843)
+            retRes38866 := (<-this.LoadMarkets())
+            PanicOnError(retRes38866)
             var paginate interface{} = false
             var isTrigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
             var maxLimit interface{} = Ternary(IsTrue((isTrigger)), 100, 500)
@@ -2226,9 +2226,9 @@ func  (this *woofipro) FetchOrders(optionalArgs ...interface{}) <- chan interfac
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes52341 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-                    PanicOnError(retRes52341)
-                    ch <- retRes52341
+                    retRes567126 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+                    PanicOnError(retRes567126)
+                    ch <- retRes567126
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -2336,15 +2336,15 @@ func  (this *woofipro) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes648362 := (<-this.LoadMarkets())
-            PanicOnError(retRes648362)
+            retRes561371 := (<-this.LoadMarkets())
+            PanicOnError(retRes561371)
             var extendedParams interface{} = this.Extend(params, map[string]interface{} {
                 "status": "INCOMPLETE",
             })
         
-                retRes345402 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
-                PanicOnError(retRes345402)
-                ch <- retRes345402
+                retRes30266 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+                PanicOnError(retRes30266)
+                ch <- retRes30266
                 return nil
         
             }()
@@ -2381,15 +2381,15 @@ func  (this *woofipro) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes960415 := (<-this.LoadMarkets())
-            PanicOnError(retRes960415)
+            retRes700207 := (<-this.LoadMarkets())
+            PanicOnError(retRes700207)
             var extendedParams interface{} = this.Extend(params, map[string]interface{} {
                 "status": "COMPLETED",
             })
         
-                retRes904411 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
-                PanicOnError(retRes904411)
-                ch <- retRes904411
+                retRes290885 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+                PanicOnError(retRes290885)
+                ch <- retRes290885
                 return nil
         
             }()
@@ -2421,8 +2421,8 @@ func  (this *woofipro) FetchOrderTrades(id interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes887137 := (<-this.LoadMarkets())
-            PanicOnError(retRes887137)
+            retRes476567 := (<-this.LoadMarkets())
+            PanicOnError(retRes476567)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2490,17 +2490,17 @@ func  (this *woofipro) FetchMyTrades(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes782473 := (<-this.LoadMarkets())
-            PanicOnError(retRes782473)
+            retRes456309 := (<-this.LoadMarkets())
+            PanicOnError(retRes456309)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes16029 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-                    PanicOnError(retRes16029)
-                    ch <- retRes16029
+                    retRes367272 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+                    PanicOnError(retRes367272)
+                    ch <- retRes367272
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -2589,8 +2589,8 @@ func  (this *woofipro) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes777891 := (<-this.LoadMarkets())
-            PanicOnError(retRes777891)
+            retRes451269 := (<-this.LoadMarkets())
+            PanicOnError(retRes451269)
         
             response:= (<-this.V1PrivateGetClientHolding(params))
             PanicOnError(response)
@@ -2631,8 +2631,8 @@ func  (this *woofipro) GetAssetHistoryRows(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes331310 := (<-this.LoadMarkets())
-            PanicOnError(retRes331310)
+            retRes361259 := (<-this.LoadMarkets())
+            PanicOnError(retRes361259)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2832,9 +2832,9 @@ func  (this *woofipro) FetchDeposits(optionalArgs ...interface{}) <- chan interf
                 "side": "DEPOSIT",
             }
         
-                retRes13369 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes13369)
-                ch <- retRes13369
+                retRes880069 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes880069)
+                ch <- retRes880069
                 return nil
         
             }()
@@ -2868,9 +2868,9 @@ func  (this *woofipro) FetchWithdrawals(optionalArgs ...interface{}) <- chan int
                 "side": "WITHDRAW",
             }
         
-                retRes242470 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes242470)
-                ch <- retRes242470
+                retRes876751 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes876751)
+                ch <- retRes876751
                 return nil
         
             }()
@@ -2986,8 +2986,8 @@ func  (this *woofipro) Withdraw(code interface{}, amount interface{}, address in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes485098 := (<-this.LoadMarkets())
-            PanicOnError(retRes485098)
+            retRes866986 := (<-this.LoadMarkets())
+            PanicOnError(retRes866986)
             this.CheckAddress(address)
             if IsTrue(!IsEqual(code, nil)) {
                 code = ToUpper(code)
@@ -3105,8 +3105,8 @@ func  (this *woofipro) FetchLeverage(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes632753 := (<-this.LoadMarkets())
-            PanicOnError(retRes632753)
+            retRes995900 := (<-this.LoadMarkets())
+            PanicOnError(retRes995900)
             var market interface{} = this.Market(symbol)
         
             response:= (<-this.V1PrivateGetClientInfo(params))
@@ -3166,8 +3166,8 @@ func  (this *woofipro) SetLeverage(leverage interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes949201 := (<-this.LoadMarkets())
-            PanicOnError(retRes949201)
+            retRes999425 := (<-this.LoadMarkets())
+            PanicOnError(retRes999425)
             if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
                 panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
             }
@@ -3175,9 +3175,9 @@ func  (this *woofipro) SetLeverage(leverage interface{}, optionalArgs ...interfa
                 "leverage": leverage,
             }
         
-                retRes389925 :=  (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-                PanicOnError(retRes389925)
-                ch <- retRes389925
+                retRes693912 :=  (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+                PanicOnError(retRes693912)
+                ch <- retRes693912
                 return nil
         
             }()
@@ -3272,8 +3272,8 @@ func  (this *woofipro) FetchPosition(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes36997 := (<-this.LoadMarkets())
-            PanicOnError(retRes36997)
+            retRes656208 := (<-this.LoadMarkets())
+            PanicOnError(retRes656208)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -3334,8 +3334,8 @@ func  (this *woofipro) FetchPositions(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes98934 := (<-this.LoadMarkets())
-            PanicOnError(retRes98934)
+            retRes676094 := (<-this.LoadMarkets())
+            PanicOnError(retRes676094)
         
             response:= (<-this.V1PrivateGetPositions(params))
             PanicOnError(response)
