@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/deribit.js';
@@ -2772,6 +2771,7 @@ export default class deribit extends Exchange {
         const code = this.safeString (params, 'currency');
         const request: Dict = {};
         if (code !== undefined) {
+            params = this.omit (params, 'currency');
             const currency = this.currency (code);
             request['currency'] = currency['id'];
         }
