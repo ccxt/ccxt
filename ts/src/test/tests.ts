@@ -372,11 +372,13 @@ class testMainClass {
             }
             catch (ex) {
                 const e = getRootException (ex);
+                const excMessage = exceptionMessage (e);
                 const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                if (isOperationFailed) {
+                const retryAllowed = (excMessage.indexOf ('[UNSORTED_LIST_ISSUE]') >= 0);
+                if (isOperationFailed || retryAllowed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
                         const isOnMaintenance = (e instanceof OnMaintenance);
@@ -442,7 +444,7 @@ class testMainClass {
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', excMessage, exchange.id, methodName, argsStringified);
                         return false;
                     }
                 }
