@@ -1018,6 +1018,9 @@ export default class bybit extends Exchange {
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
                 },
+                'withdraw': {
+                    'accountType': 'FUND', // SPOT, FUND
+                },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
@@ -6052,7 +6055,7 @@ export default class bybit extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let accountType = undefined;
-        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'SPOT');
+        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
