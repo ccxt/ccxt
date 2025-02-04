@@ -5,5 +5,6 @@ package ccxt
 
 func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
 	byteArray := make([]byte, 0)
-	return (nil, 0, false)
+	return byteArray, 0, false
 }
+s
