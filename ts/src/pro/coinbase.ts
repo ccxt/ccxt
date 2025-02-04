@@ -703,9 +703,6 @@ export default class coinbase extends coinbaseRest {
                 orderbook['timestamp'] = this.parse8601 (datetime);
                 orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
-                if (messageHash.endsWith ('USD')) {
-                    client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
         }
     }
