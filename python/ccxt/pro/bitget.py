@@ -1916,7 +1916,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'orderbook ' + symbol)
+        error = UnsubscribeError(self.id + ' orderbook ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1938,7 +1938,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'trades ' + symbol)
+        error = UnsubscribeError(self.id + ' trades ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1960,7 +1960,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'ticker ' + symbol)
+        error = UnsubscribeError(self.id + ' ticker ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
