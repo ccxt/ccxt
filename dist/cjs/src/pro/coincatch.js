@@ -1488,7 +1488,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'orderbook ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' orderbook ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }
@@ -1510,7 +1510,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'trades ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' trades ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }
@@ -1532,7 +1532,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'ticker ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' ticker ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }

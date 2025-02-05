@@ -2483,7 +2483,7 @@ class kraken extends kraken$1 {
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
         if (timeout > 86400000) {
-            throw new errors.BadRequest(this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         await this.loadMarkets();
         const request = {
