@@ -1684,7 +1684,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         request['type'] = typeId
         if type == 'limit':
             if price is None:
-                raise InvalidOrder(self.id + 'createOrder() requires a price parameter for a limit order types')
+                raise InvalidOrder(self.id + ' createOrder() requires a price parameter for a limit order types')
             request['price'] = price
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('createOrder', params)
@@ -1695,7 +1695,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         # market orders must be IOC
         if typeId == 'MARKET':
             if tif is not None and tif != 'IOC':
-                raise InvalidOrder(self.id + 'createOrder() market orders must have tif set to "IOC"')
+                raise InvalidOrder(self.id + ' createOrder() market orders must have tif set to "IOC"')
             tif = 'IOC'
         else:
             tif = 'GTC' if (tif is None) else tif

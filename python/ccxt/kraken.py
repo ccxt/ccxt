@@ -2365,7 +2365,7 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict: the api result
         """
         if timeout > 86400000:
-            raise BadRequest(self.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
+            raise BadRequest(self.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
         self.load_markets()
         request: dict = {
             'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
