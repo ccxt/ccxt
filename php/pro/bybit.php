@@ -899,10 +899,17 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->market($symbols[0]);
             if ($limit === null) {
                 $limit = ($market['spot']) ? 50 : 500;
+                if ($market['option']) {
+                    $limit = 100;
+                }
             } else {
                 if (!$market['spot']) {
-                    // bybit only support $limit 1, 50, 200, 500 for contract
-                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200) && ($limit !== 500)) {
+                    if ($market['option']) {
+                        if (($limit !== 25) && ($limit !== 100)) {
+                            throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 25 and 100 for option markets.');
+                        }
+                    } elseif (($limit !== 1) && ($limit !== 50) && ($limit !== 200) && ($limit !== 500)) {
+                        // bybit only support $limit 1, 50, 200, 500 for contract
                         throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1, 50, 200 and 500.');
                     }
                 }
