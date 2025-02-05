@@ -498,9 +498,6 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchBalance': {
                     'code': 'BTC',
                 },
-                'fetchPositions': {
-                    'code': 'BTC',
-                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount',  # or 'privateGetSubmitTransferToUser'
                 },
@@ -2663,32 +2660,18 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currency]: currency code filter for positions
         :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+        :param int [params.subaccount_id]: the user id for the subaccount
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
-        kind = self.safe_string(params, 'kind')
-        code = None
-        if symbols is None:
-            code = self.code_from_options('fetchPositions', params)
-        elif isinstance(symbols, str):
-            code = symbols
-            symbols = None  # fix https://github.com/ccxt/ccxt/issues/13961
-        else:
-            if isinstance(symbols, list):
-                length = len(symbols)
-                if length != 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                market = self.market(symbols[0])
-                settle = market['settle']
-                code = settle if (settle is not None) else market['base']
-                kind = market['info']['kind']
-        currency = self.currency(code)
-        request: dict = {
-            'currency': currency['id'],
-        }
-        if kind is not None:
-            request['kind'] = kind
+        code = self.safe_string(params, 'currency')
+        request: dict = {}
+        if code is not None:
+            params = self.omit(params, 'currency')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
         response = await self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
