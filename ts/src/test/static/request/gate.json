@@ -18,7 +18,7 @@
                     0.12,
                     50
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"50\"}"
+                "output": "{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.12\",\"price\":\"50\"}"
             },
             {
                 "description": "Swap limit buy order",
