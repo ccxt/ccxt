@@ -406,8 +406,8 @@ func  (this *p2b) FetchTickers(optionalArgs ...interface{}) <- chan interface{} 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes415114 := (<-this.LoadMarkets())
-            PanicOnError(retRes415114)
+            retRes753200 := (<-this.LoadMarkets())
+            PanicOnError(retRes753200)
         
             response:= (<-this.PublicGetTickers(params))
             PanicOnError(response)
@@ -461,8 +461,8 @@ func  (this *p2b) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes220881 := (<-this.LoadMarkets())
-            PanicOnError(retRes220881)
+            retRes834842 := (<-this.LoadMarkets())
+            PanicOnError(retRes834842)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -587,8 +587,8 @@ func  (this *p2b) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes522357 := (<-this.LoadMarkets())
-            PanicOnError(retRes522357)
+            retRes844581 := (<-this.LoadMarkets())
+            PanicOnError(retRes844581)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -657,8 +657,8 @@ func  (this *p2b) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes571652 := (<-this.LoadMarkets())
-            PanicOnError(retRes571652)
+            retRes946623 := (<-this.LoadMarkets())
+            PanicOnError(retRes946623)
             var lastId interface{} = this.SafeInteger(params, "lastId")
             if IsTrue(IsEqual(lastId, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchTrades () requires an extra parameter params[\"lastId\"]")))
@@ -797,8 +797,8 @@ func  (this *p2b) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes460678 := (<-this.LoadMarkets())
-            PanicOnError(retRes460678)
+            retRes149780 := (<-this.LoadMarkets())
+            PanicOnError(retRes149780)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -873,8 +873,8 @@ func  (this *p2b) FetchBalance(optionalArgs ...interface{}) <- chan interface{} 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes433967 := (<-this.LoadMarkets())
-            PanicOnError(retRes433967)
+            retRes188245 := (<-this.LoadMarkets())
+            PanicOnError(retRes188245)
         
             response:= (<-this.PrivatePostAccountBalances(params))
             PanicOnError(response)
@@ -957,8 +957,8 @@ func  (this *p2b) CreateOrder(symbol interface{}, typeVar interface{}, side inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes750174 := (<-this.LoadMarkets())
-            PanicOnError(retRes750174)
+            retRes982027 := (<-this.LoadMarkets())
+            PanicOnError(retRes982027)
             if IsTrue(IsEqual(typeVar, "market")) {
                 panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
             }
@@ -1025,8 +1025,8 @@ func  (this *p2b) CancelOrder(id interface{}, optionalArgs ...interface{}) <- ch
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes985502 := (<-this.LoadMarkets())
-            PanicOnError(retRes985502)
+            retRes507814 := (<-this.LoadMarkets())
+            PanicOnError(retRes507814)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1096,8 +1096,8 @@ func  (this *p2b) FetchOpenOrders(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders () requires the symbol argument")))
             }
         
-            retRes60655 := (<-this.LoadMarkets())
-            PanicOnError(retRes60655)
+            retRes33219 := (<-this.LoadMarkets())
+            PanicOnError(retRes33219)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1170,8 +1170,8 @@ func  (this *p2b) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes235352 := (<-this.LoadMarkets())
-            PanicOnError(retRes235352)
+            retRes588390 := (<-this.LoadMarkets())
+            PanicOnError(retRes588390)
             var market interface{} = this.SafeMarket(symbol)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
@@ -1246,8 +1246,8 @@ func  (this *p2b) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{}
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes783108 := (<-this.LoadMarkets())
-            PanicOnError(retRes783108)
+            retRes406265 := (<-this.LoadMarkets())
+            PanicOnError(retRes406265)
             var until interface{} = this.SafeInteger(params, "until")
             params = this.Omit(params, "until")
             if IsTrue(IsEqual(until, nil)) {
@@ -1339,8 +1339,8 @@ func  (this *p2b) FetchClosedOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes316301 := (<-this.LoadMarkets())
-            PanicOnError(retRes316301)
+            retRes282328 := (<-this.LoadMarkets())
+            PanicOnError(retRes282328)
             var until interface{} = this.SafeInteger(params, "until")
             params = this.Omit(params, "until")
             var market interface{} = nil
