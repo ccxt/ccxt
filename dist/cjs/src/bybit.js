@@ -6878,7 +6878,7 @@ class bybit extends bybit$1 {
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate');
