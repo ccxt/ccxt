@@ -833,10 +833,15 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbols[0])
         if limit is None:
             limit = 50 if (market['spot']) else 500
+            if market['option']:
+                limit = 100
         else:
             if not market['spot']:
-                # bybit only support limit 1, 50, 200, 500 for contract
-                if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                if market['option']:
+                    if (limit != 25) and (limit != 100):
+                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
+                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                    # bybit only support limit 1, 50, 200, 500 for contract
                     raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.')
         topics = []
         messageHashes = []
