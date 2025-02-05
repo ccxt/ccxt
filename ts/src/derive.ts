@@ -1689,6 +1689,14 @@ export default class derive extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'result', response);
+        const page = this.safeInteger (params, 'page');
+        if (page !== undefined) {
+            const pagination = this.safeDict (result, 'pagination');
+            const currentPage = this.safeInteger (pagination, 'num_pages');
+            if (page > currentPage) {
+                return [];
+            }
+        }
         const orders = this.safeList (data, 'orders');
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2042,6 +2050,14 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
+        const page = this.safeInteger (params, 'page');
+        if (page !== undefined) {
+            const pagination = this.safeDict (result, 'pagination');
+            const currentPage = this.safeInteger (pagination, 'num_pages');
+            if (page > currentPage) {
+                return [];
+            }
+        }
         const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
@@ -2243,6 +2259,14 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
+        const page = this.safeInteger (params, 'page');
+        if (page !== undefined) {
+            const pagination = this.safeDict (result, 'pagination');
+            const currentPage = this.safeInteger (pagination, 'num_pages');
+            if (page > currentPage) {
+                return [];
+            }
+        }
         const events = this.safeList (result, 'events', []);
         return this.parseIncomes (events, market, since, limit);
     }
