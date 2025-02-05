@@ -6842,7 +6842,7 @@ class bybit extends Exchange {
          * @return An array of open interest structures
          */
         if ($timeframe === '1m') {
-            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         $this->load_markets();
         $paginate = $this->safe_bool($params, 'paginate');

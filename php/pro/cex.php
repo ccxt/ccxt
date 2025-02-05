@@ -1295,7 +1295,7 @@ class cex extends \ccxt\async\cex {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . 'fetchOpenOrdersWs requires a $symbol->');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a $symbol->');
             }
             Async\await($this->load_markets());
             Async\await($this->authenticate());

@@ -1549,7 +1549,7 @@ class woofipro extends Exchange {
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
             if ($isConditional) {
-                throw new NotSupported($this->id . 'createOrders() only support non-stop order');
+                throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
@@ -2462,7 +2462,7 @@ class woofipro extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'withdraw() only support USDC');
+                throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
         }
         $currency = $this->currency($code);
