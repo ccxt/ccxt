@@ -964,11 +964,11 @@ func  (this *ascendex) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes999046 := (<-this.LoadMarkets())
-            PanicOnError(retRes999046)
+            retRes9248 := (<-this.LoadMarkets())
+            PanicOnError(retRes9248)
         
-            retRes207089 := (<-this.LoadAccounts())
-            PanicOnError(retRes207089)
+            retRes9258 := (<-this.LoadAccounts())
+            PanicOnError(retRes9258)
             var marketType interface{} = nil
             var marginMode interface{} = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params);
@@ -1085,8 +1085,8 @@ func  (this *ascendex) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes343076 := (<-this.LoadMarkets())
-            PanicOnError(retRes343076)
+            retRes10178 := (<-this.LoadMarkets())
+            PanicOnError(retRes10178)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1193,8 +1193,8 @@ func  (this *ascendex) FetchTicker(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes808630 := (<-this.LoadMarkets())
-            PanicOnError(retRes808630)
+            retRes11108 := (<-this.LoadMarkets())
+            PanicOnError(retRes11108)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1246,8 +1246,8 @@ func  (this *ascendex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes964336 := (<-this.LoadMarkets())
-            PanicOnError(retRes964336)
+            retRes11478 := (<-this.LoadMarkets())
+            PanicOnError(retRes11478)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
@@ -1346,8 +1346,8 @@ func  (this *ascendex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes457706 := (<-this.LoadMarkets())
-            PanicOnError(retRes457706)
+            retRes12278 := (<-this.LoadMarkets())
+            PanicOnError(retRes12278)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1474,8 +1474,8 @@ func  (this *ascendex) FetchTrades(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes821846 := (<-this.LoadMarkets())
-            PanicOnError(retRes821846)
+            retRes13368 := (<-this.LoadMarkets())
+            PanicOnError(retRes13368)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -1717,11 +1717,11 @@ func  (this *ascendex) FetchTradingFees(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes364266 := (<-this.LoadMarkets())
-            PanicOnError(retRes364266)
+            retRes15658 := (<-this.LoadMarkets())
+            PanicOnError(retRes15658)
         
-            retRes618242 := (<-this.LoadAccounts())
-            PanicOnError(retRes618242)
+            retRes15668 := (<-this.LoadAccounts())
+            PanicOnError(retRes15668)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var request interface{} = map[string]interface{} {
@@ -1893,11 +1893,11 @@ func  (this *ascendex) CreateOrder(symbol interface{}, typeVar interface{}, side
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes225262 := (<-this.LoadMarkets())
-            PanicOnError(retRes225262)
+            retRes17188 := (<-this.LoadMarkets())
+            PanicOnError(retRes17188)
         
-            retRes826544 := (<-this.LoadAccounts())
-            PanicOnError(retRes826544)
+            retRes17198 := (<-this.LoadAccounts())
+            PanicOnError(retRes17198)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
             var response interface{} = nil
@@ -2003,11 +2003,11 @@ func  (this *ascendex) CreateOrders(orders interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes979138 := (<-this.LoadMarkets())
-            PanicOnError(retRes979138)
+            retRes18108 := (<-this.LoadMarkets())
+            PanicOnError(retRes18108)
         
-            retRes446831 := (<-this.LoadAccounts())
-            PanicOnError(retRes446831)
+            retRes18118 := (<-this.LoadAccounts())
+            PanicOnError(retRes18118)
             var ordersRequests interface{} = []interface{}{}
             var symbol interface{} = nil
             var marginMode interface{} = nil
@@ -2112,11 +2112,11 @@ func  (this *ascendex) FetchOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4363 := (<-this.LoadMarkets())
-            PanicOnError(retRes4363)
+            retRes19058 := (<-this.LoadMarkets())
+            PanicOnError(retRes19058)
         
-            retRes689376 := (<-this.LoadAccounts())
-            PanicOnError(retRes689376)
+            retRes19068 := (<-this.LoadAccounts())
+            PanicOnError(retRes19068)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2247,11 +2247,11 @@ func  (this *ascendex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes244305 := (<-this.LoadMarkets())
-            PanicOnError(retRes244305)
+            retRes20148 := (<-this.LoadMarkets())
+            PanicOnError(retRes20148)
         
-            retRes520004 := (<-this.LoadAccounts())
-            PanicOnError(retRes520004)
+            retRes20158 := (<-this.LoadAccounts())
+            PanicOnError(retRes20158)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2394,11 +2394,11 @@ func  (this *ascendex) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes199242 := (<-this.LoadMarkets())
-            PanicOnError(retRes199242)
+            retRes21338 := (<-this.LoadMarkets())
+            PanicOnError(retRes21338)
         
-            retRes209216 := (<-this.LoadAccounts())
-            PanicOnError(retRes209216)
+            retRes21348 := (<-this.LoadAccounts())
+            PanicOnError(retRes21348)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var request interface{} = map[string]interface{} {}
@@ -2583,11 +2583,11 @@ func  (this *ascendex) CancelOrder(id interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes405187 := (<-this.LoadMarkets())
-            PanicOnError(retRes405187)
+            retRes23088 := (<-this.LoadMarkets())
+            PanicOnError(retRes23088)
         
-            retRes688457 := (<-this.LoadAccounts())
-            PanicOnError(retRes688457)
+            retRes23098 := (<-this.LoadAccounts())
+            PanicOnError(retRes23098)
             var market interface{} = this.Market(symbol)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params);
             typeVar := GetValue(typeVarqueryVariable,0);
@@ -2715,11 +2715,11 @@ func  (this *ascendex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes950799 := (<-this.LoadMarkets())
-            PanicOnError(retRes950799)
+            retRes24188 := (<-this.LoadMarkets())
+            PanicOnError(retRes24188)
         
-            retRes183470 := (<-this.LoadAccounts())
-            PanicOnError(retRes183470)
+            retRes24198 := (<-this.LoadAccounts())
+            PanicOnError(retRes24198)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2844,8 +2844,8 @@ func  (this *ascendex) FetchDepositAddress(code interface{}, optionalArgs ...int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes680759 := (<-this.LoadMarkets())
-            PanicOnError(retRes680759)
+            retRes25268 := (<-this.LoadMarkets())
+            PanicOnError(retRes25268)
             var currency interface{} = this.Currency(code)
             var networkCode interface{} = this.SafeString2(params, "network", "chainName")
             var networkId interface{} = this.NetworkCodeToId(networkCode)
@@ -2943,9 +2943,9 @@ func  (this *ascendex) FetchDeposits(optionalArgs ...interface{}) <- chan interf
                 "txType": "deposit",
             }
         
-                retRes643337 :=  (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes643337)
-                ch <- retRes643337
+                retRes260515 :=  (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes260515)
+                ch <- retRes260515
                 return nil
         
             }()
@@ -2978,9 +2978,9 @@ func  (this *ascendex) FetchWithdrawals(optionalArgs ...interface{}) <- chan int
                 "txType": "withdrawal",
             }
         
-                retRes875756 :=  (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes875756)
-                ch <- retRes875756
+                retRes262215 :=  (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes262215)
+                ch <- retRes262215
                 return nil
         
             }()
@@ -3010,8 +3010,8 @@ func  (this *ascendex) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes928042 := (<-this.LoadMarkets())
-            PanicOnError(retRes928042)
+            retRes26368 := (<-this.LoadMarkets())
+            PanicOnError(retRes26368)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -3145,11 +3145,11 @@ func  (this *ascendex) FetchPositions(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes178239 := (<-this.LoadMarkets())
-            PanicOnError(retRes178239)
+            retRes27628 := (<-this.LoadMarkets())
+            PanicOnError(retRes27628)
         
-            retRes891100 := (<-this.LoadAccounts())
-            PanicOnError(retRes891100)
+            retRes27638 := (<-this.LoadAccounts())
+            PanicOnError(retRes27638)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var request interface{} = map[string]interface{} {
@@ -3336,8 +3336,8 @@ func  (this *ascendex) FetchFundingRates(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes365943 := (<-this.LoadMarkets())
-            PanicOnError(retRes365943)
+            retRes29338 := (<-this.LoadMarkets())
+            PanicOnError(retRes29338)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.V2PublicGetFuturesPricingData(params))
@@ -3383,11 +3383,11 @@ func  (this *ascendex) ModifyMarginHelper(symbol interface{}, amount interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes731305 := (<-this.LoadMarkets())
-            PanicOnError(retRes731305)
+            retRes29668 := (<-this.LoadMarkets())
+            PanicOnError(retRes29668)
         
-            retRes689306 := (<-this.LoadAccounts())
-            PanicOnError(retRes689306)
+            retRes29678 := (<-this.LoadAccounts())
+            PanicOnError(retRes29678)
             var market interface{} = this.Market(symbol)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
@@ -3462,9 +3462,9 @@ func  (this *ascendex) ReduceMargin(symbol interface{}, amount interface{}, opti
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes947610 :=  (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-                PanicOnError(retRes947610)
-                ch <- retRes947610
+                retRes302815 :=  (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+                PanicOnError(retRes302815)
+                ch <- retRes302815
                 return nil
         
             }()
@@ -3487,9 +3487,9 @@ func  (this *ascendex) AddMargin(symbol interface{}, amount interface{}, optiona
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes724179 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-                PanicOnError(retRes724179)
-                ch <- retRes724179
+                retRes304115 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+                PanicOnError(retRes304115)
+                ch <- retRes304115
                 return nil
         
             }()
@@ -3521,11 +3521,11 @@ func  (this *ascendex) SetLeverage(leverage interface{}, optionalArgs ...interfa
                 panic(BadRequest(Add(this.Id, " leverage should be between 1 and 100")))
             }
         
-            retRes554413 := (<-this.LoadMarkets())
-            PanicOnError(retRes554413)
+            retRes30618 := (<-this.LoadMarkets())
+            PanicOnError(retRes30618)
         
-            retRes790884 := (<-this.LoadAccounts())
-            PanicOnError(retRes790884)
+            retRes30628 := (<-this.LoadAccounts())
+            PanicOnError(retRes30628)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "swap")) {
                 panic(BadSymbol(Add(this.Id, " setLeverage() supports swap contracts only")))
@@ -3538,9 +3538,9 @@ func  (this *ascendex) SetLeverage(leverage interface{}, optionalArgs ...interfa
                 "leverage": leverage,
             }
         
-                retRes998032 :=  (<-this.V2PrivateAccountGroupPostFuturesLeverage(this.Extend(request, params)))
-                PanicOnError(retRes998032)
-                ch <- retRes998032
+                retRes307415 :=  (<-this.V2PrivateAccountGroupPostFuturesLeverage(this.Extend(request, params)))
+                PanicOnError(retRes307415)
+                ch <- retRes307415
                 return nil
         
             }()
@@ -3576,11 +3576,11 @@ func  (this *ascendex) SetMarginMode(marginMode interface{}, optionalArgs ...int
                 panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
             }
         
-            retRes172060 := (<-this.LoadMarkets())
-            PanicOnError(retRes172060)
+            retRes30988 := (<-this.LoadMarkets())
+            PanicOnError(retRes30988)
         
-            retRes969156 := (<-this.LoadAccounts())
-            PanicOnError(retRes969156)
+            retRes30998 := (<-this.LoadAccounts())
+            PanicOnError(retRes30998)
             var market interface{} = this.Market(symbol)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
@@ -3593,9 +3593,9 @@ func  (this *ascendex) SetMarginMode(marginMode interface{}, optionalArgs ...int
                 panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
             }
         
-                retRes736855 :=  (<-this.V2PrivateAccountGroupPostFuturesMarginType(this.Extend(request, params)))
-                PanicOnError(retRes736855)
-                ch <- retRes736855
+                retRes311115 :=  (<-this.V2PrivateAccountGroupPostFuturesMarginType(this.Extend(request, params)))
+                PanicOnError(retRes311115)
+                ch <- retRes311115
                 return nil
         
             }()
@@ -3619,8 +3619,8 @@ func  (this *ascendex) FetchLeverageTiers(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes448793 := (<-this.LoadMarkets())
-            PanicOnError(retRes448793)
+            retRes31238 := (<-this.LoadMarkets())
+            PanicOnError(retRes31238)
         
             response:= (<-this.V2PublicGetFuturesContract(params))
             PanicOnError(response)
@@ -3788,8 +3788,8 @@ func  (this *ascendex) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes769385 := (<-this.LoadMarkets())
-            PanicOnError(retRes769385)
+            retRes32688 := (<-this.LoadMarkets())
+            PanicOnError(retRes32688)
         
             response:= (<-this.V2PublicGetAssets(params))
             PanicOnError(response)
@@ -3820,11 +3820,11 @@ func  (this *ascendex) Transfer(code interface{}, amount interface{}, fromAccoun
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes800148 := (<-this.LoadMarkets())
-            PanicOnError(retRes800148)
+            retRes32868 := (<-this.LoadMarkets())
+            PanicOnError(retRes32868)
         
-            retRes637167 := (<-this.LoadAccounts())
-            PanicOnError(retRes637167)
+            retRes32878 := (<-this.LoadAccounts())
+            PanicOnError(retRes32878)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var currency interface{} = this.Currency(code)
@@ -3915,20 +3915,20 @@ func  (this *ascendex) FetchFundingHistory(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes649711 := (<-this.LoadMarkets())
-            PanicOnError(retRes649711)
+            retRes33598 := (<-this.LoadMarkets())
+            PanicOnError(retRes33598)
         
-            retRes717237 := (<-this.LoadAccounts())
-            PanicOnError(retRes717237)
+            retRes33608 := (<-this.LoadAccounts())
+            PanicOnError(retRes33608)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes393381 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 25))
-                    PanicOnError(retRes393381)
-                    ch <- retRes393381
+                    retRes336419 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 25))
+                    PanicOnError(retRes336419)
+                    ch <- retRes336419
                     return nil
             }
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
@@ -4016,11 +4016,11 @@ func  (this *ascendex) FetchMarginModes(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes553127 := (<-this.LoadMarkets())
-            PanicOnError(retRes553127)
+            retRes34358 := (<-this.LoadMarkets())
+            PanicOnError(retRes34358)
         
-            retRes293273 := (<-this.LoadAccounts())
-            PanicOnError(retRes293273)
+            retRes34368 := (<-this.LoadAccounts())
+            PanicOnError(retRes34368)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var request interface{} = map[string]interface{} {
@@ -4108,11 +4108,11 @@ func  (this *ascendex) FetchLeverages(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes716872 := (<-this.LoadMarkets())
-            PanicOnError(retRes716872)
+            retRes35088 := (<-this.LoadMarkets())
+            PanicOnError(retRes35088)
         
-            retRes378767 := (<-this.LoadAccounts())
-            PanicOnError(retRes378767)
+            retRes35098 := (<-this.LoadAccounts())
+            PanicOnError(retRes35098)
             var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{} {})
             var accountGroup interface{} = this.SafeString(account, "id")
             var request interface{} = map[string]interface{} {
