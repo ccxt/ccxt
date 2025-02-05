@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import deriveRest from '../derive.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -65,6 +65,7 @@ export default class derive extends deriveRest {
         });
         subscription = this.extend (subscription, {
             'id': requestId,
+            'method': 'subscribe',
         });
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
@@ -245,6 +246,91 @@ export default class derive extends deriveRest {
 
     /**
      * @method
+     * @name derive#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let limit = this.safeInteger (params, 'limit');
+        if (limit === undefined) {
+            limit = 10;
+        }
+        const market = this.market (symbol);
+        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limit);
+        const messageHash = 'unwatch' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+        };
+        return await this.unWatchPublic (messageHash, request, subscription);
+    }
+
+    async unWatchPublic (messageHash, message, subscription) {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const request = this.extend (message, {
+            'id': requestId,
+        });
+        subscription = this.extend (subscription, {
+            'id': requestId,
+            'method': 'unsubscribe',
+        });
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleOrderBookUnSubscription (client: Client, topic) {
+        const parsedTopic = topic.split ('.');
+        const marketId = this.safeString (parsedTopic, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        if (topic in client.subscriptions) {
+            delete client.subscriptions[topic];
+        }
+        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
+        client.reject (error, topic);
+        client.resolve (error, 'unwatch' + topic);
+    }
+
+    handleUnSubscribe (client: Client, message) {
+        //
+        // {
+        //     id: 1,
+        //     result: {
+        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
+        //       remaining_subscriptions: []
+        //     }
+        // }
+        //
+        const result = this.safeDict (message, 'result');
+        const status = this.safeDict (result, 'status');
+        if (status !== undefined) {
+            const topics = Object.keys (status);
+            for (let i = 0; i < topics.length; i++) {
+                const topic = topics[i];
+                if (topic.indexOf ('orderbook') >= 0) {
+                    this.handleOrderBookUnSubscription (client, topic);
+                }
+            }
+        }
+        return message;
+    }
+
+    /**
+     * @method
      * @name derive#watchTrades
      * @description watches information on multiple trades made in a market
      * @see https://docs.derive.xyz/reference/trades-instrument_name
@@ -342,6 +428,7 @@ export default class derive extends deriveRest {
         });
         subscription = this.extend (subscription, {
             'id': requestId,
+            'method': 'subscribe',
         });
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
@@ -599,10 +686,14 @@ export default class derive extends deriveRest {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id, {});
-            if (('method' in subscription) && (subscription['method'] === 'public/login')) {
-                this.handleAuth (client, message);
+            if ('method' in subscription) {
+                if (subscription['method'] === 'public/login') {
+                    this.handleAuth (client, message);
+                } else if (subscription['method'] === 'unsubscribe') {
+                    this.handleUnSubscribe (client, message);
+                }
+                // could handleSubscribe
             }
-            // could handleSubscribe
         }
     }
 

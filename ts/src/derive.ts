@@ -508,12 +508,10 @@ export default class derive extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const request: Dict = {
-            'currency': 'BTC',
-            'expired': true,
-            'instrument_type': 'perp',
-        };
-        const response = await this.publicPostGetAllInstruments (this.extend (request, params));
+        const spotMarketsPromise = this.fetchSpotMarkets (params);
+        const swapMarketsPromise = this.fetchSwapMarkets (params);
+        const optionMarketsPromise = this.fetchOptionMarkets (params);
+        const [ spotMarkets, swapMarkets, optionMarkets ] = await Promise.all ([ spotMarketsPromise, swapMarketsPromise, optionMarketsPromise ]);
         //
         // {
         //     "result": {
@@ -559,6 +557,39 @@ export default class derive extends Exchange {
         //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
         // }
         //
+        let result = this.arrayConcat (spotMarkets, swapMarkets);
+        result = this.arrayConcat (result, optionMarkets);
+        return result;
+    }
+
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+        const request: Dict = {
+            'expired': false,
+            'instrument_type': 'erc20',
+        };
+        const response = await this.publicPostGetAllInstruments (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'instruments', []);
+        return this.parseMarkets (data);
+    }
+
+    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+        const request: Dict = {
+            'expired': false,
+            'instrument_type': 'perp',
+        };
+        const response = await this.publicPostGetAllInstruments (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'instruments', []);
+        return this.parseMarkets (data);
+    }
+
+    async fetchOptionMarkets (params = {}): Promise<Market[]> {
+        const request: Dict = {
+            'expired': false,
+            'instrument_type': 'option',
+        };
+        const response = await this.publicPostGetAllInstruments (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'instruments', []);
         return this.parseMarkets (data);
