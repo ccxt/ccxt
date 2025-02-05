@@ -15,7 +15,7 @@ permissions:
 jobs:
   manual-job:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
       - name: Print Trigger Info
