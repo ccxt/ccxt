@@ -591,6 +591,7 @@ export default class bybit extends bybitRest {
         parsed['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', parsed);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -797,6 +798,8 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         const resolveData = [ symbol, timeframe, stored ];
@@ -1009,6 +1012,7 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
         if (limit === '1') {
             const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
@@ -1164,6 +1168,7 @@ export default class bybit extends bybitRest {
         for (let j = 0; j < trades.length; j++) {
             const parsed = this.parseWsTrade (trades[j], market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
@@ -1407,6 +1412,7 @@ export default class bybit extends bybitRest {
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append (parsed);
+            this.streamProduce ('myTrades', parsed);
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1488,6 +1494,7 @@ export default class bybit extends bybitRest {
             for (let ii = 0; ii < positions.length; ii++) {
                 const position = positions[ii];
                 cache.append (position);
+                this.streamProduce ('positions', position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1553,12 +1560,15 @@ export default class bybit extends bybitRest {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 position['side'] = 'long';
+                this.streamProduce ('positions', position);
                 cache.append (position);
                 position['side'] = 'short';
+                this.streamProduce ('positions', position);
                 cache.append (position);
                 position['side'] = undefined;
             } else {
                 // regular update
+                this.streamProduce ('positions', position);
                 cache.append (position);
             }
         }
@@ -1628,6 +1638,7 @@ export default class bybit extends bybitRest {
             liquidations = new ArrayCache (limit);
         }
         liquidations.append (liquidation);
+        this.streamProduce ('liquidations', liquidation);
         this.liquidations[symbol] = liquidations;
         client.resolve ([ liquidation ], 'liquidations');
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -1856,6 +1867,7 @@ export default class bybit extends bybitRest {
             }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
+            this.streamProduce ('orders', parsed);
             orders.append (parsed);
         }
         const symbolsArray = Object.keys (symbols);
@@ -2242,6 +2254,7 @@ export default class bybit extends bybitRest {
             this.balance[account]['datetime'] = this.iso8601 (timestamp);
             this.balance[account] = this.safeBalance (this.balance[account]);
             messageHash = 'balances:' + account;
+            this.streamProduce ('balances', this.balance[account]);
             client.resolve (this.balance[account], messageHash);
         } else {
             this.balance['info'] = info;
@@ -2250,6 +2263,7 @@ export default class bybit extends bybitRest {
             this.balance['datetime'] = this.iso8601 (timestamp);
             this.balance = this.safeBalance (this.balance);
             messageHash = 'balances';
+            this.streamProduce ('balances', this.balance);
             client.resolve (this.balance, messageHash);
         }
     }
@@ -2424,11 +2438,13 @@ export default class bybit extends bybitRest {
                 const messageHash = this.safeString (message, 'reqId');
                 client.reject (error, messageHash);
             }
+            this.streamProduce ('errors', undefined, error);
             return true;
         }
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -2541,6 +2557,7 @@ export default class bybit extends bybitRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
