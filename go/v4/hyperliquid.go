@@ -928,8 +928,8 @@ func  (this *hyperliquid) FetchOrderBook(symbol interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes664317 := (<-this.LoadMarkets())
-            PanicOnError(retRes664317)
+            retRes800902 := (<-this.LoadMarkets())
+            PanicOnError(retRes800902)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "type": "l2Book",
@@ -994,8 +994,8 @@ func  (this *hyperliquid) FetchTickers(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes468861 := (<-this.LoadMarkets())
-            PanicOnError(retRes468861)
+            retRes326688 := (<-this.LoadMarkets())
+            PanicOnError(retRes326688)
             symbols = this.MarketSymbols(symbols)
             // at this stage, to get tickers data, we use fetchMarkets endpoints
             var response interface{} = []interface{}{}
@@ -1209,8 +1209,8 @@ func  (this *hyperliquid) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes328515 := (<-this.LoadMarkets())
-            PanicOnError(retRes328515)
+            retRes443783 := (<-this.LoadMarkets())
+            PanicOnError(retRes443783)
             var market interface{} = this.Market(symbol)
             var until interface{} = this.SafeInteger(params, "until", this.Milliseconds())
             var useTail interface{} = IsEqual(since, nil)
@@ -1311,8 +1311,8 @@ func  (this *hyperliquid) FetchTrades(symbol interface{}, optionalArgs ...interf
             userAddress = GetValue(userAddressparamsVariable,0);
             params = GetValue(userAddressparamsVariable,1)
         
-            retRes524728 := (<-this.LoadMarkets())
-            PanicOnError(retRes524728)
+            retRes127844 := (<-this.LoadMarkets())
+            PanicOnError(retRes127844)
             var market interface{} = this.SafeMarket(symbol)
             var request interface{} = map[string]interface{} {
                 "user": userAddress,
@@ -1554,8 +1554,8 @@ func  (this *hyperliquid) CreateOrder(symbol interface{}, typeVar interface{}, s
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes589069 := (<-this.LoadMarkets())
-            PanicOnError(retRes589069)
+            retRes722183 := (<-this.LoadMarkets())
+            PanicOnError(retRes722183)
             orderglobalParamsVariable := this.ParseCreateOrderArgs(symbol, typeVar, side, amount, price, params);
             order := GetValue(orderglobalParamsVariable,0);
             globalParams := GetValue(orderglobalParamsVariable,1)
@@ -1586,8 +1586,8 @@ func  (this *hyperliquid) CreateOrders(orders interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes441061 := (<-this.LoadMarkets())
-            PanicOnError(retRes441061)
+            retRes462700 := (<-this.LoadMarkets())
+            PanicOnError(retRes462700)
             var request interface{} = this.CreateOrdersRequest(orders, params)
         
             response:= (<-this.PrivatePostExchange(request))
@@ -1805,8 +1805,8 @@ func  (this *hyperliquid) CancelOrders(ids interface{}, optionalArgs ...interfac
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes6004 := (<-this.LoadMarkets())
-            PanicOnError(retRes6004)
+            retRes210933 := (<-this.LoadMarkets())
+            PanicOnError(retRes210933)
             var market interface{} = this.Market(symbol)
             var clientOrderId interface{} = this.SafeValue2(params, "clientOrderId", "client_id")
             params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
@@ -1903,8 +1903,8 @@ func  (this *hyperliquid) CancelOrdersForSymbols(orders interface{}, optionalArg
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes728083 := (<-this.LoadMarkets())
-            PanicOnError(retRes728083)
+            retRes507556 := (<-this.LoadMarkets())
+            PanicOnError(retRes507556)
             var nonce interface{} = this.Milliseconds()
             var request interface{} = map[string]interface{} {
                 "nonce": nonce,
@@ -1988,8 +1988,8 @@ func  (this *hyperliquid) CancelAllOrdersAfter(timeout interface{}, optionalArgs
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes675136 := (<-this.LoadMarkets())
-            PanicOnError(retRes675136)
+            retRes641473 := (<-this.LoadMarkets())
+            PanicOnError(retRes641473)
             params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
             var nonce interface{} = this.Milliseconds()
             var request interface{} = map[string]interface{} {
@@ -2150,8 +2150,8 @@ func  (this *hyperliquid) EditOrder(id interface{}, symbol interface{}, typeVar 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes25984 := (<-this.LoadMarkets())
-            PanicOnError(retRes25984)
+            retRes603112 := (<-this.LoadMarkets())
+            PanicOnError(retRes603112)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
         
@@ -2229,8 +2229,8 @@ func  (this *hyperliquid) FetchFundingRateHistory(optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes77073 := (<-this.LoadMarkets())
-            PanicOnError(retRes77073)
+            retRes619507 := (<-this.LoadMarkets())
+            PanicOnError(retRes619507)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
             }
@@ -2318,8 +2318,8 @@ func  (this *hyperliquid) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
             method = GetValue(methodparamsVariable,0);
             params = GetValue(methodparamsVariable,1)
         
-            retRes571696 := (<-this.LoadMarkets())
-            PanicOnError(retRes571696)
+            retRes761919 := (<-this.LoadMarkets())
+            PanicOnError(retRes761919)
             var market interface{} = this.SafeMarket(symbol)
             var request interface{} = map[string]interface{} {
                 "type": method,
@@ -2382,8 +2382,8 @@ func  (this *hyperliquid) FetchClosedOrders(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes133496 := (<-this.LoadMarkets())
-            PanicOnError(retRes133496)
+            retRes349914 := (<-this.LoadMarkets())
+            PanicOnError(retRes349914)
         
             orders:= (<-this.FetchOrders(symbol, nil, nil, params))
             PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2420,8 +2420,8 @@ func  (this *hyperliquid) FetchCanceledOrders(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes601678 := (<-this.LoadMarkets())
-            PanicOnError(retRes601678)
+            retRes31106 := (<-this.LoadMarkets())
+            PanicOnError(retRes31106)
         
             orders:= (<-this.FetchOrders(symbol, nil, nil, params))
             PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2458,8 +2458,8 @@ func  (this *hyperliquid) FetchCanceledAndClosedOrders(optionalArgs ...interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes967696 := (<-this.LoadMarkets())
-            PanicOnError(retRes967696)
+            retRes965521 := (<-this.LoadMarkets())
+            PanicOnError(retRes965521)
         
             orders:= (<-this.FetchOrders(symbol, nil, nil, params))
             PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2500,8 +2500,8 @@ func  (this *hyperliquid) FetchOrders(optionalArgs ...interface{}) <- chan inter
             userAddress = GetValue(userAddressparamsVariable,0);
             params = GetValue(userAddressparamsVariable,1)
         
-            retRes659958 := (<-this.LoadMarkets())
-            PanicOnError(retRes659958)
+            retRes607370 := (<-this.LoadMarkets())
+            PanicOnError(retRes607370)
             var market interface{} = this.SafeMarket(symbol)
             var request interface{} = map[string]interface{} {
                 "type": "historicalOrders",
@@ -2555,8 +2555,8 @@ func  (this *hyperliquid) FetchOrder(id interface{}, optionalArgs ...interface{}
             userAddress = GetValue(userAddressparamsVariable,0);
             params = GetValue(userAddressparamsVariable,1)
         
-            retRes286367 := (<-this.LoadMarkets())
-            PanicOnError(retRes286367)
+            retRes582753 := (<-this.LoadMarkets())
+            PanicOnError(retRes582753)
             var market interface{} = this.SafeMarket(symbol)
             var isClientOrderId interface{} = IsGreaterThanOrEqual(GetLength(id), 34)
             var request interface{} = map[string]interface{} {
@@ -2795,8 +2795,8 @@ func  (this *hyperliquid) FetchMyTrades(optionalArgs ...interface{}) <- chan int
             userAddress = GetValue(userAddressparamsVariable,0);
             params = GetValue(userAddressparamsVariable,1)
         
-            retRes897251 := (<-this.LoadMarkets())
-            PanicOnError(retRes897251)
+            retRes562085 := (<-this.LoadMarkets())
+            PanicOnError(retRes562085)
             var market interface{} = this.SafeMarket(symbol)
             var request interface{} = map[string]interface{} {
                 "user": userAddress,
@@ -2944,8 +2944,8 @@ func  (this *hyperliquid) FetchPositions(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes62188 := (<-this.LoadMarkets())
-            PanicOnError(retRes62188)
+            retRes297422 := (<-this.LoadMarkets())
+            PanicOnError(retRes297422)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -3112,8 +3112,8 @@ func  (this *hyperliquid) SetMarginMode(marginMode interface{}, optionalArgs ...
                 panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
             }
         
-            retRes187480 := (<-this.LoadMarkets())
-            PanicOnError(retRes187480)
+            retRes365065 := (<-this.LoadMarkets())
+            PanicOnError(retRes365065)
             var market interface{} = this.Market(symbol)
             var leverage interface{} = this.SafeInteger(params, "leverage")
             if IsTrue(IsEqual(leverage, nil)) {
@@ -3186,8 +3186,8 @@ func  (this *hyperliquid) SetLeverage(leverage interface{}, optionalArgs ...inte
                 panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
             }
         
-            retRes221076 := (<-this.LoadMarkets())
-            PanicOnError(retRes221076)
+            retRes393914 := (<-this.LoadMarkets())
+            PanicOnError(retRes393914)
             var market interface{} = this.Market(symbol)
             var marginMode interface{} = this.SafeString(params, "marginMode", "cross")
             var isCross interface{} =     (IsEqual(marginMode, "cross"))
@@ -3247,9 +3247,9 @@ func  (this *hyperliquid) AddMargin(symbol interface{}, amount interface{}, opti
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes620343 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-                PanicOnError(retRes620343)
-                ch <- retRes620343
+                retRes715056 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+                PanicOnError(retRes715056)
+                ch <- retRes715056
                 return nil
         
             }()
@@ -3273,9 +3273,9 @@ func  (this *hyperliquid) ReduceMargin(symbol interface{}, amount interface{}, o
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes19251 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-                PanicOnError(retRes19251)
-                ch <- retRes19251
+                retRes411204 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+                PanicOnError(retRes411204)
+                ch <- retRes411204
                 return nil
         
             }()
@@ -3289,8 +3289,8 @@ func  (this *hyperliquid) ModifyMarginHelper(symbol interface{}, amount interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes259862 := (<-this.LoadMarkets())
-            PanicOnError(retRes259862)
+            retRes215805 := (<-this.LoadMarkets())
+            PanicOnError(retRes215805)
             var market interface{} = this.Market(symbol)
             var asset interface{} = this.ParseToInt(GetValue(market, "baseId"))
             var sz interface{} = this.ParseToInt(Precise.StringMul(this.AmountToPrecision(symbol, amount), "1000000"))
@@ -3378,14 +3378,14 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes335366 := (<-this.LoadMarkets())
-            PanicOnError(retRes335366)
+            retRes816635 := (<-this.LoadMarkets())
+            PanicOnError(retRes816635)
             var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode")
             var nonce interface{} = this.Milliseconds()
             if IsTrue(this.InArray(fromAccount, []interface{}{"spot", "swap", "perp"})) {
                 // handle swap <> spot account transfer
                 if !IsTrue(this.InArray(toAccount, []interface{}{"spot", "swap", "perp"})) {
-                    panic(NotSupported(Add(this.Id, "transfer() only support spot <> swap transfer")))
+                    panic(NotSupported(Add(this.Id, " transfer() only support spot <> swap transfer")))
                 }
                 var strAmount interface{} = this.NumberToString(amount)
                 var vaultAddress interface{} = this.FormatVaultAddress(this.SafeString(params, "vaultAddress"))
@@ -3428,7 +3428,7 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
             if IsTrue(!IsEqual(code, nil)) {
                 code = ToUpper(code)
                 if IsTrue(!IsEqual(code, "USDC")) {
-                    panic(NotSupported(Add(this.Id, "transfer() only support USDC")))
+                    panic(NotSupported(Add(this.Id, " transfer() only support USDC")))
                 }
             }
             var payload interface{} = map[string]interface{} {
@@ -3506,13 +3506,13 @@ func  (this *hyperliquid) Withdraw(code interface{}, amount interface{}, address
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes392169 := (<-this.LoadMarkets())
-            PanicOnError(retRes392169)
+            retRes431915 := (<-this.LoadMarkets())
+            PanicOnError(retRes431915)
             this.CheckAddress(address)
             if IsTrue(!IsEqual(code, nil)) {
                 code = ToUpper(code)
                 if IsTrue(!IsEqual(code, "USDC")) {
-                    panic(NotSupported(Add(this.Id, "withdraw() only support USDC")))
+                    panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
                 }
             }
             var vaultAddress interface{} = this.FormatVaultAddress(this.SafeString(params, "vaultAddress"))
@@ -3633,8 +3633,8 @@ func  (this *hyperliquid) FetchTradingFee(symbol interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes94153 := (<-this.LoadMarkets())
-            PanicOnError(retRes94153)
+            retRes293167 := (<-this.LoadMarkets())
+            PanicOnError(retRes293167)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchTradingFee", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -3766,8 +3766,8 @@ func  (this *hyperliquid) FetchLedger(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes254759 := (<-this.LoadMarkets())
-            PanicOnError(retRes254759)
+            retRes927331 := (<-this.LoadMarkets())
+            PanicOnError(retRes927331)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchLedger", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -3883,8 +3883,8 @@ func  (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes814573 := (<-this.LoadMarkets())
-            PanicOnError(retRes814573)
+            retRes479541 := (<-this.LoadMarkets())
+            PanicOnError(retRes479541)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -3951,8 +3951,8 @@ func  (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes496892 := (<-this.LoadMarkets())
-            PanicOnError(retRes496892)
+            retRes60226 := (<-this.LoadMarkets())
+            PanicOnError(retRes60226)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -4012,8 +4012,8 @@ func  (this *hyperliquid) FetchOpenInterests(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes531672 := (<-this.LoadMarkets())
-            PanicOnError(retRes531672)
+            retRes774915 := (<-this.LoadMarkets())
+            PanicOnError(retRes774915)
             symbols = this.MarketSymbols(symbols)
         
             swapMarkets:= (<-this.FetchSwapMarkets())
@@ -4042,8 +4042,8 @@ func  (this *hyperliquid) FetchOpenInterest(symbol interface{}, optionalArgs ...
             _ = params
             symbol = this.Symbol(symbol)
         
-            retRes741732 := (<-this.LoadMarkets())
-            PanicOnError(retRes741732)
+            retRes195997 := (<-this.LoadMarkets())
+            PanicOnError(retRes195997)
         
             ois:= (<-this.FetchOpenInterests([]interface{}{symbol}, params))
             PanicOnError(ois)
