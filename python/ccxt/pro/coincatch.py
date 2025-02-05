@@ -1403,7 +1403,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'orderbook ' + symbol)
+        error = UnsubscribeError(self.id + ' orderbook ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1422,7 +1422,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'trades ' + symbol)
+        error = UnsubscribeError(self.id + ' trades ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1441,7 +1441,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'ticker ' + symbol)
+        error = UnsubscribeError(self.id + ' ticker ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
