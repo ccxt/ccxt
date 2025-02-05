@@ -5109,7 +5109,7 @@ public partial class bitget : Exchange
         {
             if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+                throw new NotSupported ((string)add(this.id, " editOrder() only supports plan/trigger spot orders")) ;
             }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
