@@ -276,6 +276,33 @@ export default class derive extends deriveRest {
         return await this.unWatchPublic (messageHash, request, subscription);
     }
 
+    /**
+     * @method
+     * @name derive#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'trades.' + market['id'];
+        const messageHah = 'unwatch' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        };
+        const subscription: Dict = {
+            'name': topic,
+        };
+        return await this.unWatchPublic (messageHah, request, subscription);
+    }
+
     async unWatchPublic (messageHash, message, subscription) {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
@@ -305,6 +332,22 @@ export default class derive extends deriveRest {
         client.resolve (error, 'unwatch' + topic);
     }
 
+    handleTradesUnSubscription (client: Client, topic) {
+        const parsedTopic = topic.split ('.');
+        const marketId = this.safeString (parsedTopic, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (symbol in this.orderbooks) {
+            delete this.trades[symbol];
+        }
+        if (topic in client.subscriptions) {
+            delete client.subscriptions[topic];
+        }
+        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
+        client.reject (error, topic);
+        client.resolve (error, 'unwatch' + topic);
+    }
+
     handleUnSubscribe (client: Client, message) {
         //
         // {
@@ -323,6 +366,8 @@ export default class derive extends deriveRest {
                 const topic = topics[i];
                 if (topic.indexOf ('orderbook') >= 0) {
                     this.handleOrderBookUnSubscription (client, topic);
+                } else if (topic.indexOf ('trades') >= 0) {
+                    this.handleTradesUnSubscription (client, topic);
                 }
             }
         }
