@@ -6852,7 +6852,7 @@ export default class bybit extends Exchange {
      */
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
         const paginate = this.safeBool (params, 'paginate');
