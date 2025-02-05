@@ -2,10 +2,8 @@
 
 import deriveRest from '../derive.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
-import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict } from '../base/types.js';
+import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -39,10 +37,6 @@ export default class derive extends deriveRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
-                'watchPositions': {
-                    'fetchPositionsSnapshot': true,
-                    'awaitPositionsSnapshot': true,
-                },
             },
             'streaming': {
                 'keepAlive': 9000,
@@ -543,8 +537,8 @@ export default class derive extends deriveRest {
         if (!('error' in message)) {
             return false;
         }
-        const error = this.safeDict (message, 'error');
-        const errorCode = this.safeString (error, 'code');
+        const errorMessage = this.safeDict (message, 'error');
+        const errorCode = this.safeString (errorMessage, 'code');
         try {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
@@ -594,7 +588,7 @@ export default class derive extends deriveRest {
                 }
             }
         }
-        let method = this.safeValue (methods, event);
+        const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
