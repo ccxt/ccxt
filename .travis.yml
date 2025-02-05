@@ -22,37 +22,37 @@ before_install:
         exit 0
       fi
     fi
-- set -e
-- ". $HOME/.nvm/nvm.sh"
-- nvm ls
-- nvm ls-remote
-- nvm install v18.17.0
-- rm -rf node_modules
-# common commands
-- npm ci --include=dev
-- git checkout package.json package-lock.json
-- git config pull.rebase false
-- git fetch --depth=1 --no-tags --verbose --progress
-- pip install tox cryptography requests ruff # common packages
-- pip install twine # used to publish python package
-- pip install pyopenssl aiohttp # used to run real-time tests
-- pip install typing-extensions # required by python <3.11
-- pip install psutil # used for python ws base test
-- php -i | grep php.ini
-- composer install
-- sudo apt update
-- sudo apt install apt-transport-https -y
-- sudo apt update -y
-- sudo apt-get install -y dotnet-sdk-7.0
-- sudo apt-get install -y dotnet-runtime-7.0
-- dotnet --version
-- dotnet --info
-- wget https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
-- sudo tar -xvf go1.21.6.linux-amd64.tar.gz -C /usr/local
-- echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
-- go version
-- type -p curl >/dev/null || ( apt update &&  apt install curl -y)
-- curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
+# - set -e
+# - ". $HOME/.nvm/nvm.sh"
+# - nvm ls
+# - nvm ls-remote
+# - nvm install v18.17.0
+# - rm -rf node_modules
+# # common commands
+# - npm ci --include=dev
+# - git checkout package.json package-lock.json
+# - git config pull.rebase false
+# - git fetch --depth=1 --no-tags --verbose --progress
+# - pip install tox cryptography requests ruff # common packages
+# - pip install twine # used to publish python package
+# - pip install pyopenssl aiohttp # used to run real-time tests
+# - pip install typing-extensions # required by python <3.11
+# - pip install psutil # used for python ws base test
+# - php -i | grep php.ini
+# - composer install
+# - sudo apt update
+# - sudo apt install apt-transport-https -y
+# - sudo apt update -y
+# - sudo apt-get install -y dotnet-sdk-7.0
+# - sudo apt-get install -y dotnet-runtime-7.0
+# - dotnet --version
+# - dotnet --info
+# - wget https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
+# - sudo tar -xvf go1.21.6.linux-amd64.tar.gz -C /usr/local
+# - echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
+# - go version
+# - type -p curl >/dev/null || ( apt update &&  apt install curl -y)
+# - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
 
 script:
 - ./build.sh 2>&1
