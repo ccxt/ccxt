@@ -12059,7 +12059,7 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: an array of `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
@@ -12818,7 +12818,7 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = self.dapiPrivateGetPositionMarginHistory(self.extend(request, params))
         else:
-            raise BadRequest(self.id + 'fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
+            raise BadRequest(self.id + ' fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
         #
         #    [
         #        {
