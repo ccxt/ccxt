@@ -12719,7 +12719,7 @@ class binance extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
          */
         if ($timeframe === '1m') {
-            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         $this->load_markets();
         $paginate = false;
@@ -13533,7 +13533,7 @@ class binance extends Exchange {
         } elseif ($market['inverse']) {
             $response = $this->dapiPrivateGetPositionMarginHistory ($this->extend($request, $params));
         } else {
-            throw new BadRequest($this->id . 'fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
+            throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
         }
         //
         //    array(

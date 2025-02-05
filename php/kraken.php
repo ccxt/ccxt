@@ -2490,7 +2490,7 @@ class kraken extends Exchange {
          * @return {array} the api result
          */
         if ($timeout > 86400000) {
-            throw new BadRequest($this->id . 'cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
+            throw new BadRequest($this->id . ' cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
         }
         $this->load_markets();
         $request = array(
