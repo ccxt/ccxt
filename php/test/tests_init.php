@@ -1,17 +1,14 @@
 <?php
 
 namespace ccxt;
+use \React\Async;
 use Exception; // a common import
 require_once (__DIR__ . '/tests_helpers.php');
-if (IS_SYNCHRONOUS) {
-    require_once __DIR__ . '/tests_sync.php';
-} else {
-    require_once __DIR__ . '/tests_async.php';
-}
+
 
 $isWs = get_cli_arg_value ('--ws');
 $isBaseTests = get_cli_arg_value ('--baseTests');
-$isAllTest = get_cli_arg_value ('--all'); // if neither was chosen
+$runAll = get_cli_arg_value ('--all'); // if neither was chosen
 
 
 // ####### base tests #######
@@ -25,10 +22,16 @@ if ($isBaseTests) {
         base_tests_init();
     }
     print('base tests passed!');
-    if (!$isAllTest) {
+    if (!$runAll) {
         exit(0);
     }
 }
 
 // ####### exchange tests #######
-(new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
+if (IS_SYNCHRONOUS) {
+    require_once __DIR__ . '/tests_sync.php';
+    (new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
+} else {
+    require_once __DIR__ . '/tests_async.php';
+    Async\await((new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod));
+}
