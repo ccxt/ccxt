@@ -41,7 +41,10 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.4'
-        cache: true
+        # cache: true
+        ini-values: |
+          zend.assertions=1
+          display_errors=On
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
