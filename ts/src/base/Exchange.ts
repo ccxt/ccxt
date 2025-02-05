@@ -1095,7 +1095,8 @@ export default class Exchange {
                 if (numberNormalized.indexOf('e-') > -1) {
                     return this.number(numberToString(parseFloat(numberNormalized)))
                 }
-                return this.number (numberNormalized)
+                const result = this.number (numberNormalized)
+                return isNaN (result) ? d : result
             } catch (e) {
                 return d
             }
