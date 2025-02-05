@@ -225,7 +225,7 @@ class mexc(ccxt.async_support.mexc):
             topics = []
             if not miniTicker:
                 if symbols is None:
-                    raise ArgumentsRequired(self.id + 'watchTickers required symbols argument for the bookTicker channel')
+                    raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
                 marketIds = self.market_ids(symbols)
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
@@ -406,12 +406,12 @@ class mexc(ccxt.async_support.mexc):
         symbols = self.market_symbols(symbols, None, True, False, True)
         marketType = None
         if symbols is None:
-            raise ArgumentsRequired(self.id + 'watchBidsAsks required symbols argument')
+            raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
         markets = self.markets_for_symbols(symbols)
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
         isSpot = marketType == 'spot'
         if not isSpot:
-            raise NotSupported(self.id + 'watchBidsAsks only support spot market')
+            raise NotSupported(self.id + ' watchBidsAsks only support spot market')
         messageHashes = []
         topics = []
         for i in range(0, len(symbols)):

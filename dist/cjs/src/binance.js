@@ -12909,7 +12909,7 @@ class binance extends binance$1 {
      */
     async fetchOpenInterestHistory(symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
         let paginate = false;
@@ -13730,7 +13730,7 @@ class binance extends binance$1 {
             response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, params));
         }
         else {
-            throw new errors.BadRequest(this.id + 'fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
+            throw new errors.BadRequest(this.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
         }
         //
         //    [
