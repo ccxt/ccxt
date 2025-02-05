@@ -457,9 +457,6 @@ public partial class deribit : Exchange
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "code", "BTC" },
                 } },
-                { "fetchPositions", new Dictionary<string, object>() {
-                    { "code", "BTC" },
-                } },
                 { "transfer", new Dictionary<string, object>() {
                     { "method", "privateGetSubmitTransferToSubaccount" },
                 } },
@@ -2889,44 +2886,22 @@ public partial class deribit : Exchange
      * @see https://docs.deribit.com/#private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
      * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object kind = this.safeString(parameters, "kind");
-        object code = null;
-        if (isTrue(isEqual(symbols, null)))
+        object code = this.safeString(parameters, "currency");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
         {
-            code = this.codeFromOptions("fetchPositions", parameters);
-        } else if (isTrue((symbols is string)))
-        {
-            code = symbols;
-            symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
-        } else
-        {
-            if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-            {
-                object length = getArrayLength(symbols);
-                if (isTrue(!isEqual(length, 1)))
-                {
-                    throw new BadRequest ((string)add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                object market = this.market(getValue(symbols, 0));
-                object settle = getValue(market, "settle");
-                code = ((bool) isTrue((!isEqual(settle, null)))) ? settle : getValue(market, "base");
-                kind = getValue(getValue(market, "info"), "kind");
-            }
-        }
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        if (isTrue(!isEqual(kind, null)))
-        {
-            ((IDictionary<string,object>)request)["kind"] = kind;
+            parameters = this.omit(parameters, "currency");
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         object response = await this.privateGetGetPositions(this.extend(request, parameters));
         //
