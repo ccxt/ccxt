@@ -51,14 +51,10 @@ use React\Promise;
 //     throw $e;
 // } );
 
-
-function assert($condition, $message = null) {
-    if (!$condition) {
-        $message = $message ?? 'Assertion failed';
-        throw new \AssertionError($message);
-    }
+$zend_assert_value = ini_get('zend.assertions');
+if ($zend_assert_value !== '1') {
+    throw new Exception('CCXT tests can not be conducted, please set zend.assertions=1 in your php.ini file');
 }
-
 
 // ############## detect cli arguments ############## //
 array_shift($argv); // remove first argument (which is script path)
