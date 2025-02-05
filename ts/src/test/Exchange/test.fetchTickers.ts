@@ -6,8 +6,8 @@ import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    const promises = [ withoutSymbol, withSymbol ];
-    await Promise.all (promises);
+    const promises = Promise.all ([ withoutSymbol, withSymbol ]);
+    await promises; // just trying to fix python asyncio gather transpilation glitch
     return true;
 }
 
