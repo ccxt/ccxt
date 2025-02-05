@@ -2662,7 +2662,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
