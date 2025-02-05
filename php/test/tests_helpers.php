@@ -51,6 +51,15 @@ use React\Promise;
 //     throw $e;
 // } );
 
+
+function assert($condition, $message = null) {
+    if (!$condition) {
+        $message = $message ?? 'Assertion failed';
+        throw new \AssertionError($message);
+    }
+}
+
+
 // ############## detect cli arguments ############## //
 array_shift($argv); // remove first argument (which is script path)
 
