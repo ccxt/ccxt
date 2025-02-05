@@ -2829,7 +2829,7 @@ class hyperliquid extends Exchange {
         if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
             // handle swap <> spot account transfer
             if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
-                throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
+                throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
             }
             $strAmount = $this->number_to_string($amount);
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -2868,7 +2868,7 @@ class hyperliquid extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'transfer() only support USDC');
+                throw new NotSupported($this->id . ' transfer() only support USDC');
             }
         }
         $payload = array(
@@ -2935,7 +2935,7 @@ class hyperliquid extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'withdraw() only support USDC');
+                throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
         }
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));

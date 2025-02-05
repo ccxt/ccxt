@@ -3627,8 +3627,9 @@ class bitmart extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $currencyId = $currency['id'];
             $request = array(
-                'currency' => $currency['id'],
+                'currency' => $currencyId,
             );
             if ($code === 'USDT') {
                 $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
@@ -3637,8 +3638,14 @@ class bitmart extends Exchange {
                 $networkInner = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
                 $networkInner = $this->safe_string($networks, $networkInner, $networkInner); // handle ERC20>ETH alias
                 if ($networkInner !== null) {
-                    $request['currency'] = $request['currency'] . '-' . $networkInner; // when network the $currency need to be changed to $currency . '-' . network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                    $request['currency'] = $currencyId . '-' . $networkInner; // when network the $currency need to be changed to $currency . '-' . network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                     $params = $this->omit($params, 'network');
+                }
+            } else {
+                $networkCode = null;
+                list($networkCode, $params) = $this->handle_network_code_and_params($params);
+                if ($networkCode !== null) {
+                    $request['currency'] = $currencyId . '-' . $this->network_code_to_id($networkCode);
                 }
             }
             $response = Async\await($this->privateGetAccountV1DepositAddress ($this->extend($request, $params)));

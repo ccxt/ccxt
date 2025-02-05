@@ -510,6 +510,8 @@ class bingx extends Exchange {
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI' => 'OmniCat',
                 'NAP' => '$NAP', // NAP on SOL = SNAP
+                'TRUMP' => 'TRUMPMAGA',
+                'TRUMPSOL' => 'TRUMP',
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -5885,7 +5887,7 @@ class bingx extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                'amount' => $this->number_to_string($amount),
+                'amount' => $this->currency_to_precision($code, $amount),
                 'walletType' => $walletType,
             );
             $network = $this->safe_string_upper($params, 'network');

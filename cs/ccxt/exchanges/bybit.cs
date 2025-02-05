@@ -7350,7 +7350,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(timeframe, "1m")))
         {
-            throw new BadRequest ((string)add(this.id, "fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
         await this.loadMarkets();
         object paginate = this.safeBool(parameters, "paginate");
@@ -9912,6 +9912,10 @@ public partial class bybit : Exchange
             } else
             {
                 feedback = add(add(this.id, " "), body);
+            }
+            if (isTrue(getIndexOf(body, "Withdraw address chain or destination tag are not equal")))
+            {
+                feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
             }
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);

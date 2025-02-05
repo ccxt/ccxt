@@ -6489,7 +6489,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
         await self.load_markets()
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
@@ -8705,6 +8705,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
             else:
                 feedback = self.id + ' ' + body
+            if body.find('Withdraw address chain or destination tag are not equal'):
+                feedback = feedback + '; You might also need to ensure the address is whitelisted'
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message

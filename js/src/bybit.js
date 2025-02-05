@@ -6881,7 +6881,7 @@ export default class bybit extends Exchange {
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate');
@@ -9183,6 +9183,9 @@ export default class bybit extends Exchange {
             }
             else {
                 feedback = this.id + ' ' + body;
+            }
+            if (body.indexOf('Withdraw address chain or destination tag are not equal')) {
+                feedback = feedback + '; You might also need to ensure the address is whitelisted';
             }
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

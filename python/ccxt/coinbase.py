@@ -452,7 +452,7 @@ class coinbase(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
@@ -753,7 +753,7 @@ class coinbase(Exchange, ImplicitAPI):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet')
         request: dict = {
             'account_id': accountId,
         }
@@ -3938,7 +3938,7 @@ class coinbase(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = None
-        request, params = self.prepare_account_request_with_currency_code(currency['code'])
+        request, params = self.prepare_account_request_with_currency_code(currency['code'], None, params)
         response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
         #
         #    {
@@ -4048,12 +4048,14 @@ class coinbase(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(None, currency)
         addressLabel = self.safe_string(depositAddress, 'address_label')
-        splitAddressLabel = addressLabel.split(' ')
-        marketId = self.safe_string(splitAddressLabel, 0)
+        currencyId = None
+        if addressLabel is not None:
+            splitAddressLabel = addressLabel.split(' ')
+            currencyId = self.safe_string(splitAddressLabel, 0)
         addressInfo = self.safe_dict(depositAddress, 'address_info')
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(marketId, currency),
+            'currency': self.safe_currency_code(currencyId, currency),
             'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(addressInfo, 'destination_tag'),

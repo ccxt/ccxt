@@ -1590,7 +1590,7 @@ public partial class woofipro : Exchange
             object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
             if (isTrue(isConditional))
             {
-                throw new NotSupported ((string)add(this.id, "createOrders() only support non-stop order")) ;
+                throw new NotSupported ((string)add(this.id, " createOrders() only support non-stop order")) ;
             }
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -2614,7 +2614,7 @@ public partial class woofipro : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
             }
         }
         object currency = this.currency(code);
@@ -3002,9 +3002,14 @@ public partial class woofipro : Exchange
             object auth = "";
             object ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
+            object apiKey = this.apiKey;
+            if (isTrue(isLessThan(getIndexOf(apiKey, "ed25519:"), 0)))
+            {
+                apiKey = add("ed25519:", apiKey);
+            }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
-                { "orderly-key", this.apiKey },
+                { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
             auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);

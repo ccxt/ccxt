@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\deribit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -487,9 +486,6 @@ class deribit extends Exchange {
             'options' => array(
                 'code' => 'BTC',
                 'fetchBalance' => array(
-                    'code' => 'BTC',
-                ),
-                'fetchPositions' => array(
                     'code' => 'BTC',
                 ),
                 'transfer' => array(
@@ -2819,37 +2815,20 @@ class deribit extends Exchange {
              *
              * @see https://docs.deribit.com/#private-get_positions
              *
-             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->kind] $market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+             * @param {string} [$params->currency] $currency $code filter for positions
+             * @param {string} [$params->kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+             * @param {int} [$params->subaccount_id] the user id for the subaccount
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
-            $kind = $this->safe_string($params, 'kind');
-            $code = null;
-            if ($symbols === null) {
-                $code = $this->code_from_options('fetchPositions', $params);
-            } elseif (gettype($symbols) === 'string') {
-                $code = $symbols;
-                $symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
-            } else {
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                    $length = count($symbols);
-                    if ($length !== 1) {
-                        throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
-                    }
-                    $market = $this->market($symbols[0]);
-                    $settle = $market['settle'];
-                    $code = ($settle !== null) ? $settle : $market['base'];
-                    $kind = $market['info']['kind'];
-                }
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'currency' => $currency['id'],
-            );
-            if ($kind !== null) {
-                $request['kind'] = $kind;
+            $code = $this->safe_string($params, 'currency');
+            $request = array();
+            if ($code !== null) {
+                $params = $this->omit($params, 'currency');
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
             }
             $response = Async\await($this->privateGetGetPositions ($this->extend($request, $params)));
             //

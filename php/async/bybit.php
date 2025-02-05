@@ -6957,7 +6957,7 @@ class bybit extends Exchange {
              * @return An array of open interest structures
              */
             if ($timeframe === '1m') {
-                throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+                throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
             $paginate = $this->safe_bool($params, 'paginate');
@@ -9353,6 +9353,9 @@ class bybit extends Exchange {
                 $feedback = $this->id . ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions => "Account Transfer", "Subaccount Transfer", "Withdrawal" ' . $body;
             } else {
                 $feedback = $this->id . ' ' . $body;
+            }
+            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal')) {
+                $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
             }
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

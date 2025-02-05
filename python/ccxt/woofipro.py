@@ -1507,7 +1507,7 @@ class woofipro(Exchange, ImplicitAPI):
             takeProfit = self.safe_value(orderParams, 'takeProfit')
             isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
             if isConditional:
-                raise NotSupported(self.id + 'createOrders() only support non-stop order')
+                raise NotSupported(self.id + ' createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         request: dict = {
@@ -2355,7 +2355,7 @@ class woofipro(Exchange, ImplicitAPI):
         if code is not None:
             code = code.upper()
             if code != 'USDC':
-                raise NotSupported(self.id + 'withdraw() only support USDC')
+                raise NotSupported(self.id + ' withdraw() only support USDC')
         currency = self.currency(code)
         verifyingContractAddress = self.safe_string(self.options, 'verifyingContractAddress')
         chainId = self.safe_string(params, 'chainId')
@@ -2685,9 +2685,12 @@ class woofipro(Exchange, ImplicitAPI):
             auth = ''
             ts = str(self.nonce())
             url += pathWithParams
+            apiKey = self.apiKey
+            if apiKey.find('ed25519:') < 0:
+                apiKey = 'ed25519:' + apiKey
             headers = {
                 'orderly-account-id': self.accountId,
-                'orderly-key': self.apiKey,
+                'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             }
             auth = ts + method + '/' + version + '/' + pathWithParams

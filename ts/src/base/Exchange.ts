@@ -1198,7 +1198,8 @@ export default class Exchange {
                 if (numberNormalized.indexOf('e-') > -1) {
                     return this.number(numberToString(parseFloat(numberNormalized)));
                 }
-                return this.number (numberNormalized);
+                const result = this.number (numberNormalized);
+                return isNaN (result) ? d : result;
             } catch (e) {
                 return d;
             }
@@ -1622,7 +1623,7 @@ export default class Exchange {
     starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
         const types = Object.keys (messageTypes);
         if (types.length > 1) {
-            throw new NotSupported (this.id + 'starknetEncodeStructuredData only support single type');
+            throw new NotSupported (this.id + ' starknetEncodeStructuredData only support single type');
         }
         const request = {
             'domain': domain,
@@ -6335,7 +6336,7 @@ export default class Exchange {
 
     async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
-            throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
@@ -6343,7 +6344,7 @@ export default class Exchange {
 
     async createPostOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createPostOnlyOrderWs']) {
-            throw new NotSupported (this.id + 'createPostOnlyOrderWs() is not supported yet');
+            throw new NotSupported (this.id + ' createPostOnlyOrderWs() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
         return await this.createOrderWs (symbol, type, side, amount, price, query);
@@ -6351,7 +6352,7 @@ export default class Exchange {
 
     async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
-            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
@@ -6359,7 +6360,7 @@ export default class Exchange {
 
     async createReduceOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrderWs']) {
-            throw new NotSupported (this.id + 'createReduceOnlyOrderWs() is not supported yet');
+            throw new NotSupported (this.id + ' createReduceOnlyOrderWs() is not supported yet');
         }
         const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrderWs (symbol, type, side, amount, price, query);

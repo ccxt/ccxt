@@ -1014,6 +1014,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1024,19 +1025,29 @@ class wavesexchange(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = until is not None
         if limit is None:
             limit = allowedCandles
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            durationRoundedTimestamp = self.parse_to_int(self.milliseconds() / duration) * duration
+            now = self.milliseconds()
+            timeEnd = until if untilIsDefined else now
+            durationRoundedTimestamp = self.parse_to_int(timeEnd / duration) * duration
             delta = (limit - 1) * duration
             timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
+            if untilIsDefined:
+                request['timeEnd'] = str(until)
         else:
             request['timeStart'] = str(since)
-            timeEnd = self.sum(since, duration * limit)
-            request['timeEnd'] = str(timeEnd)
+            if untilIsDefined:
+                request['timeEnd'] = str(until)
+            else:
+                timeEnd = self.sum(since, duration * limit)
+                request['timeEnd'] = str(timeEnd)
+        params = self.omit(params, 'until')
         response = await self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {
