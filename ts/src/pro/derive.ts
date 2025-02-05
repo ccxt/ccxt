@@ -359,7 +359,8 @@ export default class derive extends deriveRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount_id');
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -479,7 +480,8 @@ export default class derive extends deriveRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount_id');
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;
         if (symbol !== undefined) {

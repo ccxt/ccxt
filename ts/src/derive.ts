@@ -1071,7 +1071,7 @@ export default class derive extends Exchange {
 
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + this.intToBase16 (this.sum (27, signature['v']));
     }
 
     signMessage (message, privateKey) {
@@ -1103,7 +1103,8 @@ export default class derive extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subaccount_id');
         const maxFee = this.safeNumber (params, 'max_fee', 0);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1285,7 +1286,8 @@ export default class derive extends Exchange {
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'editOrder', 'subaccount_id');
         const maxFee = this.safeNumber (params, 'max_fee', 0);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
@@ -1451,8 +1453,9 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
-        params = this.omit (params, [ 'subaccount_id', 'trigger', 'stop' ]);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subaccount_id');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
@@ -1540,7 +1543,8 @@ export default class derive extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1588,8 +1592,9 @@ export default class derive extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
-        params = this.omit (params, [ 'subaccount_id', 'trigger', 'stop' ]);
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1874,7 +1879,8 @@ export default class derive extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchOrderTrades', 'subaccount_id');
         const request: Dict = {
             'order_id': id,
             'subaccount_id': subaccountId,
@@ -1890,7 +1896,6 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        params = this.omit (params, [ 'subaccount_id' ]);
         const response = await this.privatePostGetTradeHistory (this.extend (request, params));
         //
         // {
@@ -1952,7 +1957,8 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1967,7 +1973,6 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        params = this.omit (params, [ 'subaccount_id' ]);
         const response = await this.privatePostGetTradeHistory (this.extend (request, params));
         //
         // {
@@ -2012,7 +2017,8 @@ export default class derive extends Exchange {
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2157,7 +2163,8 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2172,7 +2179,6 @@ export default class derive extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        params = this.omit (params, [ 'subaccount_id' ]);
         const response = await this.privatePostGetFundingHistory (this.extend (request, params));
         //
         // {
@@ -2338,14 +2344,14 @@ export default class derive extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        params = this.omit (params, [ 'subaccount_id' ]);
         const response = await this.privatePostGetDepositHistory (this.extend (request, params));
         //
         // {
@@ -2384,14 +2390,14 @@ export default class derive extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
+        let subaccountId = undefined;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'subaccount_id');
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        params = this.omit (params, [ 'subaccount_id' ]);
         const response = await this.privatePostGetWithdrawalHistory (this.extend (request, params));
         //
         // {
