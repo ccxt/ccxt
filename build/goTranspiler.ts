@@ -135,6 +135,7 @@ const VIRTUAL_BASE_METHODS = {
     "parseWithdrawal": false,
     "parseWithdrawalStatus": false,
     "safeMarket": false, // try to remove custom implementations
+    "market": false,
     "setSandboxMode": false,
     "sign": false
 }
