@@ -9180,6 +9180,9 @@ class bybit extends Exchange {
             } else {
                 $feedback = $this->id . ' ' . $body;
             }
+            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal')) {
+                $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
+            }
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message

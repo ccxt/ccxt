@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/ccxt/ccxt/v4/go/ccxt"
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	NEW_LINE             = "\n"
 	PROXY_TEST_FILE_NAME = ""
 	IS_SYNCHRONOUS       = false
-	ROOT_DIR             = "/../../"
+	ROOT_DIR             = "/../"
 	// TEST_METHODS         = map[string]interface{}{}
 )
 

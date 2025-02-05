@@ -505,7 +505,9 @@ export default class bingx extends Exchange {
             'commonCurrencies': {
                 'SNOW': 'Snowman',
                 'OMNI': 'OmniCat',
-                'NAP': '$NAP', // NAP on SOL = SNAP
+                'NAP': '$NAP',
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -5795,7 +5797,7 @@ export default class bingx extends Exchange {
         const request = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString(amount),
+            'amount': this.currencyToPrecision(code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper(params, 'network');

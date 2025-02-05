@@ -4809,7 +4809,7 @@ class coinex extends coinex$1 {
         const request = {
             'ccy': currency['id'],
             'to_address': address,
-            'amount': this.numberToString(amount), // the actual amount without fees, https://www.coinex.com/fees
+            'amount': this.currencyToPrecision(code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (tag !== undefined) {
             request['memo'] = tag;

@@ -48,12 +48,12 @@ jobs:
           for exchange in $cleaned_rest_files; do
             tsx build/goTranspiler.ts -- $exchange
           done
-      - name: Install dependencies
-        run: go get ./go/ccxt
+      # - name: Install dependencies
+      #   run: cd go && go get ./ccxt && cd ..
       - name: Build
-        run: go build ./go/ccxt
+        run: cd go && go build ./v4 && cd ..
       - name: Build tests
-        run: go build ./go/tests/main.go
+        run: cd go && go build ./tests/main.go && cd ..
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -107,6 +107,9 @@ jobs:
         run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            rm -f ./go/tests/main
+            rm -f ./go/v4/ccxt
+            rm -f ./go/main
             git add go/
             git commit -m "[Automated changes] GO files" || echo "No changes to commit."
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
@@ -135,22 +138,22 @@ jobs:
           name: go-files
           path: go/
       - name: Build tests
-        run: go build ./go/tests/main.go
+        run: cd  go/ && go build ./tests/main.go
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
       # - name: Install dependencies
-      #   run: go get ./go/ccxt
+      #   run: go get ./go/v4
       # - name: Build
-      #   run: go build ./go/ccxt
+      #   run: go build ./go/v4
       # - name: Build tests
       #   run: go build ./go/tests/main.go
-      - name: Adjust permissions
-        run: chmod +x main
+      # - name: Adjust permissions
+      #   run: cd go && chmod +x main
       - name: Live tests
         if: env.important_modified == 'true'
-        run: npm run live-tests-rest-go
+        run: cd go/ && npm run live-tests-rest-go
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}"
