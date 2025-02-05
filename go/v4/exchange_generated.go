@@ -3297,7 +3297,7 @@ func  (this *Exchange) MarketsForSymbols(optionalArgs ...interface{}) interface{
     }
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-        AppendToArray(&result,this.Market(GetValue(symbols, i)))
+        AppendToArray(&result,this.DerivedExchange.Market(GetValue(symbols, i)))
     }
     return result
 }
@@ -3329,7 +3329,9 @@ func  (this *Exchange) MarketSymbols(optionalArgs ...interface{}) interface{}  {
     var marketType interface{} = nil
     var isLinearSubType interface{} = nil
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-        var market interface{} = this.Market(GetValue(symbols, i))
+
+        var market interface{} = this.DerivedExchange.Market(GetValue(symbols, i))
+        PanicOnError(market)
         if IsTrue(IsTrue(sameTypeOnly) && IsTrue((!IsEqual(marketType, nil)))) {
             if IsTrue(!IsEqual(GetValue(market, "type"), marketType)) {
                 panic(BadRequest(Add(Add(Add(Add(Add(this.Id, " symbols must be of the same type, either "), marketType), " or "), GetValue(market, "type")), ".")))
@@ -3850,14 +3852,18 @@ func  (this *Exchange) CurrencyId(code interface{}) interface{}  {
     return code
 }
 func  (this *Exchange) MarketId(symbol interface{}) interface{}  {
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     if IsTrue(!IsEqual(market, nil)) {
         return GetValue(market, "id")
     }
     return symbol
 }
 func  (this *Exchange) Symbol(symbol interface{}) interface{}  {
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     return this.SafeString(market, "symbol", symbol)
 }
 func  (this *Exchange) HandleParamString(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
@@ -5042,7 +5048,9 @@ func  (this *Exchange) FetchTicker(symbol interface{}, optionalArgs ...interface
         
                 retRes519912 := (<-this.LoadMarkets())
                 PanicOnError(retRes519912)
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 symbol = GetValue(market, "symbol")
         
                 tickers:= <-this.DerivedExchange.FetchTickers([]interface{}{symbol}, params)
@@ -5073,7 +5081,9 @@ func  (this *Exchange) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
         
                 retRes521612 := (<-this.LoadMarkets())
                 PanicOnError(retRes521612)
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 symbol = GetValue(market, "symbol")
         
                 tickers:= (<-this.FetchMarkPrices([]interface{}{symbol}, params))
@@ -5104,7 +5114,9 @@ func  (this *Exchange) FetchTickerWs(symbol interface{}, optionalArgs ...interfa
         
                 retRes523312 := (<-this.LoadMarkets())
                 PanicOnError(retRes523312)
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 symbol = GetValue(market, "symbol")
         
                 tickers:= (<-this.FetchTickersWs([]interface{}{symbol}, params))
@@ -7012,14 +7024,18 @@ func  (this *Exchange) CostToPrecision(symbol interface{}, cost interface{}) int
     if IsTrue(IsEqual(cost, nil)) {
         return nil
     }
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     return this.DecimalToPrecision(cost, TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 }
 func  (this *Exchange) PriceToPrecision(symbol interface{}, price interface{}) interface{}  {
     if IsTrue(IsEqual(price, nil)) {
         return nil
     }
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     var result interface{} = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
     if IsTrue(IsEqual(result, "0")) {
         panic(InvalidOrder(Add(Add(Add(Add(this.Id, " price of "), GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "price")))))
@@ -7030,7 +7046,9 @@ func  (this *Exchange) AmountToPrecision(symbol interface{}, amount interface{})
     if IsTrue(IsEqual(amount, nil)) {
         return nil
     }
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     var result interface{} = this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
     if IsTrue(IsEqual(result, "0")) {
         panic(InvalidOrder(Add(Add(Add(Add(this.Id, " amount of "), GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "amount")))))
@@ -7041,7 +7059,9 @@ func  (this *Exchange) FeeToPrecision(symbol interface{}, fee interface{}) inter
     if IsTrue(IsEqual(fee, nil)) {
         return nil
     }
-    var market interface{} = this.Market(symbol)
+
+    var market interface{} = this.DerivedExchange.Market(symbol)
+    PanicOnError(market)
     return this.DecimalToPrecision(fee, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 }
 func  (this *Exchange) CurrencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}  {
@@ -7163,7 +7183,9 @@ func  (this *Exchange) FetchMarketLeverageTiers(symbol interface{}, optionalArgs
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             if IsTrue(GetValue(this.Has, "fetchLeverageTiers")) {
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 if !IsTrue(GetValue(market, "contract")) {
                     panic(BadSymbol(Add(this.Id, " fetchMarketLeverageTiers() supports contract markets only")))
                 }
@@ -7903,7 +7925,9 @@ func  (this *Exchange) FetchFundingRate(symbol interface{}, optionalArgs ...inte
         
                 retRes666512 := (<-this.LoadMarkets())
                 PanicOnError(retRes666512)
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 symbol = GetValue(market, "symbol")
                 if !IsTrue(GetValue(market, "contract")) {
                     panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports contract markets only")))
@@ -7937,7 +7961,9 @@ func  (this *Exchange) FetchFundingInterval(symbol interface{}, optionalArgs ...
         
                 retRes668512 := (<-this.LoadMarkets())
                 PanicOnError(retRes668512)
-                var market interface{} = this.Market(symbol)
+        
+                var market interface{} = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
                 symbol = GetValue(market, "symbol")
                 if !IsTrue(GetValue(market, "contract")) {
                     panic(BadSymbol(Add(this.Id, " fetchFundingInterval() supports contract markets only")))
@@ -8112,7 +8138,9 @@ func  (this *Exchange) ConvertTypeToAccount(account interface{}) interface{}  {
     if IsTrue(InOp(accountsByType, lowercaseAccount)) {
         return GetValue(accountsByType, lowercaseAccount)
     } else if IsTrue(IsTrue((InOp(this.Markets, account))) || IsTrue((InOp(this.Markets_by_id, account)))) {
-        var market interface{} = this.Market(account)
+
+        var market interface{} = this.DerivedExchange.Market(account)
+        PanicOnError(market)
         return GetValue(market, "id")
     } else {
         return account
@@ -8272,7 +8300,9 @@ func  (this *Exchange) GetMarketFromSymbols(optionalArgs ...interface{}) interfa
         return nil
     }
     var firstMarket interface{} = this.SafeString(symbols, 0)
-    var market interface{} = this.Market(firstMarket)
+
+    var market interface{} = this.DerivedExchange.Market(firstMarket)
+    PanicOnError(market)
     return market
 }
 func  (this *Exchange) ParseWsOHLCVs(ohlcvs interface{}, optionalArgs ...interface{}) interface{}  {
