@@ -138,6 +138,9 @@
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
                 "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+            },
+            "fetchTrades": {
+                "cost": "absent market.precision.amount"
             }
         }
     },
@@ -292,11 +295,13 @@
             },
             "watchTrades":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "timestamp": "messed order coming from exchange"
+                "timestamp": "messed order coming from exchange",
+                "cost": "assertAmountPriceCost fails: https://app.travis-ci.com/github/ccxt/ccxt/builds/273689721#L4102"
             },
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
-                "timestamp": "messed order coming from exchange"
+                "timestamp": "messed order coming from exchange",
+                "cost": "same as watchTrades"
             },
             "ohlcv": {
                 "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
@@ -455,7 +460,8 @@
                 "info": "null"
             },
             "fetchTrades": {
-                "side": "side is undefined"
+                "side": "side is undefined",
+                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
@@ -879,7 +885,10 @@
                 "ask": "same",
                 "average": "same"
             },
-            "fetchTickers": "requires custom param"
+            "fetchTickers": "requires custom param",
+            "fetchTrades": {
+                "cost": "precision needs rewrite for deribit, like it's for bitmex"
+            }
         }
     },
     "fmfwio": {
@@ -1109,7 +1118,8 @@
                 "active":"is undefined"
             },
             "fetchTrades": {
-                "side":"side is undefined"
+                "side":"side is undefined",
+                "cost": "https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L5044"
             },
             "fetchTickers": "negative values",
             "orderBook": {
@@ -1788,7 +1798,13 @@
             "fetchCurrencies": {
                 "precision": "not provided"
             },
-            "loadMarkets": "linear and inverse values are same"
+            "loadMarkets": "linear and inverse values are same",
+            "watchTrades": {
+                "cost": "absent market.precision.amount"
+            },
+            "watchTradesForSymbols": {
+                "cost": "same as above"
+            }
         }
     }
 }
