@@ -1417,6 +1417,7 @@ export default class Exchange {
         }
         const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
+        let errorStr = undefined;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
@@ -1432,11 +1433,19 @@ export default class Exchange {
                 }
                 tries++;
             }
-            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
-            delete this.clients[client.url];
+            errorStr = this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.';
         } catch (e) {
-            client.reject (e, messageHash);
-            await this.loadOrderBook (client, messageHash, symbol, limit, params);
+            errorStr = e.toString ();
+        }
+        if (errorStr !== undefined) {
+            client.reject (new ExchangeError (errorStr), messageHash);
+            delete this.clients[client.url];
+            // due to https://github.com/ccxt/ccxt/pull/24224 we need to access subscriptionHash
+            const hashes = this.safeDict (this.options, 'subscriptionHashesByMessageHashes', {});
+            const subscriptionHash = this.safeString (hashes, messageHash);
+            if (subscriptionHash !== undefined) {
+                delete client[subscriptionHash];
+            }
         }
     }
 
@@ -2754,6 +2763,10 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        if (this.has['ws']) {
+            // see the comments in loadOrderBook->catch
+            this.options['subscriptionHashesByMessageHashes'] = {};
+        }
         this.featuresGenerator ();
     }
 
@@ -2846,6 +2859,10 @@ export default class Exchange {
             }
         }
         return featuresObj;
+    }
+
+    mapSubscirptionHashToMessageHash (messageHash: string, subscriptionHash: string) {
+        this.options['subscriptionHashesByMessageHashes'][messageHash] = subscriptionHash;
     }
 
     orderbookChecksumMessage (symbol:Str) {
