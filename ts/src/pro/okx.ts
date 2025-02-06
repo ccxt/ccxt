@@ -98,7 +98,14 @@ export default class okx extends okxRest {
                     'op': 'amend-order', // amend-order, batch-amend-orders
                 },
                 'ws': {
-                    // 'inflate': true,
+                    'rateLimits': {
+                        'connections': {
+                            'rateLimit': 600, // The WS-API allows 1 request per second = 1000ms / 1,6666 = 600
+                        },
+                        'messages': {
+                            'rateLimit': 16666, // Subscription limit: 240 times per hour 1 req = 16666ms
+                        },
+                    },
                 },
             },
             'streaming': {
