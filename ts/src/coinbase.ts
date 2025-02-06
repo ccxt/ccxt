@@ -377,6 +377,7 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
+                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1509,7 +1510,8 @@ export default class coinbase extends Exchange {
         const data = this.safeList (spot, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parseSpotMarket (data[i], feeTier));
+            const parsed = this.parseSpotMarket (data[i], feeTier);
+            result.push (parsed);
         }
         const futureData = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
@@ -1520,6 +1522,44 @@ export default class coinbase extends Exchange {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
         return result;
+    }
+
+    setMarkets (markets, currencies = undefined) {
+        this.options['aliasCbMarketIds'] = {};
+        const newMarkets = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = market['id'];
+            const info = this.safeValue (market, 'info', {});
+            const aliasedIds = this.safeList (info, 'alias_to', []);
+            const length = aliasedIds.length;
+            if (length > 0) {
+                this.options['aliasCbMarketIds'][marketId] = aliasedIds[0];
+            } else {
+                newMarkets.push (market);
+            }
+        }
+        return super.setMarkets (newMarkets, currencies);
+    }
+
+    market (symbol: string): MarketInterface {
+        // as they are aliases, we need to return the original market
+        const originalInput = symbol;
+        const originalId = originalInput.replace ('/', '-');
+        if (originalId in this.options['aliasCbMarketIds']) {
+            const newInput = this.options['aliasCbMarketIds'][originalId];
+            return super.market (newInput);
+        }
+        const market = super.market (originalInput);
+        return market;
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (marketId in this.options['aliasCbMarketIds']) {
+            const aliasedMarketId = this.options['aliasCbMarketIds'][marketId];
+            return super.safeMarket (aliasedMarketId, market, delimiter, marketType);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
