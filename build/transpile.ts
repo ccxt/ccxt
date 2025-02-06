@@ -129,6 +129,7 @@ class Transpiler {
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
