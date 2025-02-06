@@ -3155,7 +3155,7 @@ export default class Exchange {
                         'id': this.safeString2 (market, 'baseId', 'base'),
                         'numericId': this.safeInteger (market, 'baseNumericId'),
                         'code': this.safeString (market, 'base'),
-                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                        'precision': this.safeNumber2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
                     });
                     baseCurrencies.push (currency);
                 }
@@ -3164,7 +3164,7 @@ export default class Exchange {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger (market, 'quoteNumericId'),
                         'code': this.safeString (market, 'quote'),
-                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                        'precision': this.safeNumber2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     });
                     quoteCurrencies.push (currency);
                 }
@@ -6141,10 +6141,6 @@ export default class Exchange {
 
     isTickPrecision () {
         return this.precisionMode === TICK_SIZE;
-    }
-
-    isDecimalPrecision () {
-        return this.precisionMode === DECIMAL_PLACES;
     }
 
     isSignificantPrecision () {
