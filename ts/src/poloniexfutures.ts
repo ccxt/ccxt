@@ -815,6 +815,7 @@ export default class poloniexfutures extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -831,11 +832,12 @@ export default class poloniexfutures extends Exchange {
             request['granularity'] = timeframe;
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        let endAt = this.milliseconds ();
+        const until = this.safeInteger (params, 'until');
+        let endAt = (until !== undefined) ? until : this.milliseconds ();
         if (since !== undefined) {
             request['from'] = since;
             if (limit === undefined) {
-                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 200);
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 199);
             }
             endAt = this.sum (since, limit * duration);
             request['to'] = endAt;
@@ -843,6 +845,10 @@ export default class poloniexfutures extends Exchange {
             since = endAt - limit * duration;
             request['from'] = since;
         }
+        if (until !== undefined) {
+            request['to'] = until;
+        }
+        params = this.omit (params, 'until');
         const response = await this.publicGetKlineQuery (this.extend (request, params));
         //
         //    {

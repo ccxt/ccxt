@@ -173,6 +173,122 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1738792980000&to=1738804920000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1738792980000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1738864754653",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&to=1738793280000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1738792980000&to=1738793220000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1738792980000,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1738792980000&to=1738793280000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1738792980000,
+                  null,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1738793040000&to=1738793280000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since less than limit",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1735692900000&to=1735693020000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1735692900000,
+                  2,
+                  {
+                    "until": 1735693020000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since equal to limit",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1735692900000&to=1735693020000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1735692900000,
+                  3,
+                  {
+                    "until": 1735693020000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since greater than limit",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1&from=1735692900000&to=1735693020000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1735692900000,
+                  4,
+                  {
+                    "until": 1735693020000
+                  }
+                ]
             }
         ],
         "fetchFundingRate": [
