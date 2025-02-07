@@ -1063,6 +1063,102 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                    "BTC/USD:USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "subaccount_id": 130837,
+                        "trades": [
+                            {
+                                "subaccount_id": 130837,
+                                "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                                "instrument_name": "BTC-PERP",
+                                "direction": "sell",
+                                "label": "test1234",
+                                "quote_id": null,
+                                "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+                                "timestamp": 1738065303708,
+                                "mark_price": "102740.137375457314192317",
+                                "index_price": "102741.553409299981533184",
+                                "trade_price": "102700.6",
+                                "trade_amount": "0.01",
+                                "liquidity_role": "taker",
+                                "realized_pnl": "0",
+                                "realized_pnl_excl_fees": "0",
+                                "is_transfer": false,
+                                "tx_status": "settled",
+                                "trade_fee": "1.127415534092999815",
+                                "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+                                "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+                            }
+                        ],
+                        "pagination": {
+                            "num_pages": 1,
+                            "count": 1
+                        }
+                    },
+                    "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "subaccount_id": 130837,
+                            "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                            "instrument_name": "BTC-PERP",
+                            "direction": "sell",
+                            "label": "test1234",
+                            "quote_id": null,
+                            "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+                            "timestamp": 1738065303708,
+                            "mark_price": "102740.137375457314192317",
+                            "index_price": "102741.553409299981533184",
+                            "trade_price": "102700.6",
+                            "trade_amount": "0.01",
+                            "liquidity_role": "taker",
+                            "realized_pnl": "0",
+                            "realized_pnl_excl_fees": "0",
+                            "is_transfer": false,
+                            "tx_status": "settled",
+                            "trade_fee": "1.127415534092999815",
+                            "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+                            "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+                        },
+                        "id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+                        "order": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                        "symbol": "BTC/USD:USDC",
+                        "side": "sell",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "price": 102700.6,
+                        "amount": 0.01,
+                        "cost": 1027.006,
+                        "timestamp": 1738065303708,
+                        "datetime": "2025-01-28T11:55:03.708Z",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 1.1274155340929999
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 1.1274155340929999
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }
