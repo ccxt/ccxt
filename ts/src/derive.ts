@@ -20,10 +20,10 @@ export default class derive extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'derive',
             'name': 'derive',
-            'countries': [ ],
+            'countries': [],
             'version': 'v1',
-            'rateLimit': 50, // 1200 requests per minute, 20 request per second
-            'certified': true,
+            'rateLimit': 50,
+            'certified': false,
             'pro': false,
             'dex': true,
             'has': {

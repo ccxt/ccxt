@@ -31,6 +31,15 @@
                 "output": "{\"instrument_name\":\"BTC-PERP\"}"
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.lyra.finance/public/get_all_instruments",
+                "input": [],
+                "output": "{\"expired\":false,\"instrument_type\":\"option\"}"
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",
