@@ -9,15 +9,19 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetTickerCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerAll (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerALLBTC (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerALLKRW (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookAll (params?: {}): Promise<implicitReturnType>;
-    publicGetTransactionHistoryCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetTransactionHistoryAll (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlestickCurrencyInterval (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerALLQuoteId (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookALLQuoteId (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
+    publicGetTransactionHistoryBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
+    publicGetNetworkInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusMultichainALL (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusMultichainCurrency (params?: {}): Promise<implicitReturnType>;
+    publicGetWithdrawMinimumALL (params?: {}): Promise<implicitReturnType>;
+    publicGetWithdrawMinimumCurrency (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusALL (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusBaseId (params?: {}): Promise<implicitReturnType>;
+    publicGetCandlestickBaseIdQuoteIdInterval (params?: {}): Promise<implicitReturnType>;
     privatePostInfoAccount (params?: {}): Promise<implicitReturnType>;
     privatePostInfoBalance (params?: {}): Promise<implicitReturnType>;
     privatePostInfoWalletAddress (params?: {}): Promise<implicitReturnType>;
@@ -32,6 +36,7 @@ interface Exchange {
     privatePostTradeKrwWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostTradeMarketBuy (params?: {}): Promise<implicitReturnType>;
     privatePostTradeMarketSell (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeStopLimit (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

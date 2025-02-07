@@ -3,9 +3,9 @@
 
 import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,7 +21,9 @@ export default class whitebit extends whitebitRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -60,18 +62,19 @@ export default class whitebit extends whitebitRest {
         });
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
+    /**
+     * @method
+     * @name whitebit#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.whitebit.com/public/websocket/#kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -95,20 +98,20 @@ export default class whitebit extends whitebitRest {
     handleOHLCV (client: Client, message) {
         //
         // {
-        //     method: 'candles_update',
-        //     params: [
+        //     "method": "candles_update",
+        //     "params": [
         //       [
         //         1655204760,
-        //         '22374.15',
-        //         '22351.34',
-        //         '22374.27',
-        //         '22342.52',
-        //         '30.213426',
-        //         '675499.29718947',
-        //         'BTC_USDT'
+        //         "22374.15",
+        //         "22351.34",
+        //         "22374.27",
+        //         "22342.52",
+        //         "30.213426",
+        //         "675499.29718947",
+        //         "BTC_USDT"
         //       ]
         //     ],
-        //     id: null
+        //     "id": null
         // }
         //
         const params = this.safeValue (message, 'params', []);
@@ -119,29 +122,34 @@ export default class whitebit extends whitebitRest {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            let stored = this.ohlcvs[symbol];
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol] = stored;
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!(symbol in this.ohlcvs)) {
+                this.ohlcvs[symbol] = {};
             }
-            stored.append (parsed);
-            client.resolve (stored, messageHash);
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!('unknown' in this.ohlcvs[symbol])) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                const stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol]['unknown'] = stored;
+            }
+            const ohlcv = this.ohlcvs[symbol]['unknown'];
+            ohlcv.append (parsed);
+            client.resolve (ohlcv, messageHash);
         }
         return message;
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name whitebit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.whitebit.com/public/websocket/#market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -170,6 +178,7 @@ export default class whitebit extends whitebitRest {
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -206,13 +215,14 @@ export default class whitebit extends whitebitRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
-        let orderbook = undefined;
-        if (symbol in this.orderbooks) {
-            orderbook = this.orderbooks[symbol];
-        } else {
-            orderbook = this.orderBook ();
-            this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeTimestamp (data, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ();
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
@@ -238,42 +248,74 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name whitebit#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.whitebit.com/public/websocket/#market-statistics
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
-        // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
+        // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
+    }
+
+    /**
+     * @method
+     * @name whitebit#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.whitebit.com/public/websocket/#market-statistics
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const method = 'market_subscribe';
+        const url = this.urls['api']['ws'];
+        const id = this.nonce ();
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            messageHashes.push ('ticker:' + market['symbol']);
+            args.push (market['id']);
+        }
+        const request: Dict = {
+            'id': id,
+            'method': method,
+            'params': args,
+        };
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
         //
         //   {
-        //       method: 'market_update',
-        //       params: [
-        //         'BTC_USDT',
+        //       "method": "market_update",
+        //       "params": [
+        //         "BTC_USDT",
         //         {
-        //           close: '22293.86',
-        //           deal: '1986990019.96552952',
-        //           high: '24360.7',
-        //           last: '22293.86',
-        //           low: '20851.44',
-        //           open: '24076.12',
-        //           period: 86400,
-        //           volume: '87016.995668'
+        //           "close": "22293.86",
+        //           "deal": "1986990019.96552952",
+        //           "high": "24360.7",
+        //           "last": "22293.86",
+        //           "low": "20851.44",
+        //           "open": "24076.12",
+        //           "period": 86400,
+        //           "volume": "87016.995668"
         //         }
         //       ],
-        //       id: null
+        //       "id": null
         //   }
         //
         const tickers = this.safeValue (message, 'params', []);
@@ -289,8 +331,8 @@ export default class whitebit extends whitebitRest {
         // watchTickers
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            if (messageHash.indexOf ('tickers') >= 0 && messageHash.indexOf (symbol) >= 0) {
+            const currentMessageHash = messageHashes[i];
+            if (currentMessageHash.indexOf ('tickers') >= 0 && currentMessageHash.indexOf (symbol) >= 0) {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single symbol at a time
@@ -300,23 +342,24 @@ export default class whitebit extends whitebitRest {
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                client.resolve (ticker, messageHash);
+                client.resolve (ticker, currentMessageHash);
             }
         }
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name whitebit#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.whitebit.com/public/websocket/#market-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -374,19 +417,20 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchMyTrades
-         * @description watches trades made by the user
-         * @param {str} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
+    /**
+     * @method
+     * @name whitebit#watchMyTrades
+     * @description watches trades made by the user
+     * @see https://docs.whitebit.com/private/websocket/#deals
+     * @param {str} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate ();
@@ -404,18 +448,18 @@ export default class whitebit extends whitebitRest {
     handleMyTrades (client: Client, message, subscription = undefined) {
         //
         //   {
-        //       method: 'deals_update',
-        //       params: [
+        //       "method": "deals_update",
+        //       "params": [
         //         1894994106,
         //         1656151427.729706,
-        //         'LTC_USDT',
+        //         "LTC_USDT",
         //         96624037337,
-        //         '56.78',
-        //         '0.16717',
-        //         '0.0094919126',
+        //         "56.78",
+        //         "0.16717",
+        //         "0.0094919126",
         //         ''
         //       ],
-        //       id: null
+        //       "id": null
         //   }
         //
         const trade = this.safeValue (message, 'params');
@@ -436,11 +480,11 @@ export default class whitebit extends whitebitRest {
         //   [
         //         1894994106, // id
         //         1656151427.729706, // deal time
-        //         'LTC_USDT', // symbol
+        //         "LTC_USDT", // symbol
         //         96624037337, // order id
-        //         '56.78', // price
-        //         '0.16717', // amount
-        //         '0.0094919126', // fee
+        //         "56.78", // price
+        //         "0.16717", // amount
+        //         "0.0094919126", // fee
         //         '' // client order id
         //    ]
         //
@@ -476,19 +520,20 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-         */
+    /**
+     * @method
+     * @name whitebit#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.whitebit.com/private/websocket/#orders-pending
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate ();
@@ -506,28 +551,28 @@ export default class whitebit extends whitebitRest {
     handleOrder (client: Client, message, subscription = undefined) {
         //
         // {
-        //     method: 'ordersPending_update',
-        //     params: [
+        //     "method": "ordersPending_update",
+        //     "params": [
         //       1, // 1 = new, 2 = update 3 = cancel or execute
         //       {
-        //         id: 96433622651,
-        //         market: 'LTC_USDT',
-        //         type: 1,
-        //         side: 2,
-        //         ctime: 1656092215.39375,
-        //         mtime: 1656092215.39375,
-        //         price: '25',
-        //         amount: '0.202',
-        //         taker_fee: '0.001',
-        //         maker_fee: '0.001',
-        //         left: '0.202',
-        //         deal_stock: '0',
-        //         deal_money: '0',
-        //         deal_fee: '0',
-        //         client_order_id: ''
+        //         "id": 96433622651,
+        //         "market": "LTC_USDT",
+        //         "type": 1,
+        //         "side": 2,
+        //         "ctime": 1656092215.39375,
+        //         "mtime": 1656092215.39375,
+        //         "price": "25",
+        //         "amount": "0.202",
+        //         "taker_fee": "0.001",
+        //         "maker_fee": "0.001",
+        //         "left": "0.202",
+        //         "deal_stock": "0",
+        //         "deal_money": "0",
+        //         "deal_fee": "0",
+        //         "client_order_id": ''
         //       }
         //     ]
-        //     id: null
+        //     "id": null
         // }
         //
         const params = this.safeValue (message, 'params', []);
@@ -548,24 +593,24 @@ export default class whitebit extends whitebitRest {
     parseWsOrder (order, market = undefined) {
         //
         //   {
-        //         id: 96433622651,
-        //         market: 'LTC_USDT',
-        //         type: 1,
-        //         side: 2, //1- sell 2-buy
-        //         ctime: 1656092215.39375,
-        //         mtime: 1656092215.39375,
-        //         price: '25',
-        //         amount: '0.202',
-        //         taker_fee: '0.001',
-        //         maker_fee: '0.001',
-        //         left: '0.202',
-        //         deal_stock: '0',
-        //         deal_money: '0',
-        //         deal_fee: '0',
-        //         activation_price: '40',
-        //         activation_condition: 'lte',
-        //         client_order_id: ''
-        //         status: 1, // 1 = new, 2 = update 3 = cancel or execute
+        //         "id": 96433622651,
+        //         "market": "LTC_USDT",
+        //         "type": 1,
+        //         "side": 2, //1- sell 2-buy
+        //         "ctime": 1656092215.39375,
+        //         "mtime": 1656092215.39375,
+        //         "price": "25",
+        //         "amount": "0.202",
+        //         "taker_fee": "0.001",
+        //         "maker_fee": "0.001",
+        //         "left": "0.202",
+        //         "deal_stock": "0",
+        //         "deal_money": "0",
+        //         "deal_fee": "0",
+        //         "activation_price": "40",
+        //         "activation_condition": "lte",
+        //         "client_order_id": ''
+        //         "status": 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
         const status = this.safeInteger (order, 'status');
@@ -638,7 +683,7 @@ export default class whitebit extends whitebitRest {
     }
 
     parseWsOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -652,15 +697,17 @@ export default class whitebit extends whitebitRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchBalance (params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
+    /**
+     * @method
+     * @name whitebit#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.whitebit.com/private/websocket/#balance-spot
+     * @see https://docs.whitebit.com/private/websocket/#balance-margin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
@@ -717,7 +764,7 @@ export default class whitebit extends whitebitRest {
     async watchPublic (messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -734,7 +781,7 @@ export default class whitebit extends whitebitRest {
         let request = undefined;
         let marketIds = [];
         if (client === undefined) {
-            const subscription = {};
+            const subscription: Dict = {};
             const market = this.market (symbol);
             const marketId = market['id'];
             subscription[marketId] = true;
@@ -754,7 +801,7 @@ export default class whitebit extends whitebitRest {
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
             const marketId = market['id'];
-            const isSubscribed = this.safeValue (subscription, marketId, false);
+            const isSubscribed = this.safeBool (subscription, marketId, false);
             if (!isSubscribed) {
                 subscription[marketId] = true;
                 hasSymbolSubscription = false;
@@ -764,15 +811,15 @@ export default class whitebit extends whitebitRest {
                 return await this.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
-                let marketIds = [];
-                marketIds = Object.keys (subscription);
+                let marketIdsNew = [];
+                marketIdsNew = Object.keys (subscription);
                 if (isNested) {
-                    marketIds = [ marketIds ];
+                    marketIdsNew = [ marketIdsNew ];
                 }
-                const resubRequest = {
+                const resubRequest: Dict = {
                     'id': id,
                     'method': method,
-                    'params': marketIds,
+                    'params': marketIdsNew,
                 };
                 if (method in client.subscriptions) {
                     delete client.subscriptions[method];
@@ -787,7 +834,7 @@ export default class whitebit extends whitebitRest {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -807,12 +854,12 @@ export default class whitebit extends whitebitRest {
             const authToken = await this.v4PrivatePostProfileWebsocketToken ();
             //
             //   {
-            //       websocket_token: '$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y'
+            //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
             //   }
             //
             const token = this.safeString (authToken, 'websocket_token');
             const id = this.nonce ();
-            const request = {
+            const request: Dict = {
                 'id': id,
                 'method': 'authorize',
                 'params': [
@@ -820,7 +867,7 @@ export default class whitebit extends whitebitRest {
                     'public',
                 ],
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
@@ -836,7 +883,7 @@ export default class whitebit extends whitebitRest {
 
     handleAuthenticate (client: Client, message) {
         //
-        //     { error: null, result: { status: 'success' }, id: 1656084550 }
+        //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
         const future = client.futures['authenticated'];
         future.resolve (1);
@@ -846,9 +893,9 @@ export default class whitebit extends whitebitRest {
     handleErrorMessage (client: Client, message) {
         //
         //     {
-        //         error: { code: 1, message: 'invalid argument' },
-        //         result: null,
-        //         id: 1656090882
+        //         "error": { code: 1, message: "invalid argument" },
+        //         "result": null,
+        //         "id": 1656090882
         //     }
         //
         const error = this.safeValue (message, 'error');
@@ -873,27 +920,25 @@ export default class whitebit extends whitebitRest {
     handleMessage (client: Client, message) {
         //
         // auth
-        //    { error: null, result: { status: 'success' }, id: 1656084550 }
+        //    { error: null, result: { status: "success" }, id: 1656084550 }
         //
         // pong
-        //    { error: null, result: 'pong', id: 0 }
+        //    { error: null, result: "pong", id: 0 }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeValue (message, 'result', {});
-        if (result !== undefined) {
-            if (result === 'pong') {
-                this.handlePong (client, message);
-                return;
-            }
+        const result = this.safeString (message, 'result');
+        if (result === 'pong') {
+            this.handlePong (client, message);
+            return;
         }
         const id = this.safeInteger (message, 'id');
         if (id !== undefined) {
             this.handleSubscriptionStatus (client, message, id);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'market_update': this.handleTicker,
             'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,
@@ -936,7 +981,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'id': 0,
             'method': 'ping',

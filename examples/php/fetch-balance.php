@@ -11,7 +11,7 @@ $exchange = new \ccxt\okx(array(
 ));
 
 try {
-	// about balance, read docs at : https://docs.ccxt.com/en/latest/manual.html?#balance-structure
+	// about balance, read docs at : https://github.com/ccxt/ccxt/wiki/Manual#balance-structure
     $result = $exchange->fetch_balance ();
     print_r ($result);
 

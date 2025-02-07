@@ -10,9 +10,7 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
-import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
-
+undefined
 
 # AUTO-TRANSPILE #
 # Note, this is just an example and might not yet work on other exchanges, which are being still unified.
@@ -53,7 +51,7 @@ async def example():
             balance_spot = await exchange.fetch_balance({
                 'type': 'spot',
             })
-            if balance_spot[collateral_coin]['free'] < needed_collateral_amount:
+            if exchange.parse_number(balance_spot[collateral_coin]['free']) < needed_collateral_amount:
                 print('hmm, I neither do have enough balance on spot - only ', balance_spot[collateral_coin]['free'], '. Script can not continue...')
                 return
             else:

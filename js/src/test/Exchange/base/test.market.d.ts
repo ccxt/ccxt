@@ -1,2 +1,3 @@
-declare function testMarket(exchange: any, skippedProperties: any, method: any, market: any): void;
+import { Exchange, Market } from "../../../../ccxt";
+declare function testMarket(exchange: Exchange, skippedProperties: object, method: string, market: Market): void;
 export default testMarket;

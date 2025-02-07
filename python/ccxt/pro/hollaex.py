@@ -6,11 +6,12 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import AuthenticationError
 
 
 class hollaex(ccxt.async_support.hollaex):
@@ -27,6 +28,7 @@ class hollaex(ccxt.async_support.hollaex):
                 'watchTicker': False,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {
@@ -57,12 +59,15 @@ class hollaex(ccxt.async_support.hollaex):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -111,14 +116,17 @@ class hollaex(ccxt.async_support.hollaex):
         messageHash = channel + ':' + marketId
         client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -132,15 +140,15 @@ class hollaex(ccxt.async_support.hollaex):
     def handle_trades(self, client: Client, message):
         #
         #     {
-        #         topic: 'trade',
-        #         action: 'partial',
-        #         symbol: 'btc-usdt',
-        #         data: [
+        #         "topic": "trade",
+        #         "action": "partial",
+        #         "symbol": "btc-usdt",
+        #         "data": [
         #             {
-        #                 size: 0.05145,
-        #                 price: 41977.9,
-        #                 side: 'buy',
-        #                 timestamp: '2022-04-11T09:40:10.881Z'
+        #                 "size": 0.05145,
+        #                 "price": 41977.9,
+        #                 "side": "buy",
+        #                 "timestamp": "2022-04-11T09:40:10.881Z"
         #             },
         #         ]
         #     }
@@ -162,14 +170,17 @@ class hollaex(ccxt.async_support.hollaex):
         client.resolve(stored, messageHash)
         client.resolve(stored, channel)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'usertrade'
@@ -212,12 +223,12 @@ class hollaex(ccxt.async_support.hollaex):
         # when the user does not have any trades yet
         dataLength = len(rawTrades)
         if dataLength == 0:
-            return 0
+            return
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         stored = self.myTrades
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawTrades)):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
@@ -234,13 +245,16 @@ class hollaex(ccxt.async_support.hollaex):
             messageHash = channel + ':' + marketId
             client.resolve(self.myTrades, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -258,27 +272,27 @@ class hollaex(ccxt.async_support.hollaex):
     def handle_order(self, client: Client, message, subscription=None):
         #
         #     {
-        #         topic: 'order',
-        #         action: 'insert',
-        #         user_id: 155328,
-        #         symbol: 'ltc-usdt',
-        #         data: {
-        #             symbol: 'ltc-usdt',
-        #             side: 'buy',
-        #             size: 0.05,
-        #             type: 'market',
-        #             price: 0,
-        #             fee_structure: {maker: 0.1, taker: 0.1},
-        #             fee_coin: 'ltc',
-        #             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        #             created_by: 155328,
-        #             filled: 0.05,
-        #             method: 'market',
-        #             created_at: '2022-04-11T14:09:00.760Z',
-        #             updated_at: '2022-04-11T14:09:00.760Z',
-        #             status: 'filled'
+        #         "topic": "order",
+        #         "action": "insert",
+        #         "user_id": 155328,
+        #         "symbol": "ltc-usdt",
+        #         "data": {
+        #             "symbol": "ltc-usdt",
+        #             "side": "buy",
+        #             "size": 0.05,
+        #             "type": "market",
+        #             "price": 0,
+        #             "fee_structure": {maker: 0.1, taker: 0.1},
+        #             "fee_coin": "ltc",
+        #             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        #             "created_by": 155328,
+        #             "filled": 0.05,
+        #             "method": "market",
+        #             "created_at": "2022-04-11T14:09:00.760Z",
+        #             "updated_at": "2022-04-11T14:09:00.760Z",
+        #             "status": "filled"
         #         },
-        #         time: 1649686140
+        #         "time": 1649686140
         #     }
         #
         #    {
@@ -318,7 +332,7 @@ class hollaex(ccxt.async_support.hollaex):
         # usually the first message is an empty array
         dataLength = len(data)
         if dataLength == 0:
-            return 0
+            return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -328,7 +342,7 @@ class hollaex(ccxt.async_support.hollaex):
             rawOrders = [data]
         else:
             rawOrders = data
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             parsed = self.parse_order(order)
@@ -345,11 +359,14 @@ class hollaex(ccxt.async_support.hollaex):
             messageHash = channel + ':' + marketId
             client.resolve(self.orders, messageHash)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         messageHash = 'wallet'
         return await self.watch_private(messageHash, params)
@@ -357,24 +374,24 @@ class hollaex(ccxt.async_support.hollaex):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         topic: 'wallet',
-        #         action: 'partial',
-        #         user_id: 155328,
-        #         data: {
-        #             eth_balance: 0,
-        #             eth_available: 0,
-        #             usdt_balance: 18.94344188,
-        #             usdt_available: 18.94344188,
-        #             ltc_balance: 0.00005,
-        #             ltc_available: 0.00005,
+        #         "topic": "wallet",
+        #         "action": "partial",
+        #         "user_id": 155328,
+        #         "data": {
+        #             "eth_balance": 0,
+        #             "eth_available": 0,
+        #             "usdt_balance": 18.94344188,
+        #             "usdt_available": 18.94344188,
+        #             "ltc_balance": 0.00005,
+        #             "ltc_available": 0.00005,
         #         },
-        #         time: 1649687396
+        #         "time": 1649687396
         #     }
         #
         messageHash = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         keys = list(data.keys())
-        timestamp = self.safe_integer_product(message, 'time', 1000)
+        timestamp = self.safe_timestamp(message, 'time')
         self.balance['info'] = data
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
@@ -393,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -413,13 +430,13 @@ class hollaex(ccxt.async_support.hollaex):
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        authParams = {
+        authParams: dict = {
             'api-key': self.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         }
         signedUrl = url + '?' + self.urlencode(authParams)
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -428,8 +445,8 @@ class hollaex(ccxt.async_support.hollaex):
 
     def handle_error_message(self, client: Client, message):
         #
-        #     {error: 'Bearer or HMAC authentication required'}
-        #     {error: 'Error: wrong input'}
+        #     {error: "Bearer or HMAC authentication required"}
+        #     {error: "Error: wrong input"}
         #
         error = self.safe_integer(message, 'error')
         try:
@@ -445,20 +462,20 @@ class hollaex(ccxt.async_support.hollaex):
         #
         # pong
         #
-        #     {message: 'pong'}
+        #     {message: "pong"}
         #
         # trade
         #
         #     {
-        #         topic: 'trade',
-        #         action: 'partial',
-        #         symbol: 'btc-usdt',
-        #         data: [
+        #         "topic": "trade",
+        #         "action": "partial",
+        #         "symbol": "btc-usdt",
+        #         "data": [
         #             {
-        #                 size: 0.05145,
-        #                 price: 41977.9,
-        #                 side: 'buy',
-        #                 timestamp: '2022-04-11T09:40:10.881Z'
+        #                 "size": 0.05145,
+        #                 "price": 41977.9,
+        #                 "side": "buy",
+        #                 "timestamp": "2022-04-11T09:40:10.881Z"
         #             },
         #         ]
         #     }
@@ -466,64 +483,64 @@ class hollaex(ccxt.async_support.hollaex):
         # orderbook
         #
         #     {
-        #         topic: 'orderbook',
-        #         action: 'partial',
-        #         symbol: 'ltc-usdt',
-        #         data: {
-        #             bids: [
+        #         "topic": "orderbook",
+        #         "action": "partial",
+        #         "symbol": "ltc-usdt",
+        #         "data": {
+        #             "bids": [
         #                 [104.29, 5.2264],
         #                 [103.86,1.3629],
         #                 [101.82,0.5942]
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 [104.81,9.5531],
         #                 [105.54,0.6416],
         #                 [106.18,1.4141],
         #             ],
-        #             timestamp: '2022-04-11T10:37:01.227Z'
+        #             "timestamp": "2022-04-11T10:37:01.227Z"
         #         },
-        #         time: 1649673421
+        #         "time": 1649673421
         #     }
         #
         # order
         #
         #     {
-        #         topic: 'order',
-        #         action: 'insert',
-        #         user_id: 155328,
-        #         symbol: 'ltc-usdt',
-        #         data: {
-        #             symbol: 'ltc-usdt',
-        #             side: 'buy',
-        #             size: 0.05,
-        #             type: 'market',
-        #             price: 0,
-        #             fee_structure: {maker: 0.1, taker: 0.1},
-        #             fee_coin: 'ltc',
-        #             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        #             created_by: 155328,
-        #             filled: 0.05,
-        #             method: 'market',
-        #             created_at: '2022-04-11T14:09:00.760Z',
-        #             updated_at: '2022-04-11T14:09:00.760Z',
-        #             status: 'filled'
+        #         "topic": "order",
+        #         "action": "insert",
+        #         "user_id": 155328,
+        #         "symbol": "ltc-usdt",
+        #         "data": {
+        #             "symbol": "ltc-usdt",
+        #             "side": "buy",
+        #             "size": 0.05,
+        #             "type": "market",
+        #             "price": 0,
+        #             "fee_structure": {maker: 0.1, taker: 0.1},
+        #             "fee_coin": "ltc",
+        #             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        #             "created_by": 155328,
+        #             "filled": 0.05,
+        #             "method": "market",
+        #             "created_at": "2022-04-11T14:09:00.760Z",
+        #             "updated_at": "2022-04-11T14:09:00.760Z",
+        #             "status": "filled"
         #         },
-        #         time: 1649686140
+        #         "time": 1649686140
         #     }
         #
         # balance
         #
         #     {
-        #         topic: 'wallet',
-        #         action: 'partial',
-        #         user_id: 155328,
-        #         data: {
-        #             eth_balance: 0,
-        #             eth_available: 0,
-        #             usdt_balance: 18.94344188,
-        #             usdt_available: 18.94344188,
-        #             ltc_balance: 0.00005,
-        #             ltc_available: 0.00005,
+        #         "topic": "wallet",
+        #         "action": "partial",
+        #         "user_id": 155328,
+        #         "data": {
+        #             "eth_balance": 0,
+        #             "eth_available": 0,
+        #             "usdt_balance": 18.94344188,
+        #             "usdt_available": 18.94344188,
+        #             "ltc_balance": 0.00005,
+        #             "ltc_available": 0.00005,
         #         }
         #     }
         #
@@ -533,7 +550,7 @@ class hollaex(ccxt.async_support.hollaex):
         if content == 'pong':
             self.handle_pong(client, message)
             return
-        methods = {
+        methods: dict = {
             'trade': self.handle_trades,
             'orderbook': self.handle_order_book,
             'order': self.handle_order,
@@ -545,7 +562,7 @@ class hollaex(ccxt.async_support.hollaex):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 
