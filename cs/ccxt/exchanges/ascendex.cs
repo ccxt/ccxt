@@ -363,6 +363,7 @@ public partial class ascendex : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
