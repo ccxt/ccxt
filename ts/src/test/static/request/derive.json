@@ -155,6 +155,21 @@
                 ],
                 "output": "{\"instrument_name\":\"LBTC-USDC\",\"order_id_to_cancel\":\"cfc66623-f38c-4bdd-9898-8c9a72a42f6f\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738919573524,\"amount\":\"0.01\",\"limit_price\":\"10500\",\"max_fee\":211,\"subaccount_id\":130837,\"signature_expiry_sec\":1746695573,\"signer\":\"0x30CB7B06AdD6749BbE146A6827502B8f2a79269A\",\"label\":\"test1234\",\"signature\":\"0x24e265a17041bc3fd1adab0c5997e0ee9a2447cd692d544b1855d4441954d74771c2ebb1aa6aff2c82edb4cf11de7446027eea3dc3911f7150f8011f21cea5921b\"}"
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api-demo.lyra.finance/private/cancel",
+                "input": [
+                    "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"order_id\":\"df3879a6-5421-41ba-bd91-68d7a36edd3d\"}"
+            }
         ]
     }
 }

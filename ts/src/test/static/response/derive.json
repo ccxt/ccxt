@@ -774,6 +774,120 @@
                     "stopPrice": null
                 }
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "subaccount_id": 130837,
+                        "order_id": "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                        "instrument_name": "LBTC-USDC",
+                        "direction": "buy",
+                        "label": "test1234",
+                        "quote_id": null,
+                        "creation_timestamp": 1738919573756,
+                        "last_update_timestamp": 1738920265362,
+                        "limit_price": "10500",
+                        "amount": "0.01",
+                        "filled_amount": "0",
+                        "average_price": "0",
+                        "order_fee": "0",
+                        "order_type": "limit",
+                        "time_in_force": "gtc",
+                        "order_status": "cancelled",
+                        "max_fee": "211",
+                        "signature_expiry_sec": 1746695573,
+                        "nonce": 1738919573524,
+                        "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+                        "signature": "0x24e265a17041bc3fd1adab0c5997e0ee9a2447cd692d544b1855d4441954d74771c2ebb1aa6aff2c82edb4cf11de7446027eea3dc3911f7150f8011f21cea5921b",
+                        "cancel_reason": "user_request",
+                        "mmp": false,
+                        "is_transfer": false,
+                        "replaced_order_id": "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
+                        "trigger_type": null,
+                        "trigger_price_type": null,
+                        "trigger_price": null,
+                        "trigger_reject_message": null
+                    },
+                    "id": "8ccdd5a5-d221-41de-b3f4-c5b71f019b9f"
+                },
+                "parsedResponse": {
+                    "id": "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                    "clientOrderId": "test1234",
+                    "timestamp": 1738919573524,
+                    "datetime": "2025-02-07T09:12:53.524Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1738920265362,
+                    "status": "canceled",
+                    "symbol": "LBTC/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 10500,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                        "cost": "0",
+                        "currency": "USDC"
+                    },
+                    "info": {
+                        "subaccount_id": 130837,
+                        "order_id": "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                        "instrument_name": "LBTC-USDC",
+                        "direction": "buy",
+                        "label": "test1234",
+                        "quote_id": null,
+                        "creation_timestamp": 1738919573756,
+                        "last_update_timestamp": 1738920265362,
+                        "limit_price": "10500",
+                        "amount": "0.01",
+                        "filled_amount": "0",
+                        "average_price": "0",
+                        "order_fee": "0",
+                        "order_type": "limit",
+                        "time_in_force": "gtc",
+                        "order_status": "cancelled",
+                        "max_fee": "211",
+                        "signature_expiry_sec": 1746695573,
+                        "nonce": 1738919573524,
+                        "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+                        "signature": "0x24e265a17041bc3fd1adab0c5997e0ee9a2447cd692d544b1855d4441954d74771c2ebb1aa6aff2c82edb4cf11de7446027eea3dc3911f7150f8011f21cea5921b",
+                        "cancel_reason": "user_request",
+                        "mmp": false,
+                        "is_transfer": false,
+                        "replaced_order_id": "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
+                        "trigger_type": null,
+                        "trigger_price_type": null,
+                        "trigger_price": null,
+                        "trigger_reject_message": null
+                    },
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDC"
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
         ]
     }
 }
