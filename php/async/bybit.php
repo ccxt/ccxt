@@ -1424,8 +1424,8 @@ class bybit extends Exchange {
 
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
-        $quote = 'USD';
-        $settle = 'USDC';
+        $quote = null;
+        $settle = null;
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $base = null;
@@ -1433,9 +1433,21 @@ class bybit extends Exchange {
         if (mb_strpos($symbol, '/') > -1) {
             $base = $this->safe_string($symbolBase, 0);
             $expiry = $this->safe_string($optionParts, 1);
+            $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
+            $splitQuote = explode(':', $symbolQuoteAndSettle);
+            $quoteAndSettle = $this->safe_string($splitQuote, 0);
+            $quote = $quoteAndSettle;
+            $settle = $quoteAndSettle;
         } else {
             $base = $this->safe_string($optionParts, 0);
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
+            if (str_ends_with($symbol, '-USDT')) {
+                $quote = 'USDT';
+                $settle = 'USDT';
+            } else {
+                $quote = 'USDC';
+                $settle = 'USDC';
+            }
         }
         $strike = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
