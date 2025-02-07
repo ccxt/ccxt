@@ -646,7 +646,7 @@ export default class derive extends Exchange {
             'contract': swap,
             'linear': linear,
             'inverse': undefined,
-            'contractSize': (type !== 'spot') ? 1 : undefined,
+            'contractSize': (spot) ? undefined : 1,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'taker': this.safeNumber (market, 'taker_fee_rate'),
