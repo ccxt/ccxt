@@ -122,6 +122,7 @@ jobs:
           git push
   windows:
     runs-on: windows
+    needs: build
     # if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
