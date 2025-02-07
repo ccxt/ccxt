@@ -625,6 +625,7 @@ export default class derive extends Exchange {
         } else if (type === 'option') {
             margin = false;
             option = true;
+            marketType = 'option';
         }
         return {
             'id': marketId,
@@ -645,7 +646,7 @@ export default class derive extends Exchange {
             'contract': swap,
             'linear': linear,
             'inverse': undefined,
-            'contractSize': undefined,
+            'contractSize': (type !== 'spot') ? 1 : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'taker': this.safeNumber (market, 'taker_fee_rate'),

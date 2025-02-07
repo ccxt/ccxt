@@ -16,6 +16,7 @@
     "option": false,
     "active": true,
     "contract": true,
+    "contractSize": 1,
     "linear": true,
     "subType": "linear",
     "taker": 0.0003,
