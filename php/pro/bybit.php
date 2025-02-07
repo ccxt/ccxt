@@ -910,7 +910,11 @@ class bybit extends \ccxt\async\bybit {
                         }
                     } elseif (($limit !== 1) && ($limit !== 50) && ($limit !== 200) && ($limit !== 500)) {
                         // bybit only support $limit 1, 50, 200, 500 for contract
-                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1, 50, 200 and 500.');
+                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1, 50, 200 and 500 for swap and future markets.');
+                    }
+                } else {
+                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200)) {
+                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1,50, and 200 for spot markets.');
                     }
                 }
             }

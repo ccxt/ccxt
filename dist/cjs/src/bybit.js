@@ -1411,8 +1411,8 @@ class bybit extends bybit$1 {
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
-        const quote = 'USD';
-        const settle = 'USDC';
+        let quote = undefined;
+        let settle = undefined;
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         let base = undefined;
@@ -1420,10 +1420,23 @@ class bybit extends bybit$1 {
         if (symbol.indexOf('/') > -1) {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
+            const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
+            const splitQuote = symbolQuoteAndSettle.split(':');
+            const quoteAndSettle = this.safeString(splitQuote, 0);
+            quote = quoteAndSettle;
+            settle = quoteAndSettle;
         }
         else {
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
+            if (symbol.endsWith('-USDT')) {
+                quote = 'USDT';
+                settle = 'USDT';
+            }
+            else {
+                quote = 'USDC';
+                settle = 'USDC';
+            }
         }
         const strike = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
