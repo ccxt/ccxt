@@ -5100,8 +5100,14 @@ export default class Exchange {
          * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @returns {[string, object]} the market type and params with type and defaultType omitted
          */
+        const type = this.safeString2 (params, 'defaultType', 'type');
+        if (type !== undefined) {
+            params = this.omit (params, [ 'defaultType', 'type' ]);
+            return [ type, params ];
+        }
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        if (defaultValue === undefined) {  // defaultValue takes precendence over exchange wide defaultType
+        // defaultValue takes precendence over exchange wide defaultType
+        if (defaultValue === undefined) {
             defaultValue = defaultType;
         }
         const methodOptions = this.safeDict (this.options, methodName);
@@ -5114,9 +5120,7 @@ export default class Exchange {
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
-        return [ type, params ];
+        return [ marketType, params ];
     }
 
     handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
