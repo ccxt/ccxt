@@ -330,10 +330,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         lunoItf := &luno{}
         lunoItf.Init(exchangeArgs)
         return lunoItf, true
-    case "lykke":
-        lykkeItf := &lykke{}
-        lykkeItf.Init(exchangeArgs)
-        return lykkeItf, true
     case "mercado":
         mercadoItf := &mercado{}
         mercadoItf.Init(exchangeArgs)

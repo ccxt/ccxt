@@ -1751,7 +1751,7 @@ class coinbaseinternational extends Exchange {
         $request['type'] = $typeId;
         if ($type === 'limit') {
             if ($price === null) {
-                throw new InvalidOrder($this->id . 'createOrder() requires a $price parameter for a limit order types');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $price parameter for a limit order types');
             }
             $request['price'] = $price;
         }
@@ -1765,7 +1765,7 @@ class coinbaseinternational extends Exchange {
         // $market orders must be IOC
         if ($typeId === 'MARKET') {
             if ($tif !== null && $tif !== 'IOC') {
-                throw new InvalidOrder($this->id . 'createOrder() $market orders must have $tif set to "IOC"');
+                throw new InvalidOrder($this->id . ' createOrder() $market orders must have $tif set to "IOC"');
             }
             $tif = 'IOC';
         } else {

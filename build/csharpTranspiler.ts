@@ -21,6 +21,8 @@ const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+let shouldTranspileTests = true
+
 function overwriteFileAndFolder (path, content) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -1406,6 +1408,10 @@ class NewTranspiler {
     }
 
     transpileTests(){
+        if (!shouldTranspileTests) {
+            log.bright.yellow ('Skipping tests transpilation');
+            return;
+        }
         this.transpileBaseTestsToCSharp();
         this.transpileExchangeTests();
         this.transpileWsExchangeTests();
@@ -1420,6 +1426,7 @@ if (isMainEntry(import.meta.url)) {
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }

@@ -395,7 +395,7 @@ public partial class coinbase : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 350 },
+                        { "limit", 300 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {

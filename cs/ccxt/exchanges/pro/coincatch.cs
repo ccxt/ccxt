@@ -1702,7 +1702,7 @@ public partial class coincatch : ccxt.coincatch
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "orderbook "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -1729,7 +1729,7 @@ public partial class coincatch : ccxt.coincatch
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "trades "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -1756,7 +1756,7 @@ public partial class coincatch : ccxt.coincatch
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "ticker "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }

@@ -126,7 +126,123 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-02-05T22%3A03%3A00.000Z&till=2025-02-06T14%3A44%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1738792980000
+                ]
+              },
+              {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&till=2025-02-06T01%3A49%3A11.123Z&from=2025-02-06T01%3A44%3A11.122Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&till=2025-02-05T22%3A08%3A00.000Z&from=2025-02-05T05%3A27%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-02-05T22%3A03%3A00.000Z&till=2025-02-05T22%3A08%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1738792980000,
+                  4
+                ]
+              },
+              {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-02-05T22%3A03%3A00.000Z&till=2025-02-05T22%3A08%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1738792980000,
+                  null,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&till=2025-02-05T22%3A08%3A00.000Z&from=2025-02-05T22%3A03%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since less than limit",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-01-01T00%3A55%3A00.000Z&till=2025-02-05T22%3A08%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1735692900000,
+                  2,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since equal to limit",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-01-01T00%3A55%3A00.000Z&till=2025-02-05T22%3A08%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1735692900000,
+                  3,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              },
+              {
+                "description": "fetchOHLCV with until - since greater than limit",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&from=2025-01-01T00%3A55%3A00.000Z&till=2025-02-05T22%3A08%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1735692900000,
+                  4,
+                  {
+                    "until": 1738793280000
+                  }
+                ]
+              }              
         ]
     }
 }

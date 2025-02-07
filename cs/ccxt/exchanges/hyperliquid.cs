@@ -3053,7 +3053,7 @@ public partial class hyperliquid : Exchange
             // handle swap <> spot account transfer
             if (!isTrue(this.inArray(toAccount, new List<object>() {"spot", "swap", "perp"})))
             {
-                throw new NotSupported ((string)add(this.id, "transfer() only support spot <> swap transfer")) ;
+                throw new NotSupported ((string)add(this.id, " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
             object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
@@ -3096,7 +3096,7 @@ public partial class hyperliquid : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "transfer() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, " transfer() only support USDC")) ;
             }
         }
         object payload = new Dictionary<string, object>() {
@@ -3168,7 +3168,7 @@ public partial class hyperliquid : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
             }
         }
         object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
