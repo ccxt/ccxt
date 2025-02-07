@@ -403,6 +403,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_account_mmp_state($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_account_withdrawal($params = array()) {
+        return $this->request('v5/account/withdrawal', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_asset_exchange_query_coin_list($params = array()) {
         return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
@@ -1311,6 +1314,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5AccountMmpState($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5AccountWithdrawal($params = array()) {
+        return $this->request('v5/account/withdrawal', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5AssetExchangeQueryCoinList($params = array()) {
         return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));

@@ -1575,7 +1575,7 @@ class coincatch extends \ccxt\async\coincatch {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'orderbook ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' orderbook ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -1598,7 +1598,7 @@ class coincatch extends \ccxt\async\coincatch {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'trades ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' trades ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -1621,7 +1621,7 @@ class coincatch extends \ccxt\async\coincatch {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'ticker ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' ticker ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }

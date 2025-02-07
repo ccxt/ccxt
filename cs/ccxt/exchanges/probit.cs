@@ -81,7 +81,7 @@ public partial class probit : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
-                { "sandbox", true },
+                { "sandbox", false },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -158,6 +158,76 @@ public partial class probit : Exchange
                     { "percentage", true },
                     { "maker", this.parseNumber("0.002") },
                     { "taker", this.parseNumber("0.002") },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 90 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 4000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -985,6 +1055,7 @@ public partial class probit : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1004,24 +1075,24 @@ public partial class probit : Exchange
             { "limit", requestLimit },
         };
         object now = this.milliseconds();
-        object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until");
+        object durationMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
         object startTime = since;
-        object endTime = now;
+        object endTime = ((bool) isTrue((!isEqual(until, null)))) ? subtract(until, durationMilliseconds) : now;
         if (isTrue(isEqual(since, null)))
         {
             if (isTrue(isEqual(limit, null)))
             {
                 limit = requestLimit;
             }
-            startTime = subtract(now, multiply(multiply(limit, duration), 1000));
+            object startLimit = subtract(limit, 1);
+            startTime = subtract(endTime, multiply(startLimit, durationMilliseconds));
         } else
         {
-            if (isTrue(isEqual(limit, null)))
+            if (isTrue(!isEqual(limit, null)))
             {
-                endTime = now;
-            } else
-            {
-                endTime = this.sum(since, multiply(multiply(this.sum(limit, 1), duration), 1000));
+                object endByLimit = this.sum(since, multiply(limit, durationMilliseconds));
+                endTime = mathMin(endTime, endByLimit);
             }
         }
         object startTimeNormalized = this.normalizeOHLCVTimestamp(startTime, timeframe);

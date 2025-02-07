@@ -540,6 +540,8 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -551,6 +553,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to edit an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
@@ -618,8 +626,8 @@ public partial class binance
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/New-Order"/>  <br/>
@@ -701,6 +709,18 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to create an order in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.selfTradePrevention</term>
+    /// <description>
+    /// string : set unified value for stp (see .features for available values)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.icebergAmount</term>
+    /// <description>
+    /// float : set iceberg amount for limit orders
     /// </description>
     /// </item>
     /// <item>
@@ -1013,6 +1033,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// string : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch for a portfolio margin account
     /// </description>
     /// </item>
     /// </list>

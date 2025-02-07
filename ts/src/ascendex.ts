@@ -285,7 +285,6 @@ export default class ascendex extends Exchange {
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
                     // 'TRC': 'TRC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -295,6 +294,103 @@ export default class ascendex extends Exchange {
                     'LTC': 'Litecoin',
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo with triggerprice
+                        'takeProfitPrice': false, // todo with triggerprice
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo: implementation
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': false,
+                        },
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -1126,6 +1222,7 @@ export default class ascendex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1140,6 +1237,7 @@ export default class ascendex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger (options, 'limit', 500);
+        const until = this.safeInteger (params, 'until');
         if (since !== undefined) {
             request['from'] = since;
             if (limit === undefined) {
@@ -1147,10 +1245,24 @@ export default class ascendex extends Exchange {
             } else {
                 limit = Math.min (limit, defaultLimit);
             }
-            request['to'] = this.sum (since, limit * duration * 1000, 1);
+            const toWithLimit = this.sum (since, limit * duration * 1000, 1);
+            if (until !== undefined) {
+                request['to'] = Math.min (toWithLimit, until + 1);
+            } else {
+                request['to'] = toWithLimit;
+            }
+        } else if (until !== undefined) {
+            request['to'] = until + 1;
+            if (limit === undefined) {
+                limit = defaultLimit;
+            } else {
+                limit = Math.min (limit, defaultLimit);
+            }
+            request['from'] = until - (limit * duration * 1000);
         } else if (limit !== undefined) {
             request['n'] = limit; // max 500
         }
+        params = this.omit (params, 'until');
         const response = await this.v1PublicGetBarhist (this.extend (request, params));
         //
         //     {
@@ -2849,8 +2961,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const contracts = this.safeList (data, 'contracts', []);
-        const result = this.parseFundingRates (contracts);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (contracts, symbols);
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {

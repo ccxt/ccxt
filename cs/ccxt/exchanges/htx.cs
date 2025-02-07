@@ -89,6 +89,7 @@ public partial class htx : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", true },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -878,6 +879,8 @@ public partial class htx : Exchange
                         { "inverse", true },
                     } },
                 } },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchOHLCV", new Dictionary<string, object>() {
                     { "useHistoricalEndpointForSpot", true },
                 } },
@@ -1168,17 +1171,20 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "daysBack", 120 },
                         { "untilDays", 2 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
                         { "limit", 500 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1187,6 +1193,7 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "untilDays", 2 },
                         { "daysBack", 180 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1194,8 +1201,9 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 500 },
-                        { "daysBackClosed", 180 },
+                        { "daysBack", 180 },
                         { "daysBackCanceled", divide(1, 12) },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1234,7 +1242,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 50 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1705,6 +1713,10 @@ public partial class htx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = null;
         var typesparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "types", new Dictionary<string, object>() {});
         types = ((IList<object>)typesparametersVariable)[0];
@@ -3347,7 +3359,11 @@ public partial class htx : Exchange
                 type = "margin";
             }
         }
-        object marketId = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.marketId(symbol);
+        object marketId = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            marketId = this.marketId(symbol);
+        }
         for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
@@ -7619,8 +7635,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -7761,6 +7776,11 @@ public partial class htx : Exchange
         };
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -7782,7 +7802,7 @@ public partial class htx : Exchange
             if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
             {
                 this.checkRequiredCredentials();
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
@@ -7875,19 +7895,21 @@ public partial class htx : Exchange
                         }
                     }
                 }
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
+                request = ((object)this.keysort(request));
                 if (isTrue(!isEqual(method, "POST")))
                 {
-                    request = this.extend(request, query);
+                    object sortedQuery = ((object)this.keysort(query));
+                    request = this.extend(request, sortedQuery);
                 }
-                request = ((object)this.keysort(request));
-                object auth = this.urlencode(request);
+                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
@@ -8786,6 +8808,57 @@ public partial class htx : Exchange
 
     /**
      * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        object request = new Dictionary<string, object>() {};
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(marketType, "future")))
+        {
+            response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters));
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["contract_type"] = "swap";
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOpenInterests(data, symbols);
+    }
+
+    /**
+     * @method
      * @name htx#fetchOpenInterest
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -8954,8 +9027,9 @@ public partial class htx : Exchange
         object timestamp = this.safeInteger(interest, "ts");
         object amount = this.safeNumber(interest, "volume");
         object value = this.safeNumber(interest, "value");
+        object marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market) },
             { "baseVolume", amount },
             { "quoteVolume", value },
             { "openInterestAmount", amount },

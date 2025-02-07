@@ -248,7 +248,95 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=100&start=1735862400000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=100&start=1735592400000&end=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=4&start=1735862399999",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=100&start=1735862400000&end=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=4&start=1735938000000&end=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1h:tBTCUST/hist?sort=1&limit=4&start=1735862400000&end=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            }              
         ]
     },
     "outputType": "json"

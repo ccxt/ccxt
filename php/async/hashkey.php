@@ -373,17 +373,20 @@ class hashkey extends Exchange {
                         'limit' => 1000,
                         'daysBack' => 30,
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null, // todo
@@ -1479,9 +1482,15 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker', 'ibm' ));
+        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        }
+        $isBuyerMaker = $this->safe_bool($trade, 'ibm');
+        // if public $trade
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $feeCost = $this->safe_string($trade, 'commission');
         $feeCurrncyId = $this->safe_string($trade, 'commissionAsset');
@@ -3844,8 +3853,7 @@ class hashkey extends Exchange {
             //         array( "symbol" => "ETHUSDT-PERPETUAL", "rate" => "0.0001", "nextSettleTime" => "1722297600000" )
             //     )
             //
-            $fundingRates = $this->parse_funding_rates($response);
-            return $this->filter_by_array($fundingRates, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 

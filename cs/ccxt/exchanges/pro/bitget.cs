@@ -1121,17 +1121,13 @@ public partial class bitget : ccxt.bitget
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(this.positions, instType))))
+        object action = this.safeString(message, "action");
+        if (isTrue(!isTrue((inOp(this.positions, instType))) || isTrue((isEqual(action, "snapshot")))))
         {
             ((IDictionary<string,object>)this.positions)[(string)instType] = new ArrayCacheBySymbolBySide();
         }
         object cache = getValue(this.positions, instType);
         object rawPositions = this.safeValue(message, "data", new List<object>() {});
-        object dataLength = getArrayLength(rawPositions);
-        if (isTrue(isEqual(dataLength, 0)))
-        {
-            return;
-        }
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -2253,7 +2249,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "orderbook "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -2283,7 +2279,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "trades "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -2313,7 +2309,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "ticker "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }

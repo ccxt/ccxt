@@ -1101,6 +1101,11 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiGetPortfolioBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -3634,6 +3639,11 @@ public partial class binance : Exchange
     public async Task<object> papiGetCmSymbolConfig (object parameters = null)
     {
         return await this.callAsync ("papiGetCmSymbolConfig",parameters);
+    }
+
+    public async Task<object> papiGetRateLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("papiGetRateLimitOrder",parameters);
     }
 
     public async Task<object> papiPostUmOrder (object parameters = null)

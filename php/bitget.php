@@ -1378,18 +1378,18 @@ class bitget extends Exchange {
                         '1m' => 30,
                         '3m' => 30,
                         '5m' => 30,
-                        '10m' => 52,
+                        '10m' => 30,
                         '15m' => 52,
-                        '30m' => 52,
+                        '30m' => 62,
                         '1h' => 83,
                         '2h' => 120,
                         '4h' => 240,
                         '6h' => 360,
                         '12h' => 360,
-                        '1d' => 360,
-                        '3d' => 1000,
-                        '1w' => 1000,
-                        '1M' => 1000,
+                        '1d' => 300,
+                        '3d' => 300,
+                        '1w' => 300,
+                        '1M' => 300,
                     ),
                 ),
                 'fetchTrades' => array(
@@ -1420,16 +1420,102 @@ class bitget extends Exchange {
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
+                    // 'TRX' => 'TRX', // different code for mainnet
                     'TRC20' => 'TRC20',
+                    // 'ETH' => 'ETH', // different code for mainnet
                     'ERC20' => 'ERC20',
                     'BEP20' => 'BSC',
-                    'ARB' => 'ArbitrumOne',
+                    // 'BEP20' => 'BEP20', // different for BEP20
+                    'BSC' => 'BEP20',
+                    'ATOM' => 'ATOM',
+                    'ACA' => 'AcalaToken',
+                    'APT' => 'Aptos',
+                    'ARBONE' => 'ArbitrumOne',
+                    'ARBNOVA' => 'ArbitrumNova',
+                    'AVAXC' => 'C-Chain',
+                    'AVAXX' => 'X-Chain',
+                    'AR' => 'Arweave',
+                    'BCH' => 'BCH',
+                    'BCHA' => 'BCHA',
+                    'BITCI' => 'BITCI',
+                    'BTC' => 'BTC',
+                    'CELO' => 'CELO',
+                    'CSPR' => 'CSPR',
+                    'ADA' => 'Cardano',
+                    'CHZ' => 'ChilizChain',
+                    'CRC20' => 'CronosChain',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EOS' => 'EOS',
+                    'ETHF' => 'ETHFAIR',
+                    'ETHW' => 'ETHW',
+                    'ETC' => 'ETC',
+                    'EGLD' => 'Elrond',
+                    'FIL' => 'FIL',
+                    'FIO' => 'FIO',
+                    'FTM' => 'Fantom',
+                    'HRC20' => 'HECO',
+                    'ONE' => 'Harmony',
+                    'HNT' => 'Helium',
+                    'ICP' => 'ICP',
+                    'IOTX' => 'IoTeX',
+                    'KARDIA' => 'KAI',
+                    'KAVA' => 'KAVA',
+                    'KDA' => 'KDA',
+                    'KLAY' => 'Klaytn',
+                    'KSM' => 'Kusama',
+                    'LAT' => 'LAT',
+                    'LTC' => 'LTC',
+                    'MINA' => 'MINA',
+                    'MOVR' => 'MOVR',
+                    'METIS' => 'MetisToken',
+                    'GLMR' => 'Moonbeam',
+                    'NEAR' => 'NEARProtocol',
+                    'NULS' => 'NULS',
+                    'OASYS' => 'OASYS',
+                    'OASIS' => 'ROSE',
+                    'OMNI' => 'OMNI',
+                    'ONT' => 'Ontology',
+                    'OPTIMISM' => 'Optimism',
+                    'OSMO' => 'Osmosis',
+                    'POKT' => 'PocketNetwork',
+                    'MATIC' => 'Polygon',
+                    'QTUM' => 'QTUM',
+                    'REEF' => 'REEF',
+                    'SOL' => 'SOL',
+                    'SYS' => 'SYS', // SyscoinNEVM is different
+                    'SXP' => 'Solar',
+                    'XYM' => 'Symbol',
+                    'TON' => 'TON',
+                    'TT' => 'TT',
+                    'TLOS' => 'Telos',
+                    'THETA' => 'ThetaToken',
+                    'VITE' => 'VITE',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'WAXP',
+                    'WEMIX' => 'WEMIXMainnet',
+                    'XDC' => 'XDCNetworkXDC',
+                    'XRP' => 'XRP',
+                    'FET' => 'FETCH',
+                    'NEM' => 'NEM',
+                    'REI' => 'REINetwork',
+                    'ZIL' => 'ZIL',
+                    'ABBC' => 'ABBCCoin',
+                    'RSK' => 'RSK',
+                    'AZERO' => 'AZERO',
+                    'TRC10' => 'TRC10',
+                    'JUNO' => 'JUNO',
+                    // undetected => USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                    // todo => uncomment below after unification
+                    // 'TERRACLASSIC' => 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    // 'CUBENETWORK' => 'CUBE',
+                    // 'CADUCEUS' => 'CMP',
+                    // 'CONFLUX' => 'CFX', // CFXeSpace is different
+                    // 'CERE' => 'CERE',
+                    // 'CANTO' => 'CANTO',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
-                    'APT' => 'Aptos',
-                    'MATIC' => 'Polygon',
                     'VIC' => 'VICTION',
-                    'AVAXC' => 'C-Chain',
                 ),
                 'networksById' => array(
                 ),
@@ -1458,7 +1544,7 @@ class bitget extends Exchange {
                                 'mark' => false,
                                 'index' => false,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1484,27 +1570,31 @@ class bitget extends Exchange {
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 90,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 90,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
@@ -1528,7 +1618,7 @@ class bitget extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1865,10 +1955,10 @@ class bitget extends Exchange {
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
-            $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
-            $precisePrice->reduce ();
-            $priceString = (string) $precisePrice;
+            $precise = new Precise ($priceStep);
+            $precise->decimals = max ($precise->decimals, $priceDecimals);
+            $precise->reduce ();
+            $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
             $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);
@@ -2328,14 +2418,14 @@ class bitget extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
-        $chain = $this->safe_string_2($params, 'chain', 'network');
-        $params = $this->omit($params, 'network');
-        if ($chain === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter or a network parameter');
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a "network" parameter');
         }
         $this->load_markets();
         $currency = $this->currency($code);
-        $networkId = $this->network_code_to_id($chain);
+        $networkId = $this->network_code_to_id($networkCode);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
@@ -2359,27 +2449,8 @@ class bitget extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
-        $result = array(
-            'id' => $this->safe_string($data, 'orderId'),
-            'info' => $response,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'network' => null,
-            'addressFrom' => null,
-            'address' => null,
-            'addressTo' => null,
-            'amount' => null,
-            'type' => 'withdrawal',
-            'currency' => null,
-            'status' => null,
-            'updated' => null,
-            'tagFrom' => null,
-            'tag' => null,
-            'tagTo' => null,
-            'comment' => null,
-            'fee' => null,
-        );
+        $result = $this->parse_transaction($data, $currency);
+        $result['type'] = 'withdrawal';
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
@@ -2390,7 +2461,7 @@ class bitget extends Exchange {
             $result['tag'] = $tag;
             $result['address'] = $address;
             $result['addressTo'] = $address;
-            $result['network'] = $chain;
+            $result['network'] = $networkCode;
         }
         return $result;
     }
@@ -2562,18 +2633,14 @@ class bitget extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        $networkCode = $this->safe_string_2($params, 'chain', 'network');
-        $params = $this->omit($params, 'network');
-        $networkId = null;
-        if ($networkCode !== null) {
-            $networkId = $this->network_code_to_id($networkCode, $code);
-        }
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
         );
-        if ($networkId !== null) {
-            $request['chain'] = $networkId;
+        if ($networkCode !== null) {
+            $request['chain'] = $this->network_code_to_id($networkCode, $code);
         }
         $response = $this->privateSpotGetV2SpotWalletDepositAddress ($this->extend($request, $params));
         //
@@ -3477,6 +3544,7 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -3488,9 +3556,10 @@ class bitget extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForHistoryEndpoint);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForRecentEndpoint);
         }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
         $market = null;
         if ($sandboxMode) {
             $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -3519,7 +3588,7 @@ class bitget extends Exchange {
         $ohlcOptions = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $retrievableDaysMap = $this->safe_dict($ohlcOptions, 'maxDaysPerTimeframe', array());
         $maxRetrievableDaysForRecent = $this->safe_integer($retrievableDaysMap, $timeframe, 30); // default to safe minimum
-        $endpointTsBoundary = $now - $maxRetrievableDaysForRecent * $msInDay;
+        $endpointTsBoundary = $now - ($maxRetrievableDaysForRecent - 1) * $msInDay;
         if ($limitDefined) {
             $limit = min ($limit, $maxLimitForRecentEndpoint);
             $request['limit'] = $limit;
@@ -3557,7 +3626,7 @@ class bitget extends Exchange {
         // make $request
         if ($market['spot']) {
             // checks if we need history endpoint
-            if ($historicalEndpointNeeded) {
+            if ($historicalEndpointNeeded || $useHistoryEndpoint) {
                 $response = $this->publicSpotGetV2SpotMarketHistoryCandles ($this->extend($request, $params));
             } else {
                 $response = $this->publicSpotGetV2SpotMarketCandles ($this->extend($request, $params));
@@ -3584,7 +3653,7 @@ class bitget extends Exchange {
             } elseif ($priceType === 'index') {
                 $response = $this->publicMixGetV2MixMarketHistoryIndexCandles ($extended);
             } else {
-                if ($historicalEndpointNeeded) {
+                if ($historicalEndpointNeeded || $useHistoryEndpoint) {
                     $response = $this->publicMixGetV2MixMarketHistoryCandles ($extended);
                 } else {
                     $response = $this->publicMixGetV2MixMarketCandles ($extended);
@@ -4243,8 +4312,10 @@ class bitget extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'createMarketBuyOrderRequiresPrice' => false,
+        );
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -4727,7 +4798,7 @@ class bitget extends Exchange {
         $response = null;
         if ($market['spot']) {
             if ($triggerPrice === null) {
-                throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                throw new NotSupported($this->id . ' editOrder() only supports plan/trigger spot orders');
             }
             $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
             if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
@@ -6935,8 +7006,7 @@ class bitget extends Exchange {
         // }
         $symbols = $this->market_symbols($symbols);
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data, $market);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

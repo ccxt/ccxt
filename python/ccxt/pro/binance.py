@@ -247,7 +247,7 @@ class binance(ccxt.async_support.binance):
         type = None
         type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if type == 'spot':
-            raise BadRequest(self.id + 'watchLiquidationsForSymbols is not supported for spot symbols')
+            raise BadRequest(self.id + ' watchLiquidationsForSymbols is not supported for spot symbols')
         subType = None
         subType, params = self.handle_sub_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if self.isLinear(type, subType):
@@ -2215,6 +2215,7 @@ class binance(ccxt.async_support.binance):
             response = None
             if isPortfolioMargin:
                 response = await self.papiPostListenKey(params)
+                params = self.extend(params, {'portfolioMargin': True})
             elif type == 'future':
                 response = await self.fapiPrivatePostListenKey(params)
             elif type == 'delivery':
@@ -2259,6 +2260,7 @@ class binance(ccxt.async_support.binance):
         try:
             if isPortfolioMargin:
                 await self.papiPutListenKey(self.extend(request, params))
+                params = self.extend(params, {'portfolioMargin': True})
             elif type == 'future':
                 await self.fapiPrivatePutListenKey(self.extend(request, params))
             elif type == 'delivery':
@@ -3703,7 +3705,7 @@ class binance(ccxt.async_support.binance):
             payload['limit'] = limit
         fromId = self.safe_integer(params, 'fromId')
         if fromId is not None and since is not None:
-            raise BadRequest(self.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
+            raise BadRequest(self.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
         message: dict = {
             'id': messageHash,
             'method': 'myTrades',
@@ -3975,7 +3977,8 @@ class binance(ccxt.async_support.binance):
         if not rejected:
             client.reject(message, id)
         # reset connection if 5xx error
-        if self.safe_string(code, 0) == '5':
+        codeString = self.safe_string(error, 'code')
+        if (codeString is not None) and (codeString[0] == '5'):
             client.reset(message)
 
     def handle_message(self, client: Client, message):

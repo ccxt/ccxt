@@ -249,7 +249,7 @@ export default class binance extends binanceRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
+            throw new BadRequest(this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
@@ -2361,6 +2361,7 @@ export default class binance extends binanceRest {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 response = await this.fapiPrivatePostListenKey(params);
@@ -2416,6 +2417,7 @@ export default class binance extends binanceRest {
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, params));
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 await this.fapiPrivatePutListenKey(this.extend(request, params));
@@ -3967,7 +3969,7 @@ export default class binance extends binanceRest {
         }
         const fromId = this.safeInteger(params, 'fromId');
         if (fromId !== undefined && since !== undefined) {
-            throw new BadRequest(this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
+            throw new BadRequest(this.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         const message = {
             'id': messageHash,
@@ -4277,7 +4279,8 @@ export default class binance extends binanceRest {
             client.reject(message, id);
         }
         // reset connection if 5xx error
-        if (this.safeString(code, 0) === '5') {
+        const codeString = this.safeString(error, 'code');
+        if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset(message);
         }
     }

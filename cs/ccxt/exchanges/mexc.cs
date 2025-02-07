@@ -432,6 +432,7 @@ public partial class mexc : Exchange
                         { "1h", "60m" },
                         { "4h", "4h" },
                         { "1d", "1d" },
+                        { "1w", "1W" },
                         { "1M", "1M" },
                     } },
                     { "swap", new Dictionary<string, object>() {
@@ -520,17 +521,20 @@ public partial class mexc : Exchange
                         { "limit", 100 },
                         { "daysBack", 30 },
                         { "untilDays", null },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -539,15 +543,17 @@ public partial class mexc : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
-                        { "daysBackClosed", 7 },
+                        { "daysBack", 7 },
                         { "daysBackCanceled", 7 },
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -599,7 +605,7 @@ public partial class mexc : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", null },
                         { "untilDays", 90 },
                         { "trigger", true },
@@ -1226,6 +1232,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             object state = this.safeString(market, "state");
+            object isLinear = isEqual(quote, settle);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -1243,8 +1250,8 @@ public partial class mexc : Exchange
                 { "option", false },
                 { "active", (isEqual(state, "0")) },
                 { "contract", true },
-                { "linear", true },
-                { "inverse", false },
+                { "linear", isLinear },
+                { "inverse", !isTrue(isLinear) },
                 { "taker", this.safeNumber(market, "takerFeeRate") },
                 { "maker", this.safeNumber(market, "makerFeeRate") },
                 { "contractSize", this.safeNumber(market, "contractSize") },
@@ -2134,7 +2141,7 @@ public partial class mexc : Exchange
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
-     *
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK', default is 'GTC'
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
      * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
@@ -2220,6 +2227,18 @@ public partial class mexc : Exchange
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
+        }
+        object tif = this.safeString(parameters, "timeInForce");
+        if (isTrue(!isEqual(tif, null)))
+        {
+            parameters = this.omit(parameters, "timeInForce");
+            if (isTrue(isEqual(tif, "IOC")))
+            {
+                ((IDictionary<string,object>)request)["type"] = "IMMEDIATE_OR_CANCEL";
+            } else if (isTrue(isEqual(tif, "FOK")))
+            {
+                ((IDictionary<string,object>)request)["type"] = "FILL_OR_KILL";
+            }
         }
         return this.extend(request, parameters);
     }
@@ -4611,7 +4630,7 @@ public partial class mexc : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, currencyId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };
@@ -4790,7 +4809,7 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(rawNetwork, null)))
             {
                 parameters = this.omit(parameters, "network");
-                ((IDictionary<string,object>)request)["coin"] = add(((IDictionary<string,object>)request)["coin"], add("-", rawNetwork));
+                ((IDictionary<string,object>)request)["coin"] = add(add(getValue(request, "coin"), "-"), rawNetwork);
             }
         }
         if (isTrue(!isEqual(since, null)))
@@ -5536,7 +5555,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.contractPrivateGetPositionPositionMode(parameters);
@@ -6017,15 +6036,26 @@ public partial class mexc : Exchange
             {
                 url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
             }
-            object paramsEncoded = "";
+            object urlParams = parameters;
             if (isTrue(isEqual(access, "private")))
             {
-                ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
-                ((IDictionary<string,object>)parameters)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
+                if (isTrue(isTrue(isEqual(section, "broker")) && isTrue((isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))))
+                {
+                    urlParams = new Dictionary<string, object>() {
+                        { "timestamp", this.nonce() },
+                        { "recvWindow", this.safeInteger(this.options, "recvWindow", 5000) },
+                    };
+                    body = this.json(parameters);
+                } else
+                {
+                    ((IDictionary<string,object>)urlParams)["timestamp"] = this.nonce();
+                    ((IDictionary<string,object>)urlParams)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
+                }
             }
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            object paramsEncoded = "";
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys))))
             {
-                paramsEncoded = this.urlencode(parameters);
+                paramsEncoded = this.urlencode(urlParams);
                 url = add(url, add("?", paramsEncoded));
             }
             if (isTrue(isEqual(access, "private")))

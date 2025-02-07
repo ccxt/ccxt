@@ -18,5 +18,6 @@ async function testFetchCurrencies(exchange, skippedProperties) {
             testCurrency(exchange, skippedProperties, method, values[i]);
         }
     }
+    return true;
 }
 export default testFetchCurrencies;

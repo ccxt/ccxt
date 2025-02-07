@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -545,6 +545,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -740,27 +742,31 @@ class bitmart(Exchange, ImplicitAPI):
                         'limit': 200,
                         'daysBack': None,
                         'untilDays': 99999,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 200,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 200,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # variable timespans for recent endpoint, 200 for historical
@@ -785,7 +791,7 @@ class bitmart(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': False,
                             },
-                            'limitPrice': False,
+                            'price': False,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -823,7 +829,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 200,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': False,
@@ -931,7 +937,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_spot_markets(self, params={}):
+    async def fetch_spot_markets(self, params={}) -> List[MarketInterface]:
         response = await self.publicGetSpotV1SymbolsDetails(params)
         #
         #     {
@@ -975,7 +981,7 @@ class bitmart(Exchange, ImplicitAPI):
             minSellCost = self.safe_string(market, 'min_sell_amount')
             minCost = Precise.string_max(minBuyCost, minSellCost)
             baseMinSize = self.safe_number(market, 'base_min_size')
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -1024,10 +1030,10 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            })
+            }))
         return result
 
-    async def fetch_contract_markets(self, params={}):
+    async def fetch_contract_markets(self, params={}) -> List[MarketInterface]:
         response = await self.publicGetContractPublicDetails(params)
         #
         #     {
@@ -1087,7 +1093,7 @@ class bitmart(Exchange, ImplicitAPI):
             expiry = self.safe_integer(market, 'expire_timestamp')
             if not isFutures and (expiry == 0):
                 expiry = None
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'numericId': None,
                 'symbol': symbol,
@@ -1136,7 +1142,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'created': self.safe_integer(market, 'open_timestamp'),
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -1148,6 +1154,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         spot = await self.fetch_spot_markets(params)
         contract = await self.fetch_contract_markets(params)
         return self.array_concat(spot, contract)
@@ -2955,7 +2963,7 @@ class bitmart(Exchange, ImplicitAPI):
         order = self.safe_order({'id': id, 'symbol': market['symbol'], 'info': {}}, market)
         return order
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -3401,8 +3409,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
         request: dict = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
@@ -3411,8 +3420,13 @@ class bitmart(Exchange, ImplicitAPI):
             networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
             if networkInner is not None:
-                request['currency'] = request['currency'] + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = currencyId + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
+        else:
+            networkCode = None
+            networkCode, params = self.handle_network_code_and_params(params)
+            if networkCode is not None:
+                request['currency'] = currencyId + '-' + self.network_code_to_id(networkCode)
         response = await self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
         #    {
@@ -3531,7 +3545,7 @@ class bitmart(Exchange, ImplicitAPI):
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 currency['code'] = request['currency']  # update currency code to filter
                 params = self.omit(params, 'network')
         response = await self.privateGetAccountV2DepositWithdrawHistory(self.extend(request, params))
@@ -4382,7 +4396,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
-        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [since]: not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
         :param int [limit]: the maximum amount of funding rate structures to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
@@ -5027,7 +5041,7 @@ class bitmart(Exchange, ImplicitAPI):
         return self.filter_by_since_limit(sorted, since, limit)
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         parts = path.split('/')
@@ -5045,7 +5059,7 @@ class bitmart(Exchange, ImplicitAPI):
                 url += '?' + queryString
         if api == 'private':
             self.check_required_credentials()
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXTxBitmart000')
             headers = {
                 'X-BM-KEY': self.apiKey,

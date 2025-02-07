@@ -671,6 +671,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AccountMmpState",parameters);
     }
 
+    public async Task<object> privateGetV5AccountWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountWithdrawal",parameters);
+    }
+
     public async Task<object> privateGetV5AssetExchangeQueryCoinList (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetExchangeQueryCoinList",parameters);

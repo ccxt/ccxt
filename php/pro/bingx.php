@@ -10,7 +10,6 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
-use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -1521,12 +1520,10 @@ class bingx extends \ccxt\async\bingx {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance[$type]) && array_key_exists($code, $this->balance[$type])) ? $this->balance[$type][$code] : $this->account();
+            $account = $this->account();
+            $account['info'] = $balance;
+            $account['used'] = $this->safe_string($balance, 'lk');
             $account['free'] = $this->safe_string($balance, 'wb');
-            $balanceChange = $this->safe_string($balance, 'bc');
-            if ($account['used'] !== null) {
-                $account['used'] = Precise::string_sub($this->safe_string($account, 'used'), $balanceChange);
-            }
             $this->balance[$type][$code] = $account;
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);

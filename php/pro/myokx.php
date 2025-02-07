@@ -21,6 +21,11 @@ class myokx extends \ccxt\pro\okx {
                     'ws' => 'wss://wseeapap.okx.com:8443/ws/v5',
                 ),
             ),
+            'has' => array(
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+            ),
         ));
     }
 }
