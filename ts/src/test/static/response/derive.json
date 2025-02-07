@@ -937,6 +937,132 @@
                     "result": "ok"
                 }
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "subaccount_id": 130837,
+                        "orders": [
+                            {
+                                "subaccount_id": 130837,
+                                "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
+                                "instrument_name": "BTC-PERP",
+                                "direction": "buy",
+                                "label": "test1234",
+                                "quote_id": null,
+                                "creation_timestamp": 1737551053207,
+                                "last_update_timestamp": 1737551053207,
+                                "limit_price": "10000",
+                                "amount": "0.01",
+                                "filled_amount": "0",
+                                "average_price": "0",
+                                "order_fee": "0",
+                                "order_type": "limit",
+                                "time_in_force": "post_only",
+                                "order_status": "open",
+                                "max_fee": "211",
+                                "signature_expiry_sec": 1737551652765,
+                                "nonce": 1737551052765,
+                                "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+                                "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
+                                "cancel_reason": "",
+                                "mmp": false,
+                                "is_transfer": false,
+                                "replaced_order_id": null,
+                                "trigger_type": null,
+                                "trigger_price_type": null,
+                                "trigger_price": null,
+                                "trigger_reject_message": null
+                            }
+                        ],
+                        "pagination": {
+                            "num_pages": 1,
+                            "count": 1
+                        }
+                    },
+                    "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "63a80cb8-387b-472b-a838-71cd9513c365",
+                        "clientOrderId": "test1234",
+                        "timestamp": 1737551052765,
+                        "datetime": "2025-01-22T13:04:12.765Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1737551053207,
+                        "status": "open",
+                        "symbol": "BTC/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "PO",
+                        "postOnly": true,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 10000,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": 0,
+                        "remaining": null,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": "0",
+                            "currency": "USDC"
+                        },
+                        "info": {
+                            "subaccount_id": 130837,
+                            "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
+                            "instrument_name": "BTC-PERP",
+                            "direction": "buy",
+                            "label": "test1234",
+                            "quote_id": null,
+                            "creation_timestamp": 1737551053207,
+                            "last_update_timestamp": 1737551053207,
+                            "limit_price": "10000",
+                            "amount": "0.01",
+                            "filled_amount": "0",
+                            "average_price": "0",
+                            "order_fee": "0",
+                            "order_type": "limit",
+                            "time_in_force": "post_only",
+                            "order_status": "open",
+                            "max_fee": "211",
+                            "signature_expiry_sec": 1737551652765,
+                            "nonce": 1737551052765,
+                            "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+                            "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
+                            "cancel_reason": "",
+                            "mmp": false,
+                            "is_transfer": false,
+                            "replaced_order_id": null,
+                            "trigger_type": null,
+                            "trigger_price_type": null,
+                            "trigger_price": null,
+                            "trigger_reject_message": null
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

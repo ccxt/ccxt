@@ -196,6 +196,36 @@
                 ],
                 "output": "{\"subaccount_id\":130837}"
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    null,
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"subaccount_id\":130837}"
+            }
         ]
     }
 }
