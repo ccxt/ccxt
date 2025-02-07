@@ -842,7 +842,10 @@ class bybit(ccxt.async_support.bybit):
                         raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
                 elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
                     # bybit only support limit 1, 50, 200, 500 for contract
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.')
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
+            else:
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
