@@ -278,7 +278,7 @@
         "fetchOrderTrades": [
             {
                 "description": "fetchOrderTrades",
-                "method": "fetchOrders",
+                "method": "fetchOrderTrades",
                 "url": "https://api-demo.lyra.finance/private/get_trade_history",
                 "input": [
                     "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
@@ -305,6 +305,36 @@
                     }
                 ],
                 "output": "{\"order_id\":\"30c48194-8d48-43ac-ad00-0d5ba29eddc9\",\"page_size\":10,\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    null,
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"subaccount_id\":130837}"
             }
         ]
     }
