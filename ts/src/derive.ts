@@ -1147,7 +1147,7 @@ export default class derive extends Exchange {
         const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
-        const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
+        const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
         const priceString = price.toString ();
         const maxFeeString = maxFee.toString ();
@@ -1156,13 +1156,13 @@ export default class derive extends Exchange {
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            market['info']['base_asset_sub_id'],
-            this.parseUnits (priceString),
-            this.parseUnits (this.amountToPrecision (symbol, amountString)),
-            this.parseUnits (maxFeeString),
+            this.parseToNumeric (market['info']['base_asset_sub_id']),
+            this.convertToBigInt (this.parseUnits (priceString)),
+            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
+            this.convertToBigInt (this.parseUnits (maxFeeString)),
             subaccountId,
             orderSide === 'buy',
-        ]), keccak, 'hex');
+        ]), keccak, 'binary');
         let contractWalletAddress = undefined;
         [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
         const signature = this.signOrder ([
@@ -1170,7 +1170,7 @@ export default class derive extends Exchange {
             subaccountId,
             nonce,
             TRADE_MODULE_ADDRESS,
-            '0x' + tradeModuleDataHash,
+            tradeModuleDataHash,
             signatureExpiry,
             contractWalletAddress,
             this.walletAddress,
@@ -1329,7 +1329,7 @@ export default class derive extends Exchange {
         const nonce = this.milliseconds ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
-        const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
+        const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
         const priceString = price.toString ();
         const maxFeeString = maxFee.toString ();
@@ -1338,13 +1338,13 @@ export default class derive extends Exchange {
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
-            market['info']['base_asset_sub_id'],
-            this.parseUnits (priceString),
-            this.parseUnits (this.amountToPrecision (symbol, amountString)),
-            this.parseUnits (maxFeeString),
+            this.parseToNumeric (market['info']['base_asset_sub_id']),
+            this.convertToBigInt (this.parseUnits (priceString)),
+            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
+            this.convertToBigInt (this.parseUnits (maxFeeString)),
             subaccountId,
             orderSide === 'buy',
-        ]), keccak, 'hex');
+        ]), keccak, 'binary');
         let contractWalletAddress = undefined;
         [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
         const signature = this.signOrder ([
@@ -1352,7 +1352,7 @@ export default class derive extends Exchange {
             subaccountId,
             nonce,
             TRADE_MODULE_ADDRESS,
-            '0x' + tradeModuleDataHash,
+            tradeModuleDataHash,
             signatureExpiry,
             contractWalletAddress,
             this.walletAddress,
