@@ -417,17 +417,20 @@ public partial class kraken : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -438,6 +441,7 @@ public partial class kraken : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 720 },
@@ -1584,10 +1588,8 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        object req = new Dictionary<string, object>() {
-            { "cost", cost },
-        };
-        return await this.createOrder(symbol, "market", side, 1, null, this.extend(req, parameters));
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
     /**
@@ -2660,7 +2662,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {

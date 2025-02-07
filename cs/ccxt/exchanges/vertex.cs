@@ -343,17 +343,20 @@ public partial class vertex : Exchange
                         { "limit", 500 },
                         { "daysBack", 100000 },
                         { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 500 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -2590,16 +2593,17 @@ public partial class vertex : Exchange
             { "digests", ids },
             { "nonce", nonce },
         };
+        object productIds = getValue(cancels, "productIds");
         object marketIdNum = this.parseToNumeric(marketId);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((IList<object>)getValue(cancels, "productIds")).Add(marketIdNum);
+            ((IList<object>)productIds).Add(marketIdNum);
         }
         object request = new Dictionary<string, object>() {
             { "cancel_orders", new Dictionary<string, object>() {
                 { "tx", new Dictionary<string, object>() {
                     { "sender", getValue(cancels, "sender") },
-                    { "productIds", getValue(cancels, "productIds") },
+                    { "productIds", productIds },
                     { "digests", getValue(cancels, "digests") },
                     { "nonce", this.numberToString(getValue(cancels, "nonce")) },
                 } },

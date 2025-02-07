@@ -223,7 +223,7 @@ class mexc extends mexc$1 {
             const topics = [];
             if (!miniTicker) {
                 if (symbols === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + 'watchTickers required symbols argument for the bookTicker channel');
+                    throw new errors.ArgumentsRequired(this.id + ' watchTickers required symbols argument for the bookTicker channel');
                 }
                 const marketIds = this.marketIds(symbols);
                 for (let i = 0; i < marketIds.length; i++) {
@@ -417,13 +417,13 @@ class mexc extends mexc$1 {
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
         let marketType = undefined;
         if (symbols === undefined) {
-            throw new errors.ArgumentsRequired(this.id + 'watchBidsAsks required symbols argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
         const markets = this.marketsForSymbols(symbols);
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
-            throw new errors.NotSupported(this.id + 'watchBidsAsks only support spot market');
+            throw new errors.NotSupported(this.id + ' watchBidsAsks only support spot market');
         }
         const messageHashes = [];
         const topics = [];

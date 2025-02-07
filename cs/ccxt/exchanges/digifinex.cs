@@ -158,25 +158,27 @@ public partial class digifinex : Exchange
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
-                        { "marginMode", true },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 500 },
                         { "daysBack", 100000 },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                         { "marketType", true },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -185,6 +187,7 @@ public partial class digifinex : Exchange
                         { "untilDays", 30 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -452,12 +455,13 @@ public partial class digifinex : Exchange
             };
             if (isTrue(inOp(result, code)))
             {
-                if (isTrue(((getValue(getValue(result, code), "info") is IList<object>) || (getValue(getValue(result, code), "info").GetType().IsGenericType && getValue(getValue(result, code), "info").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                object resultCodeInfo = getValue(getValue(result, code), "info");
+                if (isTrue(((resultCodeInfo is IList<object>) || (resultCodeInfo.GetType().IsGenericType && resultCodeInfo.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
-                    ((IList<object>)getValue(getValue(result, code), "info")).Add(currency);
+                    ((IList<object>)resultCodeInfo).Add(currency);
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(result, code))["info"] = new List<object>() {getValue(getValue(result, code), "info"), currency};
+                    resultCodeInfo = new List<object>() {resultCodeInfo, currency};
                 }
                 if (isTrue(withdraw))
                 {
@@ -4499,7 +4503,8 @@ public partial class digifinex : Exchange
                     ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                     ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["info"] = new List<object>() {};
                 }
-                ((IList<object>)getValue(getValue(depositWithdrawFees, code), "info")).Add(entry);
+                object depositWithdrawInfo = getValue(getValue(depositWithdrawFees, code), "info");
+                ((IList<object>)depositWithdrawInfo).Add(entry);
                 object networkId = this.safeString(entry, "chain");
                 object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
                 object withdrawResult = new Dictionary<string, object>() {

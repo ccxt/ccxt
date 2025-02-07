@@ -720,17 +720,20 @@ class mexc extends Exchange {
                         'limit' => 100,
                         'daysBack' => 30,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => true,
@@ -739,6 +742,7 @@ class mexc extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
@@ -748,6 +752,7 @@ class mexc extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -2286,10 +2291,8 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $req = array(
-                'cost' => $cost,
-            );
-            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
+            $params['cost'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
         }) ();
     }
 
@@ -2310,10 +2313,8 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $req = array(
-                'cost' => $cost,
-            );
-            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $this->extend($req, $params)));
+            $params['cost'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
         }) ();
     }
 
@@ -4960,7 +4961,7 @@ class mexc extends Exchange {
                 $rawNetwork = $this->safe_string($params, 'network');
                 if ($rawNetwork !== null) {
                     $params = $this->omit($params, 'network');
-                    $request['coin'] .= '-' . $rawNetwork;
+                    $request['coin'] = $request['coin'] . '-' . $rawNetwork;
                 }
             }
             if ($since !== null) {

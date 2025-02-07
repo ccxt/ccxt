@@ -279,6 +279,7 @@ class blofin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -286,6 +287,7 @@ class blofin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -296,6 +298,7 @@ class blofin(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,

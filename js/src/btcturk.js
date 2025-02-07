@@ -164,6 +164,7 @@ export default class btcturk extends Exchange {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 30,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
@@ -171,6 +172,7 @@ export default class btcturk extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -179,6 +181,7 @@ export default class btcturk extends Exchange {
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {

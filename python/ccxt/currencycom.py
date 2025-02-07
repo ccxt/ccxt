@@ -295,17 +295,20 @@ class currencycom(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 100000,
                         'untilDays': 100000,  # todo implementation
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,

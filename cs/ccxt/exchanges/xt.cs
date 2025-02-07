@@ -640,6 +640,7 @@ public partial class xt : Exchange
                         { "untilDays", 100000 },
                         { "marketType", true },
                         { "subType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -647,6 +648,7 @@ public partial class xt : Exchange
                         { "trailing", false },
                         { "marketType", true },
                         { "subType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -655,6 +657,7 @@ public partial class xt : Exchange
                         { "trailing", false },
                         { "marketType", true },
                         { "subType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -665,6 +668,7 @@ public partial class xt : Exchange
                         { "trailing", false },
                         { "marketType", true },
                         { "subType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -676,6 +680,7 @@ public partial class xt : Exchange
                         { "trailing", false },
                         { "marketType", true },
                         { "subType", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },

@@ -264,17 +264,20 @@ class okcoin(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 90,
                         'untilDays': 90,  # todo
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': True,  # todo
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -285,6 +288,7 @@ class okcoin(Exchange, ImplicitAPI):
                         'untilDays': 90,  # todo
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 100,  # 300 is only possible for 'recent' 1440 candles, which does not make much sense

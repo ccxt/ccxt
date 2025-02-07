@@ -135,6 +135,18 @@ jobs:
           git config --global pull.rebase false
           git pull origin master
           git push
+    - name: Push To CCXT.WIKI
+      if: github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd build/ccxt.wiki
+        cp -R ../../wiki/* .
+        git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
+        git remote remove origin
+        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
+        git push origin HEAD:master
+        cd ../..
 
   live-tests:
     needs: build

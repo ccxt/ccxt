@@ -383,17 +383,20 @@ public partial class bitfinex : Exchange
                         { "limit", 2500 },
                         { "daysBack", null },
                         { "untilDays", 100000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -404,6 +407,7 @@ public partial class bitfinex : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 10000 },
@@ -1146,7 +1150,8 @@ public partial class bitfinex : Exchange
             object signedAmount = this.safeString(order, 2);
             object amount = Precise.stringAbs(signedAmount);
             object side = ((bool) isTrue(Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
-            ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
+            object resultSide = getValue(result, side);
+            ((IList<object>)resultSide).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);

@@ -242,17 +242,20 @@ export default class exmo extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -1399,7 +1402,7 @@ export default class exmo extends Exchange {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
         if (marginMode === 'cross') {
-            throw new BadRequest(this.id + 'only isolated margin is supported');
+            throw new BadRequest(this.id + ' only isolated margin is supported');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2627,7 +2630,7 @@ export default class exmo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDeposit(id = undefined, code = undefined, params = {}) {
+    async fetchDeposit(id, code = undefined, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         const request = {

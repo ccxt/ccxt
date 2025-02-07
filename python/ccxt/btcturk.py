@@ -167,6 +167,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 30,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': None,
                     'fetchOpenOrders': {
@@ -174,6 +175,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -182,6 +184,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'untilDays': 30,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchClosedOrders': None,
                     'fetchOHLCV': {

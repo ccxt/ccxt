@@ -255,17 +255,20 @@ class hyperliquid extends Exchange {
                         'limit' => 2000,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 2000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -274,6 +277,7 @@ class hyperliquid extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -283,6 +287,7 @@ class hyperliquid extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 5000,
@@ -1176,7 +1181,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -2897,7 +2902,7 @@ class hyperliquid extends Exchange {
             if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
                 // handle swap <> spot account transfer
                 if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
-                    throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
+                    throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
                 }
                 $strAmount = $this->number_to_string($amount);
                 $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -2936,7 +2941,7 @@ class hyperliquid extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'transfer() only support USDC');
+                    throw new NotSupported($this->id . ' transfer() only support USDC');
                 }
             }
             $payload = array(
@@ -3005,7 +3010,7 @@ class hyperliquid extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'withdraw() only support USDC');
+                    throw new NotSupported($this->id . ' withdraw() only support USDC');
                 }
             }
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));

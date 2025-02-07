@@ -231,11 +231,13 @@ class bitopro extends bitopro$1 {
                         'limit': 1000,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     // todo: implement through fetchOrders
                     'fetchOpenOrders': {
@@ -243,6 +245,7 @@ class bitopro extends bitopro$1 {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -251,6 +254,7 @@ class bitopro extends bitopro$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -260,6 +264,7 @@ class bitopro extends bitopro$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,

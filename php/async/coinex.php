@@ -539,17 +539,20 @@ class coinex extends Exchange {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 100000,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 1000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -560,6 +563,7 @@ class coinex extends Exchange {
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -816,7 +820,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->v2PublicGetSpotMarket ($params));
             //
@@ -4885,7 +4889,7 @@ class coinex extends Exchange {
             $request = array(
                 'ccy' => $currency['id'],
                 'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-                'amount' => $this->number_to_string($amount), // the actual $amount without fees, https://www.coinex.com/fees
+                'amount' => $this->currency_to_precision($code, $amount), // the actual $amount without fees, https://www.coinex.com/fees
             );
             if ($tag !== null) {
                 $request['memo'] = $tag;

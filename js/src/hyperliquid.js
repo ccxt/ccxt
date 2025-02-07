@@ -253,17 +253,20 @@ export default class hyperliquid extends Exchange {
                         'limit': 2000,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 2000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -272,6 +275,7 @@ export default class hyperliquid extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -281,6 +285,7 @@ export default class hyperliquid extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 5000,
@@ -1156,7 +1161,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address that made trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTrades', params);
         await this.loadMarkets();
@@ -2800,7 +2805,7 @@ export default class hyperliquid extends Exchange {
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
-                throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
+                throw new NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -2839,7 +2844,7 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new NotSupported(this.id + 'transfer() only support USDC');
+                throw new NotSupported(this.id + ' transfer() only support USDC');
             }
         }
         const payload = {
@@ -2904,7 +2909,7 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new NotSupported(this.id + 'withdraw() only support USDC');
+                throw new NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));

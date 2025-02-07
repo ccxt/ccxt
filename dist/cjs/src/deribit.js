@@ -314,17 +314,20 @@ class deribit extends deribit$1 {
                         'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -335,6 +338,7 @@ class deribit extends deribit$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true, // todo
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // todo: recheck
@@ -479,9 +483,6 @@ class deribit extends deribit$1 {
             'options': {
                 'code': 'BTC',
                 'fetchBalance': {
-                    'code': 'BTC',
-                },
-                'fetchPositions': {
                     'code': 'BTC',
                 },
                 'transfer': {
@@ -755,7 +756,7 @@ class deribit extends deribit$1 {
         const result = this.safeValue(response, 'result', []);
         return this.parseAccounts(result);
     }
-    parseAccount(account, currency = undefined) {
+    parseAccount(account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -774,7 +775,7 @@ class deribit extends deribit$1 {
             'info': account,
             'id': this.safeString(account, 'id'),
             'type': this.safeString(account, 'type'),
-            'code': this.safeCurrencyCode(undefined, currency),
+            'code': undefined,
         };
     }
     /**
@@ -2744,38 +2745,19 @@ class deribit extends deribit$1 {
      * @see https://docs.deribit.com/#private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
      * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        let kind = this.safeString(params, 'kind');
-        let code = undefined;
-        if (symbols === undefined) {
-            code = this.codeFromOptions('fetchPositions', params);
-        }
-        else if (typeof symbols === 'string') {
-            code = symbols;
-            symbols = undefined; // fix https://github.com/ccxt/ccxt/issues/13961
-        }
-        else {
-            if (Array.isArray(symbols)) {
-                const length = symbols.length;
-                if (length !== 1) {
-                    throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                const market = this.market(symbols[0]);
-                const settle = market['settle'];
-                code = (settle !== undefined) ? settle : market['base'];
-                kind = market['info']['kind'];
-            }
-        }
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        if (kind !== undefined) {
-            request['kind'] = kind;
+        const code = this.safeString(params, 'currency');
+        const request = {};
+        if (code !== undefined) {
+            params = this.omit(params, 'currency');
+            const currency = this.currency(code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privateGetGetPositions(this.extend(request, params));
         //
@@ -3170,10 +3152,13 @@ class deribit extends deribit$1 {
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const eachItemDuration = '1h';
         if (paginate) {
-            // 1h needed to fix : https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '1h', params, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
         }
+        const duration = this.parseTimeframe(eachItemDuration) * 1000;
         let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
@@ -3193,6 +3178,11 @@ class deribit extends deribit$1 {
         }
         else {
             request['end_timestamp'] = time;
+        }
+        if ('isDeribitPaginationCall' in params) {
+            params = this.omit(params, 'isDeribitPaginationCall');
+            const maxUntil = this.sum(since, limit * duration);
+            request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
         }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
         //

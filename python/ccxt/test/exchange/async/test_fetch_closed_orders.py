@@ -25,3 +25,4 @@ async def test_fetch_closed_orders(exchange, skipped_properties, symbol):
         test_order(exchange, skipped_properties, method, order, symbol, now)
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, order, 'status', ['closed', 'canceled'])
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, orders)
+    return True

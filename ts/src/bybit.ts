@@ -1195,17 +1195,20 @@ export default class bybit extends Exchange {
                         'limit': 100,
                         'daysBack': 365 * 2, // 2 years
                         'untilDays': 7, // days between start-end
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 50,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1216,6 +1219,7 @@ export default class bybit extends Exchange {
                         'untilDays': 7,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1414,8 +1418,8 @@ export default class bybit extends Exchange {
 
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
-        const quote = 'USD';
-        const settle = 'USDC';
+        let quote = undefined;
+        let settle = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         let base = undefined;
@@ -1423,9 +1427,21 @@ export default class bybit extends Exchange {
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
+            const symbolQuoteAndSettle = this.safeString (symbolBase, 1);
+            const splitQuote = symbolQuoteAndSettle.split (':');
+            const quoteAndSettle = this.safeString (splitQuote, 0);
+            quote = quoteAndSettle;
+            settle = quoteAndSettle;
         } else {
             base = this.safeString (optionParts, 0);
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+            if (symbol.endsWith ('-USDT')) {
+                quote = 'USDT';
+                settle = 'USDT';
+            } else {
+                quote = 'USDC';
+                settle = 'USDC';
+            }
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
@@ -1523,6 +1539,9 @@ export default class bybit extends Exchange {
     }
 
     getPrice (symbol: string, price: string) {
+        if (price === undefined) {
+            return price;
+        }
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -1744,7 +1763,7 @@ export default class bybit extends Exchange {
         return this.arrayConcat (spotMarkets, derivativeMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params): Promise<Market[]> {
         const request: Dict = {
             'category': 'spot',
         };
@@ -1862,7 +1881,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchFutureMarkets (params) {
+    async fetchFutureMarkets (params): Promise<Market[]> {
         params = this.extend (params);
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
@@ -2057,7 +2076,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchOptionMarkets (params) {
+    async fetchOptionMarkets (params): Promise<Market[]> {
         const request: Dict = {
             'category': 'option',
         };
@@ -6845,7 +6864,7 @@ export default class bybit extends Exchange {
      */
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
         const paginate = this.safeBool (params, 'paginate');
@@ -9182,6 +9201,9 @@ export default class bybit extends Exchange {
                 feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
             } else {
                 feedback = this.id + ' ' + body;
+            }
+            if (body.indexOf ('Withdraw address chain or destination tag are not equal')) {
+                feedback = feedback + '; You might also need to ensure the address is whitelisted';
             }
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

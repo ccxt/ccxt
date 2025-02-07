@@ -51,20 +51,20 @@ public partial class bybit
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchFutureMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchFutureMarkets(object parameters)
     {
         var res = await this.fetchFutureMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchOptionMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchOptionMarkets(object parameters)
     {
         var res = await this.fetchOptionMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

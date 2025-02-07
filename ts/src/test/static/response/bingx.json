@@ -364,6 +364,7 @@
                 "description": "Create order with tp and sl",
                 "method": "createOrder",
                 "disabledCS": true,
+                "disabledGO": true,
                 "input": [
                     "LTC/USDT:USDT",
                     "market",

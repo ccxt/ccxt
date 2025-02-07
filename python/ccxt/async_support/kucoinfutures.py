@@ -411,17 +411,20 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 7,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 1000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -432,6 +435,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'untilDays': None,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
@@ -2097,7 +2101,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
