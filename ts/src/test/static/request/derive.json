@@ -366,6 +366,16 @@
                 ],
                 "output": "{\"page_size\":10,\"instrument_name\":\"BTC-PERP\",\"subaccount_id\":130837}"
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api-demo.lyra.finance/private/get_all_portfolios",
+                "input": [
+                ],
+                "output": "{\"wallet\":\"0x0000000000000000000000000000000000000000\"}"
+            }
         ]
     }
 }
