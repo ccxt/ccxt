@@ -1634,6 +1634,7 @@ public partial class binance : Exchange
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },

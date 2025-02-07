@@ -1611,6 +1611,7 @@ class binance extends binance$1 {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': true,
