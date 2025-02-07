@@ -1520,6 +1520,68 @@ class Transpiler {
 
     // ========================================================================
 
+    defineReferenceCheckItems () {
+        // check for incorrect references, using: node build/transpile --incorrectMethodReferences [--force]
+        const exchange = new Exchange();
+        this.correctionRefrences = {
+            'enabled': process.argv.includes ('--incorrectMethodReferences'),
+            'skipReferencedMethods': {'spot': 0, 'margin': 0, 'future': 0, 'swap': 0, 'CORS': 0, 'option': 0},
+            'whitelistedReferences': {
+                'exchange': {'fetchTicker': {'fetchTickers': 0}},
+                'ndax': {'withdraw': {'signIn' :0}},
+            },
+            'hasList': exchange.has,
+            'hasListKeys':  Object.keys (exchange.has),
+        };
+    }
+
+    checkIfMethodHasIncorrectReferences (classNameLower, targetMethodName, bodyCode) {
+        // check if incorrect method referenced
+        if (!this.correctionRefrences) {
+            this.defineReferenceCheckItems ();
+        }
+        if (this.correctionRefrences['enabled']) {
+            // if current method is in unified methods list
+            if (targetMethodName in this.correctionRefrences['hasList']) {
+                for (let i = 0; i < this.correctionRefrences['hasListKeys'].length; i++) {
+                    const iteratedMethodName = this.correctionRefrences['hasListKeys'][i];
+                    // skip current method name itself
+                    if (targetMethodName === iteratedMethodName) {
+                        continue;
+                    }
+                    // skip out-of-scope function names
+                    if (iteratedMethodName in this.correctionRefrences['skipReferencedMethods']) {
+                        continue;
+                    }
+                    // skip whitelisted references
+                    if (classNameLower in this.correctionRefrences['whitelistedReferences'] && targetMethodName in this.correctionRefrences['whitelistedReferences'][classNameLower] && iteratedMethodName in this.correctionRefrences['whitelistedReferences'][classNameLower][targetMethodName]) {
+                        continue;
+                    }
+                    if (
+                        // check if other method name (without space between name and brackets) is mentioned in method body. i.e: '... this.fetchOrders() requires symbol ...' sentence appearing in fetchTrades method body.
+                        bodyCode.match ( new RegExp ('\'(.*?)' + iteratedMethodName + '\\(\\)(.*?)\'', 'g')) 
+                            &&
+                        // If current method is also mentioned, then don't consider such scenarios as mistakes, because there are such valid occasions: Exception('... fetchDepositAddress() can be called only after createDepositAddress()...')
+                        ! bodyCode.match ( new RegExp ('\'(.*?)' + targetMethodName + '\\(\\)(.*?)' + iteratedMethodName  + '\\((.*?)\'', 'g')) 
+                    ) {
+                        log.red ('Note:! ' + classNameLower + '>' + targetMethodName + '() string references include ' + iteratedMethodName + '()');
+                    }
+                    // check inside i.e. fetchTrades() for incorrect reference, like `this.safeValue (options, 'fetchOrders')`
+                    if ( bodyCode.indexOf('ptions, \'' + iteratedMethodName + '\'')> -1) {
+                        log.red ('Note:! ' + classNameLower + '>' + targetMethodName + '() incorrectly uses options of \'' + iteratedMethodName + '\'');
+                    }
+
+                    // check inside i.e. fetchTrades() for incorrect reference, i.e. this.handleWhateverParams ('fetchOrders',...)
+                    if ( bodyCode.match ( new RegExp ('this\.handle[a-zA-Z] \\(\'' + iteratedMethodName, 'g') ) ) {
+                        log.red ('Note:! ' + classNameLower + '>' + targetMethodName + '() references to string of \'' + iteratedMethodName + '\'');
+                    }
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+
     transpileMethodsToAllLanguages (className, methods) {
 
         let python2 = []
@@ -1527,6 +1589,7 @@ class Transpiler {
         let php = []
         let phpAsync = []
         let methodNames = []
+        let classNameLower = className.toLowerCase ();
 
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
@@ -1563,6 +1626,8 @@ class Transpiler {
             if (process.argv.includes ('--check-parsers')) {
                 this.checkIfMethodLacksParser (className, method, part)
             }
+
+            this.checkIfMethodHasIncorrectReferences (classNameLower, method, part);
 
             methodNames.push (method)
 
