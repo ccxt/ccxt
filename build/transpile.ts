@@ -2437,7 +2437,8 @@ class Transpiler {
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
             if (sync) {
-                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                str = str.replace (/asyncio\.gather\(\*/g, '(');
             }
             return exchangeCamelCaseProps(str);
         }
