@@ -10,7 +10,7 @@ use Psr\Http\Message\StreamInterface;
 abstract class StreamDecoratorTrait implements StreamInterface
 {
     /**
-     * @param StreamInterface $stream Stream to decorate
+     * @param StreamInterface|null $stream Stream to decorate
      */
     public function __construct(StreamInterface $stream = null)
     {
