@@ -376,6 +376,16 @@
                 ],
                 "output": "{\"wallet\":\"0x0000000000000000000000000000000000000000\"}"
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api-demo.lyra.finance/private/get_deposit_history",
+                "input": [
+                ],
+                "output": {}
+            }
         ]
     }
 }

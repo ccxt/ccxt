@@ -1566,6 +1566,61 @@
                     }
                 }
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "result": {
+                        "events": [
+                            {
+                                "timestamp": 1736860533599,
+                                "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+                                "asset": "ETH",
+                                "amount": "0.1",
+                                "tx_status": "settled",
+                                "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+                                "error_log": {}
+                            }
+                        ]
+                    },
+                    "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": 1736860533599,
+                            "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+                            "asset": "ETH",
+                            "amount": "0.1",
+                            "tx_status": "settled",
+                            "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+                            "error_log": {}
+                        },
+                        "id": null,
+                        "txid": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+                        "timestamp": 1736860533599,
+                        "datetime": "2025-01-14T13:15:33.599Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": null,
+                        "amount": 0.1,
+                        "currency": "ETH",
+                        "status": "ok",
+                        "updated": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": null,
+                        "network": null
+                    }
+                ]
+            }
         ]
     }
 }
