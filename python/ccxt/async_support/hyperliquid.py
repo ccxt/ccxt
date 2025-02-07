@@ -2707,7 +2707,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.in_array(fromAccount, ['spot', 'swap', 'perp']):
             # handle swap <> spot account transfer
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
-                raise NotSupported(self.id + 'transfer() only support spot <> swap transfer')
+                raise NotSupported(self.id + ' transfer() only support spot <> swap transfer')
             strAmount = self.number_to_string(amount)
             vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
             params = self.omit(params, 'vaultAddress')
@@ -2742,7 +2742,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if code is not None:
             code = code.upper()
             if code != 'USDC':
-                raise NotSupported(self.id + 'transfer() only support USDC')
+                raise NotSupported(self.id + ' transfer() only support USDC')
         payload: dict = {
             'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
             'destination': toAccount,
@@ -2805,7 +2805,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if code is not None:
             code = code.upper()
             if code != 'USDC':
-                raise NotSupported(self.id + 'withdraw() only support USDC')
+                raise NotSupported(self.id + ' withdraw() only support USDC')
         vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         params = self.omit(params, 'vaultAddress')
         nonce = self.milliseconds()

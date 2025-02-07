@@ -4805,7 +4805,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (triggerPrice === undefined) {
-                throw new NotSupported (this.id + 'editOrder() only supports plan/trigger spot orders');
+                throw new NotSupported (this.id + ' editOrder() only supports plan/trigger spot orders');
             }
             const editMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {

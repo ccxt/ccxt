@@ -1351,7 +1351,7 @@ class exmo(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if marginMode == 'cross':
-            raise BadRequest(self.id + 'only isolated margin is supported')
+            raise BadRequest(self.id + ' only isolated margin is supported')
         self.load_markets()
         market = self.market(symbol)
         pair = market['id']

@@ -2805,7 +2805,7 @@ export default class hyperliquid extends Exchange {
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
-                throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
+                throw new NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -2844,7 +2844,7 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new NotSupported(this.id + 'transfer() only support USDC');
+                throw new NotSupported(this.id + ' transfer() only support USDC');
             }
         }
         const payload = {
@@ -2909,7 +2909,7 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new NotSupported(this.id + 'withdraw() only support USDC');
+                throw new NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));

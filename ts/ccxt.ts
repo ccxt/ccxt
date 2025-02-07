@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.56';
+const version = '4.4.57';
 
 (Exchange as any).ccxtVersion = version
 
@@ -126,7 +126,6 @@ import kuna from  './src/kuna.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import luno from  './src/luno.js'
-import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import myokx from  './src/myokx.js'
@@ -318,7 +317,6 @@ const exchanges = {
     'latoken':                latoken,
     'lbank':                  lbank,
     'luno':                   luno,
-    'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
     'myokx':                  myokx,
@@ -651,7 +649,6 @@ export {
     latoken,
     lbank,
     luno,
-    lykke,
     mercado,
     mexc,
     myokx,

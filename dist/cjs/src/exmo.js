@@ -1399,7 +1399,7 @@ class exmo extends exmo$1 {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
         if (marginMode === 'cross') {
-            throw new errors.BadRequest(this.id + 'only isolated margin is supported');
+            throw new errors.BadRequest(this.id + ' only isolated margin is supported');
         }
         await this.loadMarkets();
         const market = this.market(symbol);

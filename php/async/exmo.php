@@ -1449,7 +1449,7 @@ class exmo extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
             if ($marginMode === 'cross') {
-                throw new BadRequest($this->id . 'only isolated margin is supported');
+                throw new BadRequest($this->id . ' only isolated margin is supported');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
