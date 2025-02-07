@@ -611,6 +611,10 @@ export default class derive extends Exchange {
         let symbol = base + '/' + quote;
         let settleId: Str = undefined;
         let settle: Str = undefined;
+        let expiry: Num = undefined;
+        let strike: Num = undefined;
+        let optionType: Str = undefined;
+        let optionLetter: Str = undefined;
         if (type === 'erc20') {
             spot = true;
             marketType = 'spot';
@@ -623,9 +627,21 @@ export default class derive extends Exchange {
             linear = true;
             marketType = 'swap';
         } else if (type === 'option') {
+            settleId = 'USDC';
+            settle = this.safeCurrencyCode (settleId);
             margin = false;
             option = true;
             marketType = 'option';
+            const optionDetails = this.safeDict (market, 'option_details');
+            expiry = this.safeTimestamp (optionDetails, 'expiry');
+            strike = this.safeInteger (optionDetails, 'strike');
+            optionLetter = this.safeString (optionDetails, 'option_type');
+            symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + optionLetter;
+            if (optionLetter === 'P') {
+                optionType = 'put';
+            } else {
+                optionType = 'call';
+            }
         }
         return {
             'id': marketId,
@@ -643,16 +659,16 @@ export default class derive extends Exchange {
             'future': false,
             'option': option,
             'active': this.safeBool (market, 'is_active'),
-            'contract': swap,
+            'contract': (swap || option),
             'linear': linear,
             'inverse': undefined,
             'contractSize': (spot) ? undefined : 1,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'taker': this.safeNumber (market, 'taker_fee_rate'),
             'maker': this.safeNumber (market, 'maker_fee_rate'),
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': strike,
+            'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber (market, 'amount_step'),
                 'price': this.safeNumber (market, 'tick_size'),
