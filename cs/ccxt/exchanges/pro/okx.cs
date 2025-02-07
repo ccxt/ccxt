@@ -2453,7 +2453,7 @@ public partial class okx : ccxt.okx
         object market = this.market(symbol);
         if (isTrue(!isEqual(getValue(market, "type"), "option")))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         object url = this.getUrl("private", "private");
         object messageHash = this.requestId();

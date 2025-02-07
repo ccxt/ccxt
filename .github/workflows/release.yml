@@ -15,7 +15,7 @@ permissions:
 jobs:
   manual-job:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
       - name: Print Trigger Info
@@ -58,25 +58,24 @@ jobs:
         run: pip install wheel twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
-      # - name: Transpile and Build
-      #   run: npm run force-build
-      # - name: Base tests Rest
-      #   run: npm run test-base-rest
-      # - name: Base tests Ws
-      #   run: npm run test-base-ws
-      # - name: Id tests
-      #   run: npm run id-tests
-      # - name: Request tests
-      #   run: npm run request-tests
-      # - name: Response tests
-      #   run: npm run response-tests
-      # - name: CommonJs tests
-      #   run: npm run commonjs-test
-      # - name: Package Test
-      #   run: npm run package-test
-      # - name: Freshness Test
-      #   run: npm run test-freshness
-      # Will start the deployment process
+      - name: Transpile and Build
+        run: npm run force-build
+      - name: Base tests Rest
+        run: npm run test-base-rest
+      - name: Base tests Ws
+        run: npm run test-base-ws
+      - name: Id tests
+        run: npm run id-tests
+      - name: Request tests
+        run: npm run request-tests
+      - name: Response tests
+        run: npm run response-tests
+      - name: CommonJs tests
+        run: npm run commonjs-test
+      - name: Package Test
+        run: npm run package-test
+      - name: Freshness Test
+        run: npm run test-freshness
       - name: Set new Version
         run: |
           npm config set git-tag-version=false
@@ -123,19 +122,19 @@ jobs:
           cd go/
           GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
           cd ..
-      # - name: C# Release Build
-      #   run: npm run buildCSRelease
-      # - name: Deploy C#
-      #   env:
-      #     NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-      #   run: ./cs/deploy.sh;
-      # - name: Deploy Python
-      #   env:
-      #     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      #   run: cd python && ./deploy.sh && cd ..;
-      # - uses: JS-DevTools/npm-publish@v3
-      #   with:
-      #     token: ${{ secrets.NPM_TOKEN }}
+      - name: C# Release Build
+        run: npm run buildCSRelease
+      - name: Deploy C#
+        env:
+          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: ./cs/deploy.sh;
+      - name: Deploy Python
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: cd python && ./deploy.sh && cd ..;
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
 
 # jobs:
 #   manual-job:
