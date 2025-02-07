@@ -350,6 +350,22 @@
                 ],
                 "output": "{\"subaccount_id\":130837}"
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://api-demo.lyra.finance/private/get_funding_history",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"BTC-PERP\",\"subaccount_id\":130837}"
+            }
         ]
     }
 }

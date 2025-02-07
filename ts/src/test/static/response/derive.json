@@ -1360,6 +1360,96 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "events": [
+                            {
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1738066618272,
+                                "funding": "-0.004677736347850093",
+                                "pnl": "-0.944081615774632967"
+                            },
+                            {
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1738066617964,
+                                "funding": "0",
+                                "pnl": "-0.437556413479249408"
+                            },
+                            {
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1738065307565,
+                                "funding": "0",
+                                "pnl": "-0.39547479770461644"
+                            }
+                        ],
+                        "pagination": {
+                            "num_pages": 1,
+                            "count": 3
+                        }
+                    },
+                    "id": "524b817f-2108-467f-8795-511066f4acec"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument_name": "BTC-PERP",
+                            "timestamp": 1738065307565,
+                            "funding": "0",
+                            "pnl": "-0.39547479770461644"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1738065307565,
+                        "datetime": "2025-01-28T11:55:07.565Z",
+                        "id": null,
+                        "amount": null,
+                        "rate": "0"
+                    },
+                    {
+                        "info": {
+                            "instrument_name": "BTC-PERP",
+                            "timestamp": 1738066617964,
+                            "funding": "0",
+                            "pnl": "-0.437556413479249408"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1738066617964,
+                        "datetime": "2025-01-28T12:16:57.964Z",
+                        "id": null,
+                        "amount": null,
+                        "rate": "0"
+                    },
+                    {
+                        "info": {
+                            "instrument_name": "BTC-PERP",
+                            "timestamp": 1738066618272,
+                            "funding": "-0.004677736347850093",
+                            "pnl": "-0.944081615774632967"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1738066618272,
+                        "datetime": "2025-01-28T12:16:58.272Z",
+                        "id": null,
+                        "amount": null,
+                        "rate": "-0.004677736347850093"
+                    }
+                ]
+            }
         ]
     }
 }
