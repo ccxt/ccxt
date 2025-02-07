@@ -1,12 +1,10 @@
-"use strict";
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog')
-    , asTable = require ('as-table').configure ({ delimiter: ' | ' })
-    , id = 'bitstamp'
-    , exchange = new ccxt[id] ()
-    , symbol = 'BTC/USD'
 
-;(async function main () {
+import ccxt from '../../js/ccxt.js';
+import log from 'ololog';
+import asTable from 'as-table';
+
+
+const table = asTable.configure ({ delimiter: ' | ' }), id = 'bitstamp', exchange = new ccxt[id] ({ enableRateLimit: true }), symbol = 'BTC/USD';(async function main () {
 
     // Markets data
     const markets = await exchange.fetchMarkets ()
@@ -26,7 +24,7 @@ const ccxt = require ('../../ccxt.js')
 
     // Trades
     const response = await exchange.fetchTrades (symbol, null, 10)
-    log (asTable (response))
+    log (table (response))
 
     // OHLC data
     const candles = await exchange.fetchOHLCV (symbol, '1m', undefined, 10);

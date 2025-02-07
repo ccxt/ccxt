@@ -1,0 +1,90 @@
+{
+    "BTC": {
+        "id": "btc",
+        "code": "BTC",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDT": {
+        "id": "usdt",
+        "code": "USDT",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "EUR": {
+        "id": "eur",
+        "code": "EUR",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USD": {
+        "id": "usd",
+        "code": "USD",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "LTC": {
+        "id": "ltc",
+        "code": "LTC",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "eth",
+        "code": "ETH",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ADA": {
+        "id": "ada",
+        "code": "ADA",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "XRP": {
+        "id": "xrp",
+        "code": "XRP",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ccxtpro
+import ccxt.pro
 from asyncio import gather, run
 
 
@@ -32,7 +32,7 @@ async def method_loop(exchange, method, symbols):
 
 async def exchange_loop(exchange_id, methods):
     print('Starting', exchange_id, methods)
-    exchange = getattr(ccxtpro, exchange_id)()
+    exchange = getattr(ccxt.pro, exchange_id)()
     loops = [method_loop(exchange, method, symbols) for method, symbols in methods.items()]
     await gather(*loops)
     await exchange.close()

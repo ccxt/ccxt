@@ -1,7 +1,6 @@
-"use strict"
 
-const { readFileSync } = require ('fs')
-    , { overwriteFile } = require ('./fs')
+import { readFileSync } from 'fs';
+import { overwriteFile } from './fsLocal.js';
 
 const manual = './wiki/Manual.md'
 let file = readFileSync (manual).toString ()

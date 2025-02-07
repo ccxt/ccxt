@@ -1,7 +1,5 @@
-"use strict";
 
-module.exports = {
-
+export const countries = {
     AF: 'Afghanistan',
     AX: 'Åland Islands',
     AL: 'Albania',

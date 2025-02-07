@@ -1,6 +1,6 @@
-"use strict";
 
-const ccxt = require ('../../ccxt')
+
+import ccxt from '../../js/ccxt.js';
 
 async function test () {
 
@@ -21,7 +21,7 @@ async function test () {
 
         console.log (exchanges[id])
 
-        // // instantiate the exchange
+        // instantiate the exchange
         let exchange = new ccxt[id] (exchanges[id])
         console.log (exchange.id, exchange.apiKey)
         exchanges[id] = exchange

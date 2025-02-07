@@ -1,18 +1,18 @@
-import ccxtpro
+import ccxt.pro as ccxt
 from asyncio import run
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         'options': {
             'defaultType': 'future',  # spot, margin, future, delivery
         },
     })
     # or
-    # exchange = ccxtpro.binanceusdm()
+    # exchange = ccxt.pro.binanceusdm()
     # or
-    # exchange = ccxtpro.binancecoinm()
+    # exchange = ccxt.pro.binancecoinm()
     symbol = 'BTC/USDT'
     while True:
         try:

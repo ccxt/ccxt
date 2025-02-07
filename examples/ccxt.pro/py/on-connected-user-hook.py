@@ -1,9 +1,9 @@
-import ccxtpro
+import ccxt.pro
 from asyncio import run, ensure_future
 from pprint import pprint
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 # on_connected() is called when a client connection is established
@@ -11,7 +11,7 @@ print('CCXT Pro Version:', ccxtpro.__version__)
 # some exchanges might require two or more public/private connections
 # therefore on_connected() may be called more than once
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
     def on_connected(self, client, message=None):
         print('Connected to', client.url)
         ensure_future(create_order(self))

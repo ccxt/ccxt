@@ -126,6 +126,10 @@ class Precise:
         result = numerator % denominator
         return Precise(result, rationizerDenominator + other.decimals)
 
+    def orn(self, other):
+        integer_result = self.integer | other.integer
+        return Precise(integer_result, self.decimals)
+
     def min(self, other):
         return self if self.lt(other) else other
 
@@ -186,6 +190,9 @@ class Precise:
     def __repr__(self):
         return "Precise(" + str(self) + ")"
 
+    def __float__(self):
+        return float(str(self))
+
     @staticmethod
     def string_mul(string1, string2):
         if string1 is None or string2 is None:
@@ -234,6 +241,12 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).mod(Precise(string2)))
+
+    @staticmethod
+    def string_or(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).orn(Precise(string2)))
 
     @staticmethod
     def string_equals(string1, string2):

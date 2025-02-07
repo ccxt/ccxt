@@ -1,6 +1,6 @@
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../js/ccxt.js';
 
-;(async () => {
+(async () => {
 
     // apiKey must have universal transfer permissions
     const binance = new ccxt.binance ({
@@ -11,11 +11,6 @@ const ccxt = require ('../../ccxt.js')
     console.log (await binance.transfer ('USDT', 1, 'spot', 'future'))
     const transfers = await binance.fetchTransfers ();
     console.log ('got ', transfers.length, ' transfers')
-    console.log (await binance.transfer ('USDT', 1, 'spot', 'margin'))
-
-    // binance requires from and to in the params
-    console.log (await binance.fetchTransfers (undefined, undefined, undefined, { from: 'spot', to: 'margin' }))
-
-    // alternatively the same effect as above
-    console.log (await binance.fetchTransfers (undefined, undefined, undefined, { type: 'MAIN_MARGIN' })) // defaults to MAIN_UMFUTURE
+    console.log (await binance.transfer ('USDT', 1, 'spot', 'cross')) // For transfer to cross margin wallet
+    console.log (await binance.transfer ('USDT', 1, 'spot', 'ADA/USDT')) // For transfer to an isolated margin wallet
 }) ()

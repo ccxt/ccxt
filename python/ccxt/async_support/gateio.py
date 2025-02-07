@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.gate import gate
+from ccxt.abstract.gateio import ImplicitAPI
 
 
-class gateio(gate):
+class gateio(gate, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(gateio, self).describe(), {

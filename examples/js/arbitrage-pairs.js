@@ -1,15 +1,12 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table')
-    , log       = require ('ololog').configure ({ locate: false })
-    , fs        = require ('fs')
-    , {}        = require ('ansicolor').nice
-    , verbose   = process.argv.includes ('--verbose')
-    , keysGlobal = 'keys.json'
-    , keysLocal = 'keys.local.json'
-    , keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
-    , config = keysFile ? require ('../../' + keysFile) : {}
+
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import fs from 'fs';
+import ansicolor from 'ansicolor';
+import ololog from 'ololog';
+
+const log = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose'), keysGlobal = 'keys.json', keysLocal = 'keys.local.json', keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false), config = keysFile ? require ('../../' + keysFile) : {};
 
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)

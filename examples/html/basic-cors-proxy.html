@@ -7,11 +7,13 @@
 
         document.addEventListener ("DOMContentLoaded", function () {
 
-            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+            alert ('ccxt version ' + ccxt.version);
 
-            const proxy = 'https://cors-anywhere.herokuapp.com/'
-            const exchange = new ccxt.bittrex ({ 'proxy': proxy })
-            const symbol = 'ETH/BTC'
+            const exchange = new ccxt.bittrex ({ 
+				'proxyUrl': 'https://cors-anywhere.herokuapp.com/' 
+			})
+
+            const symbol = 'BTC/USDT'
 
             exchange.fetchTicker (symbol).then (ticker => {
 
@@ -22,6 +24,16 @@
                 ]
 
                 document.getElementById ('content').innerHTML = text.join (' ')
+
+            }).catch (e => {
+
+                const text = [
+                    e.constructor.name,
+                    e.message,
+                ]
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
             })
 
         })

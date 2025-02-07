@@ -1,10 +1,10 @@
 'use strict';
 
-const ccxtpro = require ('ccxt.pro');
+const ccxt = require ('ccxt');
 
 (async () => {
 
-    const exchange = new ccxtpro.binance ({ enableRateLimit: true })
+     const exchange = new ccxt.pro.binance ({ enableRateLimit: true })
     const symbols = [ 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ]
 
     await Promise.all (symbols.map (symbol =>

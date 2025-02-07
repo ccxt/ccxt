@@ -7,10 +7,10 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 
-import ccxtpro  # noqa: E402
+import ccxt.pro  # noqa: E402
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 async def print_balance_continuously(exchange):
@@ -38,7 +38,7 @@ async def main():
         'binanceusdm',
         'binancecoinm',
     ]
-    exchanges = [getattr(ccxtpro, exchange_id)(config) for exchange_id in exchange_ids]
+    exchanges = [getattr(ccxt.pro, exchange_id)(config) for exchange_id in exchange_ids]
     printing_loops = [print_balance_continuously(exchange) for exchange in exchanges]
     await gather(*printing_loops)
     closing_tasks = [exchange.close() for exchange in exchanges]
