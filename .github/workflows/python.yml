@@ -121,7 +121,7 @@ jobs:
           git pull origin master
           git push
   windows:
-    runs-on: windows
+    runs-on: windows-2022
     needs: build
     # if: github.ref == 'refs/heads/master'
     steps:
