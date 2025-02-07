@@ -53,7 +53,7 @@ use React\Promise;
 
 $zend_assert_value = ini_get('zend.assertions');
 if ($zend_assert_value !== '1') {
-    throw new Exception('CCXT tests can not be conducted, please set zend.assertions=1 in your php.ini file');
+    throw new Exception('CCXT tests can not be conducted, please set zend.assertions=1 in your php.ini file (current value:' . $zend_assert_value);
 }
 
 // ############## detect cli arguments ############## //
