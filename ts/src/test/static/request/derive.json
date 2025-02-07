@@ -170,6 +170,32 @@
                 ],
                 "output": "{\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"order_id\":\"df3879a6-5421-41ba-bd91-68d7a36edd3d\"}"
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api-demo.lyra.finance/private/cancel_by_instrument",
+                "input": [
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api-demo.lyra.finance/private/cancel_all",
+                "input": [
+                    null,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"subaccount_id\":130837}"
+            }
         ]
     }
 }

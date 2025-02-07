@@ -392,8 +392,8 @@
                     0.01,
                     10000,
                     {
-                        "subaccount_id":130837,
-                        "max_fee":219
+                        "subaccount_id": 130837,
+                        "max_fee": 219
                     }
                 ],
                 "httpResponse": {
@@ -457,39 +457,47 @@
                     "remaining": null,
                     "cost": 0,
                     "trades": [],
-                    "fee": { "cost": "0", "currency": "USDC" },
-                    "info": {
-                      "subaccount_id": "130837",
-                      "order_id": "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
-                      "instrument_name": "LBTC-USDC",
-                      "direction": "buy",
-                      "label": "",
-                      "quote_id": null,
-                      "creation_timestamp": "1738914910349",
-                      "last_update_timestamp": "1738914910349",
-                      "limit_price": "10000",
-                      "amount": "0.01",
-                      "filled_amount": "0",
-                      "average_price": "0",
-                      "order_fee": "0",
-                      "order_type": "limit",
-                      "time_in_force": "gtc",
-                      "order_status": "open",
-                      "max_fee": "219",
-                      "signature_expiry_sec": "1746690910",
-                      "nonce": "1738914910057",
-                      "signer": "0x0000000000000000000000000000000000000000",
-                      "signature": "0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b",
-                      "cancel_reason": "",
-                      "mmp": false,
-                      "is_transfer": false,
-                      "replaced_order_id": null,
-                      "trigger_type": null,
-                      "trigger_price_type": null,
-                      "trigger_price": null,
-                      "trigger_reject_message": null
+                    "fee": {
+                        "cost": "0",
+                        "currency": "USDC"
                     },
-                    "fees": [ { "cost": 0, "currency": "USDC" } ],
+                    "info": {
+                        "subaccount_id": "130837",
+                        "order_id": "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
+                        "instrument_name": "LBTC-USDC",
+                        "direction": "buy",
+                        "label": "",
+                        "quote_id": null,
+                        "creation_timestamp": "1738914910349",
+                        "last_update_timestamp": "1738914910349",
+                        "limit_price": "10000",
+                        "amount": "0.01",
+                        "filled_amount": "0",
+                        "average_price": "0",
+                        "order_fee": "0",
+                        "order_type": "limit",
+                        "time_in_force": "gtc",
+                        "order_status": "open",
+                        "max_fee": "219",
+                        "signature_expiry_sec": "1746690910",
+                        "nonce": "1738914910057",
+                        "signer": "0x0000000000000000000000000000000000000000",
+                        "signature": "0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b",
+                        "cancel_reason": "",
+                        "mmp": false,
+                        "is_transfer": false,
+                        "replaced_order_id": null,
+                        "trigger_type": null,
+                        "trigger_price_type": null,
+                        "trigger_price": null,
+                        "trigger_reject_message": null
+                    },
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDC"
+                        }
+                    ],
                     "stopPrice": null
                 }
             },
@@ -503,13 +511,13 @@
                     0.01,
                     10000,
                     {
-                        "subaccount_id":130837,
-                        "max_fee":219,
-                        "postOnly":true,
-                        "reduceOnly":false,
-                        "clientOrderId":"test1234",
-                        "stopLoss":{
-                            "triggerPrice":102800
+                        "subaccount_id": 130837,
+                        "max_fee": 219,
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "clientOrderId": "test1234",
+                        "stopLoss": {
+                            "triggerPrice": 102800
                         }
                     }
                 ],
@@ -631,10 +639,9 @@
                     0.01,
                     10500,
                     {
-
-                        "subaccount_id":130837,
-                        "max_fee":211,
-                        "clientOrderId":"test1234"
+                        "subaccount_id": 130837,
+                        "max_fee": 211,
+                        "clientOrderId": "test1234"
                     }
                 ],
                 "httpResponse": {
@@ -783,7 +790,7 @@
                     "df3879a6-5421-41ba-bd91-68d7a36edd3d",
                     "LBTC/USDC",
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": 130837
                     }
                 ],
                 "httpResponse": {
@@ -886,6 +893,48 @@
                         }
                     ],
                     "stopPrice": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "cancelled_orders": 0
+                    },
+                    "id": "438e2e4e-7678-4ffb-a5de-1cc2efbf6914"
+                },
+                "parsedResponse": {
+                    "result": {
+                        "cancelled_orders": 0
+                    },
+                    "id": "438e2e4e-7678-4ffb-a5de-1cc2efbf6914"
+                }
+            },
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "input": [
+                    null,
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "id": "4b55d5b3-5d25-4545-87bb-f82e1c71221e",
+                    "result": "ok"
+                },
+                "parsedResponse": {
+                    "id": "4b55d5b3-5d25-4545-87bb-f82e1c71221e",
+                    "result": "ok"
                 }
             }
         ]
