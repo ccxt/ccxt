@@ -260,7 +260,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            throw new BadRequest ((string)add(this.id, "watchLiquidationsForSymbols is not supported for spot symbols")) ;
+            throw new BadRequest ((string)add(this.id, " watchLiquidationsForSymbols is not supported for spot symbols")) ;
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
@@ -4496,7 +4496,7 @@ public partial class binance : ccxt.binance
         object fromId = this.safeInteger(parameters, "fromId");
         if (isTrue(isTrue(!isEqual(fromId, null)) && isTrue(!isEqual(since, null))))
         {
-            throw new BadRequest ((string)add(this.id, "fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
+            throw new BadRequest ((string)add(this.id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
         }
         object message = new Dictionary<string, object>() {
             { "id", messageHash },

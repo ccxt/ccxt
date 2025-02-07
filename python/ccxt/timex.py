@@ -729,6 +729,7 @@ class timex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -739,15 +740,24 @@ class timex(Exchange, ImplicitAPI):
         }
         # if since and limit are not specified
         duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
         if limit is None:
             limit = 1000  # exchange provides tens of thousands of data, but we set generous default value
         if since is not None:
             request['from'] = self.iso8601(since)
-            request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+            if until is None:
+                request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+            else:
+                request['till'] = self.iso8601(until)
+        elif until is not None:
+            request['till'] = self.iso8601(until)
+            fromTimestamp = until - self.sum(limit, 1) * duration * 1000
+            request['from'] = self.iso8601(fromTimestamp)
         else:
             now = self.milliseconds()
             request['till'] = self.iso8601(now)
-            request['from'] = self.iso8601(now - limit * duration * 1000 - 1)
+            request['from'] = self.iso8601(now - self.sum(limit, 1) * duration * 1000 - 1)
+        params = self.omit(params, 'until')
         response = self.publicGetCandles(self.extend(request, params))
         #
         #     [

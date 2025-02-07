@@ -383,6 +383,7 @@ class ascendex extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                 ),
                 'swap' => array(

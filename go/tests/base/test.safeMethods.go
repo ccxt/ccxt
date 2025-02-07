@@ -228,6 +228,10 @@ func TestSafeMethods()  {
     Assert(IsEqual(exchange.SafeNumber(inputDict, "f"), exchange.ParseNumber(0.123)))
     Assert(IsEqual(exchange.SafeNumber(inputDict, "strNumber"), exchange.ParseNumber(3)))
     Assert(IsEqual(exchange.SafeNumber(inputList, 1), exchange.ParseNumber(2)))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "bool"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "list"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "dict"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "str"), nil))
     // safeNumber2
     Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "i"), exchange.ParseNumber(1)))
     Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "f"), exchange.ParseNumber(0.123)))
