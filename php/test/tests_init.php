@@ -1,7 +1,6 @@
 <?php
 
 namespace ccxt;
-use \React\Async;
 use Exception; // a common import
 require_once (__DIR__ . '/tests_helpers.php');
 
@@ -33,5 +32,5 @@ if (IS_SYNCHRONOUS) {
     (new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
 } else {
     require_once __DIR__ . '/tests_async.php';
-    Async\await((new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod));
+    \React\Async\await((new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod));
 }
