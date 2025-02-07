@@ -86,6 +86,7 @@
     "force-transpile-fast-php": "npm run fast-force-transpileRest-php && npm run fast-force-transpileWs-php",
     "dev-force-transpile": "npm run fast-force-transpileRest && npm run fast-force-transpileWs",
     "force-transpileRest": "tsx build/transpile.ts --force",
+    "detect-transpilation-incorrect-references": "tsx build/transpile.ts --force --incorrectMethodReferences",
     "fast-force-transpileRest-py": "tsx build/transpile.ts --multiprocess --force --python",
     "fast-force-transpileRest-php": "tsx build/transpile.ts --multiprocess --force --php",
     "fast-force-transpileRest": "tsx build/transpile.ts --multiprocess --force",
