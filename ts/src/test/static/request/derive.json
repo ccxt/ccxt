@@ -386,6 +386,16 @@
                 ],
                 "output": {}
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-demo.lyra.finance/private/get_withdrawal_history",
+                "input": [
+                ],
+                "output": {}
+            }
         ]
     }
 }
