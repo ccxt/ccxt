@@ -5106,8 +5106,7 @@ export default class Exchange {
             return [ type, params ];
         }
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        // defaultValue takes precendence over exchange wide defaultType
-        if (defaultValue === undefined) {
+        if (defaultValue === undefined) {  // defaultValue takes precendence over exchange wide defaultType
             defaultValue = defaultType;
         }
         const methodOptions = this.safeDict (this.options, methodName);
