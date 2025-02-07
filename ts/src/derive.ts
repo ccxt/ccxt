@@ -2158,7 +2158,7 @@ export default class derive extends Exchange {
         }
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString (position, 'mark_price');
-        const timestamp = this.safeTimestamp (position, 'creation_timestamp');
+        const timestamp = this.safeInteger (position, 'creation_timestamp');
         const unrealisedPnl = this.safeString (position, 'unrealized_pnl');
         size = Precise.stringAbs (size);
         const notional = Precise.stringMul (size, markPrice);
