@@ -1254,6 +1254,112 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "subaccount_id": 130837
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "subaccount_id": 130837,
+                        "positions": [
+                            {
+                                "instrument_type": "perp",
+                                "instrument_name": "BTC-PERP",
+                                "amount": "-0.02",
+                                "average_price": "102632.9105389869500088",
+                                "realized_pnl": "0",
+                                "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+                                "total_fees": "2.255789220260999824",
+                                "average_price_excl_fees": "102745.7",
+                                "realized_pnl_excl_fees": "0",
+                                "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+                                "net_settlements": "-4.032902047219498639",
+                                "cumulative_funding": "-0.004677736347850093",
+                                "pending_funding": "0",
+                                "mark_price": "102765.190337908177752979099750518798828125",
+                                "index_price": "102767.657193800017641472",
+                                "delta": "1",
+                                "gamma": "0",
+                                "vega": "0",
+                                "theta": "0",
+                                "mark_value": "1.38730606879471451975405216217041015625",
+                                "maintenance_margin": "-101.37788426911356509663164615631103515625",
+                                "initial_margin": "-132.2074413704858670826070010662078857421875",
+                                "open_orders_margin": "264.116085900726830004714429378509521484375",
+                                "leverage": "8.6954476205089299495699106539379941746377322586618",
+                                "liquidation_price": "109125.705451984322280623018741607666015625",
+                                "creation_timestamp": 1738065303840
+                            }
+                        ]
+                    },
+                    "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument_type": "perp",
+                            "instrument_name": "BTC-PERP",
+                            "amount": "-0.02",
+                            "average_price": "102632.9105389869500088",
+                            "realized_pnl": "0",
+                            "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+                            "total_fees": "2.255789220260999824",
+                            "average_price_excl_fees": "102745.7",
+                            "realized_pnl_excl_fees": "0",
+                            "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+                            "net_settlements": "-4.032902047219498639",
+                            "cumulative_funding": "-0.004677736347850093",
+                            "pending_funding": "0",
+                            "mark_price": "102765.190337908177752979099750518798828125",
+                            "index_price": "102767.657193800017641472",
+                            "delta": "1",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0",
+                            "mark_value": "1.38730606879471451975405216217041015625",
+                            "maintenance_margin": "-101.37788426911356509663164615631103515625",
+                            "initial_margin": "-132.2074413704858670826070010662078857421875",
+                            "open_orders_margin": "264.116085900726830004714429378509521484375",
+                            "leverage": "8.6954476205089299495699106539379941746377322586618",
+                            "liquidation_price": "109125.705451984322280623018741607666015625",
+                            "creation_timestamp": 1738065303840
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:USDC",
+                        "timestamp": 1738065303840000,
+                        "datetime": "+057047-02-05T13:44:00.000Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": "-132.2074413704858670826070010662078857421875",
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": "-101.37788426911356509663164615631103515625",
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": null,
+                        "notional": 2055.303806758164,
+                        "leverage": 8.69544762050893,
+                        "unrealizedPnl": -2.645595978424555,
+                        "contracts": 0.02,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 109125.70545198432,
+                        "markPrice": 102765.19033790818,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "hedged": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
         ]
     }
 }
