@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { BaseError, Exchange } from "../../../../ccxt";
+import { BaseError, Exchange } from "../../../../ccxt.js";
 
 async function runUntilTimeout (exchange: Exchange) {
     await exchange.sleep (10000);

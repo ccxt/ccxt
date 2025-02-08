@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import errors from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
