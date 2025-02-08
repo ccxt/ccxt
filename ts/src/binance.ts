@@ -64,7 +64,7 @@ export default class binance extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
-                'fetchAccounts': undefined,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
@@ -13220,6 +13220,45 @@ export default class binance extends Exchange {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchAccounts
+         * @description fetch all the sub-accounts associated with a profile, only for corporate accounts
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-sub-account-list-for-master-account
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetSubAccountList (params);
+        //
+        //    {
+        //        "subAccounts": [
+        //            {
+        //                "email": "testsub@gmail.com",
+        //                "isFreeze": false,
+        //                "createTime": 1544433328000,
+        //                "isManagedSubAccount":  false,
+        //                "isAssetManagementSubAccount":  false
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'subAccounts', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            result.push ({
+                'info': account,
+                'id': this.safeString (account, 'email'),
+                'type': 'subaccount',
+                'code': undefined,
+            });
+        }
+        return result;
     }
 
     async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
