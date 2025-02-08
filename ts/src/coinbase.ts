@@ -1526,9 +1526,10 @@ export default class coinbase extends Exchange {
 
     setMarkets (markets, currencies = undefined) {
         this.options['aliasCbMarketIds'] = {};
+        const values = this.toArray (markets);
         const newMarkets = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < values.length; i++) {
+            const market = values[i];
             const marketId = market['id'];
             const info = this.safeValue (market, 'info', {});
             const aliasedIds = this.safeList (info, 'alias_to', []);
