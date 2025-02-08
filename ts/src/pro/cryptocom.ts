@@ -1289,6 +1289,7 @@ export default class cryptocom extends cryptocomRest {
                 }
             } else {
                 client.reject (e, id);
+                const requestIdToHashes = this.options['requestIdToHashes'];
                 const hashes = this.safeDict (this.options['requestIdToHashes'], id);
                 if (hashes) {
                     const messageHashes = this.safeList (hashes, 'messageHashes');
@@ -1303,6 +1304,7 @@ export default class cryptocom extends cryptocomRest {
                             delete client.subscriptions[subscriptionHash];
                         }
                     }
+                    delete requestIdToHashes[id];
                 }
             }
             return true;
@@ -1454,5 +1456,21 @@ export default class cryptocom extends cryptocomRest {
                 this.cleanCache (subscription);
             }
         }
+        const requestIdToHashes = this.options['requestIdToHashes'];
+        if (id in requestIdToHashes) {
+            delete requestIdToHashes[id];
+        }
+    }
+
+    onClose (client, error) {
+        if (client.error || error) {
+            // connection closed due to an error, do nothing
+        } else {
+            // server disconnected a working connection
+            if (this.clients[client.url]) {
+                delete this.clients[client.url];
+            }
+        }
+        this.options['requestIdToHashes'] = this.createSafeDictionary ();
     }
 }
