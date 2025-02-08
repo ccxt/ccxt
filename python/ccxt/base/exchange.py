@@ -3135,7 +3135,7 @@ class Exchange(object):
         return superWithRestDescribe
 
     def safe_balance(self, balance: dict):
-        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
+        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt'])
         codes = list(balances.keys())
         balance['free'] = {}
         balance['used'] = {}
