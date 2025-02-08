@@ -34,6 +34,7 @@ export default class luno extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
@@ -42,6 +43,9 @@ export default class luno extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -91,7 +95,7 @@ export default class luno extends Exchange {
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
-                    'https://www.luno.com/en/api',
+                    'https://www.luno.com/en/developers/api',
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ],
@@ -1219,6 +1223,124 @@ export default class luno extends Exchange {
             'status': status,
             'fee': undefined,
         }, currency) as LedgerEntry;
+    }
+
+    async createDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name luno#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.name] an optional name for the new receive address, example: name=my btc wallet
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privatePostFundingAddress (this.extend (request, params));
+        //
+        //    {
+        //        "account_id": "string",
+        //        "address": "string",
+        //        "address_meta": [
+        //            {
+        //                "label": "string",
+        //                "value": "string"
+        //            }
+        //        ],
+        //        "asset": "string",
+        //        "assigned_at": "string",
+        //        "name": "string",
+        //        "qr_code_uri": "string",
+        //        "receive_fee": "string",
+        //        "total_received": "string",
+        //        "total_unconfirmed": "string"
+        //    }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name luno#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.address] specific cryptocurrency address to retrieve, if not provided, the default address will be used, example=1abbjjzevwffvbkvzrtqhhfgrjyytkamw2
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privateGetFundingAddress (this.extend (request, params));
+        //
+        //    {
+        //        "account_id": "string",
+        //        "address": "string",
+        //        "address_meta": [
+        //            {
+        //                "label": "string",
+        //                "value": "string",
+        //            }
+        //        ],
+        //        "asset": "string",
+        //        "assigned_at": "string",
+        //        "name": "string",
+        //        "qr_code_uri": "string",
+        //        "receive_fee": "string",
+        //        "total_received": "string",
+        //        "total_unconfirmed": "string"
+        //    }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //    {
+        //        "account_id": "string",
+        //        "address": "string",
+        //        "address_meta": [
+        //            {
+        //                "label": "string",
+        //                "value": "string",
+        //            }
+        //        ],
+        //        "asset": "string",
+        //        "assigned_at": "string",
+        //        "name": "string",
+        //        "qr_code_uri": "string",
+        //        "receive_fee": "string",
+        //        "total_received": "string",
+        //        "total_unconfirmed": "string"
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'asset');
+        // const addressMeta = this.safeList (depositAddress, 'address_meta');
+        // const network = this.safeString (addressMeta, 'label');
+        // const tag = this.safeString (addressMeta, 'value');
+        currency = this.safeCurrency (currencyId, currency);
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
