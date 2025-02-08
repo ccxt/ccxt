@@ -1525,42 +1525,29 @@ export default class coinbase extends Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        this.options['aliasCbMarketIds'] = {};
+        const aliasCbMarketIds = [];
         const values = this.toArray (markets);
         const newMarkets = [];
         for (let i = 0; i < values.length; i++) {
             const market = values[i];
-            const marketId = market['id'];
             const info = this.safeValue (market, 'info', {});
-            const aliasedIds = this.safeList (info, 'alias_to', []);
-            const length = aliasedIds.length;
+            const realMarketIds = this.safeList (info, 'alias_to', []);
+            const length = realMarketIds.length;
             if (length > 0) {
-                this.options['aliasCbMarketIds'][marketId] = aliasedIds[0];
+                aliasCbMarketIds.push ([ market['id'], market['symbol'], realMarketIds[0] ]);
             } else {
                 newMarkets.push (market);
             }
         }
-        return super.setMarkets (newMarkets, currencies);
-    }
-
-    market (symbol: string): MarketInterface {
-        // as they are aliases, we need to return the original market
-        const originalInput = symbol;
-        const originalId = originalInput.replace ('/', '-');
-        if (originalId in this.options['aliasCbMarketIds']) {
-            const newInput = this.options['aliasCbMarketIds'][originalId];
-            return super.market (newInput);
+        const result = super.setMarkets (newMarkets, currencies);
+        // at this moment, "markets_by_id" is already set, so add few references
+        for (let i = 0; i < aliasCbMarketIds.length; i++) {
+            const [ aliasedId, aliasedSymbol, sourceMarketId ] = aliasCbMarketIds[i];
+            // we don't want them to add in `this.markets`, just link them within `this.markets_by_id`
+            this.markets_by_id[aliasedId] = this.markets_by_id[sourceMarketId];
+            this.markets_by_id[aliasedSymbol] = this.markets_by_id[sourceMarketId];
         }
-        const market = super.market (originalInput);
-        return market;
-    }
-
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        if (marketId in this.options['aliasCbMarketIds']) {
-            const aliasedMarketId = this.options['aliasCbMarketIds'][marketId];
-            return super.safeMarket (aliasedMarketId, market, delimiter, marketType);
-        }
-        return super.safeMarket (marketId, market, delimiter, marketType);
+        return result;
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
