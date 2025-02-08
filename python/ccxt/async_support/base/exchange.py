@@ -193,7 +193,8 @@ class Exchange(BaseExchange):
         # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
-        self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
+        if (self.enableLoggerDebugger):
+            self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
         # end of proxies & headers
 
         request_body = body
@@ -233,7 +234,8 @@ class Exchange(BaseExchange):
                     self.last_json_response = json_response
                 if self.verbose:
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+                if (self.enableLoggerDebugger):
+                    self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
             details = ' '.join([self.id, method, url])
