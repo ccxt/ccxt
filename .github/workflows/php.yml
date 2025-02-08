@@ -42,6 +42,8 @@ jobs:
       with:
         php-version: '8.1'
         cache: true
+    - name: Increase PHP Memory Limit
+      run: echo "memory_limit=1024M" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/memory.ini
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
