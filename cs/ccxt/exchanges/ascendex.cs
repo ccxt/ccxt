@@ -341,6 +341,7 @@ public partial class ascendex : Exchange
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                 } },
                 { "forDerivatives", new Dictionary<string, object>() {
