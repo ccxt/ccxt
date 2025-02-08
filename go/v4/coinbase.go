@@ -6096,10 +6096,17 @@ func  (this *coinbase) HandleErrors(code interface{}, reason interface{}, url in
     //        }
     //      ]
     //    }
+    // or
+    //   {
+    //       "error": "UNKNOWN_FAILURE_REASON",
+    //       "message": "",
+    //       "error_details": "",
+    //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+    //   }
     //
     var errorCode interface{} = this.SafeString(response, "error")
     if IsTrue(!IsEqual(errorCode, nil)) {
-        var errorMessage interface{} = this.SafeString(response, "error_description")
+        var errorMessage interface{} = this.SafeString2(response, "error_description", "preview_failure_reason")
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), errorMessage, feedback)
         panic(ExchangeError(feedback))
