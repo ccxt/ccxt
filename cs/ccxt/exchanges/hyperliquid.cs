@@ -184,7 +184,7 @@ public partial class hyperliquid : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "Price must be divisible by tick size.", typeof(InvalidOrder) },
                     { "Order must have minimum value of $10", typeof(InvalidOrder) },
-                    { "Insufficient margin to place order.", typeof(InvalidOrder) },
+                    { "Insufficient margin to place order.", typeof(InsufficientFunds) },
                     { "Reduce only order would increase position.", typeof(InvalidOrder) },
                     { "Post only order would have immediately matched,", typeof(InvalidOrder) },
                     { "Order could not immediately match against any resting orders.", typeof(InvalidOrder) },
@@ -3730,6 +3730,7 @@ public partial class hyperliquid : Exchange
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         object status = this.safeString(response, "status", "");
         object message = null;
