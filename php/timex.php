@@ -734,6 +734,7 @@ class timex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -744,17 +745,27 @@ class timex extends Exchange {
         );
         // if $since and $limit are not specified
         $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until');
         if ($limit === null) {
             $limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
         }
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
-            $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
+            if ($until === null) {
+                $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
+            } else {
+                $request['till'] = $this->iso8601($until);
+            }
+        } elseif ($until !== null) {
+            $request['till'] = $this->iso8601($until);
+            $fromTimestamp = $until - $this->sum($limit, 1) * $duration * 1000;
+            $request['from'] = $this->iso8601($fromTimestamp);
         } else {
             $now = $this->milliseconds();
             $request['till'] = $this->iso8601($now);
-            $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
+            $request['from'] = $this->iso8601($now - $this->sum($limit, 1) * $duration * 1000 - 1);
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetCandles ($this->extend($request, $params));
         //
         //     array(

@@ -1618,6 +1618,7 @@ class binance extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => true,
@@ -5447,10 +5448,10 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
+            'orderId' => $id,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $request['orderId'] = $id;
-        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -5468,6 +5469,8 @@ class binance extends Exchange {
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
              *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -5476,16 +5479,32 @@ class binance extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
+            if ($market['linear'] || $isPortfolioMargin) {
+                if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+                    throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
+                }
+            }
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutUmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutCmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             }
             //
             // swap and future

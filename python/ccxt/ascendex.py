@@ -365,6 +365,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                 },
                 'forDerivatives': {
@@ -388,6 +389,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                 },
                 'swap': {

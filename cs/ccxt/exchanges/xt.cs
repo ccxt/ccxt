@@ -451,10 +451,12 @@ public partial class xt : Exchange
                     { "TRANSFER_012", typeof(PermissionDenied) },
                     { "symbol_not_support_trading_via_api", typeof(BadSymbol) },
                     { "open_order_min_nominal_value_limit", typeof(InvalidOrder) },
+                    { "insufficient_balance", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "The symbol does not support trading via API", typeof(BadSymbol) },
                     { "Exceeds the minimum notional value of a single order", typeof(InvalidOrder) },
+                    { "insufficient balance", typeof(InsufficientFunds) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -5208,6 +5210,9 @@ public partial class xt : Exchange
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         object status = this.safeStringUpper2(response, "msgInfo", "mc");
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "SUCCESS"))))

@@ -662,7 +662,7 @@ export default class Exchange {
         this.requiresWeb3 = false;
         // response handling flags and properties
         this.enableLastHttpResponse = true;
-        this.enableLastJsonResponse = true;
+        this.enableLastJsonResponse = false;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;
         this.last_json_response = undefined;
