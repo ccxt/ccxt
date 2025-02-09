@@ -524,10 +524,12 @@ class xt extends Exchange {
                     'TRANSFER_012' => '\\ccxt\\PermissionDenied', // Currency transfer prohibited
                     'symbol_not_support_trading_via_api' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'open_order_min_nominal_value_limit' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
+                    'insufficient_balance' => '\\ccxt\\InsufficientFunds',
                 ),
                 'broad' => array(
                     'The symbol does not support trading via API' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'Exceeds the minimum notional value of a single order' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
+                    'insufficient balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'timeframes' => array(
@@ -4960,6 +4962,9 @@ class xt extends Exchange {
         //         "ma" => array(),
         //         "result" => array()
         //     }
+        //
+        // array("returnCode":1,"msgInfo":"failure","error":array("code":"insufficient_balance","msg":"insufficient balance","args":array()),"result":null)
+        //
         //
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
         if ($status !== null && $status !== 'SUCCESS') {
