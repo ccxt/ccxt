@@ -10,9 +10,13 @@ import asyncio
 import concurrent.futures
 import socket
 import certifi
+import sys
+import os
+os.environ["AIOHTTP_NO_EXTENSIONS"] = "1"
+if "aiohttp" in sys.modules:
+    del sys.modules["aiohttp"]  # Ensure aiohttp is reloaded after setting env var
 import aiohttp
 import ssl
-import sys
 import yarl
 import math
 from typing import Any, List
