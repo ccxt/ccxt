@@ -203,7 +203,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'broad': {
                     'Price must be divisible by tick size.': InvalidOrder,
                     'Order must have minimum value of $10': InvalidOrder,
-                    'Insufficient margin to place order.': InvalidOrder,
+                    'Insufficient margin to place order.': InsufficientFunds,
                     'Reduce only order would increase position.': InvalidOrder,
                     'Post only order would have immediately matched,': InvalidOrder,
                     'Order could not immediately match against any resting orders.': InvalidOrder,
@@ -3264,6 +3264,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         status: 'ok',
         #         response: {type: 'order', data: {statuses: [{error: 'Insufficient margin to place order. asset=4'}]}}
         #     }
+        # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
         status = self.safe_string(response, 'status', '')
         message = None

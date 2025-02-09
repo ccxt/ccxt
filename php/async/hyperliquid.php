@@ -197,7 +197,7 @@ class hyperliquid extends Exchange {
                 'broad' => array(
                     'Price must be divisible by tick size.' => '\\ccxt\\InvalidOrder',
                     'Order must have minimum value of $10' => '\\ccxt\\InvalidOrder',
-                    'Insufficient margin to place order.' => '\\ccxt\\InvalidOrder',
+                    'Insufficient margin to place order.' => '\\ccxt\\InsufficientFunds',
                     'Reduce only order would increase position.' => '\\ccxt\\InvalidOrder',
                     'Post only order would have immediately matched,' => '\\ccxt\\InvalidOrder',
                     'Order could not immediately match against any resting orders.' => '\\ccxt\\InvalidOrder',
@@ -3519,6 +3519,7 @@ class hyperliquid extends Exchange {
         //         $status => 'ok',
         //         $response => array( type => 'order', $data => array( $statuses => array( array( error => 'Insufficient margin to place order. asset=4' ) ) ) )
         //     }
+        // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
         $status = $this->safe_string($response, 'status', '');
         $message = null;

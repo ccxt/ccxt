@@ -506,7 +506,10 @@ class bitmart extends Exchange {
                     '40049' => '\\ccxt\\InvalidOrder', // 403, The maximum length of clientOrderId cannot exceed 32
                     '40050' => '\\ccxt\\InvalidOrder', // 403, Client OrderId duplicated with existing orders
                 ),
-                'broad' => array(),
+                'broad' => array(
+                    'You contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
+                    'you contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
+                ),
             ),
             'commonCurrencies' => array(
                 '$GM' => 'GOLDMINER',
@@ -5344,6 +5347,7 @@ class bitmart extends Exchange {
         //     array("message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":array())
         //     array("message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":array())
         //     array("message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":array())
+        //     array("code":40012,"message":"You contract account available balance not enough.","trace":"...")
         //
         // contract
         //
@@ -5355,10 +5359,10 @@ class bitmart extends Exchange {
         $isErrorCode = ($errorCode !== null) && ($errorCode !== '1000');
         if ($isErrorCode || $isErrorMessage) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
         return null;
