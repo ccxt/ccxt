@@ -532,10 +532,12 @@ class xt(Exchange, ImplicitAPI):
                     'TRANSFER_012': PermissionDenied,  # Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'Exceeds the minimum notional value of a single order': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -4666,6 +4668,9 @@ class xt(Exchange, ImplicitAPI):
         #         "ma": [],
         #         "result": {}
         #     }
+        #
+        # {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        #
         #
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
         if status is not None and status != 'SUCCESS':

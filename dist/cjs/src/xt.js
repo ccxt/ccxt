@@ -516,11 +516,13 @@ class xt extends xt$1 {
                     'TRANSFER_011': errors.PermissionDenied,
                     'TRANSFER_012': errors.PermissionDenied,
                     'symbol_not_support_trading_via_api': errors.BadSymbol,
-                    'open_order_min_nominal_value_limit': errors.InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'open_order_min_nominal_value_limit': errors.InvalidOrder,
+                    'insufficient_balance': errors.InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': errors.BadSymbol,
-                    'Exceeds the minimum notional value of a single order': errors.InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'Exceeds the minimum notional value of a single order': errors.InvalidOrder,
+                    'insufficient balance': errors.InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -4886,6 +4888,9 @@ class xt extends xt$1 {
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {

@@ -519,11 +519,13 @@ export default class xt extends Exchange {
                     'TRANSFER_011': PermissionDenied,
                     'TRANSFER_012': PermissionDenied,
                     'symbol_not_support_trading_via_api': BadSymbol,
-                    'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'open_order_min_nominal_value_limit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol,
-                    'Exceeds the minimum notional value of a single order': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'Exceeds the minimum notional value of a single order': InvalidOrder,
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -4889,6 +4891,9 @@ export default class xt extends Exchange {
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {
