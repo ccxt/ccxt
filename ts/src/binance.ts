@@ -8555,7 +8555,7 @@ export default class binance extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (network),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -8971,17 +8971,11 @@ export default class binance extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
-        }
+        [ request, params ] = this.handleNetworkCodeAndParamsWithRequest ('network', request, params);
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
         //
@@ -9017,7 +9011,7 @@ export default class binance extends Exchange {
         const info = this.safeDict (response, 'info', {});
         const url = this.safeString (info, 'url');
         const address = this.safeString (response, 'address');
-        const currencyId = this.safeString (response, 'currency');
+        const currencyId = this.safeString2 (response, 'currency', 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
