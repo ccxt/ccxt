@@ -204,7 +204,8 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 }
 
 func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interface{} {
-	return nil
+	byteArray := []uint8{}
+	return byteArray
 }
 
 func ConvertInt64ToBigInt(data interface{}) interface{} {
