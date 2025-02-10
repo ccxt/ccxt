@@ -1584,6 +1584,7 @@ public partial class binance : Exchange
                 { "legalMoneyCurrenciesById", new Dictionary<string, object>() {
                     { "BUSD", "USD" },
                 } },
+                { "defaultWithdrawPrecision", 1e-8 },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -3065,6 +3066,7 @@ public partial class binance : Exchange
             object id = this.safeString(entry, "coin");
             object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
+            object isFiat = this.safeBool(entry, "isLegalMoney");
             object minPrecision = null;
             object isWithdrawEnabled = true;
             object isDepositEnabled = true;
@@ -3077,6 +3079,7 @@ public partial class binance : Exchange
                 object networkItem = getValue(networkList, j);
                 object network = this.safeString(networkItem, "network");
                 object networkCode = this.networkIdToCode(network);
+                object isETF = (isEqual(network, "ETF")); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
                 object depositEnable = this.safeBool(networkItem, "depositEnable");
@@ -3089,12 +3092,28 @@ public partial class binance : Exchange
                 {
                     fee = withdrawFee;
                 }
+                // todo: default networks in "setMarkets" overload
+                // if (isDefault) {
+                //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                // }
                 object precisionTick = this.safeString(networkItem, "withdrawIntegerMultiple");
-                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                object withdrawPrecision = precisionTick;
+                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (!isTrue(Precise.stringEq(precisionTick, "0")))
                 {
                     minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
+                } else
+                {
+                    if (isTrue(!isTrue(isFiat) && !isTrue(isETF)))
+                    {
+                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                        withdrawPrecision = this.omitZero(this.safeString(networkItem, "withdrawInternalMin"));
+                        if (isTrue(isEqual(withdrawPrecision, null)))
+                        {
+                            withdrawPrecision = this.safeString(this.options, "defaultWithdrawPrecision");
+                        }
+                    }
                 }
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", networkItem },
@@ -3104,7 +3123,7 @@ public partial class binance : Exchange
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
                     { "fee", withdrawFee },
-                    { "precision", this.parseNumber(precisionTick) },
+                    { "precision", this.parseNumber(withdrawPrecision) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(networkItem, "withdrawMin") },
@@ -3134,6 +3153,7 @@ public partial class binance : Exchange
                 { "id", id },
                 { "name", name },
                 { "code", code },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "precision", this.parseNumber(minPrecision) },
                 { "info", entry },
                 { "active", active },
