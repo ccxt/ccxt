@@ -266,7 +266,7 @@ export class JSEncryptRSAKey extends RSAKey {
     /**
      * Check if the object contains the necessary parameters to populate the rsa modulus
      * and public exponent parameters.
-     * @param {Object} [obj={}] - An object that may contain the two public key
+     * @param {object} [obj={}] - An object that may contain the two public key
      * parameters
      * @returns {boolean} true if the object contains both the modulus and the public exponent
      * properties (n and e)
@@ -281,7 +281,7 @@ export class JSEncryptRSAKey extends RSAKey {
 
     /**
      * Check if the object contains ALL the parameters of an RSA key.
-     * @param {Object} [obj={}] - An object that may contain nine rsa key
+     * @param {object} [obj={}] - An object that may contain nine rsa key
      * parameters
      * @returns {boolean} true if the object contains all the parameters needed
      * @todo check for types of the parameters all the parameters but the public exponent
@@ -305,7 +305,7 @@ export class JSEncryptRSAKey extends RSAKey {
     /**
      * Parse the properties of obj in the current rsa object. Obj should AT LEAST
      * include the modulus and public exponent (n, e) parameters.
-     * @param {Object} obj - the object containing rsa parameters
+     * @param {object} obj - the object containing rsa parameters
      * @private
      */
     public parsePropertiesFrom(obj: any) {

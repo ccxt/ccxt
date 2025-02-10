@@ -1,0 +1,6 @@
+{{#if (isFunction this)}}
+* [{{name}}](#{{getFragment this}})
+{{/if}}
+{{#indexChildren ~}}
+{{>member-index-list~}}
+{{/indexChildren}}

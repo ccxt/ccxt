@@ -5,7 +5,7 @@ import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,6 +23,7 @@ export default class hollaex extends hollaexRest {
                 'watchTicker': false,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -54,16 +55,17 @@ export default class hollaex extends hollaexRest {
         });
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name hollaex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
@@ -113,17 +115,18 @@ export default class hollaex extends hollaexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name hollaex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -138,15 +141,15 @@ export default class hollaex extends hollaexRest {
     handleTrades (client: Client, message) {
         //
         //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
         //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
         //             },
         //         ]
         //     }
@@ -171,17 +174,18 @@ export default class hollaex extends hollaexRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-         */
+    /**
+     * @method
+     * @name hollaex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let messageHash = 'usertrade';
         let market = undefined;
@@ -226,14 +230,14 @@ export default class hollaex extends hollaexRest {
         // when the user does not have any trades yet
         const dataLength = rawTrades.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
             const parsed = this.parseTrade (trade);
@@ -253,17 +257,18 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+    /**
+     * @method
+     * @name hollaex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'order';
         let market = undefined;
@@ -282,27 +287,27 @@ export default class hollaex extends hollaexRest {
     handleOrder (client: Client, message, subscription = undefined) {
         //
         //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
         //         },
-        //         time: 1649686140
+        //         "time": 1649686140
         //     }
         //
         //    {
@@ -342,7 +347,7 @@ export default class hollaex extends hollaexRest {
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -355,7 +360,7 @@ export default class hollaex extends hollaexRest {
         } else {
             rawOrders = data;
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             const parsed = this.parseOrder (order);
@@ -375,14 +380,15 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    async watchBalance (params = {}) {
-        /**
-         * @method
-         * @name hollaex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
+    /**
+     * @method
+     * @name hollaex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.hollaex.com/#sending-receiving-messages
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
         const messageHash = 'wallet';
         return await this.watchPrivate (messageHash, params);
     }
@@ -390,24 +396,24 @@ export default class hollaex extends hollaexRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
         //         },
-        //         time: 1649687396
+        //         "time": 1649687396
         //     }
         //
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const keys = Object.keys (data);
-        const timestamp = this.safeIntegerProduct (message, 'time', 1000);
+        const timestamp = this.safeTimestamp (message, 'time');
         this.balance['info'] = data;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
@@ -428,7 +434,7 @@ export default class hollaex extends hollaexRest {
 
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -450,13 +456,13 @@ export default class hollaex extends hollaexRest {
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-        const authParams = {
+        const authParams: Dict = {
             'api-key': this.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         };
         const signedUrl = url + '?' + this.urlencode (authParams);
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -466,8 +472,8 @@ export default class hollaex extends hollaexRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        //     { error: 'Bearer or HMAC authentication required' }
-        //     { error: 'Error: wrong input' }
+        //     { error: "Bearer or HMAC authentication required" }
+        //     { error: "Error: wrong input" }
         //
         const error = this.safeInteger (message, 'error');
         try {
@@ -487,20 +493,20 @@ export default class hollaex extends hollaexRest {
         //
         // pong
         //
-        //     { message: 'pong' }
+        //     { message: "pong" }
         //
         // trade
         //
         //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
         //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
         //             },
         //         ]
         //     }
@@ -508,64 +514,64 @@ export default class hollaex extends hollaexRest {
         // orderbook
         //
         //     {
-        //         topic: 'orderbook',
-        //         action: 'partial',
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             bids: [
+        //         "topic": "orderbook",
+        //         "action": "partial",
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "bids": [
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
         //             ],
-        //             timestamp: '2022-04-11T10:37:01.227Z'
+        //             "timestamp": "2022-04-11T10:37:01.227Z"
         //         },
-        //         time: 1649673421
+        //         "time": 1649673421
         //     }
         //
         // order
         //
         //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
         //         },
-        //         time: 1649686140
+        //         "time": 1649686140
         //     }
         //
         // balance
         //
         //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
         //         }
         //     }
         //
@@ -577,7 +583,7 @@ export default class hollaex extends hollaexRest {
             this.handlePong (client, message);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
@@ -591,7 +597,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }

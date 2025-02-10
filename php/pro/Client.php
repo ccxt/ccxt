@@ -30,6 +30,9 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
+    public $message_queue = array();
+    public $useMessageQueue = false;
+    public $options = array();
 
     public $on_message_callback;
     public $on_error_callback;
@@ -50,6 +53,7 @@ class Client {
     public $gunzip = false;
     public $inflate = false;
     public $throttler = null;
+    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -61,6 +65,7 @@ class Client {
     // ratchet/pawl/reactphp stuff
     public $connector = null;
 
+
     // ------------------------------------------------------------------------
 
     public function future($message_hash) {
@@ -71,6 +76,15 @@ class Client {
         if (array_key_exists($message_hash, $this->rejections)) {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
+            unset($this->message_queue[$message_hash]);
+            return $future;
+        }
+        if ($this->useMessageQueue && array_key_exists($message_hash, $this->message_queue)) {
+            $queue = $this->message_queue[$message_hash];
+            if (count($queue) > 0) {
+                $future->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
+            }
         }
         return $future;
     }
@@ -79,10 +93,26 @@ class Client {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
-        if (array_key_exists($message_hash, $this->futures)) {
-            $promise = $this->futures[$message_hash];
-            $promise->resolve($result);
-            unset($this->futures[$message_hash]);
+        if ($this->useMessageQueue) {
+            if (!array_key_exists($message_hash, $this->message_queue)) {
+                $this->message_queue[$message_hash] = array();
+            }
+            $queue = $this->message_queue[$message_hash];
+            array_push($queue, $result);
+            while (count($queue) > 10) {
+                array_shift($queue);
+            }
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
+            }
+        } else {
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve($result);
+                unset($this->futures[$message_hash]);
+            }
         }
         return $result;
     }
@@ -132,51 +162,65 @@ class Client {
         }
 
         $this->connected = new Future();
-        $connector = new React\Socket\Connector();
-        if ($this->noOriginHeader) {
-            $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
+    }
+
+    public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
+        // set default connector
+        if (!$proxy_address) {
+            $react_default_connector = new React\Socket\Connector();
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
+            } else {
+                $this->connector = new Connector(Loop::get(), $react_default_connector);
+            }
         } else {
-            $this->connector = new Connector(Loop::get(), $connector);
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $proxy_conenctor);
+            } else {
+                $this->connector = new Connector(Loop::get(), $proxy_conenctor);
+            }
         }
     }
 
     public function create_connection() {
-        $timeout = $this->connectionTimeout / 1000;
-        if ($this->verbose) {
-            echo date('c'), ' connecting to ', $this->url, "\n";
-        }
-        $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
-        $promise = call_user_func($this->connector, $this->url, [], $headers);
-        Timer\timeout($promise, $timeout, Loop::get())->then(
-            function($connection) {
-                if ($this->verbose) {
-                    echo date('c'), " connected\n";
-                }
-                $this->connection = $connection;
-                $this->connection->on('message', array($this, 'on_message'));
-                $this->connection->on('close', array($this, 'on_close'));
-                $this->connection->on('error', array($this, 'on_error'));
-                $this->connection->on('pong', array($this, 'on_pong'));
-                $this->isConnected = true;
-                $this->connectionEstablished = $this->milliseconds();
-                $this->connected->resolve($this->url);
-                $this->set_ping_interval();
-                $on_connected_callback = $this->on_connected_callback;
-                $on_connected_callback($this);
-            },
-            function(\Exception $error) {
-                // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
-                // the ordering of these exceptions is important
-                // since one inherits another
-                if ($error instanceof TimeoutException) {
-                    $error = new RequestTimeout($error->getMessage());
-                } else if ($error instanceof RuntimeException) {
-                    // connection failed or rejected
-                    $error = new NetworkError($error->getMessage());
-                }
-                $this->on_error($error);
+        return React\Async\async(function () {
+            $timeout = $this->connectionTimeout / 1000;
+            if ($this->verbose) {
+                echo date('c'), ' connecting to ', $this->url, "\n";
             }
-        );
+            $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
+            $promise = call_user_func($this->connector, $this->url, [], $headers);
+            Timer\timeout($promise, $timeout, Loop::get())->then(
+                function($connection) {
+                    if ($this->verbose) {
+                        echo date('c'), " connected\n";
+                    }
+                    $this->connection = $connection;
+                    $this->connection->on('message', array($this, 'on_message'));
+                    $this->connection->on('close', array($this, 'on_close'));
+                    $this->connection->on('error', array($this, 'on_error'));
+                    $this->connection->on('pong', array($this, 'on_pong'));
+                    $this->isConnected = true;
+                    $this->connectionEstablished = $this->milliseconds();
+                    $this->connected->resolve($this->url);
+                    $this->set_ping_interval();
+                    $on_connected_callback = $this->on_connected_callback;
+                    $on_connected_callback($this);
+                },
+                function(\Exception $error) {
+                    // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
+                    // the ordering of these exceptions is important
+                    // since one inherits another
+                    if ($error instanceof TimeoutException) {
+                        $error = new RequestTimeout($error->getMessage());
+                    } else if ($error instanceof RuntimeException) {
+                        // connection failed or rejected
+                        $error = new NetworkError($error->getMessage());
+                    }
+                    $this->on_error($error);
+                }
+            );
+        })();
     }
 
     public function connect($backoff_delay = 0) {
@@ -237,10 +281,13 @@ class Client {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
+        if ($this->error) {
+            $this->reset($this->error);
+        }
     }
 
     public function on_message(Message $message) {
-        if (!ctype_print((string)$message)) { // only decompress if the message is a binary
+        if (preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0) { // only decompress if the message is a binary
             if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {
@@ -270,6 +317,7 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
+        $this->message_queue = array();
         $this->reject($error);
     }
 
@@ -299,9 +347,17 @@ class Client {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
                 if ($this->ping) {
-                    $this->send(call_user_func($this->ping, $this));
+                    try {
+                        $this->send(call_user_func($this->ping, $this));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 } else {
-                    $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    try {
+                        $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 }
             }
         }
