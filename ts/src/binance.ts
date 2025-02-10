@@ -3189,7 +3189,7 @@ export default class binance extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'type': (isFiat ? 'fiat' : 'crypto'),
+                'type': isFiat ? 'fiat' : 'crypto',
                 'precision': this.parseNumber (minPrecision),
                 'info': entry,
                 'active': active,
