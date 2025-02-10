@@ -193,7 +193,7 @@ class hyperliquid extends hyperliquid$1 {
                 'broad': {
                     'Price must be divisible by tick size.': errors.InvalidOrder,
                     'Order must have minimum value of $10': errors.InvalidOrder,
-                    'Insufficient margin to place order.': errors.InvalidOrder,
+                    'Insufficient margin to place order.': errors.InsufficientFunds,
                     'Reduce only order would increase position.': errors.InvalidOrder,
                     'Post only order would have immediately matched,': errors.InvalidOrder,
                     'Order could not immediately match against any resting orders.': errors.InvalidOrder,
@@ -2802,7 +2802,7 @@ class hyperliquid extends hyperliquid$1 {
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
-                throw new errors.NotSupported(this.id + 'transfer() only support spot <> swap transfer');
+                throw new errors.NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -2841,7 +2841,7 @@ class hyperliquid extends hyperliquid$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'transfer() only support USDC');
+                throw new errors.NotSupported(this.id + ' transfer() only support USDC');
             }
         }
         const payload = {
@@ -2906,7 +2906,7 @@ class hyperliquid extends hyperliquid$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'withdraw() only support USDC');
+                throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -3399,6 +3399,7 @@ class hyperliquid extends hyperliquid$1 {
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString(response, 'status', '');
         let message = undefined;

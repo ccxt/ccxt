@@ -5752,7 +5752,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrder")))
         {
-            throw new NotSupported ((string)add(this.id, "createPostOnlyOrder() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createPostOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
@@ -5765,7 +5765,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrderWs")))
         {
-            throw new NotSupported ((string)add(this.id, "createPostOnlyOrderWs() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
@@ -5778,7 +5778,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrder")))
         {
-            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrder() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
@@ -5791,7 +5791,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrderWs")))
         {
-            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrderWs() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },

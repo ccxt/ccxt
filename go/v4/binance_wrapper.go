@@ -495,6 +495,8 @@ func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, sid
  * @description edit a trade order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -502,6 +504,7 @@ func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, sid
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) EditContractOrder(id string, symbol string, typeVar string, side string, amount float64, options ...EditContractOrderOptions) (Order, error) {

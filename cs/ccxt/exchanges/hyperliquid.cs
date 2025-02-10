@@ -184,7 +184,7 @@ public partial class hyperliquid : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "Price must be divisible by tick size.", typeof(InvalidOrder) },
                     { "Order must have minimum value of $10", typeof(InvalidOrder) },
-                    { "Insufficient margin to place order.", typeof(InvalidOrder) },
+                    { "Insufficient margin to place order.", typeof(InsufficientFunds) },
                     { "Reduce only order would increase position.", typeof(InvalidOrder) },
                     { "Post only order would have immediately matched,", typeof(InvalidOrder) },
                     { "Order could not immediately match against any resting orders.", typeof(InvalidOrder) },
@@ -3053,7 +3053,7 @@ public partial class hyperliquid : Exchange
             // handle swap <> spot account transfer
             if (!isTrue(this.inArray(toAccount, new List<object>() {"spot", "swap", "perp"})))
             {
-                throw new NotSupported ((string)add(this.id, "transfer() only support spot <> swap transfer")) ;
+                throw new NotSupported ((string)add(this.id, " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
             object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
@@ -3096,7 +3096,7 @@ public partial class hyperliquid : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "transfer() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, " transfer() only support USDC")) ;
             }
         }
         object payload = new Dictionary<string, object>() {
@@ -3168,7 +3168,7 @@ public partial class hyperliquid : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
             }
         }
         object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
@@ -3730,6 +3730,7 @@ public partial class hyperliquid : Exchange
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         object status = this.safeString(response, "status", "");
         object message = null;

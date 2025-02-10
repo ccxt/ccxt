@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.56",
+  "version": "4.4.57",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -199,7 +199,7 @@
     "as-table": "1.0.37",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.64",
+    "ast-transpiler": "^0.0.65",
     "docsify": "^4.11.4",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",

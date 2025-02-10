@@ -233,7 +233,7 @@ class mexc extends \ccxt\async\mexc {
                 $topics = array();
                 if (!$miniTicker) {
                     if ($symbols === null) {
-                        throw new ArgumentsRequired($this->id . 'watchTickers required $symbols argument for the bookTicker channel');
+                        throw new ArgumentsRequired($this->id . ' watchTickers required $symbols argument for the bookTicker channel');
                     }
                     $marketIds = $this->market_ids($symbols);
                     for ($i = 0; $i < count($marketIds); $i++) {
@@ -428,13 +428,13 @@ class mexc extends \ccxt\async\mexc {
             $symbols = $this->market_symbols($symbols, null, true, false, true);
             $marketType = null;
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . 'watchBidsAsks required $symbols argument');
+                throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
             }
             $markets = $this->markets_for_symbols($symbols);
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
             $isSpot = $marketType === 'spot';
             if (!$isSpot) {
-                throw new NotSupported($this->id . 'watchBidsAsks only support spot market');
+                throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
             }
             $messageHashes = array();
             $topics = array();

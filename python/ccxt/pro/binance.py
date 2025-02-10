@@ -247,7 +247,7 @@ class binance(ccxt.async_support.binance):
         type = None
         type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if type == 'spot':
-            raise BadRequest(self.id + 'watchLiquidationsForSymbols is not supported for spot symbols')
+            raise BadRequest(self.id + ' watchLiquidationsForSymbols is not supported for spot symbols')
         subType = None
         subType, params = self.handle_sub_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if self.isLinear(type, subType):
@@ -3705,7 +3705,7 @@ class binance(ccxt.async_support.binance):
             payload['limit'] = limit
         fromId = self.safe_integer(params, 'fromId')
         if fromId is not None and since is not None:
-            raise BadRequest(self.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
+            raise BadRequest(self.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
         message: dict = {
             'id': messageHash,
             'method': 'myTrades',

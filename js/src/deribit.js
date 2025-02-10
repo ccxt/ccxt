@@ -488,9 +488,6 @@ export default class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
-                'fetchPositions': {
-                    'code': 'BTC',
-                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
@@ -2751,38 +2748,19 @@ export default class deribit extends Exchange {
      * @see https://docs.deribit.com/#private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
      * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        let kind = this.safeString(params, 'kind');
-        let code = undefined;
-        if (symbols === undefined) {
-            code = this.codeFromOptions('fetchPositions', params);
-        }
-        else if (typeof symbols === 'string') {
-            code = symbols;
-            symbols = undefined; // fix https://github.com/ccxt/ccxt/issues/13961
-        }
-        else {
-            if (Array.isArray(symbols)) {
-                const length = symbols.length;
-                if (length !== 1) {
-                    throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                const market = this.market(symbols[0]);
-                const settle = market['settle'];
-                code = (settle !== undefined) ? settle : market['base'];
-                kind = market['info']['kind'];
-            }
-        }
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        if (kind !== undefined) {
-            request['kind'] = kind;
+        const code = this.safeString(params, 'currency');
+        const request = {};
+        if (code !== undefined) {
+            params = this.omit(params, 'currency');
+            const currency = this.currency(code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privateGetGetPositions(this.extend(request, params));
         //

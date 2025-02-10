@@ -189,7 +189,7 @@ class hyperliquid extends Exchange {
                 'broad' => array(
                     'Price must be divisible by tick size.' => '\\ccxt\\InvalidOrder',
                     'Order must have minimum value of $10' => '\\ccxt\\InvalidOrder',
-                    'Insufficient margin to place order.' => '\\ccxt\\InvalidOrder',
+                    'Insufficient margin to place order.' => '\\ccxt\\InsufficientFunds',
                     'Reduce only order would increase position.' => '\\ccxt\\InvalidOrder',
                     'Post only order would have immediately matched,' => '\\ccxt\\InvalidOrder',
                     'Order could not immediately match against any resting orders.' => '\\ccxt\\InvalidOrder',
@@ -2829,7 +2829,7 @@ class hyperliquid extends Exchange {
         if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
             // handle swap <> spot account transfer
             if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
-                throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
+                throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
             }
             $strAmount = $this->number_to_string($amount);
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -2868,7 +2868,7 @@ class hyperliquid extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'transfer() only support USDC');
+                throw new NotSupported($this->id . ' transfer() only support USDC');
             }
         }
         $payload = array(
@@ -2935,7 +2935,7 @@ class hyperliquid extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'withdraw() only support USDC');
+                throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
         }
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -3431,6 +3431,7 @@ class hyperliquid extends Exchange {
         //         $status => 'ok',
         //         $response => array( type => 'order', $data => array( $statuses => array( array( error => 'Insufficient margin to place order. asset=4' ) ) ) )
         //     }
+        // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
         $status = $this->safe_string($response, 'status', '');
         $message = null;

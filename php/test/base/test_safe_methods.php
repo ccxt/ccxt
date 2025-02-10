@@ -235,6 +235,10 @@ function test_safe_methods() {
     assert($exchange->safe_number($input_dict, 'f') === $exchange->parse_number(0.123));
     assert($exchange->safe_number($input_dict, 'strNumber') === $exchange->parse_number(3));
     assert($exchange->safe_number($input_list, 1) === $exchange->parse_number(2));
+    assert($exchange->safe_number($input_list, 'bool') === null);
+    assert($exchange->safe_number($input_list, 'list') === null);
+    assert($exchange->safe_number($input_list, 'dict') === null);
+    assert($exchange->safe_number($input_list, 'str') === null);
     // safeNumber2
     assert($exchange->safe_number_2($input_dict, 'a', 'i') === $exchange->parse_number(1));
     assert($exchange->safe_number_2($input_dict, 'a', 'f') === $exchange->parse_number(0.123));
