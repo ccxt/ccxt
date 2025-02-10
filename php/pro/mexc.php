@@ -475,7 +475,10 @@ class mexc extends \ccxt\async\mexc {
         //    }
         //
         $parsedTicker = $this->parse_ws_bid_ask($message);
-        $symbol = $parsedTicker['symbol'];
+        $symbol = $this->safe_string($parsedTicker, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $this->bidsasks[$symbol] = $parsedTicker;
         $messageHash = 'bidask:' . $symbol;
         $client->resolve ($parsedTicker, $messageHash);
