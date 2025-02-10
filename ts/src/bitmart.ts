@@ -1170,8 +1170,8 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetSpotV1Currencies (params);
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetAccountV1Currencies (params);
         //
         //     {
         //         "message":"OK",
@@ -1186,12 +1186,35 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
+        //     {
+        //         "message": "OK",
+        //         "code":1000,
+        //         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "data": {
+        //             "currencies": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "name": "Bitcoin",
+        //                     "contract_address": null,
+        //                     "network": "BTC",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
+        //                     "withdraw_minsize": "0.0003",
+        //                     "withdraw_minfee": "9.74"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const data = this.safeDict (response, 'data', {});
         const currencies = this.safeList (data, 'currencies', []);
-        const result: Dict = {};
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
+            const currencyExchangeId = this.safeString (currency, 'currency');
+            const parts = currencyExchangeId.split ('-');
+            const splitedParts = this.safeString (parts, 0);
+            const id = splitedParts.replace (/_POLYGON|_ARBI|_BSC|_DOGECHAIN|_BEP20|_Arbitrum|_ETH|_OP|_FLOW|_Chiliz|_COREUM|_Delist|_DELIST|_CRO|_AVAX|_CELO|_delisted|_ERC20/g, '');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const withdrawEnabled = this.safeBool (currency, 'withdraw_enabled');
@@ -1201,7 +1224,7 @@ export default class bitmart extends Exchange {
                 'id': id,
                 'code': code,
                 'name': name,
-                'info': currency, // the original payload
+                'info': currency,
                 'active': active,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
