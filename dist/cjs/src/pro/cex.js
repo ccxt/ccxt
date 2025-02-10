@@ -1229,7 +1229,7 @@ class cex extends cex$1 {
      */
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + 'fetchOpenOrdersWs requires a symbol.');
+            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrdersWs requires a symbol.');
         }
         await this.loadMarkets();
         await this.authenticate();

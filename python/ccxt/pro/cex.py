@@ -1188,7 +1188,7 @@ class cex(ccxt.async_support.cex):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOpenOrdersWs requires a symbol.')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrdersWs requires a symbol.')
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)

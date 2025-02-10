@@ -253,7 +253,7 @@ export default class binance extends binanceRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new BadRequest (this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
+            throw new BadRequest (this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
@@ -3998,7 +3998,7 @@ export default class binance extends binanceRest {
         }
         const fromId = this.safeInteger (params, 'fromId');
         if (fromId !== undefined && since !== undefined) {
-            throw new BadRequest (this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
+            throw new BadRequest (this.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         const message: Dict = {
             'id': messageHash,

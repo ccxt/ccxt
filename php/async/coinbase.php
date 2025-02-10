@@ -5164,10 +5164,17 @@ class coinbase extends Exchange {
         //        }
         //      )
         //    }
+        // or
+        //   {
+        //       "error" => "UNKNOWN_FAILURE_REASON",
+        //       "message" => "",
+        //       "error_details" => "",
+        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         $errorCode = $this->safe_string($response, 'error');
         if ($errorCode !== null) {
-            $errorMessage = $this->safe_string($response, 'error_description');
+            $errorMessage = $this->safe_string_2($response, 'error_description', 'preview_failure_reason');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback);

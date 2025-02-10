@@ -354,6 +354,7 @@ class ascendex extends ascendex$1 {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                 },
                 'forDerivatives': {
@@ -377,6 +378,7 @@ class ascendex extends ascendex$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                 },
                 'swap': {

@@ -246,7 +246,7 @@ class binance extends binance$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new errors.BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
+            throw new errors.BadRequest(this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
@@ -3963,7 +3963,7 @@ class binance extends binance$1 {
         }
         const fromId = this.safeInteger(params, 'fromId');
         if (fromId !== undefined && since !== undefined) {
-            throw new errors.BadRequest(this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
+            throw new errors.BadRequest(this.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         const message = {
             'id': messageHash,
