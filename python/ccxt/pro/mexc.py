@@ -446,7 +446,9 @@ class mexc(ccxt.async_support.mexc):
         #    }
         #
         parsedTicker = self.parse_ws_bid_ask(message)
-        symbol = parsedTicker['symbol']
+        symbol = self.safe_string(parsedTicker, 'symbol')
+        if symbol is None:
+            return
         self.bidsasks[symbol] = parsedTicker
         messageHash = 'bidask:' + symbol
         client.resolve(parsedTicker, messageHash)
