@@ -606,7 +606,11 @@ public partial class hyperliquid : Exchange
             object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
             object amountPrecision = parseInt(amountPrecisionStr);
             object price = this.safeNumber(extraData, "midPx");
-            object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            object pricePrecision = 0;
+            if (isTrue(!isEqual(price, null)))
+            {
+                pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            }
             object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(index, 10000));
@@ -710,7 +714,11 @@ public partial class hyperliquid : Exchange
         object amountPrecisionStr = this.safeString(market, "szDecimals");
         object amountPrecision = parseInt(amountPrecisionStr);
         object price = this.safeNumber(market, "markPx", 0);
-        object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        object pricePrecision = 0;
+        if (isTrue(!isEqual(price, null)))
+        {
+            pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        }
         object pricePrecisionStr = this.numberToString(pricePrecision);
         object isDelisted = this.safeBool(market, "isDelisted");
         object active = true;
