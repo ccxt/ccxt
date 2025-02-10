@@ -4264,6 +4264,22 @@ export default class Exchange {
         return [ networkCodeInParams, params ];
     }
 
+    /**
+     * 
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} request - existing dictionary of request
+     * @param {object} params - extra parameters
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleNetworkAndParamsWithRequest (exchangeSpecificKey, request, params) {
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId (networkCode);
+        }
+        return [ request, params ];
+    }
+
     defaultNetworkCode (currencyCode: string) {
         let defaultNetworkCode = undefined;
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
