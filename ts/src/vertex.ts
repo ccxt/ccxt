@@ -821,7 +821,7 @@ export default class vertex extends Exchange {
             throw new BadRequest (this.id + 'fetchTrades() symbol is required');
         }
         const market = this.market (symbol);
-        const marketId = market['type'] === 'spot' ? (market['baseId'] + '_USDC') : (market['baseId'] + '-PERP_USDC');
+        const marketId = (market['type'] === 'spot') ? (market['baseId'] + '_USDC') : (market['baseId'] + '-PERP_USDC');
         const request = {
             'ticker_id': marketId,
         };
