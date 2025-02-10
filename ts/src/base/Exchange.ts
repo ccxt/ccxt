@@ -4268,6 +4268,7 @@ export default class Exchange {
      * @param {string} exchangeSpecificKey - the key for chain id to be set in request
      * @param {object} request - existing dictionary of request
      * @param {object} params - extra parameters
+     * @param {boolean} toUpperCase - either undefined, true or false
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
     handleNetworkAndParamsWithRequest (params: any, request: any, exchangeSpecificKey: string, toUpperCase: Bool = undefined) {
