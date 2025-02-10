@@ -508,7 +508,8 @@ export default class vertex extends Exchange {
         const marketType = this.safeString (market, 'type');
         const quoteId = 'USDC';
         const quote = this.safeCurrencyCode (quoteId);
-        const baseId = this.safeString (market, 'symbol');
+        let baseId = this.safeString (market, 'symbol');
+        baseId = baseId.replace ('-PERP', '');
         const base = this.safeCurrencyCode (baseId);
         const settleId = quoteId;
         const settle = this.safeCurrencyCode (settleId);
@@ -816,8 +817,11 @@ export default class vertex extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + 'fetchTrades() symbol is required');
+        }
         const market = this.market (symbol);
-        const marketId = market['baseId'] + '_USDC';
+        const marketId = market['type'] === 'spot' ? (market['baseId'] + '_USDC') : (market['baseId'] + '-PERP_USDC');
         const request = {
             'ticker_id': marketId,
         };
@@ -1074,7 +1078,7 @@ export default class vertex extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['baseId'] + '_USDC';
+        const marketId = market['type'] === 'spot' ? (market['baseId'] + '_USDC') : (market['baseId'] + '-PERP_USDC');
         if (limit === undefined) {
             limit = 100;
         }
@@ -1569,7 +1573,7 @@ export default class vertex extends Exchange {
         //
         const base = this.safeString (ticker, 'base_currency');
         const quote = this.safeString (ticker, 'quote_currency');
-        let marketId = base + '/' + quote;
+        let marketId = base.toUpperCase () + '/' + quote.toUpperCase ();
         if (base.indexOf ('PERP') > 0) {
             marketId = marketId.replace ('-PERP', '') + ':USDC';
         }
