@@ -171,7 +171,6 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
 	}
 
-
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              this.SafeString(domain, "name", "").(string),
 		Version:           this.SafeString(domain, "version", "").(string),
@@ -202,6 +201,10 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 		panic(str)
 	}
 	return this.Base16ToBinary(hexData)
+}
+
+func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interface{} {
+	return nil
 }
 
 func ConvertInt64ToBigInt(data interface{}) interface{} {

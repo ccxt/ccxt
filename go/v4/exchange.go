@@ -95,7 +95,7 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	httpClient  *http.Client
+	httpClient *http.Client
 
 	HttpProxy            interface{}
 	HttpsProxy           interface{}
@@ -420,6 +420,10 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 		ch <- nil
 	}()
 	return ch
+}
+
+func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
+	return data
 }
 
 // error related functions
