@@ -1126,8 +1126,8 @@ export default class derive extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    parseUnits (num: string, decimal = '1000000000000000000') {
-        return Precise.stringMul (num, decimal);
+    parseUnits (num: string, dec = '1000000000000000000') {
+        return Precise.stringMul (num, dec);
     }
 
     /**
