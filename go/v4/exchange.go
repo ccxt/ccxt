@@ -423,7 +423,7 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 }
 
 func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
-	return data
+	return ParseInt(data)
 }
 
 // error related functions
