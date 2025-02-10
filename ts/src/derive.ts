@@ -643,7 +643,7 @@ export default class derive extends Exchange {
                 optionType = 'call';
             }
         }
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -693,7 +693,7 @@ export default class derive extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
