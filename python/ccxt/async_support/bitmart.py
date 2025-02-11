@@ -971,6 +971,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         symbols = self.safe_list(data, 'symbols', [])
         result = []
+        fees = self.fees['trading']
         for i in range(0, len(symbols)):
             market = symbols[i]
             id = self.safe_string(market, 'symbol')
@@ -1009,6 +1010,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': baseMinSize,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_max_precision'))),
@@ -1080,6 +1083,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         symbols = self.safe_list(data, 'symbols', [])
         result = []
+        fees = self.fees['trading']
         for i in range(0, len(symbols)):
             market = symbols[i]
             id = self.safe_string(market, 'symbol')
@@ -1121,6 +1125,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': self.safe_number(market, 'vol_precision'),
                     'price': self.safe_number(market, 'price_precision'),

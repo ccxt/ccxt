@@ -867,6 +867,7 @@ public partial class bitmart : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
+        object fees = getValue(this.fees, "trading");
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = getValue(symbols, i);
@@ -906,6 +907,8 @@ public partial class bitmart : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
+                { "maker", getValue(fees, "maker") },
+                { "taker", getValue(fees, "taker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", baseMinSize },
                     { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "price_max_precision"))) },
@@ -981,6 +984,7 @@ public partial class bitmart : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
+        object fees = getValue(this.fees, "trading");
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = getValue(symbols, i);
@@ -1025,6 +1029,8 @@ public partial class bitmart : Exchange
                 { "expiryDatetime", this.iso8601(expiry) },
                 { "strike", null },
                 { "optionType", null },
+                { "maker", getValue(fees, "maker") },
+                { "taker", getValue(fees, "taker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.safeNumber(market, "vol_precision") },
                     { "price", this.safeNumber(market, "price_precision") },
