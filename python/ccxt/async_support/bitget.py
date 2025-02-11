@@ -8855,4 +8855,9 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        if sandboxMode:
+            if headers is None:
+                headers = {}
+            headers['PAPTRADING'] = 1
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
