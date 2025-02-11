@@ -990,13 +990,13 @@ class Transpiler {
                 precisionImports.push ('use ccxt\\Precise;')
             }
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use React\\Async;')
+                libraryImports.push ('use \\React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use React\\Promise;')
+                libraryImports.push ('use \\React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
             }
         }
 
