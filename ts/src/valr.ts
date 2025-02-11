@@ -268,11 +268,13 @@ export default class valr extends Exchange {
                         'marketdata/{pair}/tradehistory', // fetchTrades
                         'wallet/crypto/{currency}/deposit/address', // fetchDepositAddress
                         'wallet/crypto/{currency}/deposit/history', // fetchDeposits
+                        'wallet/crypto/deposit/history', // TODO update fetchDeposits with new API
                         'wallet/crypto/address-book',
                         'wallet/crypto/address-book/{currency}',
                         'wallet/crypto/{currency}/withdraw',
                         'wallet/crypto/{currency}/withdraw/{id}',
                         'wallet/crypto/{currency}/withdraw/history', // fetchWithdrawals
+                        'wallet/crypto/withdraw/history', // TODO update fetchWithdrawals with new API
                         'wallet/fiat/{currency}/accounts/{id}',
                         'wallet/fiat/{currency}/accounts',
                         'wallet/fiat/{currency}/banks',
