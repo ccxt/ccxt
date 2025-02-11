@@ -9375,6 +9375,13 @@ export default class bitget extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['PAPTRADING'] = 1;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
