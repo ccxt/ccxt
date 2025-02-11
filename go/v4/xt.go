@@ -5704,7 +5704,7 @@ func  (this *xt) SetMarginMode(marginMode interface{}, optionalArgs ...interface
                 "symbol": GetValue(market, "id"),
             }
         
-            response:= (<-this.callDynamically("privateLinearPostFutureUserV1PositionChangeType", this.Extend(request, params)))
+            response:= (<-this.PrivateLinearPostFutureUserV1PositionChangeType(this.Extend(request, params)))
             PanicOnError(response)
         
                 //

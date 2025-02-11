@@ -5207,7 +5207,7 @@ public partial class xt : Exchange
             { "positionSide", posSide },
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureUserV1PositionChangeType", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
         //
         // {
         //     "error": {

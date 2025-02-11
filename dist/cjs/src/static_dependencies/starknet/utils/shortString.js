@@ -6,7 +6,6 @@ var constants = require('../constants.js');
 var encode = require('./encode.js');
 var num = require('./num.js');
 
-// ----------------------------------------------------------------------------
 /**
  * Test if string contains only ASCII characters (string can be ascii text)
  */

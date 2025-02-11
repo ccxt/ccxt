@@ -5,7 +5,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class currencycom extends currencycom$1 {
     describe() {
