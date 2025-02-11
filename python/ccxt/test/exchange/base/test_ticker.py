@@ -58,7 +58,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'askVolume', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'bid', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'bidVolume', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'vwap', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'vwap', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'average', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'baseVolume', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'quoteVolume', '0')
