@@ -1561,6 +1561,7 @@ class binance extends binance$1 {
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
+                'defaultWithdrawPrecision': 0.00000001,
             },
             'features': {
                 'spot': {
@@ -3106,6 +3107,7 @@ class binance extends binance$1 {
             const id = this.safeString(entry, 'coin');
             const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
+            const isFiat = this.safeBool(entry, 'isLegalMoney');
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
@@ -3117,6 +3119,7 @@ class binance extends binance$1 {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
                 const networkCode = this.networkIdToCode(network);
+                const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool(networkItem, 'depositEnable');
@@ -3128,11 +3131,25 @@ class binance extends binance$1 {
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
+                // todo: default networks in "setMarkets" overload
+                // if (isDefault) {
+                //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                // }
                 const precisionTick = this.safeString(networkItem, 'withdrawIntegerMultiple');
-                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                let withdrawPrecision = precisionTick;
+                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (!Precise["default"].stringEq(precisionTick, '0')) {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
+                }
+                else {
+                    if (!isFiat && !isETF) {
+                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                        withdrawPrecision = this.omitZero(this.safeString(networkItem, 'withdrawInternalMin'));
+                        if (withdrawPrecision === undefined) {
+                            withdrawPrecision = this.safeString(this.options, 'defaultWithdrawPrecision');
+                        }
+                    }
                 }
                 networks[networkCode] = {
                     'info': networkItem,
@@ -3142,7 +3159,7 @@ class binance extends binance$1 {
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': withdrawFee,
-                    'precision': this.parseNumber(precisionTick),
+                    'precision': this.parseNumber(withdrawPrecision),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(networkItem, 'withdrawMin'),
@@ -3172,6 +3189,7 @@ class binance extends binance$1 {
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'precision': this.parseNumber(minPrecision),
                 'info': entry,
                 'active': active,

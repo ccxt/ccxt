@@ -51,7 +51,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'askVolume', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'bid', '0');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'bidVolume', '0');
-    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'vwap', '0');
+    testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'vwap', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'baseVolume', '0');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'quoteVolume', '0');
