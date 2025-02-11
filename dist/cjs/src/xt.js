@@ -114,7 +114,7 @@ class xt extends xt$1 {
                 'repayMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
@@ -272,6 +272,7 @@ class xt extends xt$1 {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -4838,6 +4839,59 @@ class xt extends xt$1 {
             'toAccount': undefined,
             'status': undefined,
         };
+    }
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (market['spot']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'CROSSED';
+        }
+        else {
+            marginMode = 'ISOLATED';
+        }
+        const posSide = this.safeStringUpper(params, 'positionSide');
+        if (posSide === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
+        }
+        const request = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        };
+        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response; // unify return type
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
