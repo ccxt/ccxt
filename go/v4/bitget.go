@@ -10669,6 +10669,13 @@ func  (this *bitget) Sign(path interface{}, optionalArgs ...interface{}) interfa
             AddElementToObject(headers, "Content-Type", "application/json")
         }
     }
+    var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+    if IsTrue(sandboxMode) {
+        if IsTrue(IsEqual(headers, nil)) {
+            headers = map[string]interface{} {}
+        }
+        AddElementToObject(headers, "PAPTRADING", 1)
+    }
     return map[string]interface{} {
         "url": url,
         "method": method,
