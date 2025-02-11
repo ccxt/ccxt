@@ -387,12 +387,16 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch usdt address",
+                "description": "with network",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "url": "https://api.woox.io/v1/asset/deposit?token=SOL_USDT",
                 "input": [
-                    "USDT"
-                ]
+                    "USDT",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchOHLCV": [
