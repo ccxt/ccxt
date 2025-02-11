@@ -10069,6 +10069,15 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (isTrue(sandboxMode))
+        {
+            if (isTrue(isEqual(headers, null)))
+            {
+                headers = new Dictionary<string, object>() {};
+            }
+            ((IDictionary<string,object>)headers)["PAPTRADING"] = 1;
+        }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
