@@ -5430,11 +5430,18 @@ public partial class coinbase : Exchange
         //        }
         //      ]
         //    }
+        // or
+        //   {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         object errorCode = this.safeString(response, "error");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object errorMessage = this.safeString(response, "error_description");
+            object errorMessage = this.safeString2(response, "error_description", "preview_failure_reason");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError ((string)feedback) ;

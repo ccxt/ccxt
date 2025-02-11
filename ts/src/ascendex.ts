@@ -356,6 +356,7 @@ export default class ascendex extends Exchange {
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                 },
                 'forDerivatives': {
@@ -379,6 +380,7 @@ export default class ascendex extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                 },
                 'swap': {

@@ -2192,7 +2192,7 @@ class okx extends okx$1 {
         await this.authenticate();
         const market = this.market(symbol);
         if (market['type'] !== 'option') {
-            throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
