@@ -7,7 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
-use React\Async;
+use \React\Async;
 
 class binanceusdm extends binance {
 

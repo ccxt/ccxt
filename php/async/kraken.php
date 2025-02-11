@@ -15,8 +15,8 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
 

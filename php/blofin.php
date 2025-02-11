@@ -316,8 +316,7 @@ class blofin extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limit' => true,
-                            'price' => null,
+                            'price' => true,
                         ),
                         'hedged' => true,
                     ),

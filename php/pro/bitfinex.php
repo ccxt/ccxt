@@ -10,8 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitfinex extends \ccxt\async\bitfinex {
 

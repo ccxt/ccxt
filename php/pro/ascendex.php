@@ -8,8 +8,8 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ascendex extends \ccxt\async\ascendex {
 

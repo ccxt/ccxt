@@ -14,8 +14,8 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class huobijp extends Exchange {
 

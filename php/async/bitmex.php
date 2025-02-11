@@ -15,8 +15,8 @@ use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitmex extends Exchange {
 

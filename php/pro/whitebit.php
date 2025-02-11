@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class whitebit extends \ccxt\async\whitebit {
 

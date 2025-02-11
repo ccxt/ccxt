@@ -12,8 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\ChecksumError;
 use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitget extends \ccxt\async\bitget {
 
