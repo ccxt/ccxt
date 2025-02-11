@@ -3413,7 +3413,7 @@ class Exchange {
         let change = this.omitZero(this.safeString(ticker, 'change'));
         let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
         let average = this.omitZero(this.safeString(ticker, 'average'));
-        let vwap = this.omitZero(this.safeString(ticker, 'vwap'));
+        let vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'baseVolume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
