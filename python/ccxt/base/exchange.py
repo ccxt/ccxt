@@ -139,6 +139,7 @@ class Exchange(object):
     alias = False  # whether this exchange is an alias to another exchange
     # rate limiter settings
     enableRateLimit = True
+    enableWsRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
@@ -1797,6 +1798,7 @@ class Exchange(object):
             'name': None,
             'countries': None,
             'enableRateLimit': True,
+            'enableWsRateLimit': False,
             'rateLimit': 2000,  # milliseconds = seconds * 1000
             'timeout': self.timeout,  # milliseconds = seconds * 1000
             'certified': False,  # if certified by the CCXT dev team
@@ -2109,6 +2111,74 @@ class Exchange(object):
                 'cost': {'min': None, 'max': None},
             },
         }
+
+    def get_ws_rate_limit_cost(self, url: str, type: str):
+        """
+ @ignore
+        Safely returns message or connection cost for ws rate limit
+        :returns number:
+        """
+        wsOptions = self.safe_dict(self.options, 'ws')
+        rateLimits = self.safe_dict(wsOptions, 'rateLimits', {})
+        exchangeDefaultRateLimit = self.safe_dict(rateLimits, 'default', {})
+        cost = self.safe_number(exchangeDefaultRateLimit, type, 1)
+        rateLimitsKeys = list(rateLimits.keys())
+        for i in range(0, len(rateLimitsKeys)):
+            rateLimitKey = rateLimitsKeys[i]
+            if url.startswith(rateLimitKey):
+                value = self.safe_dict(rateLimits, rateLimitKey)
+                cost = self.safe_number(value, type, cost)
+                break
+        return cost
+
+    def get_ws_rate_limit_config(self, url, bucketHash='connections'):
+        """
+ @ignore
+        Safely extract boolean value from dictionary or list
+        :returns dict:
+
+ The rate limits can be configured by setting the `options.ws.rateLimits` property in the exchange configuration. Here's an example:
+
+ ```json
+ 'options': {
+     'ws': {
+         'rateLimits': {
+             'default': { # set default rate limit for all rate limits
+                 'rateLimit': 100,
+                 'connections': 1,  # cost per connection
+                 'subscriptions': 5,  # cost per subscription
+             },
+             'https://some_url': { # set the rate limit for a specific url
+                 'rateLimit': 100,
+                 'connections': 2,  # override cost for a connection
+                 'subscriptions': 3,  # override cost for a subscription
+             }
+         }
+     }
+}
+ ```
+
+ In self example, the default rate limit is set to 100, the cost per connection is 1, and the cost per subscription is 5. For the url `https://some_url`, the rate limit is set to 100, the cost per connection is overridden to 2, and the cost per subscription is overridden to 3. The `rateLimit` property sets the maximum number of requests that can be made per second, the `connections` property sets the cost of creating a new connection, and the `subscriptions` property sets the cost of creating a new subscription.
+        """
+        wsOptions = self.safe_dict(self.options, 'ws')
+        rateLimits = self.safe_dict(wsOptions, 'rateLimits', {})
+        exchangeDefaultRateLimit = self.safe_dict(rateLimits, 'default', {})
+        cost = self.safe_number(exchangeDefaultRateLimit, bucketHash, 1)
+        rateLimit = self.safe_number(exchangeDefaultRateLimit, 'rateLimit')
+        rateLimitsKeys = list(rateLimits.keys())
+        for i in range(0, len(rateLimitsKeys)):
+            rateLimitKey = rateLimitsKeys[i]
+            if url.startswith(rateLimitKey):
+                value = self.safe_dict(rateLimits, rateLimitKey)
+                rateLimit = self.safe_number(value, 'rateLimit', rateLimit)
+                cost = self.safe_number(value, bucketHash, cost)
+                break
+        config: dict = {}
+        if cost:
+            config['cost'] = cost
+        if rateLimit:
+            config['refillRate'] = 1 / rateLimit
+        return config
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """

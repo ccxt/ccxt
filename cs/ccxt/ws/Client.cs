@@ -53,6 +53,10 @@ public partial class Exchange
         public Int64? connectionEstablished;
 
         public bool error = false;
+    
+        public Throttler connectionsThrottler;
+
+        public Throttler messagesThrottler;
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool useMessageQueue = false)
         {
@@ -172,7 +176,7 @@ public partial class Exchange
             });
         }
 
-        public Task connect(int backoffDelay = 0)
+        public Task connect()
         {
             if (!this.startedConnecting)
             {
@@ -461,6 +465,8 @@ public partial class Exchange
 
                 }
             }
+            this.connectionsThrottler.clear();
+            this.messagesThrottler.clear();
         }
     }
 

@@ -2,6 +2,8 @@ namespace ccxt;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 
+using dict = Dictionary<string, object>;
+
 public partial class Exchange
 {
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
@@ -134,9 +136,13 @@ public partial class Exchange
         {
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
             var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
+            var wsConnectionsTokenConfig = this.getWsRateLimitConfig(url, "connections");
+            var wsMessagesTokenConfig = this.getWsRateLimitConfig(url, "messages");
             var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
             var useMessageQueue = ((bool)this.safeBool(wsOptions, "useMessageQueue", true));
             var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, useMessageQueue);
+            client.connectionsThrottler = new Throttler(wsConnectionsTokenConfig as dict);
+            client.messagesThrottler = new Throttler(wsMessagesTokenConfig as dict);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -152,7 +158,7 @@ public partial class Exchange
         });
     }
 
-    public async Task<object> watch(object url2, object messageHash2, object message = null, object subscribeHash2 = null, object subscription = null)
+    public async Task<object> watch(object url2, object messageHash2, object message = null, object subscribeHash2 = null, object subscription = null, object messageCost2 = null)
     {
         var url = url2.ToString();
         var messageHash = messageHash2.ToString();
@@ -163,7 +169,12 @@ public partial class Exchange
         if (subscribeHash == null) {
             return await future;
         }
-        var connected = client.connect(0);
+
+        if (!client.startedConnecting && this.enableWsRateLimit) {
+            var cost = this.getWsRateLimitCost(url, "connections");
+            await client.connectionsThrottler.throttle(cost);
+        } 
+        var connected = client.connect();
 
         if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
         {
@@ -172,6 +183,15 @@ public partial class Exchange
             {
                 try
                 {
+                    if (this.enableWsRateLimit)
+                    {
+                        if (messageCost2 == null)
+                        {
+                            messageCost2 = this.getWsRateLimitCost(url, "messages");
+                        }
+                        var messageCost = parseInt(messageCost2);
+                        await client.messagesThrottler.throttle(messageCost);
+                    }
                     await client.send(message);
                 }
                 catch (Exception ex)
@@ -186,7 +206,7 @@ public partial class Exchange
         return await future;
     }
 
-    public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
+    public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null, object messageCost = null)
     {
         var url = url2.ToString();
         var messageHashes = (messageHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
@@ -211,7 +231,12 @@ public partial class Exchange
             }
         }
 
-        var connected = client.connect(0);
+
+        if (!client.startedConnecting && this.enableWsRateLimit) {
+            var cost = this.getWsRateLimitCost(url, "connections");
+            await client.connectionsThrottler.throttle(cost);
+        } 
+        var connected = client.connect();
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
@@ -220,6 +245,11 @@ public partial class Exchange
             {
                 try
                 {
+                    if (this.enableWsRateLimit)
+                    {
+                        messageCost = this.getWsRateLimitCost(url, "messages");
+                        await client.messagesThrottler.throttle (messageCost);
+                    }
                     await client.send(message);
                 }
                 catch (Exception ex)

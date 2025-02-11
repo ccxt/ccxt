@@ -153,7 +153,35 @@ export default class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'cost': 5,
+                    'rateLimits': {
+                        'default': {
+                            'rateLimit': 1000,
+                        },
+                        'wss://stream.binance.com:9443': {
+                            'connections': 1,
+                            'messages': 2, // 5 per second
+                        },
+                        'wss://fstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://dstream.binance.com': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://stream.binancefuture.com/ws': {
+                            'connections': 1,
+                            'messages': 1, // 10 per second
+                        },
+                        'wss://testnet.binance.vision': {
+                            'connections': 1,
+                            'messages': 2,  // spot is 5 msg per second
+                        },
+                        'wss://dstream.binancefuture.com': {
+                            'connections': 1,
+                            'messages': 1,
+                        },
+                    },
                 },
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
@@ -2557,7 +2585,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 10);
     }
 
     handleBalanceWs (client: Client, message) {
@@ -3319,7 +3347,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleOrderWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription, 2);
     }
 
     /**
@@ -3364,7 +3392,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -3428,7 +3456,8 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
-        const orders = await this.watch (url, messageHash, message, messageHash, subscription);
+        const messageCost = (symbol === undefined) ? 40 : 3;
+        const orders = await this.watch (url, messageHash, message, messageHash, subscription, messageCost);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -4008,7 +4037,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleTradesWs,
         };
-        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription, 10);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
@@ -4160,7 +4189,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        const trades = await this.watch (url, messageHash, message, type, 10);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
