@@ -377,7 +377,6 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
-                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
