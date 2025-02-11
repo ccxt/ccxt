@@ -1170,21 +1170,8 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetAccountV1Currencies (params);
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
-        //             ]
-        //         }
-        //     }
         //
         //     {
         //         "message": "OK",
@@ -1211,30 +1198,51 @@ export default class bitmart extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const currencyExchangeId = this.safeString (currency, 'currency');
-            const parts = currencyExchangeId.split ('-');
-            const splitedParts = this.safeString (parts, 0);
-            const id = splitedParts.replace (/_POLYGON|_ARBI|_BSC|_DOGECHAIN|_BEP20|_Arbitrum|_ETH|_OP|_FLOW|_Chiliz|_COREUM|_Delist|_DELIST|_CRO|_AVAX|_CELO|_delisted|_ERC20/g, '');
+            const fullId = this.safeString (currency, 'currency');
+            let id = fullId;
+            if (fullId.indexOf ('NFT') < 0) {
+                const parts = fullId.split ('-');
+                id = this.safeString (parts, 0);
+            }
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeBool (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeBool (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
+            if (result[code] === undefined) {
+                result[code] = {
+                    'id': fullId,
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'info': currency,
+                    'networks': {},
+                };
+            }
+            const networkId = this.safeString (currency, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdraw = this.safeBool (currency, 'withdraw_enabled');
+            const deposit = this.safeBool (currency, 'deposit_enabled');
+            result[code]['networks'][networkCode] = {
                 'info': currency,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': undefined,
+                'id': networkId,
+                'code': networkCode,
+                'withdraw': withdraw,
+                'deposit': deposit,
+                'active': withdraw && deposit,
+                'fee': this.safeNumber (currency, 'withdraw_minfee'), // todo check
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdraw_minsize'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+        }
+        const codes = Object.keys (result);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = result[code];
+            result[code] = this.safeCurrencyStructure (currency);
         }
         return result;
     }
