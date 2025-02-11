@@ -4871,7 +4871,7 @@ export default class xt extends Exchange {
         //     "returnCode": 0
         // }
         //
-        return this.parseLeverage (response, market);
+        return response; // unify return type
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
