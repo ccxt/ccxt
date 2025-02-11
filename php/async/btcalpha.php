@@ -10,8 +10,8 @@ use ccxt\async\abstract\btcalpha as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class btcalpha extends Exchange {
 

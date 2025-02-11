@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\p2b as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class p2b extends Exchange {
 

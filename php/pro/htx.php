@@ -13,8 +13,8 @@ use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class htx extends \ccxt\async\htx {
 

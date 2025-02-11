@@ -17,9 +17,9 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\BadResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class digifinex extends Exchange {
 

@@ -12,8 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\AddressPending;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class upbit extends Exchange {
 
