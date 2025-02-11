@@ -1510,8 +1510,7 @@ export default class coinbase extends Exchange {
         const data = this.safeList (spot, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseSpotMarket (data[i], feeTier);
-            result.push (parsed);
+            result.push (this.parseSpotMarket (data[i], feeTier));
         }
         const futureData = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
