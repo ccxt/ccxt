@@ -2167,12 +2167,15 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeString (params, 'network', networkCodeDefault);
-        params = this.omit (params, 'network');
-        const codeForExchange = networkCode + '_' + currency['code'];
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            const currencNetworks = Object.keys (currency['networks']);
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
+        }
+        const tokenId = networkCode + '_' + currency['code'];
         const request: Dict = {
-            'token': codeForExchange,
+            'token': tokenId,
         };
         const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
@@ -2608,16 +2611,14 @@ export default class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        const networks = this.safeDict (this.options, 'networks', {});
-        const currencyNetworks = this.safeDict (currency, 'networks', {});
-        const network = this.safeStringUpper (params, 'network');
-        const networkId = this.safeString (networks, network, network);
-        const coinNetwork = this.safeDict (currencyNetworks, networkId, {});
-        const coinNetworkId = this.safeString (coinNetwork, 'id');
-        if (coinNetworkId === undefined) {
-            throw new BadRequest (this.id + ' withdraw() require network parameter');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            const currencNetworks = Object.keys (currency['networks']);
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        request['token'] = coinNetworkId;
+        const tokenId = networkCode + '_' + currency['code'];
+        request['token'] = tokenId;
         const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
@@ -3781,20 +3782,6 @@ export default class woo extends Exchange {
             };
         }
         return result;
-    }
-
-    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
-        const currencyItem = this.currency (code);
-        const networks = currencyItem['networks'];
-        const networkKeys = Object.keys (networks);
-        for (let i = 0; i < networkKeys.length; i++) {
-            const network = networkKeys[i];
-            if (network === 'ETH') {
-                return network;
-            }
-        }
-        // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue (networkKeys, 0);
     }
 
     setSandboxMode (enable: boolean) {
