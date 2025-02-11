@@ -1205,8 +1205,9 @@ export default class bitmart extends Exchange {
                 id = this.safeString (parts, 0);
             }
             const code = this.safeCurrencyCode (id);
-            if (result[code] === undefined) {
-                result[code] = {
+            let entry = this.safeDict (result, code);
+            if (entry === undefined) {
+                entry = {
                     'id': fullId,
                     'code': code,
                     'name': this.safeString (currency, 'name'),
@@ -1218,7 +1219,7 @@ export default class bitmart extends Exchange {
             const networkCode = this.networkIdToCode (networkId);
             const withdraw = this.safeBool (currency, 'withdraw_enabled');
             const deposit = this.safeBool (currency, 'deposit_enabled');
-            result[code]['networks'][networkCode] = {
+            entry['networks'][networkCode] = {
                 'info': currency,
                 'id': networkId,
                 'code': networkCode,
@@ -1237,6 +1238,7 @@ export default class bitmart extends Exchange {
                     },
                 },
             };
+            result[code] = entry;
         }
         const codes = Object.keys (result);
         for (let i = 0; i < codes.length; i++) {
