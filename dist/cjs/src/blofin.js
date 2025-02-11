@@ -319,8 +319,7 @@ class blofin extends blofin$1 {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limit': true,
-                            'price': undefined,
+                            'price': true,
                         },
                         'hedged': true,
                     },
