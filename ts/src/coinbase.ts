@@ -377,7 +377,6 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
-                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1510,8 +1509,7 @@ export default class coinbase extends Exchange {
         const data = this.safeList (spot, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseSpotMarket (data[i], feeTier);
-            result.push (parsed);
+            result.push (this.parseSpotMarket (data[i], feeTier));
         }
         const futureData = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {

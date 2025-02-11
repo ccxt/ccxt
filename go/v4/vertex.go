@@ -1762,7 +1762,7 @@ func  (this *vertex) ParseTicker(ticker interface{}, optionalArgs ...interface{}
     if IsTrue(IsGreaterThan(GetIndexOf(base, "PERP"), 0)) {
         marketId = Add(Replace(marketId, "-PERP", ""), ":USDC")
     }
-    market = this.Market(marketId)
+    market = this.SafeMarket(marketId, market)
     var last interface{} = this.SafeString(ticker, "last_price")
     return this.SafeTicker(map[string]interface{} {
         "symbol": GetValue(market, "symbol"),

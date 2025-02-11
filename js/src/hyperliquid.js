@@ -599,7 +599,10 @@ export default class hyperliquid extends Exchange {
             const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
             const amountPrecision = parseInt(amountPrecisionStr);
             const price = this.safeNumber(extraData, 'midPx');
-            const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            let pricePrecision = 0;
+            if (price !== undefined) {
+                pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            }
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(index + 10000);
@@ -699,7 +702,10 @@ export default class hyperliquid extends Exchange {
         const amountPrecisionStr = this.safeString(market, 'szDecimals');
         const amountPrecision = parseInt(amountPrecisionStr);
         const price = this.safeNumber(market, 'markPx', 0);
-        const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        let pricePrecision = 0;
+        if (price !== undefined) {
+            pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        }
         const pricePrecisionStr = this.numberToString(pricePrecision);
         const isDelisted = this.safeBool(market, 'isDelisted');
         let active = true;
