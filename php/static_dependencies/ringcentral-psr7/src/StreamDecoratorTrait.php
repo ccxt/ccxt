@@ -12,7 +12,7 @@ abstract class StreamDecoratorTrait implements StreamInterface
     /**
      * @param StreamInterface|null $stream Stream to decorate
      */
-    public function __construct(StreamInterface $stream = null)
+    public function __construct(?StreamInterface $stream = null)
     {
         if ($stream) $this->stream = $stream;
     }
