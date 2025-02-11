@@ -1,0 +1,92 @@
+{
+    "exchange": "aftermath",
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchCurrencies",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchCurrencies",
+            "input": [],
+            "output": "{}"
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchMarkets",
+                "url": "http://localhost:8085/perpetuals/ccxt/fetchMarkets",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchTradingFee",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchMarkets",
+            "input": [
+                "BTC/USD:USDC"
+            ],
+            "output": "{}"
+            }
+        ],
+        "fetchTicker": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchTicker",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchTicker",
+            "input": [
+                "BTC/USD:USDC"
+            ],
+            "output": "{\"chId\":\"0xf746edca6bf0b2da7886815ded79ec15f72c4434d151c9ab0c72ffd4f341baf6\",\"symbol\":\"BTC/USD:USDC\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchOrderBook",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchOrderBook",
+            "input": [
+                "BTC/USD:USDC"
+            ],
+            "output": "{\"chId\":\"0xf746edca6bf0b2da7886815ded79ec15f72c4434d151c9ab0c72ffd4f341baf6\",\"symbol\":\"BTC/USD:USDC\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchTrades",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchTrades",
+            "input": [
+                "BTC/USD:USDC"
+            ],
+            "output": "{\"chId\":\"0xf746edca6bf0b2da7886815ded79ec15f72c4434d151c9ab0c72ffd4f341baf6\",\"symbol\":\"BTC/USD:USDC\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchOHLCV",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchTrades",
+            "input": [
+                "BTC/USD:USDC"
+            ],
+            "output": "{\"chId\":\"0xf746edca6bf0b2da7886815ded79ec15f72c4434d151c9ab0c72ffd4f341baf6\",\"symbol\":\"BTC/USD:USDC\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchBalance",
+            "url": "http://localhost:8085/perpetuals/ccxt/fetchBalance",
+            "input": [
+                {
+                "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                }
+            ],
+            "output": "{\"account\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\"}"
+            }
+        ]
+    }
+}
