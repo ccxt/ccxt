@@ -938,7 +938,7 @@ class probit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
 
         https://docs-en.probit.com/reference/time

@@ -641,7 +641,7 @@ class wazirx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
 
         https://docs.wazirx.com/#check-server-time
