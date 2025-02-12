@@ -6,6 +6,7 @@ import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
+import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 // import testJson from './test.json.js';
@@ -29,6 +30,7 @@ function baseTestsInit () {
     testOmit ();
     testGroupBy ();
     testFilterBy ();
+    testNetworkMethods ();
 }
 
 export default baseTestsInit;
