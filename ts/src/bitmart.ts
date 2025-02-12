@@ -1357,13 +1357,15 @@ export default class bitmart extends Exchange {
      * @description fetch the fee for deposits and withdrawals
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchDepositWithdrawFee (code: string, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -3660,27 +3662,11 @@ export default class bitmart extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const currencyId = currency['id'];
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currencyId,
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
         };
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            networkInner = this.safeString (networks, networkInner, networkInner); // handle ERC20>ETH alias
-            if (networkInner !== undefined) {
-                request['currency'] = currencyId + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        } else {
-            let networkCode = undefined;
-            [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-            if (networkCode !== undefined) {
-                request['currency'] = currencyId + '-' + this.networkCodeToId (networkCode);
-            }
-        }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //    {
