@@ -10,8 +10,8 @@ use ccxt\async\abstract\zonda as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class zonda extends Exchange {
 

@@ -598,7 +598,10 @@ class hyperliquid extends Exchange {
             $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
             $amountPrecision = intval($amountPrecisionStr);
             $price = $this->safe_number($extraData, 'midPx');
-            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            $pricePrecision = 0;
+            if ($price !== null) {
+                $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            }
             $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
             $baseId = $this->number_to_string($index + 10000);
@@ -699,7 +702,10 @@ class hyperliquid extends Exchange {
         $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
         $amountPrecision = intval($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
-        $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecision = 0;
+        if ($price !== null) {
+            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        }
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
         $isDelisted = $this->safe_bool($market, 'isDelisted');
         $active = true;

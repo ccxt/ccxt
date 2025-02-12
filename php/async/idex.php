@@ -12,8 +12,8 @@ use ccxt\BadRequest;
 use ccxt\InvalidAddress;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class idex extends Exchange {
 

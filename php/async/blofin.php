@@ -11,8 +11,8 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class blofin extends Exchange {
 
@@ -322,8 +322,7 @@ class blofin extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limit' => true,
-                            'price' => null,
+                            'price' => true,
                         ),
                         'hedged' => true,
                     ),

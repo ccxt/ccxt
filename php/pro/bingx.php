@@ -10,8 +10,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bingx extends \ccxt\async\bingx {
 

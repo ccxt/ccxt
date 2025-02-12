@@ -11,8 +11,8 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class binance extends \ccxt\async\binance {
 

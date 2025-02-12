@@ -9296,6 +9296,13 @@ class bitget extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         }
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode) {
+            if ($headers === null) {
+                $headers = array();
+            }
+            $headers['PAPTRADING'] = 1;
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

@@ -10,8 +10,8 @@ use ccxt\async\abstract\latoken as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class latoken extends Exchange {
 

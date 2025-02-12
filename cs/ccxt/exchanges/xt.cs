@@ -103,7 +103,7 @@ public partial class xt : Exchange
                 { "repayMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "signIn", false },
                 { "transfer", true },
@@ -258,6 +258,7 @@ public partial class xt : Exchange
                             { "future/user/v1/position/margin", 1 },
                             { "future/user/v1/user/collection/add", 1 },
                             { "future/user/v1/user/collection/cancel", 1 },
+                            { "future/user/v1/position/change-type", 1 },
                         } },
                     } },
                     { "inverse", new Dictionary<string, object>() {
@@ -5158,6 +5159,67 @@ public partial class xt : Exchange
             { "toAccount", null },
             { "status", null },
         };
+    }
+
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(getValue(market, "spot")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+        }
+        marginMode = ((string)marginMode).ToLower();
+        if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
+        {
+            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        if (isTrue(isEqual(marginMode, "cross")))
+        {
+            marginMode = "CROSSED";
+        } else
+        {
+            marginMode = "ISOLATED";
+        }
+        object posSide = this.safeStringUpper(parameters, "positionSide");
+        if (isTrue(isEqual(posSide, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "positionType", marginMode },
+            { "positionSide", posSide },
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response;  // unify return type
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

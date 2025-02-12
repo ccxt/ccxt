@@ -10,8 +10,8 @@ use ccxt\async\abstract\tradeogre as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class tradeogre extends Exchange {
 

@@ -2881,7 +2881,7 @@ func  (this *Exchange) SafeTicker(ticker interface{}, optionalArgs ...interface{
     var change interface{} = this.OmitZero(this.SafeString(ticker, "change"))
     var percentage interface{} = this.OmitZero(this.SafeString(ticker, "percentage"))
     var average interface{} = this.OmitZero(this.SafeString(ticker, "average"))
-    var vwap interface{} = this.OmitZero(this.SafeString(ticker, "vwap"))
+    var vwap interface{} = this.SafeString(ticker, "vwap")
     var baseVolume interface{} = this.SafeString(ticker, "baseVolume")
     var quoteVolume interface{} = this.SafeString(ticker, "quoteVolume")
     if IsTrue(IsEqual(vwap, nil)) {

@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class poloniexfutures extends \ccxt\async\poloniexfutures {
 

@@ -10,9 +10,9 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends \ccxt\async\bybit {
 

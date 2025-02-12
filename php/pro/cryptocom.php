@@ -10,8 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class cryptocom extends \ccxt\async\cryptocom {
 

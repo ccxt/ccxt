@@ -934,7 +934,13 @@ public partial class bybit : ccxt.bybit
                     }
                 } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
                 {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.")) ;
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
+                }
+            } else
+            {
+                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
+                {
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
                 }
             }
         }

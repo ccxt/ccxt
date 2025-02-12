@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.58'
 
 # -----------------------------------------------------------------------------
 
@@ -3657,7 +3657,7 @@ class Exchange(object):
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
-        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
+        vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:

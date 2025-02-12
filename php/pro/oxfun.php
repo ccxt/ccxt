@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class oxfun extends \ccxt\async\oxfun {
 

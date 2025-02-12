@@ -13,8 +13,8 @@ use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coincatch extends \ccxt\async\coincatch {
 

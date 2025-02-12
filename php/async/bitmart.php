@@ -14,8 +14,8 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitmart extends Exchange {
 
@@ -969,6 +969,7 @@ class bitmart extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $symbols = $this->safe_list($data, 'symbols', array());
             $result = array();
+            $fees = $this->fees['trading'];
             for ($i = 0; $i < count($symbols); $i++) {
                 $market = $symbols[$i];
                 $id = $this->safe_string($market, 'symbol');
@@ -1007,6 +1008,8 @@ class bitmart extends Exchange {
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
+                    'maker' => $fees['maker'],
+                    'taker' => $fees['taker'],
                     'precision' => array(
                         'amount' => $baseMinSize,
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_max_precision'))),
@@ -1082,6 +1085,7 @@ class bitmart extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $symbols = $this->safe_list($data, 'symbols', array());
             $result = array();
+            $fees = $this->fees['trading'];
             for ($i = 0; $i < count($symbols); $i++) {
                 $market = $symbols[$i];
                 $id = $this->safe_string($market, 'symbol');
@@ -1124,6 +1128,8 @@ class bitmart extends Exchange {
                     'expiryDatetime' => $this->iso8601($expiry),
                     'strike' => null,
                     'optionType' => null,
+                    'maker' => $fees['maker'],
+                    'taker' => $fees['taker'],
                     'precision' => array(
                         'amount' => $this->safe_number($market, 'vol_precision'),
                         'price' => $this->safe_number($market, 'price_precision'),

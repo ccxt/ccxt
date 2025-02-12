@@ -1303,3 +1303,37 @@ func (this *Xt) Transfer(code string, amount float64, fromAccount string, toAcco
     }
     return NewTransferEntry(res), nil
 }
+/**
+ * @method
+ * @name xt#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://doc.xt.com/#futures_userchangePositionType
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} [symbol] required
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.positionSide] *required* "long" or "short"
+ * @returns {object} response from the exchange
+ */
+func (this *Xt) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+
+    opts := SetMarginModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetMarginMode(marginMode, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
