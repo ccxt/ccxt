@@ -4267,12 +4267,12 @@ export default class Exchange {
     /**
      * @param {object} params - extra parameters
      * @param {object} request - existing dictionary of request
-     * @param {boolean} allowEmpty - whether "network" param is required or not
+     * @param {boolean} isRequired - whether that param is required to be present
      * @param {string} exchangeSpecificKey - the key for chain id to be set in request
      * @param {string} upperOrLowerCase - (optional_ enforce "uppercase" or "lowercase" for resulted network id
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    handleRequestNetwork (params: any, request: any, allowEmpty: boolean, exchangeSpecificKey: string, upperOrLowerCase: Str = undefined) {
+    handleRequestNetwork (params: any, request: any, isRequired: boolean, exchangeSpecificKey: string, upperOrLowerCase: Str = undefined) {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
@@ -4288,7 +4288,7 @@ export default class Exchange {
                 }
             }
             request[exchangeSpecificKey] = networkId;
-        } else if (!allowEmpty) {
+        } else if (isRequired) {
             throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
         }
         return [ request, params ];
