@@ -2173,7 +2173,7 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        networkCode = this.unifiedNetworkCodeAdjuster (currency['code'], networkCode);
+        networkCode = this.networkCodeAdjusterForCurrency (currency['code'], networkCode);
         const selectedDict = this.safeDict (currency['networks'], networkCode);
         const tokenId = this.safeString (selectedDict, 'id');
         const request: Dict = {
