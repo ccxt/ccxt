@@ -622,7 +622,7 @@ class vertex(Exchange, ImplicitAPI):
             result.append(self.parse_market(rawMarket))
         return result
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -630,7 +630,7 @@ class vertex(Exchange, ImplicitAPI):
         """
         response = await self.v1GatewayGetTime(params)
         # 1717481623452
-        return self.parse_number(response)
+        return self.parse_to_int(response)
 
     async def fetch_status(self, params={}):
         """

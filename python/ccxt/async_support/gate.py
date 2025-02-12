@@ -1079,7 +1079,7 @@ class gate(Exchange, ImplicitAPI):
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privateUnifiedPutUnifiedMode(params)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
