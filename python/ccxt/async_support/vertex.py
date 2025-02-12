@@ -1523,7 +1523,7 @@ class vertex(Exchange, ImplicitAPI):
         marketId = base + '/' + quote
         if base.find('PERP') > 0:
             marketId = marketId.replace('-PERP', '') + ':USDC'
-        market = self.market(marketId)
+        market = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': market['symbol'],

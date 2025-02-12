@@ -351,6 +351,7 @@ class ascendex extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                 ),
                 'forDerivatives' => array(

@@ -62,6 +62,9 @@ class Client {
     public $heartbeat = null;
     public $cost = 1;
     public $maxMessagesPerTopic = null;
+    public $timeframes = null;
+    public $watchTradesForSymbols = null;
+    public $watchOrderBookForSymbols = null;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;

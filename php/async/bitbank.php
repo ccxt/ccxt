@@ -8,8 +8,8 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitbank as Exchange;
 use ccxt\ExchangeError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitbank extends Exchange {
 

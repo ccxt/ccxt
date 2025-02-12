@@ -8,8 +8,8 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 

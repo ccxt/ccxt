@@ -114,7 +114,7 @@ class xt extends xt$1 {
                 'repayMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
@@ -272,6 +272,7 @@ class xt extends xt$1 {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -516,11 +517,13 @@ class xt extends xt$1 {
                     'TRANSFER_011': errors.PermissionDenied,
                     'TRANSFER_012': errors.PermissionDenied,
                     'symbol_not_support_trading_via_api': errors.BadSymbol,
-                    'open_order_min_nominal_value_limit': errors.InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'open_order_min_nominal_value_limit': errors.InvalidOrder,
+                    'insufficient_balance': errors.InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': errors.BadSymbol,
-                    'Exceeds the minimum notional value of a single order': errors.InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'Exceeds the minimum notional value of a single order': errors.InvalidOrder,
+                    'insufficient balance': errors.InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -4837,6 +4840,59 @@ class xt extends xt$1 {
             'status': undefined,
         };
     }
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (market['spot']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'CROSSED';
+        }
+        else {
+            marginMode = 'ISOLATED';
+        }
+        const posSide = this.safeStringUpper(params, 'positionSide');
+        if (posSide === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
+        }
+        const request = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        };
+        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response; // unify return type
+    }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         // spot: error
@@ -4886,6 +4942,9 @@ class xt extends xt$1 {
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {

@@ -34,7 +34,11 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.4'
+          # cache: true
+          ini-values: |
+            zend.assertions=1
+            display_errors=On
       - uses: actions/setup-python@v2
         with:
           python-version: '3.11'

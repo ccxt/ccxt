@@ -13,9 +13,9 @@ use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class ascendex extends Exchange {
 
@@ -360,6 +360,7 @@ class ascendex extends Exchange {
                         'untilDays' => 100000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                 ),
                 'forDerivatives' => array(

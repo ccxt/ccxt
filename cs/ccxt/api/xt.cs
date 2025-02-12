@@ -546,6 +546,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateLinearPostFutureUserV1UserCollectionCancel",parameters);
     }
 
+    public async Task<object> privateLinearPostFutureUserV1PositionChangeType (object parameters = null)
+    {
+        return await this.callAsync ("privateLinearPostFutureUserV1PositionChangeType",parameters);
+    }
+
     public async Task<object> privateInverseGetFutureTradeV1EntrustPlanDetail (object parameters = null)
     {
         return await this.callAsync ("privateInverseGetFutureTradeV1EntrustPlanDetail",parameters);

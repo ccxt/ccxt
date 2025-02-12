@@ -196,7 +196,7 @@ export default class hyperliquid extends Exchange {
                 'broad': {
                     'Price must be divisible by tick size.': InvalidOrder,
                     'Order must have minimum value of $10': InvalidOrder,
-                    'Insufficient margin to place order.': InvalidOrder,
+                    'Insufficient margin to place order.': InsufficientFunds,
                     'Reduce only order would increase position.': InvalidOrder,
                     'Post only order would have immediately matched,': InvalidOrder,
                     'Order could not immediately match against any resting orders.': InvalidOrder,
@@ -607,7 +607,10 @@ export default class hyperliquid extends Exchange {
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
             const amountPrecision = parseInt (amountPrecisionStr);
             const price = this.safeNumber (extraData, 'midPx');
-            const pricePrecision = this.calculatePricePrecision (price, amountPrecision, 8);
+            let pricePrecision = 0;
+            if (price !== undefined) {
+                pricePrecision = this.calculatePricePrecision (price, amountPrecision, 8);
+            }
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (index + 10000);
@@ -708,7 +711,10 @@ export default class hyperliquid extends Exchange {
         const amountPrecisionStr = this.safeString (market, 'szDecimals');
         const amountPrecision = parseInt (amountPrecisionStr);
         const price = this.safeNumber (market, 'markPx', 0);
-        const pricePrecision = this.calculatePricePrecision (price, amountPrecision, 6);
+        let pricePrecision = 0;
+        if (price !== undefined) {
+            pricePrecision = this.calculatePricePrecision (price, amountPrecision, 6);
+        }
         const pricePrecisionStr = this.numberToString (pricePrecision);
         const isDelisted = this.safeBool (market, 'isDelisted');
         let active = true;
@@ -3468,6 +3474,7 @@ export default class hyperliquid extends Exchange {
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString (response, 'status', '');
         let message = undefined;
