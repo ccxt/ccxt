@@ -15,8 +15,8 @@ function testNetworkMethods () {
     assert (exchange.networkCodeAdjusterForCurrency ('ETH', 'ERC20') === 'ETH');
     assert (exchange.networkCodeAdjusterForCurrency ('ETH', 'ETH') === 'ETH');
 
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRC20') === 'ERC20');
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRONOS') === 'ERC20');
+    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRC20') === 'CRC20');
+    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRONOS') === 'CRC20');
     assert (exchange.networkCodeAdjusterForCurrency ('CRO', 'CRC20') === 'CRONOS');
     assert (exchange.networkCodeAdjusterForCurrency ('CRO', 'CRONOS') === 'CRONOS');
 }
