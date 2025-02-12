@@ -29,7 +29,7 @@ function testAfterConstructor () {
     const exchange2 = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'markets': {
-            'BTC/USD': {}
+            'BTC/USD': { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true }
         },
     });
     assert (exchange2.markets['BTC/USD'] !== undefined);
