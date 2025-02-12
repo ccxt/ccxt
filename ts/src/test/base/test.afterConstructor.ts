@@ -14,9 +14,10 @@ function testAfterConstructor () {
 
     // ############# throttler ############# //
     const tockenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    const rateLimit = exchange.getProperty (exchange, 'rateLimit');
     assert (tockenBucket !== undefined);
     assert (tockenBucket['delay'] === 0.001);
-    assert (tockenBucket['refillRate'] === 1 / exchange.rateLimit);
+    assert (tockenBucket['refillRate'] === 1 / rateLimit);
     // fix decimal/integer issues across langs
     assert (exchange.inArray (tockenBucket['capacity'], [ 1, 1.0 ]));
     assert (exchange.inArray (tockenBucket['cost'], [ 1, 1.0 ]));
@@ -49,7 +50,8 @@ function testAfterConstructor () {
         // todo: some extra things should be checked in "catch" but atm skip complexity
         assert (exchange3.urls !== undefined);
         assert (exchange3.urls['test'] !== undefined);
-        assert (exchange3.isSandboxModeEnabled);
+        const isSandboxModeEnabled = exchange3.getProperty (exchange3, 'isSandboxModeEnabled');
+        assert (isSandboxModeEnabled);
     } catch (e) {
         const exchange3 = new ccxt.Exchange ({
             'id': 'sampleexchange',
