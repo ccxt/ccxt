@@ -668,7 +668,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *

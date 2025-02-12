@@ -966,7 +966,7 @@ class bigone extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          *

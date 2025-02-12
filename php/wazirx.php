@@ -649,7 +649,7 @@ class wazirx extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          *
          * @see https://docs.wazirx.com/#check-server-time

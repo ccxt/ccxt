@@ -951,7 +951,7 @@ class probit extends Exchange {
         ), $market);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          *
          * @see https://docs-en.probit.com/reference/time
