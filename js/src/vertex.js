@@ -632,7 +632,7 @@ export default class vertex extends Exchange {
     async fetchTime(params = {}) {
         const response = await this.v1GatewayGetTime(params);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
     /**
      * @method
