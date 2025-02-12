@@ -1208,8 +1208,9 @@ export default class bitmart extends Exchange {
             let entry = this.safeDict (result, code);
             if (entry === undefined) {
                 entry = {
-                    'id': fullId,
+                    'id': this.safeString (currency, 'network'),
                     'code': code,
+                    'precision': undefined,
                     'name': this.safeString (currency, 'name'),
                     'info': currency,
                     'networks': {},
@@ -1247,6 +1248,21 @@ export default class bitmart extends Exchange {
             result[code] = this.safeCurrencyStructure (currency);
         }
         return result;
+    }
+
+    getCurrencyIdFromCodeAndNetwork (code: Str, network: Str): Str {
+        let id: Str = undefined;
+        if (code !== undefined) {
+            if (network === undefined) {
+                network = this.defaultNetworkCode (code);
+            }
+            const currency = this.currency (code);
+            const networks = this.safeDict (currency, 'networks', {});
+            const networkEntry = this.safeDict (networks, network, {});
+            const networkInfo = this.safeDict (networkEntry, 'info', {});
+            id = this.safeString (networkInfo, 'currency');
+        }
+        return id;
     }
 
     /**
