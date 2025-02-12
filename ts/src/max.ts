@@ -1847,7 +1847,7 @@ export default class max extends Exchange {
         // then fetch withdrawals
         const withdrawals = await this.fetchWithdrawals (code, since, limit, params);
         // combine the results
-        let items = deposits.concat (withdrawals);
+        let items = this.arrayConcat (deposits, withdrawals);
         // sort by timestamp
         items = this.sortBy (items, 'timestamp');
         // if limit is provided, slice the array
