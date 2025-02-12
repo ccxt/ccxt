@@ -9380,7 +9380,7 @@ export default class bitget extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            headers['PAPTRADING'] = 1;
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
