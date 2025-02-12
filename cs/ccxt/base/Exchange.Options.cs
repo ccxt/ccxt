@@ -218,6 +218,7 @@ public partial class Exchange
         var properties = this.describe();
 
         var extendedProperties = this.deepExtend(properties, userConfig);
+        extendedProperties.options = this.deepExtend(this.getDefaultOptions(), extendedProperties.options);
 
         this.version = SafeString(extendedProperties, "version", "");
 
