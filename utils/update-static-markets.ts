@@ -214,7 +214,7 @@ export { update_markets_and_currencies };
 
 
 // this script is typically called by npm command (see the usage in the top lines of this file)
-if (process.argv.includes ('--update')) {
+if (process.argv.includes ('--execute')) {
     args.shift ();
     update_markets_and_currencies();
 }
