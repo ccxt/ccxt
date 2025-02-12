@@ -136,6 +136,7 @@ const VIRTUAL_BASE_METHODS = {
     "parseTransfer": false,
     "parseWithdrawal": false,
     "parseWithdrawalStatus": false,
+    "networkCodeAdjusterForCurrency": false,
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
