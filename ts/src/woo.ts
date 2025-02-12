@@ -900,7 +900,7 @@ export default class woo extends Exchange {
                 name = this.safeString (network, 'fullname');
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
-                const unifiedNetwork = splitted[0];
+                const unifiedNetwork = this.networkIdToCode (splitted[0], code);
                 const precision = this.parsePrecision (this.safeString (network, 'decimals'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
@@ -2173,7 +2173,9 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        const tokenId = networkCode + '_' + currency['code'];
+        networkCode = this.unifiedNetworkCodeAdjuster (currency['code'], networkCode);
+        const selectedDict = this.safeDict (currency['networks'], networkCode);
+        const tokenId = this.safeString (selectedDict, 'id');
         const request: Dict = {
             'token': tokenId,
         };
