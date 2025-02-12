@@ -255,7 +255,8 @@ public partial class Exchange
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
         } else {
-            this.options =  new ConcurrentDictionary<string, object>(this.getDefaultOptions());
+            var dict2 = this.getDefaultOptions() as dict;
+            this.options =  new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
