@@ -105,6 +105,8 @@ async function update_markets_and_currencies () {
         if (!exchangeId) {
             die ();
         }
+        // remove first item
+        args.shift ();
 
         for (const dataType of ['markets', 'currencies']) {
             dataContainer[dataType].path = rootDir + `/ts/src/test/static/${dataType}/${exchangeId}.json`;
@@ -118,8 +120,6 @@ async function update_markets_and_currencies () {
             process.exit(1);
         }
     
-        // remove first item
-        args.shift ();
         const symbolsOrCurrencies = args;
         if (!symbolsOrCurrencies.length) {
             die ();
