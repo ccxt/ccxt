@@ -1200,9 +1200,14 @@ export default class bitmart extends Exchange {
             const currency = currencies[i];
             const fullId = this.safeString (currency, 'currency');
             let id = fullId;
+            let networkId = this.safeString (currency, 'network');
             if (fullId.indexOf ('NFT') < 0) {
                 const parts = fullId.split ('-');
                 id = this.safeString (parts, 0);
+                const second = this.safeString (parts, 1);
+                if (second !== undefined) {
+                    networkId = second.toUpperCase ();
+                }
             }
             const code = this.safeCurrencyCode (id);
             let entry = this.safeDict (result, code);
@@ -1216,7 +1221,6 @@ export default class bitmart extends Exchange {
                     'networks': {},
                 };
             }
-            const networkId = this.safeString (currency, 'network');
             const networkCode = this.networkIdToCode (networkId);
             const withdraw = this.safeBool (currency, 'withdraw_enabled');
             const deposit = this.safeBool (currency, 'deposit_enabled');
@@ -1241,11 +1245,11 @@ export default class bitmart extends Exchange {
             };
             result[code] = entry;
         }
-        const codes = Object.keys (result);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = result[code];
-            result[code] = this.safeCurrencyStructure (currency);
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = result[key];
+            result[key] = this.safeCurrencyStructure (currency);
         }
         return result;
     }
@@ -1272,13 +1276,16 @@ export default class bitmart extends Exchange {
      * @description please use fetchDepositWithdrawFee instead
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTransactionFee (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (currency['code'], network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
