@@ -218,7 +218,6 @@ public partial class Exchange
         var properties = this.describe();
 
         var extendedProperties = this.deepExtend(properties, userConfig);
-        extendedProperties.options = this.deepExtend(this.getDefaultOptions(), extendedProperties.options);
 
         this.version = SafeString(extendedProperties, "version", "");
 
@@ -251,9 +250,12 @@ public partial class Exchange
         var extendedOptions = safeDict(extendedProperties, "options");
         if (extendedOptions != null)
         {
+            extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
+        } else {
+            this.options =  new ConcurrentDictionary<string, object>(this.getDefaultOptions());
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
