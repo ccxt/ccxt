@@ -643,7 +643,7 @@ public partial class vertex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1GatewayGetTime(parameters);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
 
     /**
