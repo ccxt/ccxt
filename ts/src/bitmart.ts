@@ -534,14 +534,14 @@ export default class bitmart extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
-                    'ERC20': 'ERC20',
+                    'ERC20': [ 'ERC20', 'ETH', 'Ethereum' ],
                     'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
                     // 'TRC20': [ 'TRC20', 'trc20', 'TRON' ], // todo: after unification i.e. TRON is returned from fetchDepositAddress
                     // 'ERC20': [ 'ERC20', 'ERC-20', 'ERC20 ' ], // todo: after unification
-                    'OMNI': 'OMNI',
+                    'OMNI': [ 'OMNI', 'USDT' ], // the default USDT network for bitmart is OMNI
                     'XLM': 'XLM',
                     'EOS': 'EOS',
                     'NEO': 'NEO',
@@ -683,10 +683,6 @@ export default class bitmart extends Exchange {
                     // 'ETHERCOIN': 'ETE',
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
-                },
-                'networksById': {
-                    'ETH': 'ERC20',
-                    'USDT': 'OMNI',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
