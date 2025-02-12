@@ -2715,7 +2715,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

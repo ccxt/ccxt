@@ -702,7 +702,7 @@ class tokocrypto(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
 
         https://www.tokocrypto.com/apidocs/#check-server-time
