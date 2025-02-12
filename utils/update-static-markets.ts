@@ -1,9 +1,9 @@
 //
 // Usage to update specific symbols, currencies, everything (existing keys with new datas):
 //
-//   tsx ./utils/update-static-markets.ts binance BTC/USDT ETH/USDT
-//                                                USDC LTC
-//                                                --all
+//   npm run static-updater   binance BTC/USDT ETH/USDT
+//                                    USDC LTC
+//                                    --all
 //
 
 import fs from 'fs';
