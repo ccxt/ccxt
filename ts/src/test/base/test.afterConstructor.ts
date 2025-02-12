@@ -13,13 +13,14 @@ function testAfterConstructor () {
     assert (exchange.MAX_VALUE !== undefined);
 
     // ############# throttler ############# //
-    assert (exchange.tokenBucket !== undefined);
-    assert (exchange.tokenBucket['delay'] === 0.001);
-    assert (exchange.tokenBucket['refillRate'] === 1 / exchange.rateLimit);
+    const tockenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    assert (tockenBucket !== undefined);
+    assert (tockenBucket['delay'] === 0.001);
+    assert (tockenBucket['refillRate'] === 1 / exchange.rateLimit);
     // fix decimal/integer issues across langs
-    assert (exchange.inArray (exchange.tokenBucket['capacity'], [ 1, 1.0 ]));
-    assert (exchange.inArray (exchange.tokenBucket['cost'], [ 1, 1.0 ]));
-    assert (exchange.inArray (exchange.tokenBucket['maxCapacity'], [ 1000, 1000.0 ]));
+    assert (exchange.inArray (tockenBucket['capacity'], [ 1, 1.0 ]));
+    assert (exchange.inArray (tockenBucket['cost'], [ 1, 1.0 ]));
+    assert (exchange.inArray (tockenBucket['maxCapacity'], [ 1000, 1000.0 ]));
     assert (exchange.throttler !== undefined);
     // todo: add after change assertion
     // todo: add initial tockenbtucket test
