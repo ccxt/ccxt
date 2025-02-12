@@ -10076,7 +10076,7 @@ public partial class bitget : Exchange
             {
                 headers = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)headers)["PAPTRADING"] = 1;
+            ((IDictionary<string,object>)headers)["PAPTRADING"] = "1";
         }
         return new Dictionary<string, object>() {
             { "url", url },
