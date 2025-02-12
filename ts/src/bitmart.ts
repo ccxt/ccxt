@@ -1204,22 +1204,22 @@ export default class bitmart extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const fullId = this.safeString (currency, 'currency');
-            let id = fullId;
+            let currencyId = fullId;
             let networkId = this.safeString (currency, 'network');
             if (fullId.indexOf ('NFT') < 0) {
                 const parts = fullId.split ('-');
-                id = this.safeString (parts, 0);
+                currencyId = this.safeString (parts, 0);
                 const second = this.safeString (parts, 1);
                 if (second !== undefined) {
                     networkId = second.toUpperCase ();
                 }
             }
-            const code = this.safeCurrencyCode (id);
-            let entry = this.safeDict (result, code);
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            let entry = this.safeDict (result, currencyCode);
             if (entry === undefined) {
                 entry = {
-                    'id': this.safeString (currency, 'network'),
-                    'code': code,
+                    'id': currencyId,
+                    'code': currencyCode,
                     'precision': undefined,
                     'name': this.safeString (currency, 'name'),
                     'info': currency,
@@ -1242,9 +1242,13 @@ export default class bitmart extends Exchange {
                         'min': this.safeNumber (currency, 'withdraw_minsize'),
                         'max': undefined,
                     },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
-            result[code] = entry;
+            result[currencyCode] = entry;
         }
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
