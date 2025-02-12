@@ -2866,6 +2866,12 @@ export default class Exchange {
                 'CRO': { 'CRC20': 'CRONOS' },
                 'BRC20': { 'BRC20': 'BTC' },
             },
+            'defaultNetworksByPrimaryCoin': [
+                { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20', },
+                { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20', },
+                { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20', },
+                { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BTC20', },
+            ],
         };
     }
 
@@ -4250,6 +4256,28 @@ export default class Exchange {
             if (currencyCode in defaultNetworkCodeReplacements) {
                 const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
+    }
+
+    networkCodeReplacement (currencyCode: string, networkCode: string) {
+        // this method turns networkCodes into correct mainnet-vs-protocol code
+        // --------------------------
+        // | input         | output |
+        // --------------------------
+        // | USDT & ERC20  | ERC20  |
+        // | USDT & ETH    | ERC20  |
+        // | ETH & ERC20   | ETH    |
+        // | ETH & ETH     | ETH    |
+        // --------------------------
+        const replacements = this.safeList(this.options, 'defaultNetworksByPrimaryCoin', []);
+        for (let i = 0; i < replacements.length; i++) {
+            const value = replacements[i];
+            // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
+            if (networkCode === value['primary'] || networkCode === value['secondary']) {
+                // return primary or secondary network, depending if primaryCoin was passed
+                return (currencyCode === value['baseCoin']) ? value['primary'] : value['secondary'];
             }
         }
         return networkCode;
