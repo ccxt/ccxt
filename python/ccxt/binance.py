@@ -1584,6 +1584,7 @@ class binance(Exchange, ImplicitAPI):
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
+                'defaultWithdrawPrecision': 0.00000001,
             },
             'features': {
                 'spot': {
@@ -1634,6 +1635,7 @@ class binance(Exchange, ImplicitAPI):
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': True,
@@ -3096,6 +3098,7 @@ class binance(Exchange, ImplicitAPI):
             id = self.safe_string(entry, 'coin')
             name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
+            isFiat = self.safe_bool(entry, 'isLegalMoney')
             minPrecision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
@@ -3107,6 +3110,7 @@ class binance(Exchange, ImplicitAPI):
                 networkItem = networkList[j]
                 network = self.safe_string(networkItem, 'network')
                 networkCode = self.network_id_to_code(network)
+                isETF = (network == 'ETF')  # e.g. BTCUP, ETHDOWN
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
                 depositEnable = self.safe_bool(networkItem, 'depositEnable')
@@ -3117,11 +3121,22 @@ class binance(Exchange, ImplicitAPI):
                 isDefault = self.safe_bool(networkItem, 'isDefault')
                 if isDefault or (fee is None):
                     fee = withdrawFee
+                # todo: default networks in "setMarkets" overload
+                # if isDefault:
+                #     self.options['defaultNetworkCodesForCurrencies'][code] = networkCode
+                # }
                 precisionTick = self.safe_string(networkItem, 'withdrawIntegerMultiple')
-                # avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                # so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                withdrawPrecision = precisionTick
+                # avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if not Precise.string_eq(precisionTick, '0'):
                     minPrecision = precisionTick if (minPrecision is None) else Precise.string_min(minPrecision, precisionTick)
+                else:
+                    if not isFiat and not isETF:
+                        # non-fiat and non-ETF currency, there are many cases when precision is set to zero(probably bug, we've reported to binance already)
+                        # in such cases, we can set default precision of 8(which is in UI for such coins)
+                        withdrawPrecision = self.omit_zero(self.safe_string(networkItem, 'withdrawInternalMin'))
+                        if withdrawPrecision is None:
+                            withdrawPrecision = self.safe_string(self.options, 'defaultWithdrawPrecision')
                 networks[networkCode] = {
                     'info': networkItem,
                     'id': network,
@@ -3130,7 +3145,7 @@ class binance(Exchange, ImplicitAPI):
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': withdrawFee,
-                    'precision': self.parse_number(precisionTick),
+                    'precision': self.parse_number(withdrawPrecision),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(networkItem, 'withdrawMin'),
@@ -3159,6 +3174,7 @@ class binance(Exchange, ImplicitAPI):
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
                 'precision': self.parse_number(minPrecision),
                 'info': entry,
                 'active': active,
@@ -5272,10 +5288,10 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
             'side': side.upper(),
+            'orderId': id,
+            'quantity': self.amount_to_precision(symbol, amount),
         }
         clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
-        request['orderId'] = id
-        request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if clientOrderId is not None:
@@ -5289,6 +5305,8 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
 
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
@@ -5297,16 +5315,28 @@ class binance(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to edit an order in a portfolio margin account
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'editContractOrder', 'papi', 'portfolioMargin', False)
+        if market['linear'] or isPortfolioMargin:
+            if (price is None) and not ('priceMatch' in params):
+                raise ArgumentsRequired(self.id + ' editOrder() requires a price argument for portfolio margin and linear orders')
         request = self.edit_contract_order_request(id, symbol, type, side, amount, price, params)
         response = None
         if market['linear']:
-            response = self.fapiPrivatePutOrder(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPutUmOrder(self.extend(request, params))
+            else:
+                response = self.fapiPrivatePutOrder(self.extend(request, params))
         elif market['inverse']:
-            response = self.dapiPrivatePutOrder(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPutCmOrder(self.extend(request, params))
+            else:
+                response = self.dapiPrivatePutOrder(self.extend(request, params))
         #
         # swap and future
         #
@@ -12059,7 +12089,7 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: an array of `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
@@ -12818,7 +12848,7 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = self.dapiPrivateGetPositionMarginHistory(self.extend(request, params))
         else:
-            raise BadRequest(self.id + 'fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
+            raise BadRequest(self.id + ' fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
         #
         #    [
         #        {

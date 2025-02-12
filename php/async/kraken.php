@@ -15,8 +15,8 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
 
@@ -2549,7 +2549,7 @@ class kraken extends Exchange {
              * @return {array} the api result
              */
             if ($timeout > 86400000) {
-                throw new BadRequest($this->id . 'cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
+                throw new BadRequest($this->id . ' cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
             }
             Async\await($this->load_markets());
             $request = array(

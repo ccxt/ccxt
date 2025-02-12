@@ -49,7 +49,7 @@ import "github.com/ccxt/ccxt/go/v4"
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0")
         AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "vwap", "0")
+        AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
         AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0")

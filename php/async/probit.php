@@ -14,8 +14,8 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class probit extends Exchange {
 

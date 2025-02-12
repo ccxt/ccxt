@@ -10,8 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class cex extends \ccxt\async\cex {
 
@@ -1295,7 +1295,7 @@ class cex extends \ccxt\async\cex {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . 'fetchOpenOrdersWs requires a $symbol->');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a $symbol->');
             }
             Async\await($this->load_markets());
             Async\await($this->authenticate());

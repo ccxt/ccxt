@@ -1537,7 +1537,7 @@ class woofipro extends woofipro$1 {
             const takeProfit = this.safeValue(orderParams, 'takeProfit');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
-                throw new errors.NotSupported(this.id + 'createOrders() only support non-stop order');
+                throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -2440,7 +2440,7 @@ class woofipro extends woofipro$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'withdraw() only support USDC');
+                throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
         const currency = this.currency(code);

@@ -30,6 +30,8 @@ const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
+let shouldTranspileTests = true
+
 // let buildPython = true;
 // let buildPHP = true;
 
@@ -989,13 +991,13 @@ class Transpiler {
                 precisionImports.push ('use ccxt\\Precise;')
             }
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use React\\Async;')
+                libraryImports.push ('use \\React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use React\\Promise;')
+                libraryImports.push ('use \\React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -2436,7 +2438,8 @@ class Transpiler {
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
             if (sync) {
-                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                str = str.replace (/asyncio\.gather\(\*/g, '(');
             }
             return exchangeCamelCaseProps(str);
         }
@@ -2643,6 +2646,11 @@ class Transpiler {
     // ============================================================================
 
     transpileTests () {
+
+        if (!shouldTranspileTests) {
+            log.bright.yellow ('Skipping tests transpilation');
+            return;
+        }
 
         this.baseFunctionalitiesTests ();
 
@@ -3085,6 +3093,8 @@ if (isMainEntry(import.meta.url)) {
     const force = process.argv.includes ('--force')
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+
+    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
     const phpOnly = process.argv.includes ('--php');
     if (phpOnly) {

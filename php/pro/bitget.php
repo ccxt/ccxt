@@ -12,8 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\ChecksumError;
 use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitget extends \ccxt\async\bitget {
 
@@ -2091,7 +2091,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'orderbook ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' orderbook ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -2117,7 +2117,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'trades ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' trades ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -2143,7 +2143,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'ticker ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' ticker ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }

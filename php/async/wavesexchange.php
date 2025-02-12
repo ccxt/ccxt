@@ -14,9 +14,9 @@ use ccxt\BadRequest;
 use ccxt\InsufficientFunds;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class wavesexchange extends Exchange {
 

@@ -4632,7 +4632,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             if triggerPrice is None:
-                raise NotSupported(self.id + 'editOrder() only supports plan/trigger spot orders')
+                raise NotSupported(self.id + ' editOrder() only supports plan/trigger spot orders')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
             if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
@@ -8854,4 +8854,9 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        if sandboxMode:
+            if headers is None:
+                headers = {}
+            headers['PAPTRADING'] = 1
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

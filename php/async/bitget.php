@@ -14,9 +14,9 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bitget extends Exchange {
 
@@ -4849,7 +4849,7 @@ class bitget extends Exchange {
             $response = null;
             if ($market['spot']) {
                 if ($triggerPrice === null) {
-                    throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                    throw new NotSupported($this->id . ' editOrder() only supports plan/trigger spot orders');
                 }
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
                 if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
@@ -9437,6 +9437,13 @@ class bitget extends Exchange {
             if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
             }
+        }
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode) {
+            if ($headers === null) {
+                $headers = array();
+            }
+            $headers['PAPTRADING'] = 1;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

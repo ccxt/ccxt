@@ -40,8 +40,11 @@ jobs:
     - name: Setup PHP with PECL extension
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
-        cache: true
+        php-version: '8.4'
+        # cache: true
+        ini-values: |
+          zend.assertions=1
+          display_errors=On
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -143,6 +146,14 @@ jobs:
           path: php/
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # cache: true
+          ini-values: |
+            zend.assertions=1
+            display_errors=On
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

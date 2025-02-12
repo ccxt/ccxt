@@ -193,7 +193,7 @@ class hyperliquid extends hyperliquid$1 {
                 'broad': {
                     'Price must be divisible by tick size.': errors.InvalidOrder,
                     'Order must have minimum value of $10': errors.InvalidOrder,
-                    'Insufficient margin to place order.': errors.InvalidOrder,
+                    'Insufficient margin to place order.': errors.InsufficientFunds,
                     'Reduce only order would increase position.': errors.InvalidOrder,
                     'Post only order would have immediately matched,': errors.InvalidOrder,
                     'Order could not immediately match against any resting orders.': errors.InvalidOrder,
@@ -596,7 +596,10 @@ class hyperliquid extends hyperliquid$1 {
             const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
             const amountPrecision = parseInt(amountPrecisionStr);
             const price = this.safeNumber(extraData, 'midPx');
-            const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            let pricePrecision = 0;
+            if (price !== undefined) {
+                pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            }
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(index + 10000);
@@ -696,7 +699,10 @@ class hyperliquid extends hyperliquid$1 {
         const amountPrecisionStr = this.safeString(market, 'szDecimals');
         const amountPrecision = parseInt(amountPrecisionStr);
         const price = this.safeNumber(market, 'markPx', 0);
-        const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        let pricePrecision = 0;
+        if (price !== undefined) {
+            pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        }
         const pricePrecisionStr = this.numberToString(pricePrecision);
         const isDelisted = this.safeBool(market, 'isDelisted');
         let active = true;
@@ -2802,7 +2808,7 @@ class hyperliquid extends hyperliquid$1 {
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
-                throw new errors.NotSupported(this.id + 'transfer() only support spot <> swap transfer');
+                throw new errors.NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -2841,7 +2847,7 @@ class hyperliquid extends hyperliquid$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'transfer() only support USDC');
+                throw new errors.NotSupported(this.id + ' transfer() only support USDC');
             }
         }
         const payload = {
@@ -2906,7 +2912,7 @@ class hyperliquid extends hyperliquid$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'withdraw() only support USDC');
+                throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
@@ -3399,6 +3405,7 @@ class hyperliquid extends hyperliquid$1 {
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString(response, 'status', '');
         let message = undefined;

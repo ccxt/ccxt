@@ -129,7 +129,7 @@ class xt(Exchange, ImplicitAPI):
                 'repayMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'signIn': False,
                 'transfer': True,
@@ -287,6 +287,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -532,10 +533,12 @@ class xt(Exchange, ImplicitAPI):
                     'TRANSFER_012': PermissionDenied,  # Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'Exceeds the minimum notional value of a single order': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -4617,6 +4620,53 @@ class xt(Exchange, ImplicitAPI):
             'status': None,
         }
 
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://doc.xt.com/#futures_userchangePositionType
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str [symbol]: required
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: *required* "long" or "short"
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['spot']:
+            raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        if marginMode == 'cross':
+            marginMode = 'CROSSED'
+        else:
+            marginMode = 'ISOLATED'
+        posSide = self.safe_string_upper(params, 'positionSide')
+        if posSide is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"')
+        request: dict = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        }
+        response = await self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
+        #
+        # {
+        #     "error": {
+        #       "code": "",
+        #       "msg": ""
+        #     },
+        #     "msgInfo": "",
+        #     "result": {},
+        #     "returnCode": 0
+        # }
+        #
+        return response  # unify return type
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         # spot: error
@@ -4666,6 +4716,9 @@ class xt(Exchange, ImplicitAPI):
         #         "ma": [],
         #         "result": {}
         #     }
+        #
+        # {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        #
         #
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
         if status is not None and status != 'SUCCESS':

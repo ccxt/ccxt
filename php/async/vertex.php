@@ -12,8 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class vertex extends Exchange {
 
@@ -1597,7 +1597,7 @@ class vertex extends Exchange {
         if (mb_strpos($base, 'PERP') > 0) {
             $marketId = str_replace('-PERP', '', $marketId) . ':USDC';
         }
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],

@@ -17,9 +17,9 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class binance extends Exchange {
 
@@ -1568,6 +1568,7 @@ class binance extends Exchange {
                 'legalMoneyCurrenciesById' => array(
                     'BUSD' => 'USD',
                 ),
+                'defaultWithdrawPrecision' => 0.00000001,
             ),
             'features' => array(
                 'spot' => array(
@@ -1618,6 +1619,7 @@ class binance extends Exchange {
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => true,
@@ -3114,6 +3116,7 @@ class binance extends Exchange {
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
+                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
                 $minPrecision = null;
                 $isWithdrawEnabled = true;
                 $isDepositEnabled = true;
@@ -3125,6 +3128,7 @@ class binance extends Exchange {
                     $networkItem = $networkList[$j];
                     $network = $this->safe_string($networkItem, 'network');
                     $networkCode = $this->network_id_to_code($network);
+                    $isETF = ($network === 'ETF'); // e.g. BTCUP, ETHDOWN
                     // $name = $this->safe_string($networkItem, 'name');
                     $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                     $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
@@ -3136,11 +3140,24 @@ class binance extends Exchange {
                     if ($isDefault || ($fee === null)) {
                         $fee = $withdrawFee;
                     }
+                    // todo => default $networks in "setMarkets" overload
+                    // if ($isDefault) {
+                    //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
+                    // }
                     $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
-                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    // so, when there is zero instead of $i->e. 0.001, then we skip those cases, because we don't know the precision - it might be because of $network is suspended or other reasons
+                    $withdrawPrecision = $precisionTick;
+                    // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                     if (!Precise::string_eq($precisionTick, '0')) {
                         $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
+                    } else {
+                        if (!$isFiat && !$isETF) {
+                            // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                            // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                            $withdrawPrecision = $this->omit_zero($this->safe_string($networkItem, 'withdrawInternalMin'));
+                            if ($withdrawPrecision === null) {
+                                $withdrawPrecision = $this->safe_string($this->options, 'defaultWithdrawPrecision');
+                            }
+                        }
                     }
                     $networks[$networkCode] = array(
                         'info' => $networkItem,
@@ -3150,7 +3167,7 @@ class binance extends Exchange {
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
                         'fee' => $withdrawFee,
-                        'precision' => $this->parse_number($precisionTick),
+                        'precision' => $this->parse_number($withdrawPrecision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($networkItem, 'withdrawMin'),
@@ -3180,6 +3197,7 @@ class binance extends Exchange {
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'precision' => $this->parse_number($minPrecision),
                     'info' => $entry,
                     'active' => $active,
@@ -5447,10 +5465,10 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
+            'orderId' => $id,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $request['orderId'] = $id;
-        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -5468,6 +5486,8 @@ class binance extends Exchange {
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
              *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -5476,16 +5496,32 @@ class binance extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
+            if ($market['linear'] || $isPortfolioMargin) {
+                if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+                    throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
+                }
+            }
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutUmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutCmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             }
             //
             // swap and future
@@ -12895,7 +12931,7 @@ class binance extends Exchange {
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
              */
             if ($timeframe === '1m') {
-                throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+                throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
             $paginate = false;
@@ -13727,7 +13763,7 @@ class binance extends Exchange {
             } elseif ($market['inverse']) {
                 $response = Async\await($this->dapiPrivateGetPositionMarginHistory ($this->extend($request, $params)));
             } else {
-                throw new BadRequest($this->id . 'fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
+                throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
             }
             //
             //    array(

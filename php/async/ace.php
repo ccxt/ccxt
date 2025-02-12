@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\ace as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ace extends Exchange {
 
