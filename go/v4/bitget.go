@@ -10674,7 +10674,7 @@ func  (this *bitget) Sign(path interface{}, optionalArgs ...interface{}) interfa
         if IsTrue(IsEqual(headers, nil)) {
             headers = map[string]interface{} {}
         }
-        AddElementToObject(headers, "PAPTRADING", 1)
+        AddElementToObject(headers, "PAPTRADING", "1")
     }
     return map[string]interface{} {
         "url": url,
