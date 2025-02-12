@@ -4271,7 +4271,7 @@ export default class Exchange {
      * @param {boolean} toUpperCase - either undefined, true or false
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string, toUpperCase: Bool = undefined) {
+    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string) {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
