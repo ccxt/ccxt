@@ -4271,7 +4271,7 @@ export default class Exchange {
         // | ETH & ERC20   | ETH    |
         // | ETH & ETH     | ETH    |
         // --------------------------
-        const replacements = this.safeList(this.options, 'defaultNetworksByPrimaryCoin', []);
+        const replacements = this.safeList (this.options, 'defaultNetworksByPrimaryCoin', []);
         for (let i = 0; i < replacements.length; i++) {
             const value = replacements[i];
             // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
