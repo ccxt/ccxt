@@ -4270,11 +4270,21 @@ export default class Exchange {
      * @param {string} exchangeSpecificKey - the key for chain id to be set in request
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string) {
+    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string, upperOrLowerCase: Str = undefined) {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const networkId = this.networkCodeToId (networkCode);
+            let networkId = this.networkCodeToId (networkCode);
+            // we can have upper/lower case enforcement, to avoid break of existing exchange implementations
+            if (upperOrLowerCase !== undefined) {
+                if (upperOrLowerCase === 'uppercase') {
+                    networkId = networkId.toUpperCase ();
+                } else if (upperOrLowerCase === 'lowercase') {
+                    networkId = networkId.toLowerCase ();
+                } else {
+                    throw new ExchangeError (this.id + ' - ' + upperOrLowerCase + ' should be either "uppercase" or "lowercase"');
+                }
+            }
             request[exchangeSpecificKey] = networkId;
         }
         return [ request, params ];
