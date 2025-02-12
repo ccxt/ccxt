@@ -4275,15 +4275,7 @@ export default class Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            let networkId = this.networkCodeToId (networkCode);
-            // we can have upper/lower case enforcement, to avoid break of existing exchange implementations
-            if (toUpperCase !== undefined) {
-                if (toUpperCase) {
-                    networkId = networkId.toUpperCase ();
-                } else {
-                    networkId = networkId.toLowerCase ();
-                }
-            }
+            const networkId = this.networkCodeToId (networkCode);
             request[exchangeSpecificKey] = networkId;
         }
         return [ request, params ];
