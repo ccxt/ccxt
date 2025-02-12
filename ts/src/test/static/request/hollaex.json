@@ -151,6 +151,38 @@
                   }
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits",
+                "input": []
+            },
+            {
+                "description": "fetch deposits with a currency",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals",
+                "input": []
+            },
+            {
+                "description": "fetch Withdrawals with a currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
         ]
     }
 }
