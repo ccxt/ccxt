@@ -387,7 +387,55 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "with network",
+                "description": "coin with primary network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "coin with secondary network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "token with primary network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "token with secondary network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "with SOL",
                 "method": "fetchDepositAddress",
                 "url": "https://api.woox.io/v1/asset/deposit?token=SOL_USDT",
                 "input": [
