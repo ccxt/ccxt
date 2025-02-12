@@ -585,7 +585,7 @@ class deribit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

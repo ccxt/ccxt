@@ -382,7 +382,7 @@ class bitvavo(Exchange, ImplicitAPI):
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint

@@ -777,7 +777,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the ascendex server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

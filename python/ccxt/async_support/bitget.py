@@ -1749,7 +1749,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, 'productType')
         return [productType, params]
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
