@@ -1242,10 +1242,6 @@ export default class bitmart extends Exchange {
                         'min': this.safeNumber (currency, 'withdraw_minsize'),
                         'max': undefined,
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                 },
             };
             result[code] = entry;
