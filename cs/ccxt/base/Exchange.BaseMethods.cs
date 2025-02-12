@@ -6643,7 +6643,8 @@ public partial class Exchange
             ((IList<object>)result).Add(parsed);
         }
         object sorted = this.sortBy(result, "timestamp");
-        return this.filterBySinceLimit(sorted, since, limit);
+        object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object getMarketFromSymbols(object symbols = null)
