@@ -527,9 +527,9 @@ export default class bitmart extends Exchange {
                 'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
-                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'USDT': 'ERC20',
+                    'USDT': 'TRC20',
+                    'BTC': 'BTC',
                 },
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -683,6 +683,10 @@ export default class bitmart extends Exchange {
                     // 'ETHERCOIN': 'ETE',
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'USDT': 'OMNI',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
@@ -1254,17 +1258,30 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    getCurrencyIdFromCodeAndNetwork (code: Str, network: Str): Str {
+    getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {
         let id: Str = undefined;
-        if (code !== undefined) {
+        if (networkCode === undefined) {
+            networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
+        }
+        const currency = this.currency (currencyCode);
+        const networks = this.safeDict (currency, 'networks', {});
+        let network = this.safeDict (networks, networkCode);
+        if (networkCode === undefined) {
+            // network code is not provided and there is no default network code
+            network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
             if (network === undefined) {
-                network = this.defaultNetworkCode (code);
+                // use the first network in the networks list if there is no network code with the same code as currency
+                const keys = Object.keys (networks);
+                if (keys.length > 0) {
+                    network = this.safeValue (networks, keys[0]);
+                }
             }
-            const currency = this.currency (code);
-            const networks = this.safeDict (currency, 'networks', {});
-            const networkEntry = this.safeDict (networks, network, {});
-            const networkInfo = this.safeDict (networkEntry, 'info', {});
-            id = this.safeString (networkInfo, 'currency');
+        }
+        if (network !== undefined) {
+            const networkInfo = this.safeDict (network, 'info', {});
+            id = this.safeString (networkInfo, 'currency'); // use currency name from network info if network is found
+        } else if (networkCode !== undefined) {
+            id = currency['code'] + '-' + this.networkCodeToId (networkCode, currencyCode); // use concatenated currency code and network code if network is not found
         }
         return id;
     }
