@@ -4261,7 +4261,7 @@ export default class Exchange {
         return networkCode;
     }
 
-    networkCodeReplacement (currencyCode: string, networkCode: string) {
+    unifiedNetworkCodeAdjuster (currencyCode: string, networkCode: string) {
         // this method turns networkCodes into correct mainnet-vs-protocol code
         // --------------------------
         // | input         | output |

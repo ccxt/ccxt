@@ -10,15 +10,15 @@ function testNetworkMethods () {
         'id': 'sampleexchange',
     });
 
-    assert (exchange.networkCodeReplacement ('USDT', 'ERC20') === 'ERC20');
-    assert (exchange.networkCodeReplacement ('USDT', 'ETH') === 'ERC20');
-    assert (exchange.networkCodeReplacement ('ETH', 'ERC20') === 'ETH');
-    assert (exchange.networkCodeReplacement ('ETH', 'ETH') === 'ETH');
+    assert (exchange.unifiedNetworkCodeAdjuster ('USDT', 'ERC20') === 'ERC20');
+    assert (exchange.unifiedNetworkCodeAdjuster ('USDT', 'ETH') === 'ERC20');
+    assert (exchange.unifiedNetworkCodeAdjuster ('ETH', 'ERC20') === 'ETH');
+    assert (exchange.unifiedNetworkCodeAdjuster ('ETH', 'ETH') === 'ETH');
 
-    assert (exchange.networkCodeReplacement ('USDT', 'CRC20') === 'ERC20');
-    assert (exchange.networkCodeReplacement ('USDT', 'CRONOS') === 'ERC20');
-    assert (exchange.networkCodeReplacement ('CRO', 'CRC20') === 'CRONOS');
-    assert (exchange.networkCodeReplacement ('CRO', 'CRONOS') === 'CRONOS');
+    assert (exchange.unifiedNetworkCodeAdjuster ('USDT', 'CRC20') === 'ERC20');
+    assert (exchange.unifiedNetworkCodeAdjuster ('USDT', 'CRONOS') === 'ERC20');
+    assert (exchange.unifiedNetworkCodeAdjuster ('CRO', 'CRC20') === 'CRONOS');
+    assert (exchange.unifiedNetworkCodeAdjuster ('CRO', 'CRONOS') === 'CRONOS');
 }
 
 export default testNetworkMethods;
