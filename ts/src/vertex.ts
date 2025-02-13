@@ -17,7 +17,7 @@ import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OH
  * @augments Exchange
  */
 export default class vertex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'vertex',
             'name': 'Vertex',

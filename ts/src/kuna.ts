@@ -17,7 +17,7 @@ import { Precise } from './base/Precise.js';
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
             'name': 'Kuna',

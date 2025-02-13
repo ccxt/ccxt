@@ -14,7 +14,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, 
  * @augments Exchange
  */
 export default class latoken extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',
             'name': 'Latoken',

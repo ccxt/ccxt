@@ -16,7 +16,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, Order
  * @augments Exchange
  */
 export default class bitmex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitmex',
             'name': 'BitMEX',

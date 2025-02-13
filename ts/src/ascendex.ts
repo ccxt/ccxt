@@ -15,7 +15,7 @@ import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, Order
  * @augments Exchange
  */
 export default class ascendex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ascendex',
             'name': 'AscendEX',

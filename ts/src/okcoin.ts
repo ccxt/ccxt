@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class okcoin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',
             'name': 'OKCoin',

@@ -17,7 +17,7 @@ import { eddsa } from './base/functions/crypto.js';
  * @augments Exchange
  */
 export default class ellipx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ellipx',
             'name': 'Ellipx',

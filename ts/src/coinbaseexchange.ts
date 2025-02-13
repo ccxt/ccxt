@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
  * @augments Exchange
  */
 export default class coinbaseexchange extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseexchange',
             'name': 'Coinbase Exchange',

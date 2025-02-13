@@ -15,7 +15,7 @@ import Client from '../base/ws/Client.js';
 // -----------------------------------------------------------------------------
 
 export default class binance extends binanceRest {
-    describe () {
+    describe (): any {
         const superDescribe = super.describe ();
         return this.deepExtend (superDescribe, this.describeData ());
     }

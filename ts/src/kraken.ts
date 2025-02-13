@@ -17,7 +17,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class kraken extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
             'name': 'Kraken',

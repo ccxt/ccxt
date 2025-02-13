@@ -15,7 +15,7 @@ import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderB
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
             'name': 'CEX.IO',

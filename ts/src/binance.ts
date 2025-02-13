@@ -18,7 +18,7 @@ import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
  * @augments Exchange
  */
 export default class binance extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
