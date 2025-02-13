@@ -1551,11 +1551,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            const skipBaseTestFiles = ['json', 'filterBy', 'sortBy', 'afterConstruct'];
-            if (skipBaseTestFiles.find (x => testName.includes(x))) {
-                continue; // skip json tests for now, exception handling outside classes is not supported
-            }
-
             // const goFileName = this.capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
@@ -1569,8 +1564,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /TestSortBy\(\)/gm, '' ], // remove equals
-                [ /TestFilterBy\(\)/gm, '' ], // remove equals
+                [ /Assert\("GO_SKIP_START"\)(.*?)Assert\("GO_SKIP_START"\)/gm, '' ], // remove equals
 
             ]).trim ()
 
