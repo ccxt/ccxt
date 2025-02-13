@@ -89,7 +89,6 @@ Exchange::$exchanges = array(
     'probit',
     'upbit',
     'vertex',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',
