@@ -574,6 +574,14 @@
                 "method": "fetchDeposits",
                 "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
                 "input": []
+            },
+            {
+                "description": "Fetch deposits for USDT",
+                "method": "fetchDeposits",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50&currency=USDT",
+                "input": [
+                    "USDT"
+                ]
             }
         ],
         "fetchWithdrawals": [
