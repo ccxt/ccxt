@@ -1429,98 +1429,6 @@ export default class binance extends Exchange {
                 },
                 'networksById': {
                     'SOL': 'SOL', // temporary fix for SPL definition
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -8565,7 +8473,7 @@ export default class binance extends Exchange {
         if (internalInteger !== undefined) {
             internal = internalInteger ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const network = this.networkIdToCode (this.safeString (transaction, 'network'));
         return {
             'info': transaction,
             'id': id,
@@ -8988,17 +8896,11 @@ export default class binance extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
-        }
+        [ request, params ] = this.handleRequestNetwork (params, request, false, 'network', 'uppercase');
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
         //
@@ -9032,9 +8934,14 @@ export default class binance extends Exchange {
         //     }
         //
         const info = this.safeDict (response, 'info', {});
-        const url = this.safeString (info, 'url');
+        let url = this.safeString (info, 'url');
+        if (url === undefined) {
+            // 'info' does not seem to contain 'url' key, however we keep it for backward-compatibility
+            // currently 'response' seems to contain that key
+            url = this.safeString (response, 'url');
+        }
         const address = this.safeString (response, 'address');
-        const currencyId = this.safeString (response, 'currency');
+        const currencyId = this.safeString2 (response, 'currency', 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
@@ -9057,6 +8964,12 @@ export default class binance extends Exchange {
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
+        // actually, we do not need the manually defined implied networks and deriving the networks by them
+        // we can just dynamically find them
+        if (impliedNetwork === undefined) {
+            // so, if value was not changed from hardcoded value
+            impliedNetwork = this.getNetworkCodeByNetworkUrl (code, url);
+        }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
@@ -9069,6 +8982,26 @@ export default class binance extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    getNetworkCodeByNetworkUrl (currencyCode: string, url: Str = undefined): Str {
+        let networkCode = undefined;
+        if (url === undefined) {
+            return networkCode;
+        }
+        const currency = this.currency (currencyCode);
+        const networks = this.safeValue (currency, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        for (let i = 0; i < networkCodes.length; i++) {
+            const currentNetworkCode = networkCodes[i];
+            const network = networks[currentNetworkCode];
+            const info = this.safeDict (network, 'info', {});
+            const networkWebsite = this.safeString (info, 'contractAddressUrl');
+            if (networkWebsite !== undefined && url.startsWith (networkWebsite)) {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
     }
 
     /**
@@ -9330,7 +9263,7 @@ export default class binance extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'coin': currency['id'],
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
@@ -9340,13 +9273,7 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
-        }
+        [ request, params ] = this.handleRequestNetwork (params, request, false, 'network', 'uppercase');
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
