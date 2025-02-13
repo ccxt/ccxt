@@ -3,6 +3,56 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchTransactionFee": [
+            {
+                "description": "trx tx fee",
+                "method": "fetchTransactionFee",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=TRX",
+                "input": [
+                    "TRX"
+                ],
+                "output": null
+            },
+            {
+                "description": "usdt erc20 tx fee",
+                "method": "fetchTransactionFee",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-ERC20",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "eth tx fee",
+                "method": "fetchTransactionFee",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-TRC20",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "eth tx fee",
+                "method": "fetchTransactionFee",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=ETH",
+                "input": [
+                    "ETH"
+                ],
+                "output": null
+            },
+            {
+                "description": "btc tx fee",
+                "method": "fetchTransactionFee",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=BTC",
+                "input": [
+                    "BTC"
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Fetch spot ticker",
@@ -574,6 +624,14 @@
                 "method": "fetchDeposits",
                 "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
                 "input": []
+            },
+            {
+                "description": "Fetch deposits for USDT",
+                "method": "fetchDeposits",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50&currency=USDT",
+                "input": [
+                    "USDT"
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -611,23 +669,30 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "secondary currency with network",
+                "description": "fetch TRUMP deposit address",
                 "method": "fetchDepositAddress",
                 "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=TRUMP-SOL",
                 "input": [
-                    "TRUMP",
-                    {
-                        "network": "SOL"
-                    }
-                ],
-                "output": null
+                    "TRUMP"
+                ]
             },
             {
                 "description": "fetch USDT deposit address",
                 "method": "fetchDepositAddress",
-                "url": "https://api-cloud-v2.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-TRC20",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "fetch USDT deposit address with ERC20 network",
+                "method": "fetchDepositAddress",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
                 ]
             }
         ],

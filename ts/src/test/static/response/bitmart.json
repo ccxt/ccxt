@@ -1,42 +1,232 @@
 {
-    "exchange": "okx",
-    "skipKeys": [],
+    "exchange": "bitmart",
+    "skipKeys": [ "apply_time" ],
     "options": {},
     "methods": {
         "fetchDepositAddress": [
-            {
-                "description": "secondary currency with network",
-                "method": "fetchDepositAddress",
-                "input": [
-                    "TRUMP",
-                    {
-                        "network": "SOL"
-                    }
-                ],
-                "httpResponse": {
-                    "message": "OK",
-                    "code": "1000",
-                    "trace": "427fe6bbf571498eaf90ead4dd554994.86.17385181325368631",
-                    "data": {
-                        "currency": "TRUMP-SOL",
-                        "chain": "Solana",
-                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                        "address_memo": ""
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "currency": "TRUMP-SOL",
-                        "chain": "Solana",
-                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                        "address_memo": ""
-                    },
-                    "currency": "TRUMP-SOL",
-                    "network": "Solana",
-                    "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                    "tag": null
-                }
+          {
+            "description": "fetch TRUMP deposit address",
+            "method": "fetchDepositAddress",
+            "input": [
+              "TRUMP"
+            ],
+            "httpResponse": {"message":"OK","code":1000,"trace":"4fa0e4fecf08417cb4093f8bae79bd35.69.17394376034439885","data":{"currency":"TRUMP-SOL","chain":"Solana","address":"AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV","address_memo":""}},
+            "parsedResponse": {
+              "info": {
+                "currency": "TRUMP-SOL",
+                "chain": "Solana",
+                "address": "AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV",
+                "address_memo": ""
+              },
+              "currency": "TRUMP",
+              "network": "SOL",
+              "address": "AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV",
+              "tag": null
             }
+          },
+          {
+            "description": "fetch USDT deposit address",
+            "method": "fetchDepositAddress",
+            "input": [
+              "USDT"
+            ],
+            "httpResponse": {"message":"OK","code":1000,"trace":"9eaec51cd80d46d48a1c6b447206c4d6.67.17394377658295303","data":{"currency":"USDT-TRC20","chain":"TRON","address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":""}},
+            "parsedResponse": {
+              "info": {
+                "currency": "USDT-TRC20",
+                "chain": "TRON",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "address_memo": ""
+              },
+              "currency": "USDT",
+              "network": "TRC20",
+              "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+              "tag": null
+            }
+          },
+          {
+            "description": "fetch USDT deposit address with ERC20 network",
+            "method": "fetchDepositAddress",
+            "input": [
+              "USDT",
+              {
+                "network": "ERC20"
+              }
+            ],
+            "httpResponse": {"message":"OK","code":1000,"trace":"9eaec51cd80d46d48a1c6b447206c4d6.78.17394379137356390","data":{"currency":"USDT-ERC20","chain":"Ethereum","address":"0xD587c9d6CFE84F80A86750C83a497311882C41E3","address_memo":""}},
+            "parsedResponse": {
+              "info": {
+                "currency": "USDT-ERC20",
+                "chain": "Ethereum",
+                "address": "0xD587c9d6CFE84F80A86750C83a497311882C41E3",
+                "address_memo": ""
+              },
+              "currency": "USDT",
+              "network": "ERC20",
+              "address": "0xD587c9d6CFE84F80A86750C83a497311882C41E3",
+              "tag": null
+            }
+          }
+        ],
+        "fetchDeposits": [
+          {
+            "description": "fetch USDT deposits",
+            "method": "fetchDeposits",
+            "input": [
+              "USDT"
+            ],
+            "httpResponse": {"message":"OK","code":1000,"trace":"619294ecef584282b26a3be322b1e01f.90.17394426105542179","data":{"records":[{"withdraw_id":"","deposit_id":"19017278","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1695978904000,"arrival_amount":"69","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"0be8fb435d874454538572e087c60946b2dda0fac1850c1a82f98a0d39d816e9"},{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"},{"withdraw_id":"","deposit_id":"13632954","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1658846077000,"arrival_amount":"10","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"bb25d9259193994874bfc4b712d9965669754cd2b85022f1878e273dd2d23037"},{"withdraw_id":"","deposit_id":"12250959","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1646162180000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"5675c57e00b1adc677f01d1d894a509f8375ccc5a982635f7bee4c3d043c7681"}]}},
+            "parsedResponse": [
+              {
+                "info": {
+                  "withdraw_id": "",
+                  "deposit_id": "12250959",
+                  "operation_type": "deposit",
+                  "currency": "USDT-TRC20",
+                  "apply_time": "1646162180000",
+                  "arrival_amount": "30",
+                  "fee": "0",
+                  "status": 3,
+                  "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                  "address_memo": "",
+                  "tx_id": "5675c57e00b1adc677f01d1d894a509f8375ccc5a982635f7bee4c3d043c7681"
+                },
+                "id": "12250959",
+                "currency": "USDT",
+                "amount": 30,
+                "network": "TRC20",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "addressFrom": null,
+                "addressTo": null,
+                "tag": null,
+                "tagFrom": null,
+                "tagTo": null,
+                "status": "ok",
+                "type": "deposit",
+                "updated": null,
+                "txid": "5675c57e00b1adc677f01d1d894a509f8375ccc5a982635f7bee4c3d043c7681",
+                "internal": null,
+                "comment": null,
+                "timestamp": 1646162180000,
+                "datetime": "2022-03-01T19:16:20.000Z",
+                "fee": {
+                  "cost": 0,
+                  "currency": "USDT"
+                }
+              },
+              {
+                "info": {
+                  "withdraw_id": "",
+                  "deposit_id": "13632954",
+                  "operation_type": "deposit",
+                  "currency": "USDT-TRC20",
+                  "apply_time": "1658846077000",
+                  "arrival_amount": "10",
+                  "fee": "0",
+                  "status": 3,
+                  "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                  "address_memo": "",
+                  "tx_id": "bb25d9259193994874bfc4b712d9965669754cd2b85022f1878e273dd2d23037"
+                },
+                "id": "13632954",
+                "currency": "USDT",
+                "amount": 10,
+                "network": "TRC20",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "addressFrom": null,
+                "addressTo": null,
+                "tag": null,
+                "tagFrom": null,
+                "tagTo": null,
+                "status": "ok",
+                "type": "deposit",
+                "updated": null,
+                "txid": "bb25d9259193994874bfc4b712d9965669754cd2b85022f1878e273dd2d23037",
+                "internal": null,
+                "comment": null,
+                "timestamp": 1658846077000,
+                "datetime": "2022-07-26T14:34:37.000Z",
+                "fee": {
+                  "cost": 0,
+                  "currency": "USDT"
+                }
+              },
+              {
+                "info": {
+                  "withdraw_id": "",
+                  "deposit_id": "14233682",
+                  "operation_type": "deposit",
+                  "currency": "USDT-TRC20",
+                  "apply_time": "1664789416000",
+                  "arrival_amount": "30",
+                  "fee": "0",
+                  "status": 3,
+                  "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                  "address_memo": "",
+                  "tx_id": "ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"
+                },
+                "id": "14233682",
+                "currency": "USDT",
+                "amount": 30,
+                "network": "TRC20",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "addressFrom": null,
+                "addressTo": null,
+                "tag": null,
+                "tagFrom": null,
+                "tagTo": null,
+                "status": "ok",
+                "type": "deposit",
+                "updated": null,
+                "txid": "ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53",
+                "internal": null,
+                "comment": null,
+                "timestamp": 1664789416000,
+                "datetime": "2022-10-03T09:30:16.000Z",
+                "fee": {
+                  "cost": 0,
+                  "currency": "USDT"
+                }
+              },
+              {
+                "info": {
+                  "withdraw_id": "",
+                  "deposit_id": "19017278",
+                  "operation_type": "deposit",
+                  "currency": "USDT-TRC20",
+                  "apply_time": "1695978904000",
+                  "arrival_amount": "69",
+                  "fee": "0",
+                  "status": 3,
+                  "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                  "address_memo": "",
+                  "tx_id": "0be8fb435d874454538572e087c60946b2dda0fac1850c1a82f98a0d39d816e9"
+                },
+                "id": "19017278",
+                "currency": "USDT",
+                "amount": 69,
+                "network": "TRC20",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "addressFrom": null,
+                "addressTo": null,
+                "tag": null,
+                "tagFrom": null,
+                "tagTo": null,
+                "status": "ok",
+                "type": "deposit",
+                "updated": null,
+                "txid": "0be8fb435d874454538572e087c60946b2dda0fac1850c1a82f98a0d39d816e9",
+                "internal": null,
+                "comment": null,
+                "timestamp": 1695978904000,
+                "datetime": "2023-09-29T09:15:04.000Z",
+                "fee": {
+                  "cost": 0,
+                  "currency": "USDT"
+                }
+              }
+            ]
+          }
         ],
         "fetchClosedOrders": [
             {
