@@ -226,6 +226,8 @@ trait ClientTrait {
     }
 
     public function close() {
+        // Here happens the language-specific cleanup of WS & REST resources
+        // [WS]
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
@@ -234,6 +236,13 @@ trait ClientTrait {
             $url = $client->url;
             unset($this->clients[$url]);
         }
+        // [REST]
+        parent::close();
+    }
+
+    public function clean() {
+        $this->close();
+        parent::clean();
     }
 
     public function __destruct() {
