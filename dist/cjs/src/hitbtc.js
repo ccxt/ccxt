@@ -1429,7 +1429,7 @@ class hitbtc extends hitbtc$1 {
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
         const taker = this.safeValue(trade, 'taker');
-        let takerOrMaker = undefined;
+        let takerOrMaker;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
