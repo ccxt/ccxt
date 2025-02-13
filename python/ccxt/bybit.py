@@ -3906,7 +3906,7 @@ class bybit(Exchange, ImplicitAPI):
                 elif price is not None:
                     request['qty'] = self.get_cost(symbol, Precise.string_mul(amountString, priceString))
                 else:
-                    request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
+                    request['qty'] = amountString
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
                 request['qty'] = amountString
