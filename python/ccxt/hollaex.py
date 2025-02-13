@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class hollaex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'hollaex',
             'name': 'HollaEx',

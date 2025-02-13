@@ -5,9 +5,8 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woofipro, self).describe(), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
