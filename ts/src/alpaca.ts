@@ -1006,7 +1006,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
-            let newType = undefined;
+            let newType: string;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             } else {
