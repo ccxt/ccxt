@@ -1724,7 +1724,8 @@
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined",
-                "currencyIdAndCode": "different"
+                "currencyIdAndCode": "different",
+                "limits": "incorrect for some currencies"
             },
             "fetchTrades": {
                 "side": "not set"
