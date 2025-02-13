@@ -900,7 +900,7 @@ export default class woo extends Exchange {
                 name = this.safeString (network, 'fullname');
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
-                const unifiedNetwork = splitted[0];
+                const unifiedNetwork = this.safeString (splitted, 0);
                 const precision = this.parsePrecision (this.safeString (network, 'decimals'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
@@ -2167,10 +2167,16 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeString (params, 'network', networkCodeDefault);
-        params = this.omit (params, 'network');
-        const codeForExchange = networkCode + '_' + currency['code'];
+        const defaultNetwork = this.getDefaultNetworkForCurrency (code);
+        let networkCode = this.safeString (params, 'network');
+        let codeForExchange = undefined;
+        if (networkCode !== undefined) {
+            codeForExchange = networkCode + '_' + currency['code'];
+            params = this.omit (params, 'network');
+        } else {
+            codeForExchange = this.safeString (defaultNetwork, 'id');
+            networkCode = this.safeString (defaultNetwork, 'network');
+        }
         const request: Dict = {
             'token': codeForExchange,
         };
@@ -2190,6 +2196,22 @@ export default class woo extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    getDefaultNetworkForCurrency (code) {
+        const currencyItem = this.currency (code);
+        const networks = currencyItem['networks'];
+        const networkKeys = Object.keys (networks);
+        let defaultNetworkCode = this.safeString (networkKeys, 0);
+        for (let i = 0; i < networkKeys.length; i++) {
+            const network = networkKeys[i];
+            if (network === 'ETH') {
+                defaultNetworkCode = network;
+            }
+        }
+        // if ERC20 was not found according to above options, then use the first network of currency
+        // changes are made according to issue https://github.com/ccxt/ccxt/issues/24919
+        return this.safeDict (networks, defaultNetworkCode);
     }
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
@@ -3781,20 +3803,6 @@ export default class woo extends Exchange {
             };
         }
         return result;
-    }
-
-    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
-        const currencyItem = this.currency (code);
-        const networks = currencyItem['networks'];
-        const networkKeys = Object.keys (networks);
-        for (let i = 0; i < networkKeys.length; i++) {
-            const network = networkKeys[i];
-            if (network === 'ETH') {
-                return network;
-            }
-        }
-        // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue (networkKeys, 0);
     }
 
     setSandboxMode (enable: boolean) {
