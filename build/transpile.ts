@@ -782,7 +782,7 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: (?:List\[)?Any/,
+            'Any': /(?:->|:) (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
