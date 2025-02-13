@@ -15,7 +15,7 @@ import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Order
  * @augments Exchange
  */
 export default class digifinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',
             'name': 'DigiFinex',

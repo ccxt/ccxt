@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHist
  * @augments Exchange
  */
 export default class phemex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',
             'name': 'Phemex',

@@ -12,7 +12,7 @@ import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenI
  * @augments Exchange
  */
 export default class gate extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'gate',
             'name': 'Gate.io',

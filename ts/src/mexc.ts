@@ -15,7 +15,7 @@ import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHL
  * @augments Exchange
  */
 export default class mexc extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'mexc',
             'name': 'MEXC Global',

@@ -12,7 +12,7 @@ import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderT
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
             'name': 'Alpaca',

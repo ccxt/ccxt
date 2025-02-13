@@ -15,7 +15,7 @@ import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Tra
  * @augments Exchange
  */
 export default class bitmart extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',
             'name': 'BitMart',

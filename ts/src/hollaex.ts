@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num
  * @augments Exchange
  */
 export default class hollaex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',
             'name': 'HollaEx',

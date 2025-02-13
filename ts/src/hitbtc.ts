@@ -10,7 +10,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLC
  * @augments Exchange
  */
 export default class hitbtc extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
