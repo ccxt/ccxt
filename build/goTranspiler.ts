@@ -1551,7 +1551,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            if (tsFile.indexOf('json') > -1 || tsFile.indexOf('filterBy') > -1 || tsFile.indexOf('sortBy') > -1) {
+            const skipBaseTestFiles = ['json', 'filterBy', 'sortBy', 'afterConstruct'];
+            if (skipBaseTestFiles.find (x => testName.includes(x))) {
                 continue; // skip json tests for now, exception handling outside classes is not supported
             }
 
@@ -1563,7 +1564,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/(\w+) =new ccxt.Exchange(.+\n.+\n.+)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
