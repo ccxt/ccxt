@@ -1014,7 +1014,7 @@ public partial class Exchange
     {
         var type = obj.GetType();
         var prop = type.GetProperty(property.ToString());
-        return (prop != null) ? prop.getValue(obj) : defaultValue;
+        return (prop != null) ? prop.GetValue(obj) : defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)
