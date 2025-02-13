@@ -5256,6 +5256,7 @@ export default class bitmart extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'asset');
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'time');
         const type = this.safeString (item, 'type');
         return this.safeLedgerEntry ({
@@ -5266,7 +5267,7 @@ export default class bitmart extends Exchange {
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tradeId'),
             'type': this.parseLedgerEntryType (type),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': currency['code'],
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
