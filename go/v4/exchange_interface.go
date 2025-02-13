@@ -91,6 +91,7 @@ type IExchange interface {
 	FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 	SafeCurrency(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	NetworkCodeAdjusterForCurrency(currencyCode interface{}, networkCode interface{}) interface{}
 	Parse8601(datetime2 interface{}) interface{}
 	Iso8601(ts2 interface{}) interface{}
 	FetchPositions(optionalArgs ...interface{}) <-chan interface{}

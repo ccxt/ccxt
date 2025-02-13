@@ -136,6 +136,7 @@ const VIRTUAL_BASE_METHODS = {
     "parseTransfer": false,
     "parseWithdrawal": false,
     "parseWithdrawalStatus": false,
+    "networkCodeAdjusterForCurrency": false,
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
@@ -1564,6 +1565,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.NewExchange()' ],
+                [/(\w+) := ccxt\.NewExchange\(\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent(map[string]interface{}{}, map[string]interface{}{}, $1)' ],
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
