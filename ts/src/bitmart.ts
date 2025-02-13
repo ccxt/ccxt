@@ -1218,11 +1218,14 @@ export default class bitmart extends Exchange {
             let entry = this.safeDict (result, currencyCode);
             if (entry === undefined) {
                 entry = {
+                    'info': currency,
                     'id': currencyId,
                     'code': currencyCode,
                     'precision': undefined,
                     'name': this.safeString (currency, 'name'),
-                    'info': currency,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'active': undefined,
                     'networks': {},
                 };
             }
