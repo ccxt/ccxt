@@ -154,6 +154,7 @@ class Exchange(object):
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
+    enableLoggerDebugger = False
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
@@ -537,7 +538,8 @@ class Exchange(object):
         # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
-        self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
+        if (self.enableLoggerDebugger):
+            self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
         # end of proxies & headers
 
         request_body = body
@@ -576,7 +578,8 @@ class Exchange(object):
                 self.last_response_headers = headers
             if self.verbose:
                 self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
-            self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+            if (self.enableLoggerDebugger):
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
         except Timeout as e:
