@@ -95,7 +95,7 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	httpClient  *http.Client
+	httpClient *http.Client
 
 	HttpProxy            interface{}
 	HttpsProxy           interface{}
@@ -163,11 +163,12 @@ const PAD_WITH_ZERO int = 6
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
-	// var properties = this.describe()
+	var describeValues = this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
 	}
-	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
+	var extendedProperties = this.DeepExtend(describeValues, exchangeConfig)
+	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333

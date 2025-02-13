@@ -1551,10 +1551,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            if (tsFile.indexOf('json') > -1 || tsFile.indexOf('filterBy') > -1 || tsFile.indexOf('sortBy') > -1) {
-                continue; // skip json tests for now, exception handling outside classes is not supported
-            }
-
             // const goFileName = this.capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
@@ -1563,13 +1559,12 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.NewExchange()' ],
+                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /TestSortBy\(\)/gm, '' ], // remove equals
-                [ /TestFilterBy\(\)/gm, '' ], // remove equals
+                [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
 
             ]).trim ()
 

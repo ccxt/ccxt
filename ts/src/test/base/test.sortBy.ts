@@ -23,28 +23,18 @@ function testSortBy () {
         { 'x': 5 },
     ]);
 
+    const newArrayDescending = exchange.sortBy (arr, 'x', true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', newArrayDescending, [
+        { 'x': 5 },
+        { 'x': 4 },
+        { 'x': 3 },
+        { 'x': 2 },
+        { 'x': 1 },
+        { 'x': 0 },
+    ]);
 
-    try {
-        const newArrayDescending = exchange.sortBy (arr, 'x', true);
-        testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', newArrayDescending, [
-            { 'x': 5 },
-            { 'x': 4 },
-            { 'x': 3 },
-            { 'x': 2 },
-            { 'x': 1 },
-            { 'x': 0 },
-        ]);
-
-        const emptyArray = exchange.sortBy ([], 'x');
-        testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', emptyArray, []);
-    } catch (e) {
-        // skip c# , todo
-        if ((e.toString ()).includes ('BaseTest.assert') || (e.toString ()).includes ('at System.') || (e.toString ()).includes ('at ccxt.Exchange.')) {
-            return;
-        } else {
-            throw e;
-        }
-    }
+    const emptyArray = exchange.sortBy ([], 'x');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', emptyArray, []);
 }
 
 export default testSortBy;

@@ -17,6 +17,8 @@ public partial class Exchange
         if (value1.GetType() == typeof(string))
         {
             var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1]).ToList();
+            if (desc)
+                sortedList2.Reverse();
             return sortedList2;
         }
         else
@@ -72,7 +74,7 @@ public partial class Exchange
         var outList = new List<object>();
         foreach (object elem in targetA)
         {
-            if (((dict)elem)[(string)key].ToString() == value.ToString())
+            if (((dict)elem)[(string)key]?.ToString() == value?.ToString())
             {
                 outList.Add(elem);
             }
