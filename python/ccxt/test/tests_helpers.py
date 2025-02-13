@@ -96,7 +96,7 @@ Error = Exception
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump((type), (value), '\n<UNHANDLED EXCEPTION>\n' + ('\n'.join(format_tb(traceback))))
+    dump('[TEST_FAILURE]', (type), (value), '\n<UNHANDLED EXCEPTION>\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
