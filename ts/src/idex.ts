@@ -167,6 +167,7 @@ export default class idex extends Exchange {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
+                'supportedBlockchains': [ 'MATIC' ],
             },
             'features': {
                 'spot': {
@@ -850,6 +851,33 @@ export default class idex extends Exchange {
             const currencyId = this.safeString (entry, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals')));
+            const networks = {};
+            const supportedChains = this.safeValue (this.options, 'supportedBlockchains', []);
+            const length = supportedChains.length;
+            // commonly they have only one chain
+            if (length === 1) {
+                const networkCode = this.networkIdToCode (supportedChains[0]);
+                networks[networkCode] = {
+                    'info': entry,
+                    'id': networkCode,
+                    'network': networkCode,
+                    'active': true,
+                    'deposit': true,
+                    'withdraw': true,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -861,6 +889,7 @@ export default class idex extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
+                'networks': networks,
                 'limits': {
                     'amount': { 'min': precision, 'max': undefined },
                     'withdraw': { 'min': precision, 'max': undefined },
