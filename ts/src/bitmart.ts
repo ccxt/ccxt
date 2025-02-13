@@ -7,7 +7,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry } from './base/types.js';
-
 //  ---------------------------------------------------------------------------
 
 /**
@@ -1264,31 +1263,37 @@ export default class bitmart extends Exchange {
     }
 
     getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {
-        let id: Str = undefined;
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
         }
         const currency = this.currency (currencyCode);
+        let id = currency['id'];
+        let idFromNetwork: Str = undefined;
         const networks = this.safeDict (currency, 'networks', {});
-        let network = this.safeDict (networks, networkCode);
+        let networkInfo: Dict = {};
         if (networkCode === undefined) {
             // network code is not provided and there is no default network code
-            network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
+            let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
             if (network === undefined) {
                 // use the first network in the networks list if there is no network code with the same code as currency
                 const keys = Object.keys (networks);
-                if (keys.length > 0) {
+                const length = keys.length;
+                if (length > 0) {
                     network = this.safeValue (networks, keys[0]);
                 }
             }
+            networkInfo = this.safeDict (network, 'info', {});
+            idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
+        } else {
+            const providedOrDefaultNetwork = this.safeDict (networks, networkCode);
+            if (providedOrDefaultNetwork !== undefined) {
+                networkInfo = this.safeDict (providedOrDefaultNetwork, 'info', {});
+                idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
+            } else {
+                id += '-' + this.networkCodeToId (networkCode, currencyCode); // use concatenated currency id and network code if network is not found
+            }
         }
-        if (network !== undefined) {
-            const networkInfo = this.safeDict (network, 'info', {});
-            id = this.safeString (networkInfo, 'currency'); // use currency name from network info if network is found
-        } else if (networkCode !== undefined) {
-            id = currency['code'] + '-' + this.networkCodeToId (networkCode, currencyCode); // use concatenated currency code and network code if network is not found
-        }
-        return id;
+        return (idFromNetwork !== undefined) ? idFromNetwork : id;
     }
 
     /**
