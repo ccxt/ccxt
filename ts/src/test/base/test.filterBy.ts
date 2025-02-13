@@ -23,6 +23,7 @@ function testFilterBy () {
         { 'foo': 'c' },
     ];
 
+    assert ('GO_SKIP_START');
     try {
         const currentValue = exchange.filterBy (sampleArray, 'foo', 'a');
         const storedValue = [
@@ -38,6 +39,7 @@ function testFilterBy () {
             throw e;
         }
     }
+    assert ('GO_SKIP_END');
 }
 
 export default testFilterBy;

@@ -28,17 +28,17 @@ function testAfterConstructor () {
 
 
     // ############# markets ############# //
-    // todo: after GO transpiler is fixed
-    // const sampleMarket = { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
-    // const exchange2 = new ccxt.Exchange ({
-    //     'id': 'sampleexchange',
-    //     'markets': {
-    //         'BTC/USD': sampleMarket,
-    //     },
-    // });
-    // assert (exchange2.markets['BTC/USD'] !== undefined);
+    const sampleMarket = { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
+    const exchange2 = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'markets': {
+            'BTC/USD': sampleMarket,
+        },
+    });
+    assert (exchange2.markets['BTC/USD'] !== undefined);
 
 
+    assert ('GO_SKIP_START');
     // ############# sandbox ############# //
     try {
         const exchange3 = new ccxt.Exchange ({
@@ -59,6 +59,7 @@ function testAfterConstructor () {
         // if exception was thrown, it should only happen if 'test' was not in urls
         assert (exchange3.urls === undefined || !('test' in exchange3.urls));
     }
+    assert ('GO_SKIP_END');
 
     // todo: other constructor things
 }

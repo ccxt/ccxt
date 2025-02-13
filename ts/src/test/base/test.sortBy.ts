@@ -23,7 +23,7 @@ function testSortBy () {
         { 'x': 5 },
     ]);
 
-
+    assert ('GO_SKIP_START');
     try {
         const newArrayDescending = exchange.sortBy (arr, 'x', true);
         testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', newArrayDescending, [
@@ -45,6 +45,7 @@ function testSortBy () {
             throw e;
         }
     }
+    assert ('GO_SKIP_END');
 }
 
 export default testSortBy;
