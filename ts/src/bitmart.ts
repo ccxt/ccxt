@@ -3735,6 +3735,7 @@ export default class bitmart extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -3742,25 +3743,16 @@ export default class bitmart extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
             'amount': amount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
-        }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] = request['currency'] + '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
         }
         const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
