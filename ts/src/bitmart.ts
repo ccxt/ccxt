@@ -3797,18 +3797,6 @@ export default class bitmart extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] = request['currency'] + '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                currency['code'] = request['currency']; // update currency code to filter
-                params = this.omit (params, 'network');
-            }
-        }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //
         //     {
@@ -4000,7 +3988,13 @@ export default class bitmart extends Exchange {
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
-        const currencyId = this.safeString (transaction, 'currency');
+        let currencyId = this.safeString (transaction, 'currency');
+        let networkId: Str = undefined;
+        if (currencyId.indexOf ('NFT') < 0) {
+            const parts = currencyId.split ('-');
+            currencyId = this.safeString (parts, 0);
+            networkId = this.safeString (parts, 1);
+        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
@@ -4019,7 +4013,7 @@ export default class bitmart extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
