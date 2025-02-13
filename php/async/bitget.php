@@ -20,7 +20,7 @@ use \React\Promise\PromiseInterface;
 
 class bitget extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
             'name' => 'Bitget',

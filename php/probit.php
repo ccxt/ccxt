@@ -10,7 +10,7 @@ use ccxt\abstract\probit as Exchange;
 
 class probit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'probit',
             'name' => 'ProBit',

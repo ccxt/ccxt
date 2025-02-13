@@ -13,7 +13,7 @@ use \React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

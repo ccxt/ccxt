@@ -20,7 +20,7 @@ use \React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
