@@ -1,0 +1,54 @@
+{
+  "BTC": {
+    "id": "BTC",
+    "code": "BTC",
+    "limits": {
+      "deposit": {},
+      "withdraw": {}
+    },
+    "info": {
+      "currency": "BTC",
+      "spot_price": "97009.314732850007769088",
+      "spot_price_24h": "98441.779959899998912512"
+    }
+  },
+  "USDT": {
+    "id": "USDT",
+    "code": "USDT",
+    "limits": {
+      "deposit": {},
+      "withdraw": {}
+    },
+    "info": {
+      "currency": "USDT",
+      "spot_price": "1.000389870750000128",
+      "spot_price_24h": "1.000299427549999872"
+    }
+  },
+  "USDC": {
+    "id": "USDC",
+    "code": "USDC",
+    "limits": {
+      "deposit": {},
+      "withdraw": {}
+    },
+    "info": {
+      "currency": "USDC",
+      "spot_price": "1.00008621975",
+      "spot_price_24h": "0.999991844500000000"
+    }
+  },
+  "LBTC": {
+    "id": "LBTC",
+    "code": "LBTC",
+    "limits": {
+      "deposit": {},
+      "withdraw": {}
+    },
+    "info": {
+      "currency": "LBTC",
+      "spot_price": "96916.649684422767935488",
+      "spot_price_24h": "97983.562755768242405376"
+    }
+  }
+}

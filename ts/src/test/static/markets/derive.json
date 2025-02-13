@@ -1,0 +1,195 @@
+{
+  "BTC/USD:USDC": {
+    "id": "BTC-PERP",
+    "symbol": "BTC/USD:USDC",
+    "base": "BTC",
+    "quote": "USD",
+    "settle": "USDC",
+    "baseId": "BTC",
+    "quoteId": "USD",
+    "settleId": "USDC",
+    "type": "swap",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": true,
+    "contractSize": 1,
+    "linear": true,
+    "subType": "linear",
+    "taker": 0.0003,
+    "maker": 0.0001,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {},
+      "amount": {
+        "min": 0.01,
+        "max": 10000
+      },
+      "price": {},
+      "cost": {}
+    },
+    "marginModes": {},
+    "info": {
+      "instrument_type": "perp",
+      "instrument_name": "BTC-PERP",
+      "scheduled_activation": 1701840228,
+      "scheduled_deactivation": 9223372036854776000,
+      "is_active": true,
+      "tick_size": "0.1",
+      "minimum_amount": "0.01",
+      "maximum_amount": "10000",
+      "amount_step": "0.001",
+      "mark_price_fee_rate_cap": "0",
+      "maker_fee_rate": "0.0001",
+      "taker_fee_rate": "0.0003",
+      "base_fee": "0.1",
+      "base_currency": "BTC",
+      "quote_currency": "USD",
+      "option_details": null,
+      "perp_details": {
+        "index": "BTC-USD",
+        "max_rate_per_hour": "0.004",
+        "min_rate_per_hour": "-0.004",
+        "static_interest_rate": "0.0000125",
+        "aggregate_funding": "10956.660343828254894946",
+        "funding_rate": "0.0000125"
+      },
+      "erc20_details": null,
+      "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+      "base_asset_sub_id": "0",
+      "pro_rata_fraction": "0",
+      "fifo_min_allocation": "0",
+      "pro_rata_amount_step": "0.1"
+    }
+  },
+  "BTC/USDC": {
+    "id": "BTC-USDC",
+    "symbol": "BTC/USDC",
+    "base": "BTC",
+    "quote": "USDC",
+    "baseId": "BTC",
+    "quoteId": "USDC",
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": false,
+    "taker": 0.0015,
+    "maker": 0.0015,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {},
+      "amount": {
+        "min": 0.01,
+        "max": 100
+      },
+      "price": {},
+      "cost": {}
+    },
+    "marginModes": {},
+    "info": {
+      "instrument_type": "erc20",
+      "instrument_name": "BTC-USDC",
+      "scheduled_activation": 1728509120,
+      "scheduled_deactivation": 9223372036854776000,
+      "is_active": true,
+      "tick_size": "0.1",
+      "minimum_amount": "0.01",
+      "maximum_amount": "100",
+      "amount_step": "0.001",
+      "mark_price_fee_rate_cap": "0",
+      "maker_fee_rate": "0.0015",
+      "taker_fee_rate": "0.0015",
+      "base_fee": "0.1",
+      "base_currency": "BTC",
+      "quote_currency": "USDC",
+      "option_details": null,
+      "perp_details": null,
+      "erc20_details": {
+        "decimals": 8,
+        "underlying_erc20_address": "0x9b80ab732a6F1030326Af0014f106E12C4Db18EC",
+        "borrow_index": "1",
+        "supply_index": "1"
+      },
+      "base_asset_address": "0x7da2D398dddDfC946Efd2C758c4688D21887790d",
+      "base_asset_sub_id": "0",
+      "pro_rata_fraction": "0",
+      "fifo_min_allocation": "0",
+      "pro_rata_amount_step": "0.1"
+    }
+  },
+  "LBTC/USDC": {
+    "id": "LBTC-USDC",
+    "symbol": "LBTC/USDC",
+    "base": "LBTC",
+    "quote": "USDC",
+    "baseId": "LBTC",
+    "quoteId": "USDC",
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": false,
+    "taker": 0,
+    "maker": 0,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {},
+      "amount": {
+        "min": 0.01,
+        "max": 10000
+      },
+      "price": {},
+      "cost": {}
+    },
+    "marginModes": {},
+    "info": {
+      "instrument_type": "erc20",
+      "instrument_name": "LBTC-USDC",
+      "scheduled_activation": 0,
+      "scheduled_deactivation": 9223372036854776000,
+      "is_active": true,
+      "tick_size": "0.1",
+      "minimum_amount": "0.01",
+      "maximum_amount": "10000",
+      "amount_step": "0.001",
+      "mark_price_fee_rate_cap": "0",
+      "maker_fee_rate": "0",
+      "taker_fee_rate": "0",
+      "base_fee": "0",
+      "base_currency": "LBTC",
+      "quote_currency": "USDC",
+      "option_details": null,
+      "perp_details": null,
+      "erc20_details": {
+        "decimals": 8,
+        "underlying_erc20_address": "",
+        "borrow_index": "1",
+        "supply_index": "1"
+      },
+      "base_asset_address": "0xeaF03Bb3280C609d35E7F84d24a996c7C0b74F5f",
+      "base_asset_sub_id": "0",
+      "pro_rata_fraction": "0",
+      "fifo_min_allocation": "0",
+      "pro_rata_amount_step": "0.1"
+    }
+  }
+}
