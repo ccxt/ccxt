@@ -688,6 +688,7 @@ export default class bitmart extends Exchange {
                     'ETH': 'ERC20',
                     'Ethereum': 'ERC20',
                     'USDT': 'OMNI', // the default USDT network for bitmart is OMNI
+                    'Bitcoin': 'BTC',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
@@ -3698,26 +3699,23 @@ export default class bitmart extends Exchange {
         //        address_memo: ''
         //    }
         //
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const address = this.safeString (depositAddress, 'address');
-        const chain = this.safeString (depositAddress, 'chain');
-        let network = undefined;
-        currency = this.safeCurrency (currencyId, currency);
-        if (chain !== undefined) {
-            const parts = chain.split ('-');
-            const partsLength = parts.length;
-            const networkId = this.safeString (parts, partsLength - 1);
-            if (networkId === this.safeString (currency, 'name')) {
-                network = this.safeString (currency, 'code');
-            } else {
-                network = this.networkIdToCode (networkId);
+        let currencyId = this.safeString (depositAddress, 'currency');
+        let network = this.safeString (depositAddress, 'chain');
+        if (currencyId.indexOf ('NFT') < 0) {
+            const parts = currencyId.split ('-');
+            currencyId = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
+            if (secondPart !== undefined) {
+                network = secondPart;
             }
         }
+        const address = this.safeString (depositAddress, 'address');
+        currency = this.safeCurrency (currencyId, currency);
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': this.safeString (currency, 'code'),
-            'network': network,
+            'network': this.networkIdToCode (network),
             'address': address,
             'tag': this.safeString (depositAddress, 'address_memo'),
         } as DepositAddress;
