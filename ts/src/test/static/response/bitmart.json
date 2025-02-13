@@ -4,39 +4,69 @@
     "options": {},
     "methods": {
         "fetchDepositAddress": [
-            {
-                "description": "secondary currency with network",
-                "method": "fetchDepositAddress",
-                "input": [
-                    "TRUMP",
-                    {
-                        "network": "SOL"
-                    }
-                ],
-                "httpResponse": {
-                    "message": "OK",
-                    "code": "1000",
-                    "trace": "427fe6bbf571498eaf90ead4dd554994.86.17385181325368631",
-                    "data": {
-                        "currency": "TRUMP-SOL",
-                        "chain": "Solana",
-                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                        "address_memo": ""
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "currency": "TRUMP-SOL",
-                        "chain": "Solana",
-                        "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                        "address_memo": ""
-                    },
-                    "currency": "TRUMP-SOL",
-                    "network": "Solana",
-                    "address": "AbE8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVz2YAE",
-                    "tag": null
-                }
+          {
+            "description": "fetch TRUMP deposit address",
+            "method": "fetchDepositAddress",
+            "input": [
+              "TRUMP"
+            ],
+            "httpResponse": "{\"message\":\"OK\",\"code\":1000,\"trace\":\"4fa0e4fecf08417cb4093f8bae79bd35.69.17394376034439885\",\"data\":{\"currency\":\"TRUMP-SOL\",\"chain\":\"Solana\",\"address\":\"AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV\",\"address_memo\":\"\"}}",
+            "parsedResponse": {
+              "info": {
+                "currency": "TRUMP-SOL",
+                "chain": "Solana",
+                "address": "AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV",
+                "address_memo": ""
+              },
+              "currency": "TRUMP",
+              "network": "SOL",
+              "address": "AaNyvxszcCVKD4dSddN1a9mwhStzgTneL8nfCYsETmNV",
+              "tag": null
             }
+          },
+          {
+            "description": "fetch USDT deposit address",
+            "method": "fetchDepositAddress",
+            "input": [
+              "USDT"
+            ],
+            "httpResponse": "{\"message\":\"OK\",\"code\":1000,\"trace\":\"9eaec51cd80d46d48a1c6b447206c4d6.67.17394377658295303\",\"data\":{\"currency\":\"USDT-TRC20\",\"chain\":\"TRON\",\"address\":\"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN\",\"address_memo\":\"\"}}",
+            "parsedResponse": {
+              "info": {
+                "currency": "USDT-TRC20",
+                "chain": "TRON",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "address_memo": ""
+              },
+              "currency": "USDT",
+              "network": "TRC20",
+              "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+              "tag": null
+            }
+          },
+          {
+            "description": "fetch USDT deposit address with ERC20 network",
+            "method": "fetchDepositAddress",
+            "input": [
+              "USDT",
+              {
+                "network": "ERC20"
+              }
+            ],
+            "httpResponse": "{\"message\":\"OK\",\"code\":1000,\"trace\":\"9eaec51cd80d46d48a1c6b447206c4d6.78.17394379137356390\",\"data\":{\"currency\":\"USDT-ERC20\",\"chain\":\"Ethereum\",\"address\":\"0xD587c9d6CFE84F80A86750C83a497311882C41E3\",\"address_memo\":\"\"}}",
+            "parsedResponse": {
+              "info": {
+                "currency": "USDT-ERC20",
+                "chain": "Ethereum",
+                "address": "0xD587c9d6CFE84F80A86750C83a497311882C41E3",
+                "address_memo": ""
+              },
+              "currency": "USDT",
+              "network": "ERC20",
+              "address": "0xD587c9d6CFE84F80A86750C83a497311882C41E3",
+              "tag": null
+            }
+          }
         ],
         "fetchClosedOrders": [
             {
