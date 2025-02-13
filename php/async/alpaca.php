@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class alpaca extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'alpaca',
             'name' => 'Alpaca',
@@ -1029,7 +1029,6 @@ class alpaca extends Exchange {
             );
             $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
             if ($triggerPrice !== null) {
-                $newType = null;
                 if (mb_strpos($type, 'limit') !== false) {
                     $newType = 'stop_limit';
                 } else {

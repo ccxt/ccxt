@@ -10,7 +10,7 @@ use ccxt\abstract\hollaex as Exchange;
 
 class hollaex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',

@@ -10,7 +10,7 @@ use ccxt\abstract\kucoin as Exchange;
 
 class kucoin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',

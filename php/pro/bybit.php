@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class bybit extends \ccxt\async\bybit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

@@ -10,7 +10,7 @@ use ccxt\abstract\onetrading as Exchange;
 
 class onetrading extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
             'name' => 'One Trading',

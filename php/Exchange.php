@@ -2261,7 +2261,7 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,

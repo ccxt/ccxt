@@ -10,7 +10,7 @@ use ccxt\abstract\hashkey as Exchange;
 
 class hashkey extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hashkey',
             'name' => 'HashKey Global',
