@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oxfun import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class oxfun(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(oxfun, self).describe(), {
             'id': 'oxfun',
             'name': 'OXFUN',
