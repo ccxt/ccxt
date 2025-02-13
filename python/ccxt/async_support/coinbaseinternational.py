@@ -26,7 +26,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': True,
+            'certified': False,
             'pro': True,
             'rateLimit': 100,  # 10 requests per second
             'version': 'v1',
