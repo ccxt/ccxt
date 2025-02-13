@@ -1044,6 +1044,7 @@ export default class upbit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1051,19 +1052,41 @@ export default class upbit extends Exchange {
         const market = this.market (symbol);
         const timeframePeriod = this.parseTimeframe (timeframe);
         const timeframeValue = this.safeString (this.timeframes, timeframe, timeframe);
-        if (limit === undefined) {
-            limit = 200;
-        }
+        const until = this.safeInteger (params, 'until');
         const request: Dict = {
             'market': market['id'],
             'timeframe': timeframeValue,
-            'count': limit,
         };
         let response = undefined;
-        if (since !== undefined) {
+        if (until !== undefined) {
+            request['to'] = this.iso8601 (until + (timeframePeriod * 1000));
+            if (since !== undefined) {
+                const count = (until - since) / timeframePeriod;
+                if (limit !== undefined) {
+                    if (limit < count) {
+                        const to = until - (count - limit + 1) * timeframePeriod;
+                        request['to'] = this.iso8601 (this.parseToInt (to));
+                    }
+                } else {
+                    request['count'] = this.parseToInt (count);
+                }
+            } else {
+                if (limit === undefined) {
+                    limit = 200;
+                }
+                request['count'] = limit;
+            }
+        } else {
+            if (limit === undefined) {
+                limit = 200;
+            }
+            request['count'] = limit;
             // convert `since` to `to` value
-            request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
+            if (since !== undefined) {
+                request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
+            }
         }
+        params = this.omit (params, 'until');
         if (timeframeValue === 'minutes') {
             const numMinutes = Math.round (timeframePeriod / 60);
             request['unit'] = numMinutes;
