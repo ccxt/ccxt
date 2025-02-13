@@ -1563,7 +1563,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.NewExchange()' ],
+                [/(\w+) =new ccxt.Exchange(.+\n.+\n.+)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
