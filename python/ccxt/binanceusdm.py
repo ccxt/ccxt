@@ -5,12 +5,13 @@
 
 from ccxt.binance import binance
 from ccxt.abstract.binanceusdm import ImplicitAPI
+from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
 
 
 class binanceusdm(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binanceusdm, self).describe(), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
