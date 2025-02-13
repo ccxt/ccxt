@@ -223,6 +223,13 @@ export default class kraken extends Exchange {
                         'Earn/DeallocateStatus': 3,
                         'Earn/Strategies': 3,
                         'Earn/Allocations': 3,
+                        'ListCustodyVaults': 3,
+                        'GetCustodyVault': 3,
+                        'portfolio/transactions': 3,
+                        'ListCustodyTasks': 3,
+                        'GetCustodyTask': 3,
+                        'ListCustodyActivities': 3,
+                        'GetCustodyActivity': 3,
                     },
                 },
             },
@@ -3401,9 +3408,10 @@ export default class kraken extends Exchange {
             }
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials ();
+            const isCustody = (path.indexOf ('Custody') >= 0);
             const nonce = this.nonce ().toString ();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isCustody) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
                 body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
@@ -3418,7 +3426,7 @@ export default class kraken extends Exchange {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
             };
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isCustody) {
                 headers['Content-Type'] = 'application/json';
             } else {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
