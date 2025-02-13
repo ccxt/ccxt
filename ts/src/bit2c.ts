@@ -646,7 +646,7 @@ export default class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status = undefined;
+        let status: string;
         if (isNewOrder) {
             const tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -996,4 +996,3 @@ export default class bit2c extends Exchange {
         return undefined;
     }
 }
-
