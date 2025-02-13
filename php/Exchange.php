@@ -439,7 +439,6 @@ class Exchange {
         'upbit',
         'vertex',
         'wavesexchange',
-        'wazirx',
         'whitebit',
         'woo',
         'woofipro',
