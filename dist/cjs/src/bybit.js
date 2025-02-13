@@ -4107,7 +4107,7 @@ class bybit extends bybit$1 {
                     request['qty'] = this.getCost(symbol, Precise["default"].stringMul(amountString, priceString));
                 }
                 else {
-                    request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                    request['qty'] = amountString;
                 }
             }
         }

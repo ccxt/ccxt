@@ -4114,7 +4114,7 @@ class bybit extends Exchange {
                 } elseif ($price !== null) {
                     $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
                 } else {
-                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                    $request['qty'] = $amountString;
                 }
             }
         } else {
