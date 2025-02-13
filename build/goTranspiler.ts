@@ -1564,7 +1564,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /Assert\("GO_SKIP_START"\)(.*?)Assert\("GO_SKIP_START"\)/gm, '' ], // remove equals
+                [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
 
             ]).trim ()
 
