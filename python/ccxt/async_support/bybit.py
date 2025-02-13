@@ -1547,7 +1547,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.cost_to_precision(symbol, cost)
         return cost
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

@@ -13,7 +13,7 @@ export default class huobijp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;

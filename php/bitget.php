@@ -1737,7 +1737,7 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -9301,7 +9301,7 @@ class bitget extends Exchange {
             if ($headers === null) {
                 $headers = array();
             }
-            $headers['PAPTRADING'] = 1;
+            $headers['PAPTRADING'] = '1';
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

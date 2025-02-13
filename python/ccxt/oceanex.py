@@ -622,7 +622,7 @@ class oceanex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

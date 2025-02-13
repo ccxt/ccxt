@@ -8291,7 +8291,8 @@ func  (this *Exchange) ParseIncomes(incomes interface{}, optionalArgs ...interfa
         AppendToArray(&result,parsed)
     }
     var sorted interface{} = this.SortBy(result, "timestamp")
-    return this.FilterBySinceLimit(sorted, since, limit)
+    var symbol interface{} = this.SafeString(market, "symbol")
+    return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
 func  (this *Exchange) GetMarketFromSymbols(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
@@ -8346,9 +8347,9 @@ func  (this *Exchange) FetchTransactions(optionalArgs ...interface{}) <- chan in
             _ = params
             if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
         
-                    retRes697219 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
-                    PanicOnError(retRes697219)
-                    ch <- retRes697219
+                    retRes697319 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
+                    PanicOnError(retRes697319)
+                    ch <- retRes697319
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchTransactions () is not supported yet")))
@@ -8585,15 +8586,15 @@ func  (this *Exchange) SafeDeterministicCall(method interface{}, optionalArgs ..
                 		// try block:
                                     if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
                 
-                                    retRes710827 :=  (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
-                                    PanicOnError(retRes710827)
-                                    ch <- retRes710827
+                                    retRes710927 :=  (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
+                                    PanicOnError(retRes710927)
+                                    ch <- retRes710927
                                     return nil
                             } else {
                 
-                                    retRes711027 :=  (<-this.callDynamically(method, symbol, since, limit, params))
-                                    PanicOnError(retRes711027)
-                                    ch <- retRes711027
+                                    retRes711127 :=  (<-this.callDynamically(method, symbol, since, limit, params))
+                                    PanicOnError(retRes711127)
+                                    ch <- retRes711127
                                     return nil
                             }
                 		return nil

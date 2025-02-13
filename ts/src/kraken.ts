@@ -2881,7 +2881,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         // https://www.kraken.com/en-us/features/api#get-server-time
         const response = await this.publicGetTime (params);
         //

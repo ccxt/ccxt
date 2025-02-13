@@ -637,10 +637,10 @@ export default class vertex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v1GatewayGetTime (params);
         // 1717481623452
-        return this.parseNumber (response);
+        return this.parseToInt (response);
     }
 
     /**

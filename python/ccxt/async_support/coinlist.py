@@ -405,7 +405,7 @@ class coinlist(Exchange, ImplicitAPI):
             return int(math.ceil(length / 2))
         return 1
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

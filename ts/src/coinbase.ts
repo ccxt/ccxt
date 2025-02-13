@@ -475,7 +475,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const defaultMethod = this.safeString (this.options, 'fetchTime', 'v2PublicGetTime');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');

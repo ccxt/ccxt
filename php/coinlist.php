@@ -391,7 +391,7 @@ class coinlist extends Exchange {
         return 1;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *

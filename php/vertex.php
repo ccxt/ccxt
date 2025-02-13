@@ -623,7 +623,7 @@ class vertex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -631,7 +631,7 @@ class vertex extends Exchange {
          */
         $response = $this->v1GatewayGetTime ($params);
         // 1717481623452
-        return $this->parse_number($response);
+        return $this->parse_to_int($response);
     }
 
     public function fetch_status($params = array ()) {
