@@ -9,6 +9,7 @@ function testAfterConstructor () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
+        'rateLimit': 100,
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
