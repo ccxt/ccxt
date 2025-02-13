@@ -143,6 +143,7 @@ class Exchange {
     public $dex = false;
 
     public $debug = false;
+    public $defaultWithdrawPrecision = 0;
 
     public $urls = array(
         'logo'=> null,
