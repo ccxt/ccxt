@@ -14,11 +14,11 @@ import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
-import afterConstructor from './test.afterConstructor.js';
+import testAfterConstructor from './test.afterConstructor.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
-    afterConstructor ();
+    testAfterConstructor ();
     testExtend ();
     testDeepExtend ();
     testCryptography ();
