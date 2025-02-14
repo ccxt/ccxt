@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -34,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class bitget(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitget, self).describe(), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -1748,7 +1748,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, 'productType')
         return [productType, params]
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -4632,7 +4632,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             if triggerPrice is None:
-                raise NotSupported(self.id + 'editOrder() only supports plan/trigger spot orders')
+                raise NotSupported(self.id + ' editOrder() only supports plan/trigger spot orders')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
             if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
@@ -8854,4 +8854,9 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        if sandboxMode:
+            if headers is None:
+                headers = {}
+            headers['PAPTRADING'] = '1'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -16,7 +16,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
  * @augments Exchange
  */
 export default class coinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -1218,7 +1218,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v2PublicGetTime (params);
         //
         //     {
@@ -4798,7 +4798,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'ccy': currency['id'],
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'amount': this.currencyToPrecision (code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (tag !== undefined) {
             request['memo'] = tag;

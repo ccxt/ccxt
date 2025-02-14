@@ -10,7 +10,7 @@ use ccxt\abstract\bitget as Exchange;
 
 class bitget extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
             'name' => 'Bitget',
@@ -1737,7 +1737,7 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -4798,7 +4798,7 @@ class bitget extends Exchange {
         $response = null;
         if ($market['spot']) {
             if ($triggerPrice === null) {
-                throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                throw new NotSupported($this->id . ' editOrder() only supports plan/trigger spot orders');
             }
             $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
             if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
@@ -9295,6 +9295,13 @@ class bitget extends Exchange {
             if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
             }
+        }
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode) {
+            if ($headers === null) {
+                $headers = array();
+            }
+            $headers['PAPTRADING'] = '1';
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

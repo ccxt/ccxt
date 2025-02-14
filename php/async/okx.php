@@ -14,13 +14,13 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class okx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
@@ -1437,7 +1437,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1841,7 +1841,8 @@ class okx extends Exchange {
                     $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                        $parts = explode(mb_substr('-', $networkId), 1);
+                        $idParts = explode('-', $networkId);
+                        $parts = $this->array_slice($idParts, 1);
                         $chainPart = implode('-', $parts);
                         $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
                         $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));

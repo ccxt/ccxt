@@ -10,7 +10,7 @@ use ccxt\abstract\alpaca as Exchange;
 
 class alpaca extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'alpaca',
             'name' => 'Alpaca',
@@ -367,7 +367,7 @@ class alpaca extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1002,7 +1002,6 @@ class alpaca extends Exchange {
         );
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
         if ($triggerPrice !== null) {
-            $newType = null;
             if (mb_strpos($type, 'limit') !== false) {
                 $newType = 'stop_limit';
             } else {

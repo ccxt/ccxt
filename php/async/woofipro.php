@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class woofipro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
             'name' => 'WOOFI PRO',
@@ -471,7 +471,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1583,7 +1583,7 @@ class woofipro extends Exchange {
                 $takeProfit = $this->safe_value($orderParams, 'takeProfit');
                 $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
                 if ($isConditional) {
-                    throw new NotSupported($this->id . 'createOrders() only support non-stop order');
+                    throw new NotSupported($this->id . ' createOrders() only support non-stop order');
                 }
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
                 $ordersRequests[] = $orderRequest;
@@ -2532,7 +2532,7 @@ class woofipro extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'withdraw() only support USDC');
+                    throw new NotSupported($this->id . ' withdraw() only support USDC');
                 }
             }
             $currency = $this->currency($code);
@@ -2889,9 +2889,13 @@ class woofipro extends Exchange {
             $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
+            $apiKey = $this->apiKey;
+            if (mb_strpos($apiKey, 'ed25519:') === false) {
+                $apiKey = 'ed25519:' . $apiKey;
+            }
             $headers = array(
                 'orderly-account-id' => $this->accountId,
-                'orderly-key' => $this->apiKey,
+                'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
             );
             $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;

@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class coinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
@@ -1226,7 +1226,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -4889,7 +4889,7 @@ class coinex extends Exchange {
             $request = array(
                 'ccy' => $currency['id'],
                 'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-                'amount' => $this->number_to_string($amount), // the actual $amount without fees, https://www.coinex.com/fees
+                'amount' => $this->currency_to_precision($code, $amount), // the actual $amount without fees, https://www.coinex.com/fees
             );
             if ($tag !== null) {
                 $request['memo'] = $tag;

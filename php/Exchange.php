@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.52';
+$version = '4.4.58';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.52';
+    const VERSION = '4.4.58';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -416,7 +416,6 @@ class Exchange {
         'latoken',
         'lbank',
         'luno',
-        'lykke',
         'mercado',
         'mexc',
         'myokx',
@@ -440,7 +439,6 @@ class Exchange {
         'upbit',
         'vertex',
         'wavesexchange',
-        'wazirx',
         'whitebit',
         'woo',
         'woofipro',
@@ -2262,7 +2260,7 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,
@@ -4459,7 +4457,7 @@ class Exchange {
         $change = $this->omit_zero($this->safe_string($ticker, 'change'));
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
-        $vwap = $this->omit_zero($this->safe_string($ticker, 'vwap'));
+        $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'baseVolume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
@@ -6817,7 +6815,7 @@ class Exchange {
 
     public function create_post_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
+            throw new NotSupported($this->id . ' createPostOnlyOrder() is not supported yet');
         }
         $query = $this->extend($params, array( 'postOnly' => true ));
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
@@ -6825,7 +6823,7 @@ class Exchange {
 
     public function create_post_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createPostOnlyOrderWs']) {
-            throw new NotSupported($this->id . 'createPostOnlyOrderWs() is not supported yet');
+            throw new NotSupported($this->id . ' createPostOnlyOrderWs() is not supported yet');
         }
         $query = $this->extend($params, array( 'postOnly' => true ));
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $query);
@@ -6833,7 +6831,7 @@ class Exchange {
 
     public function create_reduce_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createReduceOnlyOrder']) {
-            throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
+            throw new NotSupported($this->id . ' createReduceOnlyOrder() is not supported yet');
         }
         $query = $this->extend($params, array( 'reduceOnly' => true ));
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
@@ -6841,7 +6839,7 @@ class Exchange {
 
     public function create_reduce_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createReduceOnlyOrderWs']) {
-            throw new NotSupported($this->id . 'createReduceOnlyOrderWs() is not supported yet');
+            throw new NotSupported($this->id . ' createReduceOnlyOrderWs() is not supported yet');
         }
         $query = $this->extend($params, array( 'reduceOnly' => true ));
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $query);
@@ -7506,7 +7504,8 @@ class Exchange {
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit);
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function get_market_from_symbols(?array $symbols = null) {

@@ -250,9 +250,13 @@ public partial class Exchange
         var extendedOptions = safeDict(extendedProperties, "options");
         if (extendedOptions != null)
         {
+            extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
+        } else {
+            var dict2 = this.getDefaultOptions() as dict;
+            this.options =  new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;

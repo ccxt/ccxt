@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bitmart(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitmart, self).describe(), {
             'id': 'bitmart',
             'name': 'BitMart',
@@ -528,7 +528,10 @@ class bitmart(Exchange, ImplicitAPI):
                     '40049': InvalidOrder,  # 403, The maximum length of clientOrderId cannot exceed 32
                     '40050': InvalidOrder,  # 403, Client OrderId duplicated with existing orders
                 },
-                'broad': {},
+                'broad': {
+                    'You contract account available balance not enough': InsufficientFunds,
+                    'you contract account available balance not enough': InsufficientFunds,
+                },
             },
             'commonCurrencies': {
                 '$GM': 'GOLDMINER',
@@ -857,7 +860,7 @@ class bitmart(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -968,6 +971,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         symbols = self.safe_list(data, 'symbols', [])
         result = []
+        fees = self.fees['trading']
         for i in range(0, len(symbols)):
             market = symbols[i]
             id = self.safe_string(market, 'symbol')
@@ -1006,6 +1010,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': baseMinSize,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_max_precision'))),
@@ -1077,6 +1083,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         symbols = self.safe_list(data, 'symbols', [])
         result = []
+        fees = self.fees['trading']
         for i in range(0, len(symbols)):
             market = symbols[i]
             id = self.safe_string(market, 'symbol')
@@ -1118,6 +1125,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': self.safe_number(market, 'vol_precision'),
                     'price': self.safe_number(market, 'price_precision'),
@@ -3409,8 +3418,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
         request: dict = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
@@ -3419,8 +3429,13 @@ class bitmart(Exchange, ImplicitAPI):
             networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
             if networkInner is not None:
-                request['currency'] = request['currency'] + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = currencyId + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
+        else:
+            networkCode = None
+            networkCode, params = self.handle_network_code_and_params(params)
+            if networkCode is not None:
+                request['currency'] = currencyId + '-' + self.network_code_to_id(networkCode)
         response = await self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
         #    {
@@ -5079,6 +5094,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
         #     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
         #     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
+        #     {"code":40012,"message":"You contract account available balance not enough.","trace":"..."}
         #
         # contract
         #
@@ -5090,9 +5106,9 @@ class bitmart(Exchange, ImplicitAPI):
         isErrorCode = (errorCode is not None) and (errorCode != '1000')
         if isErrorCode or isErrorMessage:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

@@ -23,6 +23,8 @@ const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+let shouldTranspileTests = true;
+
 function overwriteFileAndFolder (path, content) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -41,14 +43,14 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './go/ccxt/base/exchange_wrappers.go';
-const EXCHANGE_WRAPPER_FOLDER = './go/ccxt/'
-const DYNAMIC_INSTANCE_FILE = './go/ccxt/exchange_dynamic.go';
-// const EXCHANGE_WS_WRAPPER_FOLDER = './go/ccxt/exchanges/pro/wrappers/'
-const ERRORS_FILE = './go/ccxt/exchange_errors.go';
-const BASE_METHODS_FILE = './go/ccxt/exchange_generated.go';
-const EXCHANGES_FOLDER = './go/ccxt/';
-// const EXCHANGES_WS_FOLDER = './go/ccxt/exchanges/pro/';
+const GLOBAL_WRAPPER_FILE = './go/v4/base/exchange_wrappers.go';
+const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
+const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
+// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
+const ERRORS_FILE = './go/v4/exchange_errors.go';
+const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
+const EXCHANGES_FOLDER = './go/v4/';
+// const EXCHANGES_WS_FOLDER = './go/v4/exchanges/pro/';
 // const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
@@ -135,6 +137,7 @@ const VIRTUAL_BASE_METHODS = {
     "parseWithdrawal": false,
     "parseWithdrawalStatus": false,
     "safeMarket": false, // try to remove custom implementations
+    "market": false,
     "setSandboxMode": false,
     "sign": false
 }
@@ -1189,7 +1192,7 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile() {
-        const EXCHANGE_OPTIONS_FILE = './go/ccxt/exchange_wrapper_structs.go';
+        const EXCHANGE_OPTIONS_FILE = './go/v4/exchange_wrapper_structs.go';
 
         const file = [
             'package ccxt',
@@ -1572,7 +1575,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/go/ccxt"' : '',
+                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/go/v4"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
@@ -1619,7 +1622,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const file = [
             'package base',
-            'import "github.com/ccxt/ccxt/go/ccxt"',
+            'import "github.com/ccxt/ccxt/go/v4"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1733,7 +1736,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const fileHeaders = [
                 namespace,
-                'import "github.com/ccxt/ccxt/go/ccxt"',
+                'import "github.com/ccxt/ccxt/go/v4"',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
@@ -1761,6 +1764,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileTests(){
+        if (!shouldTranspileTests) {
+            log.bright.yellow ('Skipping tests transpilation');
+            return;
+        }
         this.transpileBaseTestsToGo();
         this.transpileExchangeTests();
         this.createFunctionsMapFile();
@@ -1810,6 +1817,7 @@ if (isMainEntry(import.meta.url)) {
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }

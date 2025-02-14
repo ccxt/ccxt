@@ -12,7 +12,7 @@ public partial class coinbase : Exchange
             { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
-            { "certified", true },
+            { "certified", false },
             { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
@@ -395,7 +395,7 @@ public partial class coinbase : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 350 },
+                        { "limit", 300 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -735,7 +735,7 @@ public partial class coinbase : Exchange
         }
         if (isTrue(isEqual(accountId, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param")) ;
+            throw new ExchangeError ((string)add(add(add(this.id, " createDepositAddress() could not find the account with matching currency code "), code), ", specify an `account_id` extra param to target specific wallet")) ;
         }
         object request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -4417,7 +4417,7 @@ public partial class coinbase : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object request = null;
-        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"));
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"), null, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
@@ -4531,12 +4531,16 @@ public partial class coinbase : Exchange
         object networkId = this.safeString(depositAddress, "network");
         object code = this.safeCurrencyCode(null, currency);
         object addressLabel = this.safeString(depositAddress, "address_label");
-        object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(splitAddressLabel, 0);
+        object currencyId = null;
+        if (isTrue(!isEqual(addressLabel, null)))
+        {
+            object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         object addressInfo = this.safeDict(depositAddress, "address_info");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(addressInfo, "destination_tag") },
@@ -5426,11 +5430,18 @@ public partial class coinbase : Exchange
         //        }
         //      ]
         //    }
+        // or
+        //   {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         object errorCode = this.safeString(response, "error");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object errorMessage = this.safeString(response, "error_description");
+            object errorMessage = this.safeString2(response, "error_description", "preview_failure_reason");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError ((string)feedback) ;

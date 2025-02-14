@@ -1431,7 +1431,7 @@ public partial class exmo : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, "cross")))
         {
-            throw new BadRequest ((string)add(this.id, "only isolated margin is supported")) ;
+            throw new BadRequest ((string)add(this.id, " only isolated margin is supported")) ;
         }
         await this.loadMarkets();
         object market = this.market(symbol);

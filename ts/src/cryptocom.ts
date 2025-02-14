@@ -13,7 +13,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',
             'name': 'Crypto.com',

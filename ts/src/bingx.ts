@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, O
  * @augments Exchange
  */
 export default class bingx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bingx',
             'name': 'BingX',
@@ -505,6 +505,8 @@ export default class bingx extends Exchange {
                 'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
                 'NAP': '$NAP', // NAP on SOL = SNAP
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -674,7 +676,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the bingx server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.swapV2PublicGetServerTime (params);
         //
         //    {
@@ -5787,7 +5789,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper (params, 'network');

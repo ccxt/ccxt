@@ -10,7 +10,7 @@ use ccxt\abstract\krakenfutures as Exchange;
 
 class krakenfutures extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'krakenfutures',
             'name' => 'Kraken Futures',

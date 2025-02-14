@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class okx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'okx',
             'name': 'OKX',
@@ -1437,7 +1437,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPublicTime (params);
         //
         //     {
@@ -1824,7 +1824,8 @@ export default class okx extends Exchange {
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-').slice (1);
+                    const idParts = networkId.split ('-');
+                    const parts = this.arraySlice (idParts, 1);
                     const chainPart = parts.join ('-');
                     const networkCode = this.networkIdToCode (chainPart, currency['code']);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));

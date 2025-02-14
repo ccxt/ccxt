@@ -290,7 +290,7 @@ export default class Exchange {
         this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
-        this.enableLastJsonResponse = true;
+        this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;
@@ -802,7 +802,8 @@ export default class Exchange {
                 if (numberNormalized.indexOf('e-') > -1) {
                     return this.number(numberToString(parseFloat(numberNormalized)));
                 }
-                return this.number(numberNormalized);
+                const result = this.number(numberNormalized);
+                return isNaN(result) ? d : result;
             }
             catch (e) {
                 return d;
@@ -1193,7 +1194,7 @@ export default class Exchange {
     starknetEncodeStructuredData(domain, messageTypes, messageData, address) {
         const types = Object.keys(messageTypes);
         if (types.length > 1) {
-            throw new NotSupported(this.id + 'starknetEncodeStructuredData only support single type');
+            throw new NotSupported(this.id + ' starknetEncodeStructuredData only support single type');
         }
         const request = {
             'domain': domain,
@@ -3395,7 +3396,7 @@ export default class Exchange {
         let change = this.omitZero(this.safeString(ticker, 'change'));
         let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
         let average = this.omitZero(this.safeString(ticker, 'average'));
-        let vwap = this.omitZero(this.safeString(ticker, 'vwap'));
+        let vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'baseVolume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
@@ -5624,28 +5625,28 @@ export default class Exchange {
     }
     async createPostOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
-            throw new NotSupported(this.id + 'createPostOnlyOrder() is not supported yet');
+            throw new NotSupported(this.id + ' createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
     async createPostOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createPostOnlyOrderWs']) {
-            throw new NotSupported(this.id + 'createPostOnlyOrderWs() is not supported yet');
+            throw new NotSupported(this.id + ' createPostOnlyOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
     async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
-            throw new NotSupported(this.id + 'createReduceOnlyOrder() is not supported yet');
+            throw new NotSupported(this.id + ' createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
     async createReduceOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrderWs']) {
-            throw new NotSupported(this.id + 'createReduceOnlyOrderWs() is not supported yet');
+            throw new NotSupported(this.id + ' createReduceOnlyOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
@@ -6293,7 +6294,8 @@ export default class Exchange {
             result.push(parsed);
         }
         const sorted = this.sortBy(result, 'timestamp');
-        return this.filterBySinceLimit(sorted, since, limit);
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     getMarketFromSymbols(symbols = undefined) {
         if (symbols === undefined) {

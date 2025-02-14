@@ -461,7 +461,10 @@ public partial class bitmart : Exchange
                     { "40049", typeof(InvalidOrder) },
                     { "40050", typeof(InvalidOrder) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "You contract account available balance not enough", typeof(InsufficientFunds) },
+                    { "you contract account available balance not enough", typeof(InsufficientFunds) },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "$GM", "GOLDMINER" },
@@ -864,6 +867,7 @@ public partial class bitmart : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
+        object fees = getValue(this.fees, "trading");
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = getValue(symbols, i);
@@ -903,6 +907,8 @@ public partial class bitmart : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
+                { "maker", getValue(fees, "maker") },
+                { "taker", getValue(fees, "taker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", baseMinSize },
                     { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "price_max_precision"))) },
@@ -978,6 +984,7 @@ public partial class bitmart : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
+        object fees = getValue(this.fees, "trading");
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = getValue(symbols, i);
@@ -1022,6 +1029,8 @@ public partial class bitmart : Exchange
                 { "expiryDatetime", this.iso8601(expiry) },
                 { "strike", null },
                 { "optionType", null },
+                { "maker", getValue(fees, "maker") },
+                { "taker", getValue(fees, "taker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.safeNumber(market, "vol_precision") },
                     { "price", this.safeNumber(market, "price_precision") },
@@ -3666,8 +3675,9 @@ public partial class bitmart : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
+        object currencyId = getValue(currency, "id");
         object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", currencyId },
         };
         if (isTrue(isEqual(code, "USDT")))
         {
@@ -3678,8 +3688,18 @@ public partial class bitmart : Exchange
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (isTrue(!isEqual(networkInner, null)))
             {
-                ((IDictionary<string,object>)request)["currency"] = add(add(getValue(request, "currency"), "-"), networkInner); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                ((IDictionary<string,object>)request)["currency"] = add(add(currencyId, "-"), networkInner); // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 parameters = this.omit(parameters, "network");
+            }
+        } else
+        {
+            object networkCode = null;
+            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+            networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+            parameters = ((IList<object>)networkCodeparametersVariable)[1];
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)request)["currency"] = add(add(currencyId, "-"), this.networkCodeToId(networkCode));
             }
         }
         object response = await this.privateGetAccountV1DepositAddress(this.extend(request, parameters));
@@ -5585,6 +5605,7 @@ public partial class bitmart : Exchange
         //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
         //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
         //     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
+        //     {"code":40012,"message":"You contract account available balance not enough.","trace":"..."}
         //
         // contract
         //
@@ -5597,10 +5618,10 @@ public partial class bitmart : Exchange
         if (isTrue(isTrue(isErrorCode) || isTrue(isErrorMessage)))
         {
             object feedback = add(add(this.id, " "), body);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

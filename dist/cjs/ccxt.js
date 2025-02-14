@@ -92,7 +92,6 @@ var kuna = require('./src/kuna.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
 var luno = require('./src/luno.js');
-var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var myokx = require('./src/myokx.js');
@@ -116,7 +115,6 @@ var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
 var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
-var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
@@ -194,7 +192,6 @@ var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
-var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
@@ -202,7 +199,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.52';
+const version = '4.4.58';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -285,7 +282,6 @@ const exchanges = {
     'latoken': latoken,
     'lbank': lbank,
     'luno': luno,
-    'lykke': lykke,
     'mercado': mercado,
     'mexc': mexc,
     'myokx': myokx,
@@ -309,7 +305,6 @@ const exchanges = {
     'upbit': upbit,
     'vertex': vertex,
     'wavesexchange': wavesexchange,
-    'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
@@ -389,7 +384,6 @@ const pro = {
     'probit': probit$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
-    'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
     'woofipro': woofipro$1,
@@ -525,7 +519,6 @@ exports.kuna = kuna;
 exports.latoken = latoken;
 exports.lbank = lbank;
 exports.luno = luno;
-exports.lykke = lykke;
 exports.mercado = mercado;
 exports.mexc = mexc;
 exports.myokx = myokx;
@@ -549,7 +542,6 @@ exports.tradeogre = tradeogre;
 exports.upbit = upbit;
 exports.vertex = vertex;
 exports.wavesexchange = wavesexchange;
-exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;

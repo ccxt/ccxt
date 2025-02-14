@@ -1584,6 +1584,7 @@ public partial class binance : Exchange
                 { "legalMoneyCurrenciesById", new Dictionary<string, object>() {
                     { "BUSD", "USD" },
                 } },
+                { "defaultWithdrawPrecision", 1e-8 },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -1634,6 +1635,7 @@ public partial class binance : Exchange
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -3064,6 +3066,7 @@ public partial class binance : Exchange
             object id = this.safeString(entry, "coin");
             object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
+            object isFiat = this.safeBool(entry, "isLegalMoney");
             object minPrecision = null;
             object isWithdrawEnabled = true;
             object isDepositEnabled = true;
@@ -3076,6 +3079,7 @@ public partial class binance : Exchange
                 object networkItem = getValue(networkList, j);
                 object network = this.safeString(networkItem, "network");
                 object networkCode = this.networkIdToCode(network);
+                object isETF = (isEqual(network, "ETF")); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
                 object depositEnable = this.safeBool(networkItem, "depositEnable");
@@ -3088,12 +3092,28 @@ public partial class binance : Exchange
                 {
                     fee = withdrawFee;
                 }
+                // todo: default networks in "setMarkets" overload
+                // if (isDefault) {
+                //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                // }
                 object precisionTick = this.safeString(networkItem, "withdrawIntegerMultiple");
-                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                object withdrawPrecision = precisionTick;
+                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (!isTrue(Precise.stringEq(precisionTick, "0")))
                 {
                     minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
+                } else
+                {
+                    if (isTrue(!isTrue(isFiat) && !isTrue(isETF)))
+                    {
+                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                        withdrawPrecision = this.omitZero(this.safeString(networkItem, "withdrawInternalMin"));
+                        if (isTrue(isEqual(withdrawPrecision, null)))
+                        {
+                            withdrawPrecision = this.safeString(this.options, "defaultWithdrawPrecision");
+                        }
+                    }
                 }
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", networkItem },
@@ -3103,7 +3123,7 @@ public partial class binance : Exchange
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
                     { "fee", withdrawFee },
-                    { "precision", this.parseNumber(precisionTick) },
+                    { "precision", this.parseNumber(withdrawPrecision) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(networkItem, "withdrawMin") },
@@ -3133,6 +3153,7 @@ public partial class binance : Exchange
                 { "id", id },
                 { "name", name },
                 { "code", code },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "precision", this.parseNumber(minPrecision) },
                 { "info", entry },
                 { "active", active },
@@ -5591,10 +5612,10 @@ public partial class binance : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
+            { "orderId", id },
+            { "quantity", this.amountToPrecision(symbol, amount) },
         };
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "origClientOrderId"});
-        ((IDictionary<string,object>)request)["orderId"] = id;
-        ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -5613,6 +5634,8 @@ public partial class binance : Exchange
      * @description edit a trade order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -5620,6 +5643,7 @@ public partial class binance : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async virtual Task<object> editContractOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -5627,14 +5651,37 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        if (isTrue(isTrue(getValue(market, "linear")) || isTrue(isPortfolioMargin)))
+        {
+            if (isTrue(isTrue((isEqual(price, null))) && !isTrue((inOp(parameters, "priceMatch")))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a price argument for portfolio margin and linear orders")) ;
+            }
+        }
         object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "linear")))
         {
-            response = await this.fapiPrivatePutOrder(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiPutUmOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPrivatePutOrder(this.extend(request, parameters));
+            }
         } else if (isTrue(getValue(market, "inverse")))
         {
-            response = await this.dapiPrivatePutOrder(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiPutCmOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.dapiPrivatePutOrder(this.extend(request, parameters));
+            }
         }
         //
         // swap and future
@@ -13490,7 +13537,7 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(timeframe, "1m")))
         {
-            throw new BadRequest ((string)add(this.id, "fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
         await this.loadMarkets();
         object paginate = false;
@@ -13885,7 +13932,7 @@ public partial class binance : Exchange
         //         "price": "10871.09",
         //         "avgPrice": "10913.21000",
         //         "origQty": "0.001",
-        //         "executedQty": "0.001",
+        //         "executedQty": "0.002",
         //         "cumQuote": "10.91321",
         //         "timeInForce": "IOC",
         //         "type": "LIMIT",
@@ -14337,7 +14384,7 @@ public partial class binance : Exchange
             response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest ((string)add(add(this.id, "fetchMarginAdjustmentHistory () is not supported for markets of type "), getValue(market, "type"))) ;
+            throw new BadRequest ((string)add(add(this.id, " fetchMarginAdjustmentHistory () is not supported for markets of type "), getValue(market, "type"))) ;
         }
         //
         //    [

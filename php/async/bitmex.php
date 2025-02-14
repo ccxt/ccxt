@@ -15,12 +15,12 @@ use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitmex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmex',
             'name' => 'BitMEX',

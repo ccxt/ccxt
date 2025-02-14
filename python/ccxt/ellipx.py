@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class ellipx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(ellipx, self).describe(), {
             'id': 'ellipx',
             'name': 'Ellipx',

@@ -976,4 +976,36 @@ public partial class xt
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
     }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/#futures_userchangePositionType"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : required
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : *required* "long" or "short"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

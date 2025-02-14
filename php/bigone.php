@@ -10,7 +10,7 @@ use ccxt\abstract\bigone as Exchange;
 
 class bigone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -966,7 +966,7 @@ class bigone extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          *
@@ -1175,8 +1175,6 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
-        $makerCurrencyCode = null;
-        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {

@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\async\abstract\btcbox as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class btcbox extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcbox',
             'name' => 'BtcBox',

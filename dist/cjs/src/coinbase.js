@@ -20,7 +20,7 @@ class coinbase extends coinbase$1 {
             'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': true,
-            'certified': true,
+            'certified': false,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -442,7 +442,7 @@ class coinbase extends coinbase$1 {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
@@ -754,7 +754,7 @@ class coinbase extends coinbase$1 {
             }
         }
         if (accountId === undefined) {
-            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param');
+            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet');
         }
         const request = {
             'account_id': accountId,
@@ -4113,7 +4113,7 @@ class coinbase extends coinbase$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         let request = undefined;
-        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code']);
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code'], undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, params));
         //
         //    {
@@ -4223,12 +4223,15 @@ class coinbase extends coinbase$1 {
         const networkId = this.safeString(depositAddress, 'network');
         const code = this.safeCurrencyCode(undefined, currency);
         const addressLabel = this.safeString(depositAddress, 'address_label');
-        const splitAddressLabel = addressLabel.split(' ');
-        const marketId = this.safeString(splitAddressLabel, 0);
+        let currencyId = undefined;
+        if (addressLabel !== undefined) {
+            const splitAddressLabel = addressLabel.split(' ');
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         const addressInfo = this.safeDict(depositAddress, 'address_info');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(marketId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
@@ -5011,10 +5014,17 @@ class coinbase extends coinbase$1 {
         //        }
         //      ]
         //    }
+        // or
+        //   {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         let errorCode = this.safeString(response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString(response, 'error_description');
+            const errorMessage = this.safeString2(response, 'error_description', 'preview_failure_reason');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
             throw new errors.ExchangeError(feedback);

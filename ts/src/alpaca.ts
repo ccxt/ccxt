@@ -12,7 +12,7 @@ import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderT
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -376,7 +376,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.traderPrivateGetV2Clock (params);
         //
         //     {
@@ -1006,7 +1006,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
-            let newType = undefined;
+            let newType: string;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             } else {

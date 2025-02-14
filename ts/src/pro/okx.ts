@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class okx extends okxRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -2241,7 +2241,7 @@ export default class okx extends okxRest {
         await this.authenticate ();
         const market = this.market (symbol);
         if (market['type'] !== 'option') {
-            throw new BadRequest (this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
+            throw new BadRequest (this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();

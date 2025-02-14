@@ -8,7 +8,7 @@ import bitcoincomRest from '../bitcoincom.js';
 // ---------------------------------------------------------------------------
 
 export default class bitcoincom extends hitbtc {
-    describe () {
+    describe (): any {
         // eslint-disable-next-line new-cap
         const describeExtended = this.getDescribeForExtendedWsExchange (new bitcoincomRest (), new hitbtcRest (), super.describe ());
         return this.deepExtend (describeExtended, {

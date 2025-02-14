@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class alpaca extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'alpaca',
             'name' => 'Alpaca',
@@ -373,7 +373,7 @@ class alpaca extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
@@ -1029,7 +1029,6 @@ class alpaca extends Exchange {
             );
             $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
             if ($triggerPrice !== null) {
-                $newType = null;
                 if (mb_strpos($type, 'limit') !== false) {
                     $newType = 'stop_limit';
                 } else {

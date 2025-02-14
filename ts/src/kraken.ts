@@ -17,7 +17,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class kraken extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
             'name': 'Kraken',
@@ -2497,7 +2497,7 @@ export default class kraken extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (timeout > 86400000) {
-            throw new BadRequest (this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         await this.loadMarkets ();
         const request: Dict = {
@@ -2881,7 +2881,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         // https://www.kraken.com/en-us/features/api#get-server-time
         const response = await this.publicGetTime (params);
         //

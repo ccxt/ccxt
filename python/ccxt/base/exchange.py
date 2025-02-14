@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.52'
+__version__ = '4.4.58'
 
 # -----------------------------------------------------------------------------
 
@@ -1791,7 +1791,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,
@@ -3657,7 +3657,7 @@ class Exchange(object):
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
-        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
+        vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
@@ -5544,25 +5544,25 @@ class Exchange(object):
 
     def create_post_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
+            raise NotSupported(self.id + ' createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_post_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createPostOnlyOrderWs']:
-            raise NotSupported(self.id + 'createPostOnlyOrderWs() is not supported yet')
+            raise NotSupported(self.id + ' createPostOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return self.create_order_ws(symbol, type, side, amount, price, query)
 
     def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createReduceOnlyOrder']:
-            raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
+            raise NotSupported(self.id + ' createReduceOnlyOrder() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_reduce_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createReduceOnlyOrderWs']:
-            raise NotSupported(self.id + 'createReduceOnlyOrderWs() is not supported yet')
+            raise NotSupported(self.id + ' createReduceOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return self.create_order_ws(symbol, type, side, amount, price, query)
 
@@ -6118,7 +6118,8 @@ class Exchange(object):
             parsed = self.parse_income(entry, market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def get_market_from_symbols(self, symbols: Strings = None):
         if symbols is None:

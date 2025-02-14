@@ -151,6 +151,72 @@
                   }
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits",
+                "input": []
+            },
+            {
+                "description": "fetch deposits with a currency",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals",
+                "input": []
+            },
+            {
+                "description": "fetch Withdrawals with a currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": []
+            },
+            {
+                "description": "fetch deposit addresses with codes argument",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": [
+                    [
+                        "ETH"
+                    ]
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades",
+                "input": []
+            },
+            {
+                "description": "fetch my trades with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades?symbol=btc-usdt",
+                "input": [
+                  "BTC/USDT"
+                ]
+              }
         ]
     }
 }

@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -321,8 +321,7 @@ export default class blofin extends Exchange {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limit': true,
-                            'price': undefined,
+                            'price': true,
                         },
                         'hedged': true,
                     },

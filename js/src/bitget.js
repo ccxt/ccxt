@@ -4854,7 +4854,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (triggerPrice === undefined) {
-                throw new NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+                throw new NotSupported(this.id + ' editOrder() only supports plan/trigger spot orders');
             }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
@@ -9374,6 +9374,13 @@ export default class bitget extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
+        }
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -18,7 +18,7 @@ import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, O
  * @augments Exchange
  */
 export default class woofipro extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
@@ -478,7 +478,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -1559,7 +1559,7 @@ export default class woofipro extends Exchange {
             const takeProfit = this.safeValue (orderParams, 'takeProfit');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
             if (isConditional) {
-                throw new NotSupported (this.id + 'createOrders() only support non-stop order');
+                throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -2472,7 +2472,7 @@ export default class woofipro extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase ();
             if (code !== 'USDC') {
-                throw new NotSupported (this.id + 'withdraw() only support USDC');
+                throw new NotSupported (this.id + ' withdraw() only support USDC');
             }
         }
         const currency = this.currency (code);
@@ -2820,9 +2820,13 @@ export default class woofipro extends Exchange {
             let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
+            let apiKey = this.apiKey;
+            if (apiKey.indexOf ('ed25519:') < 0) {
+                apiKey = 'ed25519:' + apiKey;
+            }
             headers = {
                 'orderly-account-id': this.accountId,
-                'orderly-key': this.apiKey,
+                'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;

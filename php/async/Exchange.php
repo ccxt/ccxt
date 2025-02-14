@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.52';
+$version = '4.4.58';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.52';
+    const VERSION = '4.4.58';
 
     public $browser;
     public $marketsLoading = null;
@@ -351,7 +351,7 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,
@@ -2558,7 +2558,7 @@ class Exchange extends \ccxt\Exchange {
         $change = $this->omit_zero($this->safe_string($ticker, 'change'));
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
-        $vwap = $this->omit_zero($this->safe_string($ticker, 'vwap'));
+        $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'baseVolume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
@@ -5037,7 +5037,7 @@ class Exchange extends \ccxt\Exchange {
     public function create_post_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createPostOnlyOrder']) {
-                throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
+                throw new NotSupported($this->id . ' createPostOnlyOrder() is not supported yet');
             }
             $query = $this->extend($params, array( 'postOnly' => true ));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $query));
@@ -5047,7 +5047,7 @@ class Exchange extends \ccxt\Exchange {
     public function create_post_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createPostOnlyOrderWs']) {
-                throw new NotSupported($this->id . 'createPostOnlyOrderWs() is not supported yet');
+                throw new NotSupported($this->id . ' createPostOnlyOrderWs() is not supported yet');
             }
             $query = $this->extend($params, array( 'postOnly' => true ));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
@@ -5057,7 +5057,7 @@ class Exchange extends \ccxt\Exchange {
     public function create_reduce_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createReduceOnlyOrder']) {
-                throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
+                throw new NotSupported($this->id . ' createReduceOnlyOrder() is not supported yet');
             }
             $query = $this->extend($params, array( 'reduceOnly' => true ));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $query));
@@ -5067,7 +5067,7 @@ class Exchange extends \ccxt\Exchange {
     public function create_reduce_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createReduceOnlyOrderWs']) {
-                throw new NotSupported($this->id . 'createReduceOnlyOrderWs() is not supported yet');
+                throw new NotSupported($this->id . ' createReduceOnlyOrderWs() is not supported yet');
             }
             $query = $this->extend($params, array( 'reduceOnly' => true ));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
@@ -5757,7 +5757,8 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit);
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function get_market_from_symbols(?array $symbols = null) {

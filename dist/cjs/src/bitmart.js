@@ -509,7 +509,10 @@ class bitmart extends bitmart$1 {
                     '40049': errors.InvalidOrder,
                     '40050': errors.InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
-                'broad': {},
+                'broad': {
+                    'You contract account available balance not enough': errors.InsufficientFunds,
+                    'you contract account available balance not enough': errors.InsufficientFunds,
+                },
             },
             'commonCurrencies': {
                 '$GM': 'GOLDMINER',
@@ -957,6 +960,7 @@ class bitmart extends bitmart$1 {
         const data = this.safeDict(response, 'data', {});
         const symbols = this.safeList(data, 'symbols', []);
         const result = [];
+        const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
             const id = this.safeString(market, 'symbol');
@@ -995,6 +999,8 @@ class bitmart extends bitmart$1 {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': baseMinSize,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'price_max_precision'))),
@@ -1067,6 +1073,7 @@ class bitmart extends bitmart$1 {
         const data = this.safeDict(response, 'data', {});
         const symbols = this.safeList(data, 'symbols', []);
         const result = [];
+        const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
             const id = this.safeString(market, 'symbol');
@@ -1109,6 +1116,8 @@ class bitmart extends bitmart$1 {
                 'expiryDatetime': this.iso8601(expiry),
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': this.safeNumber(market, 'vol_precision'),
                     'price': this.safeNumber(market, 'price_precision'),
@@ -3604,8 +3613,9 @@ class bitmart extends bitmart$1 {
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
+        const currencyId = currency['id'];
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
         if (code === 'USDT') {
             const defaultNetworks = this.safeValue(this.options, 'defaultNetworks');
@@ -3614,8 +3624,15 @@ class bitmart extends bitmart$1 {
             let networkInner = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (networkInner !== undefined) {
-                request['currency'] = request['currency'] + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = currencyId + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = this.omit(params, 'network');
+            }
+        }
+        else {
+            let networkCode = undefined;
+            [networkCode, params] = this.handleNetworkCodeAndParams(params);
+            if (networkCode !== undefined) {
+                request['currency'] = currencyId + '-' + this.networkCodeToId(networkCode);
             }
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
@@ -5358,6 +5375,7 @@ class bitmart extends bitmart$1 {
         //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
         //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
         //     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
+        //     {"code":40012,"message":"You contract account available balance not enough.","trace":"..."}
         //
         // contract
         //
@@ -5369,10 +5387,10 @@ class bitmart extends bitmart$1 {
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
         if (isErrorCode || isErrorMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;

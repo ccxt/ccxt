@@ -10,7 +10,7 @@ use ccxt\abstract\coinmetro as Exchange;
 
 class coinmetro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmetro',
             'name' => 'Coinmetro',

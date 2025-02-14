@@ -6,9 +6,8 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -39,7 +38,7 @@ from ccxt.base.precise import Precise
 
 class okx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okx, self).describe(), {
             'id': 'okx',
             'name': 'OKX',
@@ -1442,7 +1441,7 @@ class okx(Exchange, ImplicitAPI):
                 update['status'] = 'ok'
         return update
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1819,7 +1818,8 @@ class okx(Exchange, ImplicitAPI):
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if (networkId is not None) and (networkId.find('-') >= 0):
-                    parts = networkId.split('-')[1:]
+                    idParts = networkId.split('-')
+                    parts = self.array_slice(idParts, 1)
                     chainPart = '-'.join(parts)
                     networkCode = self.network_id_to_code(chainPart, currency['code'])
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))

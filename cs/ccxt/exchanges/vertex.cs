@@ -643,7 +643,7 @@ public partial class vertex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1GatewayGetTime(parameters);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
 
     /**
@@ -1628,7 +1628,7 @@ public partial class vertex : Exchange
         {
             marketId = add(((string)marketId).Replace((string)"-PERP", (string)""), ":USDC");
         }
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         object last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },

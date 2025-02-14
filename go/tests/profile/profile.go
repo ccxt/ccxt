@@ -12,7 +12,7 @@ import (
 
 	_ "net/http/pprof"
 
-	"ccxt/go/ccxt"
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 func printMemStats(label string) {

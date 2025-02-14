@@ -15,7 +15,7 @@ import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, B
  * @augments Exchange
  */
 export default class exmo extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
             'name': 'EXMO',
@@ -1413,7 +1413,7 @@ export default class exmo extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marginMode === 'cross') {
-            throw new BadRequest (this.id + 'only isolated margin is supported');
+            throw new BadRequest (this.id + ' only isolated margin is supported');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

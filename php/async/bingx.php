@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bingx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bingx',
             'name' => 'BingX',
@@ -510,6 +510,8 @@ class bingx extends Exchange {
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI' => 'OmniCat',
                 'NAP' => '$NAP', // NAP on SOL = SNAP
+                'TRUMP' => 'TRUMPMAGA',
+                'TRUMPSOL' => 'TRUMP',
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -671,7 +673,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the bingx server
@@ -5885,7 +5887,7 @@ class bingx extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                'amount' => $this->number_to_string($amount),
+                'amount' => $this->currency_to_precision($code, $amount),
                 'walletType' => $walletType,
             );
             $network = $this->safe_string_upper($params, 'network');

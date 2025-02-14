@@ -12,7 +12,7 @@ import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitmart extends bitmartRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'createOrderWs': false,

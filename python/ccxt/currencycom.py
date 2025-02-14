@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class currencycom(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(currencycom, self).describe(), {
             'id': 'currencycom',
             'name': 'Currency.com',
@@ -387,7 +387,7 @@ class currencycom(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

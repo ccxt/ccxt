@@ -13,19 +13,19 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class coinbase extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbase',
             'name' => 'Coinbase Advanced',
             'countries' => array( 'US' ),
             'pro' => true,
-            'certified' => true,
+            'certified' => false,
             // rate-limits:
             // ADVANCED API => https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -447,7 +447,7 @@ class coinbase extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 350,
+                        'limit' => 300,
                     ),
                 ),
                 'spot' => array(
@@ -469,7 +469,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -776,7 +776,7 @@ class coinbase extends Exchange {
                 }
             }
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code, specify an `account_id` extra param');
+                throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code ' . $code . ', specify an `account_id` extra param to target specific wallet');
             }
             $request = array(
                 'account_id' => $accountId,
@@ -4226,7 +4226,7 @@ class coinbase extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = null;
-            list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($currency['code']));
+            list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($currency['code'], null, $params));
             $response = Async\await($this->v2PrivateGetAccountsAccountIdAddresses ($this->extend($request, $params)));
             //
             //    {
@@ -4338,12 +4338,15 @@ class coinbase extends Exchange {
         $networkId = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code(null, $currency);
         $addressLabel = $this->safe_string($depositAddress, 'address_label');
-        $splitAddressLabel = explode(' ', $addressLabel);
-        $marketId = $this->safe_string($splitAddressLabel, 0);
+        $currencyId = null;
+        if ($addressLabel !== null) {
+            $splitAddressLabel = explode(' ', $addressLabel);
+            $currencyId = $this->safe_string($splitAddressLabel, 0);
+        }
         $addressInfo = $this->safe_dict($depositAddress, 'address_info');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($addressInfo, 'destination_tag'),
@@ -5161,10 +5164,17 @@ class coinbase extends Exchange {
         //        }
         //      )
         //    }
+        // or
+        //   {
+        //       "error" => "UNKNOWN_FAILURE_REASON",
+        //       "message" => "",
+        //       "error_details" => "",
+        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         $errorCode = $this->safe_string($response, 'error');
         if ($errorCode !== null) {
-            $errorMessage = $this->safe_string($response, 'error_description');
+            $errorMessage = $this->safe_string_2($response, 'error_description', 'preview_failure_reason');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback);

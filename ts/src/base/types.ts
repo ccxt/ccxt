@@ -53,7 +53,7 @@ export interface MarketMarginModes {
 
 export interface MarketInterface {
     active: Bool;
-    base: Str;
+    base: string;
     baseId: Str;
     contract: boolean;
     contractSize: Num;
@@ -91,7 +91,7 @@ export interface MarketInterface {
         price: Num
     };
     quanto?: boolean;
-    quote: Str;
+    quote: string;
     quoteId: Str;
     settle: Str;
     settleId: Str;

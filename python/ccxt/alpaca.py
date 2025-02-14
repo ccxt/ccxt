@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class alpaca(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(alpaca, self).describe(), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -378,7 +378,7 @@ class alpaca(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -991,7 +991,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
         if triggerPrice is not None:
-            newType = None
+            newType: str
             if type.find('limit') >= 0:
                 newType = 'stop_limit'
             else:

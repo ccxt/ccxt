@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.defx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class defx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(defx, self).describe(), {
             'id': 'defx',
             'name': 'Defx X',
@@ -398,7 +398,7 @@ class defx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
