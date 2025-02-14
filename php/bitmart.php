@@ -522,9 +522,10 @@ class bitmart extends Exchange {
                 'TRU' => 'Truebit', // conflict with TrueFi
             ),
             'options' => array(
-                'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
-                    'USDT' => 'ERC20',
+                    'USDT' => 'TRC20',
+                    'BTC' => 'BTC',
+                    'ETH' => 'ERC20',
                 ),
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -566,7 +567,7 @@ class bitmart extends Exchange {
                     'KSM' => 'KSM',
                     'ZEC' => 'ZEC',
                     'NAS' => 'NAS',
-                    // 'POLYGON' => array( 'MATIC', 'Polygon', 'POLYGON' ), // todo => after unification
+                    'POLYGON' => 'MATIC',
                     'HRC20' => 'HECO',
                     'XDC' => 'XDC',
                     'ONE' => 'ONE',
@@ -575,7 +576,7 @@ class bitmart extends Exchange {
                     'ICP' => 'Computer',
                     'XTZ' => 'XTZ',
                     'MINA' => 'MINA',
-                    // 'BEP20' => array( 'BEP20', 'BSC_BNB', 'bep20' ), // todo => after unification
+                    'BEP20' => 'BSC_BNB',
                     'THETA' => 'THETA',
                     'AKT' => 'AKT',
                     'AR' => 'AR',
@@ -678,6 +679,12 @@ class bitmart extends Exchange {
                     // 'ETHERCOIN' => 'ETE',
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
+                ),
+                'networksById' => array(
+                    'ETH' => 'ERC20',
+                    'Ethereum' => 'ERC20',
+                    'USDT' => 'OMNI', // the default USDT network for bitmart is OMNI
+                    'Bitcoin' => 'BTC',
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'fetchBalance' => array(
@@ -1166,17 +1173,24 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetSpotV1Currencies ($params);
+        $response = $this->publicGetAccountV1Currencies ($params);
         //
         //     {
-        //         "message":"OK",
+        //         "message" => "OK",
         //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":array(
-        //                 array("currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true),
-        //                 array("currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false),
-        //                 array("currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true),
+        //         "trace" => "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "data" => {
+        //             "currencies" => array(
+        //                 {
+        //                     "currency" => "BTC",
+        //                     "name" => "Bitcoin",
+        //                     "contract_address" => null,
+        //                     "network" => "BTC",
+        //                     "withdraw_enabled" => true,
+        //                     "deposit_enabled" => true,
+        //                     "withdraw_minsize" => "0.0003",
+        //                     "withdraw_minfee" => "9.74"
+        //                 }
         //             )
         //         }
         //     }
@@ -1186,29 +1200,97 @@ class bitmart extends Exchange {
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'id');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $withdrawEnabled = $this->safe_bool($currency, 'withdraw_enabled');
-            $depositEnabled = $this->safe_bool($currency, 'deposit_enabled');
-            $active = $withdrawEnabled && $depositEnabled;
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'info' => $currency, // the original payload
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => null,
-                'precision' => null,
+            $fullId = $this->safe_string($currency, 'currency');
+            $currencyId = $fullId;
+            $networkId = $this->safe_string($currency, 'network');
+            if (mb_strpos($fullId, 'NFT') === false) {
+                $parts = explode('-', $fullId);
+                $currencyId = $this->safe_string($parts, 0);
+                $second = $this->safe_string($parts, 1);
+                if ($second !== null) {
+                    $networkId = strtoupper($second);
+                }
+            }
+            $currencyCode = $this->safe_currency_code($currencyId);
+            $entry = $this->safe_dict($result, $currencyCode);
+            if ($entry === null) {
+                $entry = array(
+                    'info' => $currency,
+                    'id' => $currencyId,
+                    'code' => $currencyCode,
+                    'precision' => null,
+                    'name' => $this->safe_string($currency, 'name'),
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'active' => null,
+                    'networks' => array(),
+                );
+            }
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdraw = $this->safe_bool($currency, 'withdraw_enabled');
+            $deposit = $this->safe_bool($currency, 'deposit_enabled');
+            $entry['networks'][$networkCode] = array(
+                'info' => $currency,
+                'id' => $networkId,
+                'code' => $networkCode,
+                'withdraw' => $withdraw,
+                'deposit' => $deposit,
+                'active' => $withdraw && $deposit,
+                'fee' => $this->safe_number($currency, 'withdraw_minfee'), // todo check
                 'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'withdraw_minsize'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                 ),
             );
+            $result[$currencyCode] = $entry;
+        }
+        $keys = is_array($result) ? array_keys($result) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $currency = $result[$key];
+            $result[$key] = $this->safe_currency_structure($currency);
         }
         return $result;
+    }
+
+    public function get_currency_id_from_code_and_network(?string $currencyCode, ?string $networkCode): ?string {
+        if ($networkCode === null) {
+            $networkCode = $this->default_network_code($currencyCode); // use default $network code if not provided
+        }
+        $currency = $this->currency($currencyCode);
+        $id = $currency['id'];
+        $idFromNetwork = null;
+        $networks = $this->safe_dict($currency, 'networks', array());
+        $networkInfo = array();
+        if ($networkCode === null) {
+            // $network code is not provided and there is no default $network code
+            $network = $this->safe_dict($networks, $currencyCode); // trying to find $network that has the same code
+            if ($network === null) {
+                // use the first $network in the $networks list if there is no $network code with the same code
+                $keys = is_array($networks) ? array_keys($networks) : array();
+                $length = count($keys);
+                if ($length > 0) {
+                    $network = $this->safe_value($networks, $keys[0]);
+                }
+            }
+            $networkInfo = $this->safe_dict($network, 'info', array());
+            $idFromNetwork = $this->safe_string($networkInfo, 'currency'); // use $currency name from $network
+        } else {
+            $providedOrDefaultNetwork = $this->safe_dict($networks, $networkCode);
+            if ($providedOrDefaultNetwork !== null) {
+                $networkInfo = $this->safe_dict($providedOrDefaultNetwork, 'info', array());
+                $idFromNetwork = $this->safe_string($networkInfo, 'currency'); // use $currency name from $network
+            } else {
+                $id .= '-' . $this->network_code_to_id($networkCode, $currencyCode); // use concatenated $currency $id and $network code if $network is not found
+            }
+        }
+        return ($idFromNetwork !== null) ? $idFromNetwork : $id;
     }
 
     public function fetch_transaction_fee(string $code, $params = array ()) {
@@ -1217,12 +1299,15 @@ class bitmart extends Exchange {
          * please use fetchDepositWithdrawFee instead
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the $network $code of the $currency
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $network = null;
+        list($network, $params) = $this->handle_network_code_and_params($params);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $this->get_currency_id_from_code_and_network($currency['code'], $network),
         );
         $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
         //
@@ -1274,14 +1359,16 @@ class bitmart extends Exchange {
     public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         /**
          * fetch the fee for deposits and withdrawals
-         * @param {string} $code unified $currency $code
+         * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the $network $code of the currency
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
-        $currency = $this->currency($code);
+        $network = null;
+        list($network, $params) = $this->handle_network_code_and_params($params);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $this->get_currency_id_from_code_and_network($code, $network),
         );
         $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
         //
@@ -3570,27 +3657,11 @@ class bitmart extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $currencyId = $currency['id'];
+        $network = null;
+        list($network, $params) = $this->handle_network_code_and_params($params);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $this->get_currency_id_from_code_and_network($code, $network),
         );
-        if ($code === 'USDT') {
-            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
-            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $networkInner = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            $networkInner = $this->safe_string($networks, $networkInner, $networkInner); // handle ERC20>ETH alias
-            if ($networkInner !== null) {
-                $request['currency'] = $currencyId . '-' . $networkInner; // when network the $currency need to be changed to $currency . '-' . network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                $params = $this->omit($params, 'network');
-            }
-        } else {
-            $networkCode = null;
-            list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            if ($networkCode !== null) {
-                $request['currency'] = $currencyId . '-' . $this->network_code_to_id($networkCode);
-            }
-        }
         $response = $this->privateGetAccountV1DepositAddress ($this->extend($request, $params));
         //
         //    {
@@ -3613,31 +3684,28 @@ class bitmart extends Exchange {
         //
         //    {
         //        $currency => 'ETH',
-        //        $chain => 'Ethereum',
+        //        chain => 'Ethereum',
         //        $address => '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
         //        address_memo => ''
         //    }
         //
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $address = $this->safe_string($depositAddress, 'address');
-        $chain = $this->safe_string($depositAddress, 'chain');
-        $network = null;
-        $currency = $this->safe_currency($currencyId, $currency);
-        if ($chain !== null) {
-            $parts = explode('-', $chain);
-            $partsLength = count($parts);
-            $networkId = $this->safe_string($parts, $partsLength - 1);
-            if ($networkId === $this->safe_string($currency, 'name')) {
-                $network = $this->safe_string($currency, 'code');
-            } else {
-                $network = $this->network_id_to_code($networkId);
+        $network = $this->safe_string($depositAddress, 'chain');
+        if (mb_strpos($currencyId, 'NFT') === false) {
+            $parts = explode('-', $currencyId);
+            $currencyId = $this->safe_string($parts, 0);
+            $secondPart = $this->safe_string($parts, 1);
+            if ($secondPart !== null) {
+                $network = $secondPart;
             }
         }
+        $address = $this->safe_string($depositAddress, 'address');
+        $currency = $this->safe_currency($currencyId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
-            'network' => $network,
+            'network' => $this->network_id_to_code($network),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'address_memo'),
         );
@@ -3651,31 +3719,23 @@ class bitmart extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the $network name for this withdrawal
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
+        $network = null;
+        list($network, $params) = $this->handle_network_code_and_params($params);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $this->get_currency_id_from_code_and_network($code, $network),
             'amount' => $amount,
             'destination' => 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address' => $address,
         );
         if ($tag !== null) {
             $request['address_memo'] = $tag;
-        }
-        if ($code === 'USDT') {
-            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
-            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['currency'] = $request['currency'] . '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                $params = $this->omit($params, 'network');
-            }
         }
         $response = $this->privatePostAccountV1WithdrawApply ($this->extend($request, $params));
         //
@@ -3711,18 +3771,6 @@ class bitmart extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-        }
-        if ($code === 'USDT') {
-            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
-            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['currency'] = $request['currency'] . '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                $currency['code'] = $request['currency']; // update $currency $code to filter
-                $params = $this->omit($params, 'network');
-            }
         }
         $response = $this->privateGetAccountV2DepositWithdrawHistory ($this->extend($request, $params));
         //
@@ -3908,6 +3956,12 @@ class bitmart extends Exchange {
         $amount = $this->safe_number($transaction, 'arrival_amount');
         $timestamp = $this->safe_integer($transaction, 'apply_time');
         $currencyId = $this->safe_string($transaction, 'currency');
+        $networkId = null;
+        if (mb_strpos($currencyId, 'NFT') === false) {
+            $parts = explode('-', $currencyId);
+            $currencyId = $this->safe_string($parts, 0);
+            $networkId = $this->safe_string($parts, 1);
+        }
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_number($transaction, 'fee');
@@ -3926,7 +3980,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressFrom' => null,
             'addressTo' => null,
@@ -5169,6 +5223,7 @@ class bitmart extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'asset');
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'time');
         $type = $this->safe_string($item, 'type');
         return $this->safe_ledger_entry(array(
@@ -5179,7 +5234,7 @@ class bitmart extends Exchange {
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tradeId'),
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $currency['code'],
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
