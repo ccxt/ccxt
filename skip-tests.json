@@ -1675,6 +1675,7 @@
     "coinlist": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode":"https://github.com/ccxt/ccxt/actions/runs/13326043833/job/37219610640?pr=25274#step:9:215",
                 "precision": "ammount is sometimes 0"
             },
             "ticker": {
