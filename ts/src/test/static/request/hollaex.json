@@ -183,6 +183,40 @@
                   "USDT"
                 ]
             }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": []
+            },
+            {
+                "description": "fetch deposit addresses with codes argument",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": [
+                    [
+                        "ETH"
+                    ]
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades",
+                "input": []
+            },
+            {
+                "description": "fetch my trades with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades?symbol=btc-usdt",
+                "input": [
+                  "BTC/USDT"
+                ]
+              }
         ]
     }
 }
