@@ -43,6 +43,7 @@ declare class testMainClass {
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
     runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
+    checkConstructor(exchange: any): void;
     startTest(exchange: any, symbol: any): Promise<boolean>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
