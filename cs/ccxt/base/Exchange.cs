@@ -1010,6 +1010,12 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+    public object getProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+    }
 
     public object fixStringifiedJsonMembers(object content2)
     {
