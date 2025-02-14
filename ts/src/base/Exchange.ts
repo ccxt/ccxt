@@ -2754,7 +2754,10 @@ export default class Exchange {
         if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
             throw new ExchangeError (this.id + '.rateLimit property is not configured');
         }
-        const refillRate = (this.rateLimit > 0) ? (1 / this.rateLimit) : this.MAX_VALUE;
+        let refillRate = this.MAX_VALUE;
+        if (this.rateLimit > 0) {
+            refillRate = 1 / this.rateLimit;
+        }
         const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
