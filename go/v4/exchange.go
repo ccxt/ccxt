@@ -43,7 +43,7 @@ type Exchange struct {
 	Urls                interface{}
 	UserAgents          map[string]interface{}
 	Timeout             int64
-	MAX_VALUE           int64
+	MAX_VALUE           float64
 	RateLimit           float64
 	TokenBucket         map[string]interface{}
 	Throttler           Throttler
