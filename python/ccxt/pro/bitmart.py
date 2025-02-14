@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.order_book_side import Asks, Bids
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.errors import NotSupported
 
 class bitmart(ccxt.async_support.bitmart):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitmart, self).describe(), {
             'has': {
                 'createOrderWs': False,

@@ -15,7 +15,7 @@ import type { Balances, Bool, Currency, Currencies, DepositAddress, Dict, Fundin
  * @augments Exchange
  */
 export default class coincatch extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coincatch',
             'name': 'CoinCatch',

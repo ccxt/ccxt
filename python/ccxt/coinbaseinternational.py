@@ -6,9 +6,8 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,12 +21,12 @@ from ccxt.base.precise import Precise
 
 class coinbaseinternational(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': True,
+            'certified': False,
             'pro': True,
             'rateLimit': 100,  # 10 requests per second
             'version': 'v1',

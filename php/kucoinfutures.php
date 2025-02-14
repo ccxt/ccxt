@@ -10,7 +10,7 @@ use ccxt\abstract\kucoinfutures as kucoin;
 
 class kucoinfutures extends kucoin {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',

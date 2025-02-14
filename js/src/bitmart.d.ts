@@ -47,6 +47,7 @@ export default class bitmart extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    getCurrencyIdFromCodeAndNetwork(currencyCode: Str, networkCode: Str): Str;
     /**
      * @method
      * @name bitmart#fetchTransactionFee
@@ -54,6 +55,7 @@ export default class bitmart extends Exchange {
      * @description please use fetchDepositWithdrawFee instead
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     fetchTransactionFee(code: string, params?: {}): Promise<{
@@ -79,6 +81,7 @@ export default class bitmart extends Exchange {
      * @description fetch the fee for deposits and withdrawals
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
@@ -390,6 +393,7 @@ export default class bitmart extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;

@@ -19,7 +19,7 @@ use \React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -1196,8 +1196,6 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
-        $makerCurrencyCode = null;
-        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {

@@ -17,7 +17,7 @@ use \React\Promise\PromiseInterface;
 
 class delta extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',

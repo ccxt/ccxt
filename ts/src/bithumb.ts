@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV
  * @augments Exchange
  */
 export default class bithumb extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
             'name': 'Bithumb',

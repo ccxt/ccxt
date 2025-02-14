@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.58'
+__version__ = '4.4.59'
 
 # -----------------------------------------------------------------------------
 
@@ -1784,7 +1784,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,

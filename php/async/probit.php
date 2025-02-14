@@ -19,7 +19,7 @@ use \React\Promise\PromiseInterface;
 
 class probit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'probit',
             'name' => 'ProBit',

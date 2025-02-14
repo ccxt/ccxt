@@ -13,7 +13,7 @@ use \React\Promise\PromiseInterface;
 
 class kucoin extends \ccxt\async\kucoin {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

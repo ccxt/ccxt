@@ -15,7 +15,7 @@ use \React\Promise\PromiseInterface;
 
 class krakenfutures extends \ccxt\async\krakenfutures {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

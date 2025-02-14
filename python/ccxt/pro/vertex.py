@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
-from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class vertex(ccxt.async_support.vertex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(vertex, self).describe(), {
             'has': {
                 'ws': True,

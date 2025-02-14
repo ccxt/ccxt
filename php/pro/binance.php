@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class binance extends \ccxt\async\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }

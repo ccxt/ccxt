@@ -10,7 +10,7 @@ import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, O
  * @augments Exchange
  */
 export default class coinlist extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinlist',
             'name': 'Coinlist',

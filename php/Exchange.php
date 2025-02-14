@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.58';
+$version = '4.4.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.58';
+    const VERSION = '4.4.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -441,7 +441,6 @@ class Exchange {
         'upbit',
         'vertex',
         'wavesexchange',
-        'wazirx',
         'whitebit',
         'woo',
         'woofipro',
@@ -2250,7 +2249,7 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,

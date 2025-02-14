@@ -20,7 +20,7 @@ func  (this *coinbase) Describe() interface{}  {
         "name": "Coinbase Advanced",
         "countries": []interface{}{"US"},
         "pro": true,
-        "certified": true,
+        "certified": false,
         "rateLimit": 34,
         "version": "v2",
         "userAgent": GetValue(this.UserAgents, "chrome"),

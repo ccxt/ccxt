@@ -14,7 +14,7 @@ use \React\Promise\PromiseInterface;
 
 class whitebit extends \ccxt\async\whitebit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

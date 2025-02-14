@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class bitbns extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',

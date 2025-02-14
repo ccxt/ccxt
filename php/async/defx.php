@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class defx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'defx',
             'name' => 'Defx X',

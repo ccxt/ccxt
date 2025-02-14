@@ -10,7 +10,7 @@ use ccxt\abstract\woo as Exchange;
 
 class woo extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woo',
             'name' => 'WOO X',

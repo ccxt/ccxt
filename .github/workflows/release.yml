@@ -113,7 +113,7 @@ jobs:
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
-               git commit -m "${COMMIT_MESSAGE}"
+               git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
                git push origin --tags HEAD:master
                echo "Creating github release..."
                gh release create "go/${VERSION}" --generate-notes --verify-tag

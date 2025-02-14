@@ -18,7 +18,7 @@ use \React\Promise\PromiseInterface;
 
 class oxfun extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'oxfun',
             'name' => 'OXFUN',

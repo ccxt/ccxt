@@ -12,7 +12,7 @@ public partial class coinbase : Exchange
             { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
-            { "certified", true },
+            { "certified", false },
             { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },

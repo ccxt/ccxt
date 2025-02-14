@@ -17,7 +17,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',

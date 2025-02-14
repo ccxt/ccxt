@@ -14,7 +14,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class probit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'probit',
             'name': 'ProBit',

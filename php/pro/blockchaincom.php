@@ -14,7 +14,7 @@ use \React\Promise\PromiseInterface;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

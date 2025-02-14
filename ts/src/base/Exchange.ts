@@ -1596,7 +1596,7 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    describe () {
+    describe (): any {
         return {
             'id': undefined,
             'name': undefined,

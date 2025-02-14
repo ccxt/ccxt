@@ -10,7 +10,7 @@ use ccxt\abstract\latoken as Exchange;
 
 class latoken extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',

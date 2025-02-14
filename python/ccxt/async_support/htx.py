@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class htx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(htx, self).describe(), {
             'id': 'htx',
             'name': 'HTX',

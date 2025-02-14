@@ -14,7 +14,7 @@ use \React\Promise\PromiseInterface;
 
 class ace extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ace',
             'name' => 'ACE',

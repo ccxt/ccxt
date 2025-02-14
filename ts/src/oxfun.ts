@@ -15,7 +15,7 @@ import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class oxfun extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'oxfun',
             'name': 'OXFUN',

@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Bal
  * @augments Exchange
  */
 export default class kucoin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'KuCoin',

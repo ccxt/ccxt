@@ -10,7 +10,7 @@ use ccxt\abstract\poloniexfutures as Exchange;
 
 class poloniexfutures extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'poloniexfutures',
             'name' => 'Poloniex Futures',

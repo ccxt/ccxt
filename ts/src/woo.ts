@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory,
  * @augments Exchange
  */
 export default class woo extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'woo',
             'name': 'WOO X',
