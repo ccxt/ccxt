@@ -64,16 +64,6 @@ function testAfterConstructor () {
     assert ('GO_SKIP_END');
 
     // todo: other constructor things
-
-    // exchange-specific tests
-    const binanceus = new ccxt.binanceus ();
-    assert (binanceus.hostname === 'binance.us');
-    assert (binanceus.urls['api']['public'] === 'https://api.binance.us/api/v3');
-    assert (!('lending/union/account' in binanceus.api['sapi']['get']));
-    const binance = new ccxt.binance ();
-    assert (binance.hostname === 'binance.com');
-    assert (binance.urls['api']['public'] === 'https://api.binance.com/api/v3');
-    assert (('lending/union/account' in binance.api['sapi']['get']));
 }
 
 export default testAfterConstructor;
