@@ -1138,9 +1138,9 @@ class alpaca(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['endTime'] = until
+            request['endTime'] = self.iso8601(until)
         if since is not None:
-            request['after'] = since
+            request['after'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         response = self.traderPrivateGetV2Orders(self.extend(request, params))
@@ -1374,6 +1374,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
+        :param str [params.page_token]: page_token - used for paging
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
@@ -1383,8 +1384,12 @@ class alpaca(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['until'] = self.iso8601(until)
         if since is not None:
-            request['after'] = since
+            request['after'] = self.iso8601(since)
         if limit is not None:
             request['page_size'] = limit
         request, params = self.handle_until_option('until', request, params)
