@@ -18,7 +18,7 @@ import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
  * @augments Exchange
  */
 export default class paradex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'paradex',
             'name': 'Paradex',

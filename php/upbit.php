@@ -10,7 +10,7 @@ use ccxt\abstract\upbit as Exchange;
 
 class upbit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'upbit',
             'name' => 'Upbit',

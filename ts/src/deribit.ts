@@ -15,7 +15,7 @@ import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, 
  * @augments Exchange
  */
 export default class deribit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'deribit',
             'name': 'Deribit',

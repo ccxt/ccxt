@@ -9,7 +9,7 @@ import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } fro
 //  ---------------------------------------------------------------------------
 
 export default class coinbase extends coinbaseRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

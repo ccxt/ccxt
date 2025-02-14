@@ -20,7 +20,7 @@ use \React\Promise\PromiseInterface;
 
 class bybit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -4114,7 +4114,7 @@ class bybit extends Exchange {
                 } elseif ($price !== null) {
                     $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
                 } else {
-                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                    $request['qty'] = $amountString;
                 }
             }
         } else {

@@ -21,7 +21,7 @@ use \React\Promise\PromiseInterface;
 
 class gate extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',

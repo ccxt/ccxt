@@ -15,7 +15,7 @@ import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderS
  * @augments Exchange
  */
 export default class yobit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',

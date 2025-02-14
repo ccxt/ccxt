@@ -13,7 +13,7 @@ use \React\Promise\PromiseInterface;
 
 class coinbase extends \ccxt\async\coinbase {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

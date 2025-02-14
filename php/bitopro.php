@@ -10,7 +10,7 @@ use ccxt\abstract\bitopro as Exchange;
 
 class bitopro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
             'name' => 'BitoPro',

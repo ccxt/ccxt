@@ -11,7 +11,7 @@ use \React\Promise\PromiseInterface;
 
 class ndax extends \ccxt\async\ndax {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

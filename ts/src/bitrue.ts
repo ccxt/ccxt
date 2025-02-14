@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Mar
  * @augments Exchange
  */
 export default class bitrue extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitrue',
             'name': 'Bitrue',

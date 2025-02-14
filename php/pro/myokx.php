@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class myokx extends \ccxt\pro\okx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
             'name' => 'MyOKX',

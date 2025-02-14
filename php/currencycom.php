@@ -10,7 +10,7 @@ use ccxt\abstract\currencycom as Exchange;
 
 class currencycom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'currencycom',
             'name' => 'Currency.com',

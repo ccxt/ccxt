@@ -15,7 +15,7 @@ use \React\Promise\PromiseInterface;
 
 class oceanex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',

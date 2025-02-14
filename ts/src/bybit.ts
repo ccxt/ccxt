@@ -16,7 +16,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  * @augments Exchange
  */
 export default class bybit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -4074,7 +4074,7 @@ export default class bybit extends Exchange {
                 } else if (price !== undefined) {
                     request['qty'] = this.getCost (symbol, Precise.stringMul (amountString, priceString));
                 } else {
-                    request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                    request['qty'] = amountString;
                 }
             }
         } else {

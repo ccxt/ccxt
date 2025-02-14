@@ -15,7 +15,7 @@ import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, O
  * @augments Exchange
  */
 export default class defx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'defx',
             'name': 'Defx X',

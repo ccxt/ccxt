@@ -14,7 +14,7 @@ use \React\Promise\PromiseInterface;
 
 class coinex extends \ccxt\async\coinex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

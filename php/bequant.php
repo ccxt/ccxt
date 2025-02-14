@@ -10,7 +10,7 @@ use ccxt\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',

@@ -14,7 +14,7 @@ import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, Or
  * @augments Exchange
  */
 export default class poloniexfutures extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'poloniexfutures',
             'name': 'Poloniex Futures',

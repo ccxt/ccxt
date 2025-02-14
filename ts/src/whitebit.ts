@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, 
  * @augments Exchange
  */
 export default class whitebit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',

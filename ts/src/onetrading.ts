@@ -14,7 +14,7 @@ import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderB
  * @augments Exchange
  */
 export default class onetrading extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'onetrading',
             'name': 'One Trading',

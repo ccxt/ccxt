@@ -15,7 +15,7 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
  * @augments Exchange
  */
 export default class currencycom extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'currencycom',
             'name': 'Currency.com',
