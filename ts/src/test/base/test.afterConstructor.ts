@@ -12,17 +12,22 @@ function helperTestInitThrottler () {
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
-    const tockenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    let tokenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    if (tokenBucket === undefined) {
+        tokenBucket = exchange.getProperty (exchange, 'TokenBucket');
+    }
+    assert (tokenBucket !== undefined);
+    assert ('GO_SKIP_START');
     const rateLimit = exchange.getProperty (exchange, 'rateLimit');
     assert (rateLimit === 10.8);
-    assert (tockenBucket !== undefined);
-    assert (tockenBucket['delay'] === 0.001);
-    assert (tockenBucket['refillRate'] === 1 / rateLimit);
+    assert (tokenBucket['delay'] === 0.001);
+    assert (tokenBucket['refillRate'] === 1 / rateLimit);
+    assert ('GO_SKIP_END');
     // fix decimal/integer issues across langs
-    assert (exchange.inArray (tockenBucket['capacity'], [ 1, 1.0 ]));
-    const cost = exchange.parseToNumeric (exchange.safeString2 (tockenBucket, 'cost', 'defaultCost')); // python sync, todo fix
+    assert (exchange.inArray (tokenBucket['capacity'], [ 1, 1.0 ]));
+    const cost = exchange.parseToNumeric (exchange.safeString2 (tokenBucket, 'cost', 'defaultCost')); // python sync, todo fix
     assert (exchange.inArray (cost, [ 1, 1.0 ]));
-    assert (!('maxCapacity' in tockenBucket) || exchange.inArray (tockenBucket['maxCapacity'], [ 1000, 1000.0 ]));
+    assert (!('maxCapacity' in tokenBucket) || exchange.inArray (tokenBucket['maxCapacity'], [ 1000, 1000.0 ]));
     // todo: assert (exchange.throttler !== undefined);
     // todo: add after change assertion
     // todo: add initial tockenbtucket test
@@ -31,6 +36,7 @@ function helperTestInitThrottler () {
 function helperTestSandboxState (exchange, shouldBeEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
+    assert ('GO_SKIP_START');
     const isSandboxModeEnabled = exchange.getProperty (exchange, 'isSandboxModeEnabled');
     if (shouldBeEnabled) {
         assert (isSandboxModeEnabled);
@@ -41,6 +47,7 @@ function helperTestSandboxState (exchange, shouldBeEnabled = true) {
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://example.org');
     }
+    assert ('GO_SKIP_END');
 }
 
 function helperTestInitSandbox () {
