@@ -38,32 +38,23 @@ function testAfterConstructor () {
         },
     });
     assert (exchange2.markets['BTC/USD'] !== undefined);
-
-
-    assert ('GO_SKIP_START');
-    // ############# sandbox ############# //
-    try {
-        const exchange3 = new ccxt.Exchange ({
-            'id': 'sampleexchange',
-            'options': {
-                'sandbox': true,
-            },
-        });
-        // todo: some extra things should be checked in "catch" but atm skip complexity
-        assert (exchange3.urls !== undefined);
-        assert (exchange3.urls['test'] !== undefined);
-        const isSandboxModeEnabled = exchange3.getProperty (exchange3, 'isSandboxModeEnabled');
-        assert (isSandboxModeEnabled);
-    } catch (e) {
-        const exchange3 = new ccxt.Exchange ({
-            'id': 'sampleexchange',
-        });
-        // if exception was thrown, it should only happen if 'test' was not in urls
-        assert (exchange3.urls === undefined || !('test' in exchange3.urls));
-    }
-    assert ('GO_SKIP_END');
-
+    testSandboxInit ();
     // todo: other constructor things
+}
+
+function testSandboxInit () {
+    // ############# sandbox ############# //
+    const exchange3 = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {
+            'sandbox': true,
+        },
+    });
+    const isSandboxModeEnabled = exchange3.getProperty (exchange3, 'isSandboxModeEnabled');
+    assert (isSandboxModeEnabled);
+    assert (exchange3.urls !== undefined);
+    assert (!('test' in exchange3.urls) || exchange3.urls['test'] === undefined);
+    // todo: sandbox for real exchanges
 }
 
 export default testAfterConstructor;
