@@ -544,9 +544,10 @@ class bitmart(Exchange, ImplicitAPI):
                 'TRU': 'Truebit',  # conflict with TrueFi
             },
             'options': {
-                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'USDT': 'ERC20',
+                    'USDT': 'TRC20',
+                    'BTC': 'BTC',
+                    'ETH': 'ERC20',
                 },
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -588,7 +589,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'KSM': 'KSM',
                     'ZEC': 'ZEC',
                     'NAS': 'NAS',
-                    # 'POLYGON': ['MATIC', 'Polygon', 'POLYGON'],  # todo: after unification
+                    'POLYGON': 'MATIC',
                     'HRC20': 'HECO',
                     'XDC': 'XDC',
                     'ONE': 'ONE',
@@ -597,7 +598,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'ICP': 'Computer',
                     'XTZ': 'XTZ',
                     'MINA': 'MINA',
-                    # 'BEP20': ['BEP20', 'BSC_BNB', 'bep20'],  # todo: after unification
+                    'BEP20': 'BSC_BNB',
                     'THETA': 'THETA',
                     'AKT': 'AKT',
                     'AR': 'AR',
@@ -700,6 +701,12 @@ class bitmart(Exchange, ImplicitAPI):
                     # 'ETHERCOIN': 'ETE',
                     # undetermined chains:
                     # LEX(for LexThum), TAYCAN(for TRICE), SFL(probably TAYCAN), OMNIA(for APEX), NAC(for NAC), KAG(Kinesis), CEM(crypto emergency), XVM(for Venidium), NEVM(for NEVM), IGT20(for IGNITE), FILM(FILMCredits), CC(CloudCoin), MERGE(MERGE), LTNM(Bitcoin latinum), PLUGCN( PlugChain), DINGO(dingo), LED(LEDGIS), AVAT(AVAT), VSOL(Vsolidus), EPIC(EPIC cash), NFC(netflowcoin), mrx(Metrix Coin), Idena(idena network), PKT(PKT Cash), BondDex(BondDex), XBN(XBN), KALAM(Kalamint), REV(RChain), KRC20(MyDeFiPet), ARC20(Hurricane Token), GMD(Coop network), BERS(Berith), ZEBI(Zebi), BRC(Baer Chain), DAPS(DAPS Coin), APL(Gold Secured Currency), NDAU(NDAU), WICC(WICC), UPG(Unipay God), TSL(TreasureSL), MXW(Maxonrow), CLC(Cifculation), SMH(SMH Coin), XIN(CPCoin), RDD(ReddCoin), OK(Okcash), KAR(KAR), CCX(ConcealNetwork),
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'Ethereum': 'ERC20',
+                    'USDT': 'OMNI',  # the default USDT network for bitmart is OMNI
+                    'Bitcoin': 'BTC',
                 },
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'fetchBalance': {
@@ -1175,48 +1182,113 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetSpotV1Currencies(params)
+        response = self.publicGetAccountV1Currencies(params)
         #
         #     {
-        #         "message":"OK",
+        #         "message": "OK",
         #         "code":1000,
-        #         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        #         "data":{
-        #             "currencies":[
-        #                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        #                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        #                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        #         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        #         "data": {
+        #             "currencies": [
+        #                 {
+        #                     "currency": "BTC",
+        #                     "name": "Bitcoin",
+        #                     "contract_address": null,
+        #                     "network": "BTC",
+        #                     "withdraw_enabled": True,
+        #                     "deposit_enabled": True,
+        #                     "withdraw_minsize": "0.0003",
+        #                     "withdraw_minfee": "9.74"
+        #                 }
         #             ]
         #         }
         #     }
         #
         data = self.safe_dict(response, 'data', {})
         currencies = self.safe_list(data, 'currencies', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = self.safe_string(currency, 'id')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            withdrawEnabled = self.safe_bool(currency, 'withdraw_enabled')
-            depositEnabled = self.safe_bool(currency, 'deposit_enabled')
-            active = withdrawEnabled and depositEnabled
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency,  # the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': None,
-                'precision': None,
+            fullId = self.safe_string(currency, 'currency')
+            currencyId = fullId
+            networkId = self.safe_string(currency, 'network')
+            if fullId.find('NFT') < 0:
+                parts = fullId.split('-')
+                currencyId = self.safe_string(parts, 0)
+                second = self.safe_string(parts, 1)
+                if second is not None:
+                    networkId = second.upper()
+            currencyCode = self.safe_currency_code(currencyId)
+            entry = self.safe_dict(result, currencyCode)
+            if entry is None:
+                entry = {
+                    'info': currency,
+                    'id': currencyId,
+                    'code': currencyCode,
+                    'precision': None,
+                    'name': self.safe_string(currency, 'name'),
+                    'deposit': None,
+                    'withdraw': None,
+                    'active': None,
+                    'networks': {},
+                }
+            networkCode = self.network_id_to_code(networkId)
+            withdraw = self.safe_bool(currency, 'withdraw_enabled')
+            deposit = self.safe_bool(currency, 'deposit_enabled')
+            entry['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'code': networkCode,
+                'withdraw': withdraw,
+                'deposit': deposit,
+                'active': withdraw and deposit,
+                'fee': self.safe_number(currency, 'withdraw_minfee'),  # todo check
                 'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdraw_minsize'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
             }
+            result[currencyCode] = entry
+        keys = list(result.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currency = result[key]
+            result[key] = self.safe_currency_structure(currency)
         return result
+
+    def get_currency_id_from_code_and_network(self, currencyCode: Str, networkCode: Str) -> Str:
+        if networkCode is None:
+            networkCode = self.default_network_code(currencyCode)  # use default network code if not provided
+        currency = self.currency(currencyCode)
+        id = currency['id']
+        idFromNetwork: Str = None
+        networks = self.safe_dict(currency, 'networks', {})
+        networkInfo: dict = {}
+        if networkCode is None:
+            # network code is not provided and there is no default network code
+            network = self.safe_dict(networks, currencyCode)  # trying to find network that has the same code
+            if network is None:
+                # use the first network in the networks list if there is no network code with the same code
+                keys = list(networks.keys())
+                length = len(keys)
+                if length > 0:
+                    network = self.safe_value(networks, keys[0])
+            networkInfo = self.safe_dict(network, 'info', {})
+            idFromNetwork = self.safe_string(networkInfo, 'currency')  # use currency name from network
+        else:
+            providedOrDefaultNetwork = self.safe_dict(networks, networkCode)
+            if providedOrDefaultNetwork is not None:
+                networkInfo = self.safe_dict(providedOrDefaultNetwork, 'info', {})
+                idFromNetwork = self.safe_string(networkInfo, 'currency')  # use currency name from network
+            else:
+                id += '-' + self.network_code_to_id(networkCode, currencyCode)  # use concatenated currency id and network code if network is not found
+        return idFromNetwork if (idFromNetwork is not None) else id
 
     def fetch_transaction_fee(self, code: str, params={}):
         """
@@ -1224,12 +1296,15 @@ class bitmart(Exchange, ImplicitAPI):
         please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the network code of the currency
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        network: Str = None
+        network, params = self.handle_network_code_and_params(params)
         request: dict = {
-            'currency': currency['id'],
+            'currency': self.get_currency_id_from_code_and_network(currency['code'], network),
         }
         response = self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
         #
@@ -1281,12 +1356,14 @@ class bitmart(Exchange, ImplicitAPI):
         fetch the fee for deposits and withdrawals
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the network code of the currency
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        currency = self.currency(code)
+        network: Str = None
+        network, params = self.handle_network_code_and_params(params)
         request: dict = {
-            'currency': currency['id'],
+            'currency': self.get_currency_id_from_code_and_network(code, network),
         }
         response = self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
         #
@@ -3418,24 +3495,11 @@ class bitmart(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        currencyId = currency['id']
+        network: Str = None
+        network, params = self.handle_network_code_and_params(params)
         request: dict = {
-            'currency': currencyId,
+            'currency': self.get_currency_id_from_code_and_network(code, network),
         }
-        if code == 'USDT':
-            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
-            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_dict(self.options, 'networks', {})
-            networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
-            networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
-            if networkInner is not None:
-                request['currency'] = currencyId + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = self.omit(params, 'network')
-        else:
-            networkCode = None
-            networkCode, params = self.handle_network_code_and_params(params)
-            if networkCode is not None:
-                request['currency'] = currencyId + '-' + self.network_code_to_id(networkCode)
         response = self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
         #    {
@@ -3463,23 +3527,20 @@ class bitmart(Exchange, ImplicitAPI):
         #    }
         #
         currencyId = self.safe_string(depositAddress, 'currency')
+        network = self.safe_string(depositAddress, 'chain')
+        if currencyId.find('NFT') < 0:
+            parts = currencyId.split('-')
+            currencyId = self.safe_string(parts, 0)
+            secondPart = self.safe_string(parts, 1)
+            if secondPart is not None:
+                network = secondPart
         address = self.safe_string(depositAddress, 'address')
-        chain = self.safe_string(depositAddress, 'chain')
-        network = None
         currency = self.safe_currency(currencyId, currency)
-        if chain is not None:
-            parts = chain.split('-')
-            partsLength = len(parts)
-            networkId = self.safe_string(parts, partsLength - 1)
-            if networkId == self.safe_string(currency, 'name'):
-                network = self.safe_string(currency, 'code')
-            else:
-                network = self.network_id_to_code(networkId)
         self.check_address(address)
         return {
             'info': depositAddress,
             'currency': self.safe_string(currency, 'code'),
-            'network': network,
+            'network': self.network_id_to_code(network),
             'address': address,
             'tag': self.safe_string(depositAddress, 'address_memo'),
         }
@@ -3492,29 +3553,23 @@ class bitmart(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the network name for self withdrawal
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
+        network: Str = None
+        network, params = self.handle_network_code_and_params(params)
         request: dict = {
-            'currency': currency['id'],
+            'currency': self.get_currency_id_from_code_and_network(code, network),
             'amount': amount,
             'destination': 'To Digital Address',  # To Digital Address, To Binance, To OKEX
             'address': address,
         }
         if tag is not None:
             request['address_memo'] = tag
-        if code == 'USDT':
-            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
-            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_dict(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-            if network is not None:
-                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = self.omit(params, 'network')
         response = self.privatePostAccountV1WithdrawApply(self.extend(request, params))
         #
         #     {
@@ -3547,16 +3602,6 @@ class bitmart(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        if code == 'USDT':
-            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
-            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_dict(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-            if network is not None:
-                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                currency['code'] = request['currency']  # update currency code to filter
-                params = self.omit(params, 'network')
         response = self.privateGetAccountV2DepositWithdrawHistory(self.extend(request, params))
         #
         #     {
@@ -3734,6 +3779,11 @@ class bitmart(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'arrival_amount')
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
+        networkId: Str = None
+        if currencyId.find('NFT') < 0:
+            parts = currencyId.split('-')
+            currencyId = self.safe_string(parts, 0)
+            networkId = self.safe_string(parts, 1)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number(transaction, 'fee')
@@ -3751,7 +3801,7 @@ class bitmart(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressFrom': None,
             'addressTo': None,
@@ -4929,6 +4979,7 @@ class bitmart(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         currencyId = self.safe_string(item, 'asset')
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'time')
         type = self.safe_string(item, 'type')
         return self.safe_ledger_entry({
@@ -4939,7 +4990,7 @@ class bitmart(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tradeId'),
             'type': self.parse_ledger_entry_type(type),
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': currency['code'],
             'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
