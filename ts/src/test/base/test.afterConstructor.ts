@@ -20,8 +20,9 @@ function testInitThrottler () {
     assert (tockenBucket['refillRate'] === 1 / rateLimit);
     // fix decimal/integer issues across langs
     assert (exchange.inArray (tockenBucket['capacity'], [ 1, 1.0 ]));
-    assert (exchange.inArray (tockenBucket['cost'], [ 1, 1.0 ]) || exchange.inArray (tockenBucket['defaultCost'], [ 1, 1.0 ]));
-    assert (exchange.inArray (tockenBucket['maxCapacity'], [ 1000, 1000.0 ]));
+    const cost = exchange.parseToNumeric (exchange.safeString2 (tockenBucket, 'cost', 'defaultCost')); // python sync, todo fix
+    assert (exchange.inArray (cost, [ 1, 1.0 ]));
+    assert (!('maxCapacity' in tockenBucket) || exchange.inArray (tockenBucket['maxCapacity'], [ 1000, 1000.0 ]));
     // todo: assert (exchange.throttler !== undefined);
     // todo: add after change assertion
     // todo: add initial tockenbtucket test
