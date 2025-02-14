@@ -5,15 +5,13 @@ import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-function testAfterConstructor () {
-
+function testInitThrottler () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'rateLimit': 10.8,
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
-    // ############# throttler ############# //
     const tockenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     const rateLimit = exchange.getProperty (exchange, 'rateLimit');
     assert (rateLimit === 10.8);
@@ -27,22 +25,9 @@ function testAfterConstructor () {
     // todo: assert (exchange.throttler !== undefined);
     // todo: add after change assertion
     // todo: add initial tockenbtucket test
-
-
-    // ############# markets ############# //
-    const sampleMarket = { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
-    const exchange2 = new ccxt.Exchange ({
-        'id': 'sampleexchange',
-        'markets': {
-            'BTC/USD': sampleMarket,
-        },
-    });
-    assert (exchange2.markets['BTC/USD'] !== undefined);
-    testSandboxInit ();
-    // todo: other constructor things
 }
 
-function testSandboxInit () {
+function testInitSandbox () {
     // ############# sandbox ############# //
     const exchange3 = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -56,5 +41,25 @@ function testSandboxInit () {
     assert (!('test' in exchange3.urls) || exchange3.urls['test'] === undefined);
     // todo: sandbox for real exchanges
 }
+
+function testInitMarkets () {
+    // ############# markets ############# //
+    const sampleMarket = { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
+    const exchange2 = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'markets': {
+            'BTC/USD': sampleMarket,
+        },
+    });
+    assert (exchange2.markets['BTC/USD'] !== undefined);
+}
+
+function testAfterConstructor () {
+    testInitThrottler ();
+    testInitSandbox ();
+    testInitMarkets ();
+    // todo: other constructor things
+}
+
 
 export default testAfterConstructor;
