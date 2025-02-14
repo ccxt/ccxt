@@ -33,7 +33,7 @@ type IExchange interface {
 	GetId() string
 	GetHostname() string
 	GetUrls() interface{}
-	GetApi() interface{}
+	GetApi() map[string]interface{}
 	GetOptions() map[string]interface{}
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}
