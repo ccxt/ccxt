@@ -5,7 +5,9 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestExtend()  {
-    exchange := ccxt.NewExchange()
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
+        "id": "regirock",
+    }, map[string]interface{}{}, exchange)
     var obj1 interface{} = map[string]interface{} {
         "a": 1,
         "b": []interface{}{1, 2},

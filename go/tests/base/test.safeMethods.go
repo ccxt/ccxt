@@ -5,7 +5,9 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestSafeMethods()  {
-    exchange := ccxt.NewExchange()
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
+        "id": "regirock",
+    }, map[string]interface{}{}, exchange)
     var inputDict interface{} = map[string]interface{} {
         "i": 1,
         "f": 0.123,
