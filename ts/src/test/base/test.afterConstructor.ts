@@ -27,19 +27,52 @@ function testInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
+function testEnsureSandboxStatus (exchange, shouldBeEnabled = true) {
+    assert (exchange.urls !== undefined);
+    assert ('test' in exchange.urls);
+    const isSandboxModeEnabled = exchange.getProperty (exchange, 'isSandboxModeEnabled');
+    if (shouldBeEnabled) {
+        assert (isSandboxModeEnabled);
+        assert (exchange.urls['api']['public'] === 'https://example.org');
+        assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
+    } else {
+        assert (!isSandboxModeEnabled);
+        assert (exchange.urls['api']['public'] === 'https://example.com');
+        assert (exchange.urls['test']['public'] === 'https://example.org');
+    }
+}
+
 function testInitSandbox () {
-    // ############# sandbox ############# //
-    const exchange3 = new ccxt.Exchange ({
+    // todo: sandbox for real exchanges
+    const opts = {
         'id': 'sampleexchange',
         'options': {
-            'sandbox': true,
+            'sandbox': false,
         },
-    });
-    const isSandboxModeEnabled = exchange3.getProperty (exchange3, 'isSandboxModeEnabled');
-    assert (isSandboxModeEnabled);
-    assert (exchange3.urls !== undefined);
-    assert (!('test' in exchange3.urls) || exchange3.urls['test'] === undefined);
-    // todo: sandbox for real exchanges
+        'urls': {
+            'api': {
+                'public': 'https://example.com'
+            },
+            'test': {
+                'public': 'https://example.org'
+            },
+        }
+    };
+    //
+    // CASE A: when sandbox is not enabled
+    //
+    const exchange3 = new ccxt.Exchange (opts);
+    testEnsureSandboxStatus (exchange3, false);
+    exchange3.setSandboxMode (true);
+    testEnsureSandboxStatus (exchange3, true);
+    //
+    // CASE B: when sandbox is enabled
+    //
+    opts['options']['sandbox'] = true;
+    const exchange4 = new ccxt.Exchange (opts);
+    testEnsureSandboxStatus (exchange4, true);
+    exchange4.setSandboxMode (false);
+    testEnsureSandboxStatus (exchange4, false);
 }
 
 function testInitMarkets () {
