@@ -112,7 +112,7 @@ export default class derive extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'sandbox': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -417,13 +417,9 @@ export default class derive extends Exchange {
             },
             'options': {
                 'contractWalletAddress': '', // a contract wallet address "0x"-prefixed hexstring
+                'id': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
             },
         });
-    }
-
-    setSandboxMode (enabled) {
-        super.setSandboxMode (enabled);
-        this.options['sandboxMode'] = enabled;
     }
 
     /**
@@ -1201,6 +1197,7 @@ export default class derive extends Exchange {
             'max_fee': maxFeeString,
             'subaccount_id': subaccountId,
             'signature_expiry_sec': signatureExpiry,
+            'referral_code': this.safeString (this.options, 'id', '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'),
             'signer': this.walletAddress,
         };
         if (reduceOnly !== undefined) {
