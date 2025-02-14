@@ -28,6 +28,9 @@ abstract class upbit extends \ccxt\Exchange {
     public function public_get_candles_minutes_5($params = array()) {
         return $this->request('candles/minutes/5', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_candles_minutes_10($params = array()) {
+        return $this->request('candles/minutes/10', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_candles_minutes_15($params = array()) {
         return $this->request('candles/minutes/15', 'public', 'GET', $params, null, null, array());
     }
@@ -69,6 +72,15 @@ abstract class upbit extends \ccxt\Exchange {
     }
     public function private_get_orders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_closed($params = array()) {
+        return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_open($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_uuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_withdraws($params = array()) {
         return $this->request('withdraws', 'private', 'GET', $params, null, null, array());
@@ -127,6 +139,9 @@ abstract class upbit extends \ccxt\Exchange {
     public function publicGetCandlesMinutes5($params = array()) {
         return $this->request('candles/minutes/5', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetCandlesMinutes10($params = array()) {
+        return $this->request('candles/minutes/10', 'public', 'GET', $params, null, null, array());
+    }
     public function publicGetCandlesMinutes15($params = array()) {
         return $this->request('candles/minutes/15', 'public', 'GET', $params, null, null, array());
     }
@@ -168,6 +183,15 @@ abstract class upbit extends \ccxt\Exchange {
     }
     public function privateGetOrders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersClosed($params = array()) {
+        return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersOpen($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersUuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetWithdraws($params = array()) {
         return $this->request('withdraws', 'private', 'GET', $params, null, null, array());

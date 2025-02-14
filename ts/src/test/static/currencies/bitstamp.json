@@ -1,0 +1,276 @@
+{
+    "BTC": {
+        "id": "btc",
+        "code": "BTC",
+        "info": {
+            "name": "BTC/USD",
+            "url_symbol": "btcusd",
+            "base_decimals": 8,
+            "counter_decimals": 0,
+            "instant_order_counter_decimals": 2,
+            "minimum_order": "10 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "usdt",
+        "code": "USDT",
+        "info": {
+            "name": "USDT/USD",
+            "url_symbol": "usdtusd",
+            "base_decimals": 5,
+            "counter_decimals": 5,
+            "instant_order_counter_decimals": 5,
+            "minimum_order": "10.00000 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Tether / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "EUR": {
+        "id": "eur",
+        "code": "EUR",
+        "info": {
+            "name": "BTC/EUR",
+            "url_symbol": "btceur",
+            "base_decimals": 8,
+            "counter_decimals": 0,
+            "instant_order_counter_decimals": 2,
+            "minimum_order": "10 EUR",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / Euro"
+        },
+        "type": "fiat",
+        "name": "Euro",
+        "active": true,
+        "precision": 1,
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 1
+            },
+            "cost": {
+                "min": 10
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USD": {
+        "id": "usd",
+        "code": "USD",
+        "info": {
+            "name": "BTC/USD",
+            "url_symbol": "btcusd",
+            "base_decimals": 8,
+            "counter_decimals": 0,
+            "instant_order_counter_decimals": 2,
+            "minimum_order": "10 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / U.S. dollar"
+        },
+        "type": "fiat",
+        "name": "U.S. dollar",
+        "active": true,
+        "precision": 1,
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 1
+            },
+            "cost": {
+                "min": 10
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "LTC": {
+        "id": "ltc",
+        "code": "LTC",
+        "info": {
+            "name": "LTC/BTC",
+            "url_symbol": "ltcbtc",
+            "base_decimals": 8,
+            "counter_decimals": 8,
+            "instant_order_counter_decimals": 8,
+            "minimum_order": "0.00020000 BTC",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Litecoin / Bitcoin"
+        },
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "eth",
+        "code": "ETH",
+        "info": {
+            "name": "ETH/BTC",
+            "url_symbol": "ethbtc",
+            "base_decimals": 8,
+            "counter_decimals": 8,
+            "instant_order_counter_decimals": 8,
+            "minimum_order": "0.00020000 BTC",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Ether / Bitcoin"
+        },
+        "type": "crypto",
+        "name": "Ether",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ADA": {
+        "id": "ada",
+        "code": "ADA",
+        "info": {
+            "name": "ADA/USD",
+            "url_symbol": "adausd",
+            "base_decimals": 8,
+            "counter_decimals": 5,
+            "instant_order_counter_decimals": 5,
+            "minimum_order": "10.00000 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "Cardano / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "Cardano",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "XRP": {
+        "id": "xrp",
+        "code": "XRP",
+        "info": {
+            "name": "XRP/USD",
+            "url_symbol": "xrpusd",
+            "base_decimals": 8,
+            "counter_decimals": 5,
+            "instant_order_counter_decimals": 5,
+            "minimum_order": "10.00000 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "XRP / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "XRP",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "usdc",
+        "code": "USDC",
+        "info": {
+            "name": "USDC/USD",
+            "url_symbol": "usdcusd",
+            "base_decimals": 5,
+            "counter_decimals": 5,
+            "instant_order_counter_decimals": 5,
+            "minimum_order": "10.00000 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "USD Coin / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    }
+}

@@ -14,11 +14,13 @@ function testCurrency(exchange, skippedProperties, method, entry) {
     const emptyAllowedFor = ['name', 'fee'];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const currencyType = exchange.safeString(entry, 'type');
     if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        format['withdraw'] = true; // withdraw enabled
-        format['deposit'] = true; // deposit enabled
+        // these two fields are being dynamically added a bit below
+        // format['withdraw'] = true; // withdraw enabled
+        // format['deposit'] = true; // deposit enabled
         format['precision'] = exchange.parseNumber('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         format['fee'] = exchange.parseNumber('0.001');
         format['networks'] = {};
@@ -32,6 +34,17 @@ function testCurrency(exchange, skippedProperties, method, entry) {
                 'max': exchange.parseNumber('1000'),
             },
         };
+        // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
+        if (currencyType !== undefined) {
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'type', ['fiat', 'crypto', 'other']);
+        }
+        // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
+        if (currencyType === 'crypto' || !('depositForNonCrypto' in skippedProperties)) {
+            format['deposit'] = true;
+        }
+        if (currencyType === 'crypto' || !('withdrawForNonCrypto' in skippedProperties)) {
+            format['withdraw'] = true;
+        }
     }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, entry['code']);

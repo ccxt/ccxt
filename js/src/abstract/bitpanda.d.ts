@@ -1,6 +1,6 @@
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+import _onetrading from '../onetrading.js';
+interface onetrading {
     publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesticksInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetFees(params?: {}): Promise<implicitReturnType>;
@@ -8,31 +8,19 @@ interface Exchange {
     publicGetOrderBookInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetMarketTicker(params?: {}): Promise<implicitReturnType>;
     publicGetMarketTickerInstrumentCode(params?: {}): Promise<implicitReturnType>;
-    publicGetPriceTicksInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetTime(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountDepositCryptoCurrencyCode(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountDepositFiatEUR(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountDeposits(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountDepositsBitpanda(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountWithdrawals(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountWithdrawalsBitpanda(params?: {}): Promise<implicitReturnType>;
     privateGetAccountFees(params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrders(params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrdersOrderIdTrades(params?: {}): Promise<implicitReturnType>;
     privateGetAccountTrades(params?: {}): Promise<implicitReturnType>;
     privateGetAccountTradesTradeId(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountTradingVolume(params?: {}): Promise<implicitReturnType>;
-    privatePostAccountDepositCrypto(params?: {}): Promise<implicitReturnType>;
-    privatePostAccountWithdrawCrypto(params?: {}): Promise<implicitReturnType>;
-    privatePostAccountWithdrawFiat(params?: {}): Promise<implicitReturnType>;
-    privatePostAccountFees(params?: {}): Promise<implicitReturnType>;
     privatePostAccountOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrdersClientClientId(params?: {}): Promise<implicitReturnType>;
 }
-declare abstract class Exchange extends _Exchange {
+declare abstract class onetrading extends _onetrading {
 }
-export default Exchange;
+export default onetrading;

@@ -4,12 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
+from ccxt.base.types import Any
+
+import ccxt.async_support.binanceus as binanceusRest
 
 
 class binanceus(binance):
 
-    def describe(self):
-        return self.deep_extend(super(binanceus, self).describe(), {
+    def describe(self) -> Any:
+        # eslint-disable-next-line new-cap
+        restInstance = binanceusRest()
+        restDescribe = restInstance.describe()
+        parentWsDescribe = super(binanceus, self).describe_data()
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
+        return self.deep_extend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],  # US
@@ -21,6 +29,7 @@ class binanceus(binance):
                         'spot': 'wss://stream.binance.us:9443/ws',
                     },
                     'web': 'https://www.binance.us',
+                    'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
                     'public': 'https://api.binance.us/api/v1',
                     'private': 'https://api.binance.us/api/v3',
@@ -37,13 +46,5 @@ class binanceus(binance):
                 'quoteOrderQty': False,
                 'defaultType': 'spot',
                 'fetchMarkets': ['spot'],
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': False,
-                    'percentage': True,
-                    'taker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                },
             },
         })

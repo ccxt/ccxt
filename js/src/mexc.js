@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class mexc
- * @extends Exchange
+ * @augments Exchange
  */
 export default class mexc extends Exchange {
     describe() {
@@ -30,28 +30,45 @@ export default class mexc extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'addMargin': true,
-                'borrowMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
+                'createOrders': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowRate': undefined,
-                'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -61,20 +78,30 @@ export default class mexc extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -82,9 +109,11 @@ export default class mexc extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
+                'fetchPosition': 'emulated',
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -92,8 +121,8 @@ export default class mexc extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
@@ -103,9 +132,10 @@ export default class mexc extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'repayMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
-                'setMarginMode': undefined,
+                'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -132,13 +162,12 @@ export default class mexc extends Exchange {
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mxcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mxcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
                 ],
-                'referral': 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
+                'referral': 'https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1',
             },
             'api': {
                 'spot': {
@@ -146,9 +175,9 @@ export default class mexc extends Exchange {
                         'get': {
                             'ping': 1,
                             'time': 1,
-                            'exchangeInfo': 1,
+                            'exchangeInfo': 10,
                             'depth': 1,
-                            'trades': 1,
+                            'trades': 5,
                             'historicalTrades': 1,
                             'aggTrades': 1,
                             'klines': 1,
@@ -161,19 +190,22 @@ export default class mexc extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 1,
+                            'order': 2,
+                            'openOrders': 3,
+                            'allOrders': 10,
                             'account': 10,
-                            'myTrades': 1,
+                            'myTrades': 10,
+                            'tradeFee': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
-                            'capital/config/getall': 1,
+                            'capital/config/getall': 10,
                             'capital/deposit/hisrec': 1,
                             'capital/withdraw/history': 1,
-                            'capital/deposit/address': 1,
+                            'capital/withdraw/address': 10,
+                            'capital/deposit/address': 10,
                             'capital/transfer': 1,
                             'capital/transfer/tranId': 1,
+                            'capital/transfer/internal': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
                             'capital/convert/list': 1,
@@ -200,6 +232,7 @@ export default class mexc extends Exchange {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -210,14 +243,12 @@ export default class mexc extends Exchange {
                             'sub-account/margin': 1,
                             'batchOrders': 10,
                             'capital/withdraw/apply': 1,
+                            'capital/withdraw': 1,
                             'capital/transfer': 1,
+                            'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
-                            'margin/tradeMode': 1,
-                            'margin/order': 1,
-                            'margin/loan': 1,
-                            'margin/repay': 1,
+                            'capital/convert': 10,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -231,6 +262,7 @@ export default class mexc extends Exchange {
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
+                            'capital/withdraw': 1,
                         },
                     },
                 },
@@ -389,7 +421,8 @@ export default class mexc extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': true,
                     'LTC/USDT:USDT': true,
@@ -398,10 +431,6 @@ export default class mexc extends Exchange {
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
-                        'future': {
-                            'linear': false,
-                            'inverse': false,
-                        },
                         'swap': {
                             'linear': true,
                             'inverse': false,
@@ -417,6 +446,7 @@ export default class mexc extends Exchange {
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {
@@ -436,272 +466,383 @@ export default class mexc extends Exchange {
                 'defaultNetwork': 'ETH',
                 'defaultNetworks': {
                     'ETH': 'ETH',
-                    'USDT': 'TRC20',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
                 },
                 'networks': {
-                    'BTC': 'BTC',
-                    'BCH': 'BCH',
-                    'TRC20': 'TRC20',
-                    'ERC20': 'ERC20',
-                    'BEP20': 'BEP20(BSC)',
-                    'OPTIMISM': 'OP',
-                    'SOL': 'SOL',
-                    'CRC20': 'CRONOS',
-                    'ALGO': 'ALGO',
-                    'XRP': 'XRP',
-                    'MATIC': 'MATIC',
-                    'AVAXX': 'AVAX_XCHAIN',
-                    'AVAXC': 'AVAX_CCHAIN',
-                    'ARBONE': 'Arbitrum One',
-                    'ARBNOVA': 'ARBNOVA',
-                    'FTM': 'FTM',
-                    'WAVES': 'WAVES',
-                    'CHZ': 'Chiliz Chain(CHZ)',
-                    'HRC20': 'HECO',
-                    'TRC10': 'TRC10',
-                    'DASH': 'DASH',
-                    'LTC': 'LTC',
-                    // 'DOGECOIN': [ 'DOGE', 'DOGECHAIN' ], // todo after unification
-                    'XTZ': 'XTZ',
-                    'OMNI': 'OMNI',
-                    'APT': 'APTOS',
-                    'ONT': 'ONT',
-                    'BSV': 'BSV',
-                    'OKC': 'OKT',
-                    'CELO': 'CELO',
-                    'KLAY': 'KLAY',
-                    'BEP2': 'BEP2',
-                    'EGLD': 'EGLD',
-                    'EOS': 'EOS',
-                    'ZIL': 'ZIL',
-                    'ETHW': 'ETHW',
-                    'IOTX': 'IOTX',
-                    'IOTA': 'IOTA',
-                    'SYS': 'SYS',
-                    'XCH': 'CHIA',
-                    'KMA': 'KMA',
-                    'ONE': 'ONE',
-                    'METIS': 'METIS',
-                    'KAVA': 'KAVA',
-                    'KDA': 'KDA',
-                    'IOST': 'IOST',
-                    'XEC': 'XEC',
-                    'VET': 'VET',
-                    'XLM': 'XLM',
-                    'KSM': 'KSM',
-                    'MOVR': 'MOVR',
-                    'XMR': 'XMR',
-                    'LAT': 'LAT',
-                    'ETC': 'ETC',
-                    // 'TLOS': 'TELOS', // todo
-                    // 'TELOSCOIN': 'TLOS', // todo
-                    'GLMR': 'GLMR',
-                    'DOT': 'DOT',
-                    'SC': 'SC',
-                    'ICP': 'ICP',
-                    'AOK': 'AOK',
-                    'ZEC': 'ZEC',
-                    'ACA': 'ACALA',
-                    'ASTR': 'ASTAR',
-                    'FIL': 'FIL',
-                    'NEAR': 'NEAR',
-                    'OSMO': 'OSMO',
-                    'SDN': 'SDN',
-                    'BITCI': 'BITCI',
-                    'NEO': 'NEO',
-                    'ADA': 'ADA',
-                    'RVN': 'RVN',
-                    'BNC': 'BNC',
-                    'BNCDOT': 'BNCPOLKA',
-                    'ETHF': 'ETF',
-                    'STEEM': 'STEEM',
-                    'OASYS': 'OASYS',
-                    'BEAM': 'BEAM',
-                    'VSYS': 'VSYS',
-                    'OASIS': 'ROSE',
-                    'AR': 'AR',
-                    'AE': 'AE',
-                    'QTUM': 'QTUM',
-                    'ATOM': 'ATOM',
-                    'HBAR': 'HBAR',
-                    'CSPR': 'CSPR',
-                    'WEMIX': 'WEMIX',
-                    'SGB': 'SGB',
-                    'XPR': 'PROTON',
-                    'HYDRA': 'HYDRA',
-                    'SCRT': 'SCRT',
-                    'TOMO': 'TOMO',
-                    'WAX': 'WAX',
-                    'KAR': 'KAR',
-                    'KILT': 'KILT',
-                    'XDC': 'XDC',
-                    'GRIN': 'GRIN',
-                    'PLCU': 'PLCU',
-                    'MINA': 'MINA',
-                    'ABBC': 'ABBC',
-                    'ZEN': 'ZEN',
-                    'FLOW': 'FLOW',
-                    'RSK': 'RBTC',
-                    'DCR': 'DCR',
-                    'HIVE': 'HIVE',
-                    'XYM': 'XYM',
-                    'CKB': 'CKB',
-                    'XRD': 'XRD',
-                    'XVG': 'XVG',
-                    'BOBA': 'BOBA',
-                    'AZERO': 'AZERO',
-                    'ARK': 'ARK',
-                    'NULS': 'NULS',
-                    'POKT': 'POKT',
-                    'NEO3': 'NEO3',
-                    'FIO': 'FIO',
-                    'MASS': 'MASS',
-                    'AME': 'AME',
-                    'REI': 'REI',
-                    'IRIS': 'IRIS',
-                    'ZTG': 'ZTG',
-                    'EDG': 'EDG',
-                    'FUSE': 'FUSE',
-                    'EVER': 'EVER',
-                    'FET': 'FET',
-                    'CFX': 'CFX',
-                    'NEBL': 'NEBL',
-                    'STAR': 'STAR',
-                    'NEM': 'NEM',
-                    'BDX': 'BDX',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'TRC20': 'TRX',
                     'TON': 'TONCOIN',
-                    'NAS': 'NAS',
-                    'QKC': 'QKC',
+                    'AVAXC': 'AVAX_CCHAIN',
+                    'ERC20': 'ETH',
+                    'ACA': 'ACALA',
+                    'BEP20': 'BSC',
+                    'OPTIMISM': 'OP',
+                    // 'ADA': 'Cardano(ADA)',
+                    // 'AE': 'AE',
+                    // 'ALGO': 'Algorand(ALGO)',
+                    // 'ALPH': 'Alephium(ALPH)',
+                    // 'ARB': 'Arbitrum One(ARB)',
+                    // 'ARBONE': 'ArbitrumOne(ARB)',
+                    'ASTR': 'ASTAR',
+                    // 'ATOM': 'Cosmos(ATOM)',
+                    // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
+                    // 'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
+                    // 'AZERO': 'Aleph Zero(AZERO)',
+                    // 'BCH': 'Bitcoin Cash(BCH)',
+                    // 'BNCDOT': 'BNCPOLKA',
+                    // 'BSV': 'Bitcoin SV(BSV)',
+                    // 'BTC': 'Bitcoin(BTC)',
                     'BTM': 'BTM2',
-                    'FSN': 'FSN',
+                    // 'CHZ': 'Chiliz Legacy Chain(CHZ)',
+                    // 'CHZ2': 'Chiliz Chain(CHZ2)',
+                    // 'CLORE': 'Clore.ai(CLORE)',
+                    'CRC20': 'CRONOS',
+                    // 'DC': 'Dogechain(DC)',
+                    // 'DNX': 'Dynex(DNX)',
+                    // 'DOGE': 'Dogecoin(DOGE)',
+                    // 'DOT': 'Polkadot(DOT)',
+                    // 'DYM': 'Dymension(DYM)',
+                    'ETHF': 'ETF',
+                    'HRC20': 'HECO',
+                    // 'KLAY': 'Klaytn(KLAY)',
+                    'OASIS': 'ROSE',
+                    'OKC': 'OKT',
+                    'RSK': 'RBTC',
+                    // 'RVN': 'Ravencoin(RVN)',
+                    // 'SATOX': 'Satoxcoin(SATOX)',
+                    // 'SC': 'SC',
+                    // 'SCRT': 'SCRT',
+                    // 'SDN': 'SDN',
+                    // 'SGB': 'SGB',
+                    // 'SOL': 'Solana(SOL)',
+                    // 'STAR': 'STAR',
+                    // 'STARK': 'Starknet(STARK)',
+                    // 'STEEM': 'STEEM',
+                    // 'SYS': 'SYS',
+                    // 'TAO': 'Bittensor(TAO)',
+                    // 'TIA': 'Celestia(TIA)',
+                    // 'TOMO': 'TOMO',
+                    // 'TON': 'Toncoin(TON)',
+                    // 'TRC10': 'TRC10',
+                    // 'TRC20': 'Tron(TRC20)',
+                    // 'UGAS': 'UGAS(Ultrain)',
+                    // 'VET': 'VeChain(VET)',
+                    // 'VEX': 'Vexanium(VEX)',
+                    // 'VSYS': 'VSYS',
+                    // 'WAVES': 'WAVES',
+                    // 'WAX': 'WAX',
+                    // 'WEMIX': 'WEMIX',
+                    // 'XCH': 'Chia(XCH)',
+                    // 'XDC': 'XDC',
+                    // 'XEC': 'XEC',
+                    // 'XLM': 'Stellar(XLM)',
+                    // 'XMR': 'Monero(XMR)',
+                    // 'XNA': 'Neurai(XNA)',
+                    // 'XPR': 'XPR Network',
+                    // 'XRD': 'XRD',
+                    // 'XRP': 'Ripple(XRP)',
+                    // 'XTZ': 'XTZ',
+                    // 'XVG': 'XVG',
+                    // 'XYM': 'XYM',
+                    // 'ZEC': 'ZEC',
+                    // 'ZEN': 'ZEN',
+                    // 'ZIL': 'Zilliqa(ZIL)',
+                    // 'ZTG': 'ZTG',
                     // todo: uncomment below after concensus
-                    // 'TERRACLASSIC': 'LUNC',
-                    // 'TERRA': 'LUNA2',
-                    // 'PHALA': 'Khala',
-                    // 'NODLE': 'NODLE',
-                    // 'KUJIRA': 'KUJI',
-                    // 'HUAHUA': 'HUAHUA',
-                    // 'FRUITS': 'FRTS',
-                    // 'IOEX': 'IOEX',
-                    // 'TOMAINFO': 'TON',
-                    // 'BITCOINHD': 'BHD',
-                    // 'CENNZ': 'CENNZ',
-                    // 'WAYKICHAIN': 'WICC',
-                    // 'EMERALD': 'EMERALD', // sits on top of OASIS
-                    // 'CONTENTVALUENETWORK': 'CVNT',
-                    // 'ORIGYN': 'OGY',
-                    // 'KASPA': 'KASPA',
-                    // 'CANTO': 'CANTO', // CANTOEVM
-                    // 'DARWINIASMARTCHAIN': 'Darwinia Smart Chain',
-                    // 'KEKCHAIN': 'KEKCHAIN',
-                    // 'ZENITH': 'ZENITH',
-                    // 'ECOCHAIN': 'ECOC',
-                    // 'ELECTRAPROTOCOL': 'XEP',
-                    // 'KULUPU': 'KLP',
-                    // 'KINTSUGI': 'KINT',
-                    // 'PLEX': 'PLEX',
-                    // 'CONCODRIUM': 'CCD',
-                    // 'REBUS': 'REBUS', // REBUSEVM is different
-                    // 'BITKUB': 'KUB',
-                    // 'BITCOINVAULT': 'BTCV',
-                    // 'PROXIMAX': 'XPX',
-                    // 'PAC': 'PAC',
-                    // 'CHAINX': 'PCX',
-                    // 'DRAC': 'DRAC',
-                    // 'WHITECOIN': 'XWC',
-                    // 'TECHPAY': 'TPC',
-                    // 'GXCHAIN': 'GXC',
-                    // 'CYPHERIUM': 'CPH',
-                    // 'LBRY': 'LBC',
-                    // 'TONGTONG': 'TTC',
-                    // 'LEDGIS': 'LED',
-                    // 'PMG': 'PMG',
-                    // 'PROOFOFMEMES': 'POM',
-                    // 'SENTINEL': 'DVPN',
-                    // 'METER': 'MTRG',
-                    // 'YAS': 'YAS',
-                    // 'ULTRAIN': 'UGAS',
-                    // 'PASTEL': 'PSL',
-                    // 'KONSTELLATION': 'DARC',
+                    // 'ALAYA': 'ATP',
                     // 'ANDUSCHAIN': 'DEB',
-                    // 'FIRMACHAIN': 'FCT',
-                    // 'HANDSHAKE': 'HNS',
-                    // 'DANGNN': 'DGC',
-                    // 'SERO': 'SERO',
-                    // 'HPB': 'HPB',
-                    // 'XDAI': 'XDAI',
-                    // 'EXOSAMA': 'SAMA',
-                    // 'DHEALTH': 'DHP',
-                    // 'HUPAYX': 'HPX',
-                    // 'GLEEC': 'GLEEC',
-                    // 'FIBOS': 'FO',
-                    // 'MDNA': 'DNA',
-                    // 'HSHARE': 'HC',
-                    // 'BYTZ': 'BYTZ',
-                    // 'DRAKEN': 'DRK',
-                    // 'LINE': 'LINE',
-                    // 'MDUKEY': 'MDU',
-                    // 'KOINOS': 'KOINOS',
-                    // 'MEVERSE': 'MEVerse',
-                    // 'POINT': 'POINT', // POINTEVM is different
-                    // 'INDEXCHAIN': 'IDX',
-                    // 'ULORD': 'UT',
-                    // 'INTEGRITEE': 'TEER',
-                    // 'XX': 'XX',
-                    // 'CORTEX': 'CTXC',
-                    // 'RIZON': 'ATOLO',
-                    // 'VDIMENSION': 'VOLLAR',
-                    // 'JUNO': 'JUNO',
-                    // 'VEXANIUM': 'VEX',
-                    // 'INTCHAIN': 'INT',
-                    // 'METAMUI': 'MMUI',
-                    // 'RCHAIN': 'REV',
-                    // 'EVMOS': 'EVMOS', // EVMOSETH is different
-                    // 'ZKSYNC': 'ZKSYNC',
+                    // 'ASSETMANTLE': 'MNTL',
+                    // 'AXE': 'AXE',
+                    // 'BITCOINHD': 'BHD',
+                    // 'BITCOINVAULT': 'BTCV',
+                    // 'BITKUB': 'KUB',
                     // 'BITSHARES_OLD': 'BTS',
                     // 'BITSHARES': 'NBS',
-                    // 'UMEE': 'UMEE',
-                    // 'VNT': 'VNT',
-                    // 'TURTLECOIN': 'TRTL',
-                    // 'METAVERSE_ETP': 'ETP',
-                    // 'NEWTON': 'NEW',
-                    // // 'BAJUN': '',
-                    // 'INTERLAY': 'INTR',
-                    // 'LIGHTNINGBITCOIN': 'LBTC',
-                    // 'FIRO': 'XZC',
-                    // 'ALAYA': 'ATP',
-                    // 'AXE': 'AXE',
-                    // 'FNCY': 'FNCY',
-                    // 'WITNET': 'WIT',
+                    // 'BYTZ': 'BYTZ',
+                    // 'CANTO': 'CANTO', // CANTOEVM
+                    // 'CENNZ': 'CENNZ',
+                    // 'CHAINX': 'PCX',
+                    // 'CONCODRIUM': 'CCD',
+                    // 'CONTENTVALUENETWORK': 'CVNT',
+                    // 'CORTEX': 'CTXC',
+                    // 'CYPHERIUM': 'CPH',
+                    // 'DANGNN': 'DGC',
+                    // 'DARWINIASMARTCHAIN': 'Darwinia Smart Chain',
+                    // 'DHEALTH': 'DHP',
+                    // 'DOGECOIN': [ 'DOGE', 'DOGECHAIN' ], // todo after unification
+                    // 'DRAC': 'DRAC',
+                    // 'DRAKEN': 'DRK',
+                    // 'ECOCHAIN': 'ECOC',
+                    // 'ELECTRAPROTOCOL': 'XEP',
+                    // 'EMERALD': 'EMERALD', // sits on top of OASIS
+                    // 'EVMOS': 'EVMOS', // EVMOSETH is different
+                    // 'EXOSAMA': 'SAMA',
+                    // 'FIBOS': 'FO',
                     // 'FILECASH': 'FIC',
-                    // 'ASSETMANTLE': 'MNTL',
+                    // 'FIRMACHAIN': 'FCT',
+                    // 'FIRO': 'XZC',
+                    // 'FNCY': 'FNCY',
+                    // 'FRUITS': 'FRTS',
+                    // 'GLEEC': 'GLEEC',
+                    // 'GXCHAIN': 'GXC',
+                    // 'HANDSHAKE': 'HNS',
+                    // 'HPB': 'HPB',
+                    // 'HSHARE': 'HC',
+                    // 'HUAHUA': 'HUAHUA',
+                    // 'HUPAYX': 'HPX',
+                    // 'INDEXCHAIN': 'IDX',
+                    // 'INTCHAIN': 'INT',
+                    // 'INTEGRITEE': 'TEER',
+                    // 'INTERLAY': 'INTR',
+                    // 'IOEX': 'IOEX',
+                    // 'JUNO': 'JUNO',
+                    // 'KASPA': 'KASPA',
+                    // 'KEKCHAIN': 'KEKCHAIN',
+                    // 'KINTSUGI': 'KINT',
+                    // 'KOINOS': 'KOINOS',
+                    // 'KONSTELLATION': 'DARC',
+                    // 'KUJIRA': 'KUJI',
+                    // 'KULUPU': 'KLP',
+                    // 'LBRY': 'LBC',
+                    // 'LEDGIS': 'LED',
+                    // 'LIGHTNINGBITCOIN': 'LBTC',
+                    // 'LINE': 'LINE',
+                    // 'MDNA': 'DNA',
+                    // 'MDUKEY': 'MDU',
+                    // 'METAMUI': 'MMUI',
+                    // 'METAVERSE_ETP': 'ETP',
+                    // 'METER': 'MTRG',
+                    // 'MEVERSE': 'MEVerse',
+                    // 'NEWTON': 'NEW',
+                    // 'NODLE': 'NODLE',
+                    // 'ORIGYN': 'OGY',
+                    // 'PAC': 'PAC',
+                    // 'PASTEL': 'PSL',
+                    // 'PHALA': 'Khala',
+                    // 'PLEX': 'PLEX',
+                    // 'PMG': 'PMG',
+                    // 'POINT': 'POINT', // POINTEVM is different
+                    // 'PROOFOFMEMES': 'POM',
+                    // 'PROXIMAX': 'XPX',
+                    // 'RCHAIN': 'REV',
+                    // 'REBUS': 'REBUS', // REBUSEVM is different
+                    // 'RIZON': 'ATOLO',
+                    // 'SENTINEL': 'DVPN',
+                    // 'SERO': 'SERO',
+                    // 'TECHPAY': 'TPC',
+                    // 'TELOSCOIN': 'TLOS', // todo
+                    // 'TERRA': 'LUNA2',
+                    // 'TERRACLASSIC': 'LUNC',
+                    // 'TLOS': 'TELOS', // todo
+                    // 'TOMAINFO': 'TON',
+                    // 'TONGTONG': 'TTC',
+                    // 'TURTLECOIN': 'TRTL',
+                    // 'ULORD': 'UT',
+                    // 'ULTRAIN': 'UGAS',
+                    // 'UMEE': 'UMEE',
+                    // 'VDIMENSION': 'VOLLAR',
+                    // 'VEXANIUM': 'VEX',
+                    // 'VNT': 'VNT',
+                    // 'WAYKICHAIN': 'WICC',
+                    // 'WHITECOIN': 'XWC',
+                    // 'WITNET': 'WIT',
+                    // 'XDAI': 'XDAI',
+                    // 'XX': 'XX',
+                    // 'YAS': 'YAS',
+                    // 'ZENITH': 'ZENITH',
+                    // 'ZKSYNC': 'ZKSYNC',
+                    // // 'BAJUN': '',
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
+                },
+                'networksById': {
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
+                    'BNB Smart Chain(BEP20)': 'BSC',
+                    // TODO: uncomment below after deciding unified name
+                    // 'PEPE COIN BSC':
+                    // 'SMART BLOCKCHAIN':
+                    // 'f(x)Core':
+                    // 'Syscoin Rollux':
+                    // 'Syscoin UTXO':
+                    // 'zkSync Era':
+                    // 'zkSync Lite':
+                    // 'Darwinia Smart Chain':
+                    // 'Arbitrum One(ARB-Bridged)':
+                    // 'Optimism(OP-Bridged)':
+                    // 'Polygon(MATIC-Bridged)':
                 },
                 'recvWindow': 5 * 1000,
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': false,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'daysBackCanceled': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivs': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
-                'BYN': 'BeyondFi',
+                'BYN': 'BEYONDFI',
                 'COFI': 'COFIX',
-                'DFI': 'DfiStarter',
-                'DFT': 'dFuture',
+                'DFI': 'DFISTARTER',
+                'DFT': 'DFUTURE',
                 'DRK': 'DRK',
-                'EGC': 'Egoras Credit',
+                'EGC': 'EGORASCREDIT',
                 'FLUX1': 'FLUX',
                 'FLUX': 'FLUX1',
-                'FREE': 'FreeRossDAO',
+                'FREE': 'FREEROSSDAO',
                 'GAS': 'GASDAO',
                 'GASNEO': 'GAS',
-                'GMT': 'GMT Token',
+                'GMT': 'GMTTOKEN',
                 'STEPN': 'GMT',
-                'HERO': 'Step Hero',
-                'MIMO': 'Mimosa',
-                'PROS': 'Pros.Finance',
-                'SIN': 'Sin City Token',
-                'SOUL': 'Soul Swap',
+                'HERO': 'STEPHERO',
+                'MIMO': 'MIMOSA',
+                'PROS': 'PROSFINANCE',
+                'SIN': 'SINCITYTOKEN',
+                'SOUL': 'SOULSWAP',
             },
             'exceptions': {
                 'exact': {
@@ -785,6 +926,7 @@ export default class mexc extends Exchange {
                     '700006': BadRequest,
                     '700007': AuthenticationError,
                     '700008': BadRequest,
+                    '700013': AuthenticationError,
                     '730001': BadRequest,
                     '730002': BadRequest,
                     '730000': ExchangeError,
@@ -810,7 +952,7 @@ export default class mexc extends Exchange {
                     'Combination of optional parameters invalid': BadRequest,
                     'api market order is disabled': BadRequest,
                     'Contract not allow place order!': InvalidOrder,
-                    'Oversold': InvalidOrder,
+                    'Oversold': InsufficientFunds,
                     'Insufficient position': InsufficientFunds,
                     'Insufficient balance!': InsufficientFunds,
                     'Bid price is great than max allow price': InvalidOrder,
@@ -821,14 +963,16 @@ export default class mexc extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name mexc#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
-         */
         const [marketType, query] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
@@ -858,14 +1002,16 @@ export default class mexc extends Exchange {
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name mexc#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
@@ -884,15 +1030,15 @@ export default class mexc extends Exchange {
         }
         return undefined;
     }
+    /**
+     * @method
+     * @name mexc#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -903,38 +1049,38 @@ export default class mexc extends Exchange {
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
         // {
-        //     coin: 'QANX',
-        //     name: 'QANplatform',
-        //     networkList: [
+        //     "coin": "QANX",
+        //     "name": "QANplatform",
+        //     "networkList": [
         //       {
-        //         coin: 'QANX',
-        //         depositDesc: null,
-        //         depositEnable: true,
-        //         minConfirm: '0',
-        //         name: 'QANplatform',
-        //         network: 'BEP20(BSC)',
-        //         withdrawEnable: false,
-        //         withdrawFee: '42.000000000000000000',
-        //         withdrawIntegerMultiple: null,
-        //         withdrawMax: '24000000.000000000000000000',
-        //         withdrawMin: '20.000000000000000000',
-        //         sameAddress: false,
-        //         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //         "coin": "QANX",
+        //         "depositDesc": null,
+        //         "depositEnable": true,
+        //         "minConfirm": "0",
+        //         "name": "QANplatform",
+        //         "network": "BEP20(BSC)",
+        //         "withdrawEnable": false,
+        //         "withdrawFee": "42.000000000000000000",
+        //         "withdrawIntegerMultiple": null,
+        //         "withdrawMax": "24000000.000000000000000000",
+        //         "withdrawMin": "20.000000000000000000",
+        //         "sameAddress": false,
+        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         //       },
         //       {
-        //         coin: 'QANX',
-        //         depositDesc: null,
-        //         depositEnable: true,
-        //         minConfirm: '0',
-        //         name: 'QANplatform',
-        //         network: 'ERC20',
-        //         withdrawEnable: true,
-        //         withdrawFee: '2732.000000000000000000',
-        //         withdrawIntegerMultiple: null,
-        //         withdrawMax: '24000000.000000000000000000',
-        //         withdrawMin: '240.000000000000000000',
-        //         sameAddress: false,
-        //         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //         "coin": "QANX",
+        //         "depositDesc": null,
+        //         "depositEnable": true,
+        //         "minConfirm": "0",
+        //         "name": "QANplatform",
+        //         "network": "ERC20",
+        //         "withdrawEnable": true,
+        //         "withdrawFee": "2732.000000000000000000",
+        //         "withdrawIntegerMultiple": null,
+        //         "withdrawMax": "24000000.000000000000000000",
+        //         "withdrawMin": "240.000000000000000000",
+        //         "sameAddress": false,
+        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         //       }
         //     ]
         //   }
@@ -955,10 +1101,10 @@ export default class mexc extends Exchange {
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString(chain, 'network');
-                const network = this.safeNetwork(networkId);
-                const isDepositEnabled = this.safeValue(chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeValue(chain, 'withdrawEnable', false);
+                const networkId = this.safeString2(chain, 'netWork', 'network');
+                const network = this.networkIdToCode(networkId);
+                const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const withdrawMin = this.safeString(chain, 'withdrawMin');
@@ -1029,33 +1175,33 @@ export default class mexc extends Exchange {
         }
         return result;
     }
-    safeNetwork(networkId) {
-        if (networkId.indexOf('BSC') >= 0) {
-            return 'BEP20';
-        }
-        const parts = networkId.split(' ');
-        networkId = parts.join('');
-        networkId = networkId.replace('-20', '20');
-        const networksById = {
-            'ETH': 'ETH',
-            'ERC20': 'ERC20',
-            'BEP20(BSC)': 'BEP20',
-            'TRX': 'TRC20',
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
+    /**
+     * @method
+     * @name mexc#fetchMarkets
+     * @description retrieves data on all markets for mexc
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchMarkets
-         * @description retrieves data on all markets for mexc3
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
-        const spotMarket = await this.fetchSpotMarkets(params);
-        const swapMarket = await this.fetchSwapMarkets(params);
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
+        const spotMarketPromise = this.fetchSpotMarkets(params);
+        const swapMarketPromise = this.fetchSwapMarkets(params);
+        const [spotMarket, swapMarket] = await Promise.all([spotMarketPromise, swapMarketPromise]);
         return this.arrayConcat(spotMarket, swapMarket);
     }
+    /**
+     * @ignore
+     * @method
+     * @name mexc#fetchMarkets
+     * @description retrieves data on all spot markets for mexc
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchSpotMarkets(params = {}) {
         const response = await this.spotPublicGetExchangeInfo(params);
         //
@@ -1067,7 +1213,7 @@ export default class mexc extends Exchange {
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1112,7 +1258,7 @@ export default class mexc extends Exchange {
             const status = this.safeString(market, 'status');
             const isSpotTradingAllowed = this.safeValue(market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === 'ENABLED') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed');
@@ -1167,13 +1313,26 @@ export default class mexc extends Exchange {
                         'max': maxQuoteAmount,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         return result;
     }
+    /**
+     * @ignore
+     * @method
+     * @name mexc#fetchMarkets
+     * @description retrieves data on all swap markets for mexc
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchSwapMarkets(params = {}) {
+        const currentRl = this.rateLimit;
+        this.setProperty(this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail(params);
+        this.setProperty(this, 'rateLimit', currentRl);
         //
         //     {
         //         "success":true,
@@ -1230,6 +1389,7 @@ export default class mexc extends Exchange {
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
             const state = this.safeString(market, 'state');
+            const isLinear = quote === settle;
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -1247,8 +1407,8 @@ export default class mexc extends Exchange {
                 'option': false,
                 'active': (state === '0'),
                 'contract': true,
-                'linear': true,
-                'inverse': false,
+                'linear': isLinear,
+                'inverse': !isLinear,
                 'taker': this.safeNumber(market, 'takerFeeRate'),
                 'maker': this.safeNumber(market, 'makerFeeRate'),
                 'contractSize': this.safeNumber(market, 'contractSize'),
@@ -1278,23 +1438,24 @@ export default class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         return result;
     }
+    /**
+     * @method
+     * @name mexc#fetchOrderBook
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1319,7 +1480,8 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            orderbook = this.parseOrderBook(response, symbol);
+            const spotTimestamp = this.safeInteger(response, 'timestamp');
+            orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         }
         else if (market['swap']) {
@@ -1349,7 +1511,8 @@ export default class mexc extends Exchange {
         }
         return orderbook;
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const countKey = 2;
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const count = this.safeNumber(bidask, countKey);
@@ -1358,21 +1521,21 @@ export default class mexc extends Exchange {
         }
         return [price, amount];
     }
+    /**
+     * @method
+     * @name mexc#fetchTrades
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTrades
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
-         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1383,7 +1546,7 @@ export default class mexc extends Exchange {
         }
         let trades = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['endTime', 'until', 'till']);
+            const until = this.safeIntegerN(params, ['endTime', 'until']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1398,7 +1561,19 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString(this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString(params, 'method', method); // AggTrades, HistoricalTrades, Trades
-            trades = await this[method](this.extend(request, params));
+            params = this.omit(params, ['method']);
+            if (method === 'spotPublicGetAggTrades') {
+                trades = await this.spotPublicGetAggTrades(this.extend(request, params));
+            }
+            else if (method === 'spotPublicGetHistoricalTrades') {
+                trades = await this.spotPublicGetHistoricalTrades(this.extend(request, params));
+            }
+            else if (method === 'spotPublicGetTrades') {
+                trades = await this.spotPublicGetTrades(this.extend(request, params));
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchTrades() not support this method');
+            }
             //
             //     /trades, /historicalTrades
             //
@@ -1622,22 +1797,22 @@ export default class mexc extends Exchange {
         }
         return id;
     }
+    /**
+     * @method
+     * @name mexc#fetchOHLCV
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOHLCV
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
-         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const maxLimit = (market['spot']) ? 1000 : 2000;
@@ -1656,7 +1831,7 @@ export default class mexc extends Exchange {
         };
         let candles = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['until', 'endTime', 'till']);
+            const until = this.safeIntegerN(params, ['until', 'endTime']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1670,7 +1845,7 @@ export default class mexc extends Exchange {
                 request['limit'] = limit;
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['endTime'] = until;
             }
             const response = await this.spotPublicGetKlines(this.extend(request, params));
@@ -1691,22 +1866,29 @@ export default class mexc extends Exchange {
             candles = response;
         }
         else if (market['swap']) {
-            const until = this.safeIntegerProductN(params, ['until', 'endTime', 'till'], 0.001);
+            const until = this.safeIntegerProductN(params, ['until', 'endTime'], 0.001);
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['end'] = until;
             }
             const priceType = this.safeString(params, 'price', 'default');
             params = this.omit(params, 'price');
-            const method = this.getSupportedMapping(priceType, {
-                'default': 'contractPublicGetKlineSymbol',
-                'index': 'contractPublicGetKlineIndexPriceSymbol',
-                'mark': 'contractPublicGetKlineFairPriceSymbol',
-            });
-            const response = await this[method](this.extend(request, params));
+            let response = undefined;
+            if (priceType === 'default') {
+                response = await this.contractPublicGetKlineSymbol(this.extend(request, params));
+            }
+            else if (priceType === 'index') {
+                response = await this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, params));
+            }
+            else if (priceType === 'mark') {
+                response = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, params));
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchOHLCV() not support this price type, [default, index, mark]');
+            }
             //
             //     {
             //         "success":true,
@@ -1737,15 +1919,17 @@ export default class mexc extends Exchange {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name mexc#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -1825,15 +2009,17 @@ export default class mexc extends Exchange {
         }
         return this.parseTickers(tickers, symbols);
     }
+    /**
+     * @method
+     * @name mexc#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTicker', market, params);
@@ -2015,15 +2201,16 @@ export default class mexc extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name mexc#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchBidsAsks
-         * @description fetches the bid and ask price and volume for multiple markets
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         let isSingularMarket = false;
@@ -2057,56 +2244,109 @@ export default class mexc extends Exchange {
         }
         return this.parseTickers(tickers, symbols);
     }
+    /**
+     * @method
+     * @name mexc#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
+    }
+    /**
+     * @method
+     * @name mexc#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
+    }
+    /**
+     * @method
+     * @name mexc#createOrder
+     * @description create a trade order
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+     * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+     * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK', default is 'GTC'
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+     * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+     * @param {string} [params.externalOid] *contract only* external order ID
+     * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
+     * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (market['spot']) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         }
-        else if (market['swap']) {
+        else {
             return await this.createSwapOrder(market, type, side, amount, price, marginMode, query);
         }
-        return undefined;
     }
-    async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    createSpotOrderRequest(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
-        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
+        const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
             'side': orderSide,
             'type': type.toUpperCase(),
         };
-        if (orderSide === 'BUY' && type === 'market') {
-            const quoteOrderQty = this.safeNumber(params, 'quoteOrderQty');
-            if (quoteOrderQty !== undefined) {
-                amount = quoteOrderQty;
+        if (type === 'market') {
+            const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                amount = cost;
+                request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
             }
-            else if (this.options['createMarketBuyOrderRequiresPrice']) {
+            else {
                 if (price === undefined) {
-                    throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    request['quantity'] = this.amountToPrecision(symbol, amount);
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise.stringMul(amountString, priceString);
-                    amount = this.parseNumber(quoteAmount);
+                    amount = quoteAmount;
+                    request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
                 }
             }
-            request['quoteOrderQty'] = amount;
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -2119,19 +2359,56 @@ export default class mexc extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit(params, ['type', 'clientOrderId']);
         }
-        let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new BadRequest(this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
-            method = 'spotPrivatePostMarginOrder';
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const response = await this[method](this.extend(request, params));
+        const tif = this.safeString(params, 'timeInForce');
+        if (tif !== undefined) {
+            params = this.omit(params, 'timeInForce');
+            if (tif === 'IOC') {
+                request['type'] = 'IMMEDIATE_OR_CANCEL';
+            }
+            else if (tif === 'FOK') {
+                request['type'] = 'FILL_OR_KILL';
+            }
+        }
+        return this.extend(request, params);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name mexc#createSpotOrder
+     * @description create a trade order
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @param {string} market unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {string} [marginMode] only 'isolated' is supported for spot-margin trading
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        await this.loadMarkets();
+        const test = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
+        const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
+        let response = undefined;
+        if (test) {
+            response = await this.spotPrivatePostOrderTest(request);
+        }
+        else {
+            response = await this.spotPrivatePostOrder(request);
+        }
         //
         // spot
         //
@@ -2151,18 +2428,49 @@ export default class mexc extends Exchange {
         //         "transactTime": 1661992652132
         //     }
         //
-        return this.extend(this.parseOrder(response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        });
+        const order = this.parseOrder(response, market);
+        order['side'] = side;
+        order['type'] = type;
+        if (this.safeString(order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString(order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
+        return order;
     }
+    /**
+     * @ignore
+     * @method
+     * @name mexc#createSwapOrder
+     * @description create a trade order
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @param {string} market unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {string} [marginMode] only 'isolated' is supported for spot-margin trading
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+     * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+     * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.leverage] leverage is necessary on isolated margin
+     * @param {long} [params.positionId] it is recommended to fill in this parameter when closing a position
+     * @param {string} [params.externalOid] external order ID
+     * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue(this.options, 'unavailableContracts', {});
-        const isContractUnavaiable = this.safeValue(unavailableContracts, symbol, false);
+        const isContractUnavaiable = this.safeBool(unavailableContracts, symbol, false);
         if (isContractUnavaiable) {
             throw new NotSupported(this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
@@ -2221,17 +2529,6 @@ export default class mexc extends Exchange {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
-        let method = 'contractPrivatePostOrderSubmit';
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['stopPrice', 'triggerPrice']);
-        if (stopPrice) {
-            method = 'contractPrivatePostPlanorderPlace';
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
-            request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
-            request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
-            request['trend'] = this.safeInteger(params, 'trend', 1);
-            request['orderType'] = this.safeInteger(params, 'orderType', 1);
-        }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat(this.priceToPrecision(symbol, price));
         }
@@ -2241,19 +2538,44 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired(this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
-        if (reduceOnly) {
-            request['side'] = (side === 'buy') ? 2 : 4;
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        const hedged = this.safeBool(params, 'hedged', false);
+        let sideInteger = undefined;
+        if (hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            sideInteger = (side === 'buy') ? 1 : 3;
+            request['positionMode'] = 1;
         }
         else {
-            request['side'] = (side === 'buy') ? 1 : 3;
+            if (reduceOnly) {
+                sideInteger = (side === 'buy') ? 2 : 4;
+            }
+            else {
+                sideInteger = (side === 'buy') ? 1 : 3;
+            }
         }
+        request['side'] = sideInteger;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly']);
-        const response = await this[method](this.extend(request, params));
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
+        let response = undefined;
+        if (triggerPrice) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
+            request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
+            request['trend'] = this.safeInteger(params, 'trend', 1);
+            request['orderType'] = this.safeInteger(params, 'orderType', 1);
+            response = await this.contractPrivatePostPlanorderPlace(this.extend(request, params));
+        }
+        else {
+            response = await this.contractPrivatePostOrderSubmit(this.extend(request, params));
+        }
         //
         // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -2262,18 +2584,85 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString(response, 'data');
-        return this.parseOrder(data, market);
+        return this.safeOrder({ 'id': data }, market);
     }
+    /**
+     * @method
+     * @name mexc#createOrders
+     * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const market = this.market(marketId);
+            if (!market['spot']) {
+                throw new NotSupported(this.id + ' createOrders() is only supported for spot markets');
+            }
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+            const orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const request = {
+            'batchOrders': this.json(ordersRequests),
+        };
+        const response = await this.spotPrivatePostBatchOrders(request);
+        //
+        // [
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612316",
+        //       "newClientOrderId": "hio8279hbdsds",
+        //       "orderListId": -1
+        //     },
+        //     {
+        //       "newClientOrderId": "123456",
+        //       "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //       "code": 30002
+        //     },
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612318",
+        //       "orderListId": -1
+        //     }
+        // ]
+        //
+        return this.parseOrders(response);
+    }
+    /**
+     * @method
+     * @name mexc#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2293,14 +2682,15 @@ export default class mexc extends Exchange {
                 request['orderId'] = id;
             }
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOrder', params);
-            let method = 'spotPrivateGetOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest(this.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateGetMarginOrder';
+                data = await this.spotPrivateGetMarginOrder(this.extend(request, query));
             }
-            data = await this[method](this.extend(request, query));
+            else {
+                data = await this.spotPrivateGetOrder(this.extend(request, query));
+            }
             //
             // spot
             //
@@ -2385,18 +2775,22 @@ export default class mexc extends Exchange {
         }
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name mexc#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -2404,26 +2798,33 @@ export default class mexc extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
-            let method = 'spotPrivateGetAllOrders';
-            if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest(this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                method = 'spotPrivateGetMarginAllOrders';
-            }
             if (since !== undefined) {
                 request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this[method](this.extend(request, queryInner));
+            let response = undefined;
+            if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest(this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
+                }
+                response = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
+            }
+            else {
+                response = await this.spotPrivateGetAllOrders(this.extend(request, queryInner));
+            }
             //
             // spot
             //
@@ -2477,10 +2878,22 @@ export default class mexc extends Exchange {
         else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger(params, 'end_time');
+                const end = this.safeInteger(params, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum(since, this.options['maxTimeTillEnd']);
                 }
+                else {
+                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                        throw new BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
+                    }
+                    else {
+                        request['end_time'] = until;
+                    }
+                }
+            }
+            else if (until !== undefined) {
+                request['start_time'] = this.sum(until, this.options['maxTimeTillEnd'] * -1);
+                request['end_time'] = until;
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -2611,44 +3024,49 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
+    /**
+     * @method
+     * @name mexc#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
+        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
         }
-        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
-            let method = 'spotPrivateGetOpenOrders';
+            request['symbol'] = market['id'];
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
+            let response = undefined;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest(this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateGetMarginOpenOrders';
+                response = await this.spotPrivateGetMarginOpenOrders(this.extend(request, query));
             }
-            const response = await this[method](this.extend(request, query));
+            else {
+                response = await this.spotPrivateGetOpenOrders(this.extend(request, query));
+            }
             //
             // spot
             //
@@ -2704,30 +3122,36 @@ export default class mexc extends Exchange {
             return await this.fetchOrdersByState(2, symbol, since, limit, params);
         }
     }
+    /**
+     * @method
+     * @name mexc#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         return await this.fetchOrdersByState(3, symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name mexc#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-         * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         return await this.fetchOrdersByState(4, symbol, since, limit, params);
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2736,28 +3160,30 @@ export default class mexc extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
+            throw new NotSupported(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
             request['states'] = state;
             return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
         }
     }
+    /**
+     * @method
+     * @name mexc#cancelOrder
+     * @description cancels an open order
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -2784,14 +3210,15 @@ export default class mexc extends Exchange {
             else {
                 requestInner['orderId'] = id;
             }
-            let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest(this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOrder';
+                data = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
             }
-            data = await this[method](this.extend(requestInner, query));
+            else {
+                data = await this.spotPrivateDeleteOrder(this.extend(requestInner, query));
+            }
             //
             // spot
             //
@@ -2831,7 +3258,16 @@ export default class mexc extends Exchange {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             let method = this.safeString(this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString(query, 'method', method);
-            const response = await this[method]([id]); // the request cannot be changed or extended. This is the only way to send.
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancel') {
+                response = await this.contractPrivatePostOrderCancel([id]); // the request cannot be changed or extended. This is the only way to send.
+            }
+            else if (method === 'contractPrivatePostPlanorderCancel') {
+                response = await this.contractPrivatePostPlanorderCancel([id]); // the request cannot be changed or extended. This is the only way to send.
+            }
+            else {
+                throw new NotSupported(this.id + ' cancelOrder() not support this method');
+            }
             //
             //     {
             //         "success": true,
@@ -2854,16 +3290,17 @@ export default class mexc extends Exchange {
         }
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name mexc#cancelOrders
+     * @description cancel multiple orders
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#cancelOrders
-         * @description cancel multiple orders
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const [marketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
@@ -2885,20 +3322,23 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
+    /**
+     * @method
+     * @name mexc#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#cancelAllOrders
-         * @description cancel all open orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const request = {};
@@ -2910,14 +3350,16 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
             request['symbol'] = market['id'];
-            let method = 'spotPrivateDeleteOpenOrders';
+            let response = undefined;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest(this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOpenOrders';
+                response = await this.spotPrivateDeleteMarginOpenOrders(this.extend(request, query));
             }
-            const response = await this[method](this.extend(request, query));
+            else {
+                response = await this.spotPrivateDeleteOpenOrders(this.extend(request, query));
+            }
             //
             // spot
             //
@@ -2964,14 +3406,20 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString(this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString(query, 'method', method);
-            const response = await this[method](this.extend(request, query));
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancelAll') {
+                response = await this.contractPrivatePostOrderCancelAll(this.extend(request, query));
+            }
+            else if (method === 'contractPrivatePostPlanorderCancelAll') {
+                response = await this.contractPrivatePostPlanorderCancelAll(this.extend(request, query));
+            }
             //
             //     {
             //         "success": true,
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             return this.parseOrders(data, market);
         }
     }
@@ -3124,6 +3572,23 @@ export default class mexc extends Exchange {
         //         "updateTime": "1648984276000",
         //     }
         //
+        // createOrders error
+        //
+        //     {
+        //         "newClientOrderId": "123456",
+        //         "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code": 30002
+        //     }
+        //
+        const code = this.safeInteger(order, 'code');
+        if (code !== undefined) {
+            // error upon placing multiple orders
+            return this.safeOrder({
+                'info': order,
+                'status': 'rejected',
+                'clientOrderId': this.safeString(order, 'newClientOrderId'),
+            });
+        }
         let id = undefined;
         if (typeof order === 'string') {
             id = order;
@@ -3157,7 +3622,6 @@ export default class mexc extends Exchange {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
             'amount': this.safeNumber2(order, 'origQty', 'vol'),
@@ -3267,14 +3731,16 @@ export default class mexc extends Exchange {
         }
         return undefined;
     }
+    /**
+     * @method
+     * @name mexc#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     async fetchAccounts(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
-         */
         // TODO: is the below endpoints suitable for fetchAccounts?
         const [marketType, query] = this.handleMarketTypeAndParams('fetchAccounts', undefined, params);
         await this.loadMarkets();
@@ -3294,33 +3760,45 @@ export default class mexc extends Exchange {
         }
         return result;
     }
-    async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name mexc#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
-        const response = await this.fetchAccountHelper('spot', params);
-        let makerFee = this.safeString(response, 'makerCommission');
-        let takerFee = this.safeString(response, 'takerCommission');
-        makerFee = Precise.stringDiv(makerFee, '1000');
-        takerFee = Precise.stringDiv(takerFee, '1000');
-        const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'symbol': symbol,
-                'maker': this.parseNumber(makerFee),
-                'taker': this.parseNumber(takerFee),
-                'percentage': true,
-                'tierBased': false,
-                'info': response,
-            };
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
         }
-        return result;
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateGetTradeFee(this.extend(request, params));
+        //
+        //  {
+        //      "data":{
+        //        "makerCommission":0.003000000000000000,
+        //        "takerCommission":0.003000000000000000
+        //      },
+        //      "code":0,
+        //      "msg":"success",
+        //      "timestamp":1669109672717
+        //  }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': this.safeNumber(data, 'makerCommission'),
+            'taker': this.safeNumber(data, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
+        };
     }
     customParseBalance(response, marketType) {
         //
@@ -3445,29 +3923,26 @@ export default class mexc extends Exchange {
         account['debt'] = Precise.stringAdd(debt, interest);
         return account;
     }
+    /**
+     * @method
+     * @name mexc#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbols] // required for margin, market id's separated by commas
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.symbols] // required for margin, market id's separated by commas
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
-         */
         await this.loadMarkets();
         let marketType = undefined;
         const request = {};
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'spotPrivateGetAccount',
-            'swap': 'contractPrivateGetAccountAssets',
-            'margin': 'spotPrivateGetMarginIsolatedAccount',
-        });
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
+        params = this.omit(params, ['margin', 'marginMode']);
+        let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString(params, 'symbol');
@@ -3482,12 +3957,20 @@ export default class mexc extends Exchange {
                 parsedSymbols = market['id'];
             }
             this.checkRequiredArgument('fetchBalance', parsedSymbols, 'symbol or symbols');
-            method = 'spotPrivateGetMarginIsolatedAccount';
             marketType = 'margin';
             request['symbols'] = parsedSymbols;
+            params = this.omit(params, ['symbol', 'symbols']);
+            response = await this.spotPrivateGetMarginIsolatedAccount(this.extend(request, params));
         }
-        params = this.omit(params, ['margin', 'marginMode', 'symbol', 'symbols']);
-        const response = await this[method](this.extend(request, params));
+        else if (marketType === 'spot') {
+            response = await this.spotPrivateGetAccount(this.extend(request, params));
+        }
+        else if (marketType === 'swap') {
+            response = await this.contractPrivateGetAccountAssets(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchBalance() not support this method');
+        }
         //
         // spot
         //
@@ -3574,35 +4057,44 @@ export default class mexc extends Exchange {
         //
         return this.customParseBalance(response, marketType);
     }
+    /**
+     * @method
+     * @name mexc#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {
             'symbol': market['id'],
         };
         let trades = undefined;
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['start_time'] = since;
+                request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['endTime'] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades(this.extend(request, params));
             //
             // spot
             //
@@ -3636,7 +4128,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, query));
+            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, params));
             //
             //     {
             //         "success": true,
@@ -3664,18 +4156,20 @@ export default class mexc extends Exchange {
         }
         return this.parseTrades(trades, market, since, limit);
     }
+    /**
+     * @method
+     * @name mexc#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -3762,40 +4256,43 @@ export default class mexc extends Exchange {
         //     }
         return response;
     }
+    /**
+     * @method
+     * @name mexc#reduceMargin
+     * @description remove margin from a position
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     async reduceMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name mexc3#reduceMargin
-         * @description remove margin from a position
-         * @param {string} symbol unified market symbol
-         * @param {float} amount the amount of margin to remove
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, amount, 'SUB', params);
     }
+    /**
+     * @method
+     * @name mexc#addMargin
+     * @description add margin
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     async addMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name mexc3#addMargin
-         * @description add margin
-         * @param {string} symbol unified market symbol
-         * @param {float} amount amount of margin to add
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
     }
+    /**
+     * @method
+     * @name mexc#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#setLeverage
-         * @description set the level of leverage for a market
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} response from the exchange
-         */
         await this.loadMarkets();
         const request = {
             'leverage': leverage,
@@ -3819,17 +4316,18 @@ export default class mexc extends Exchange {
         }
         return await this.contractPrivatePostPositionChangeLeverage(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name mexc#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchFundingHistory
-         * @description fetch the history of funding payments paid and received on this account
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch funding history for
-         * @param {int} [limit] the maximum number of funding history structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         const request = {
@@ -3911,9 +4409,13 @@ export default class mexc extends Exchange {
         const nextFundingRate = this.safeNumber(contract, 'fundingRate');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextSettleTime');
         const marketId = this.safeString(contract, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(contract, 'timestamp');
-        const datetime = this.iso8601(timestamp);
+        const interval = this.safeString(contract, 'collectCycle');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -3922,7 +4424,7 @@ export default class mexc extends Exchange {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
@@ -3932,17 +4434,31 @@ export default class mexc extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': intervalString,
         };
     }
+    /**
+     * @method
+     * @name mexc#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingInterval(symbol, params = {}) {
+        return await this.fetchFundingRate(symbol, params);
+    }
+    /**
+     * @method
+     * @name mexc#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchFundingRate
-         * @description fetch the current funding rate
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3967,17 +4483,18 @@ export default class mexc extends Exchange {
         const result = this.safeValue(response, 'data', {});
         return this.parseFundingRate(result, market);
     }
+    /**
+     * @method
+     * @name mexc#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] not used by mexc, but filtered internally by ccxt
+     * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc#fetchFundingRateHistory
-         * @description fetches historical funding rate prices
-         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int} [since] not used by mexc, but filtered internally by ccxt
-         * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
-         * @param {object} [params] extra parameters specific to the mexc api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -4035,16 +4552,18 @@ export default class mexc extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
+    /**
+     * @method
+     * @name mexc#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
-         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail(params);
         //
         //     {
@@ -4091,14 +4610,49 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {
-        /**
-            @param info {object} Exchange response for 1 market
-            @param market {object} CCXT market
-         */
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "displayName": "BTC_USDT永续",
+        //        "displayNameEn": "BTC_USDT SWAP",
+        //        "positionOpenType": 3,
+        //        "baseCoin": "BTC",
+        //        "quoteCoin": "USDT",
+        //        "settleCoin": "USDT",
+        //        "contractSize": 0.0001,
+        //        "minLeverage": 1,
+        //        "maxLeverage": 125,
+        //        "priceScale": 2,
+        //        "volScale": 0,
+        //        "amountScale": 4,
+        //        "priceUnit": 0.5,
+        //        "volUnit": 1,
+        //        "minVol": 1,
+        //        "maxVol": 1000000,
+        //        "bidLimitPriceRate": 0.1,
+        //        "askLimitPriceRate": 0.1,
+        //        "takerFeeRate": 0.0006,
+        //        "makerFeeRate": 0.0002,
+        //        "maintenanceMarginRate": 0.004,
+        //        "initialMarginRate": 0.008,
+        //        "riskBaseVol": 10000,
+        //        "riskIncrVol": 200000,
+        //        "riskIncrMmr": 0.004,
+        //        "riskIncrImr": 0.004,
+        //        "riskLevelLimit": 5,
+        //        "priceCoefficientVariation": 0.1,
+        //        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew": false,
+        //        "isHot": true,
+        //        "isHidden": false
+        //    }
+        //
+        const marketId = this.safeString(info, 'symbol');
         let maintenanceMarginRate = this.safeString(info, 'maintenanceMarginRate');
         let initialMarginRate = this.safeString(info, 'initialMarginRate');
         const maxVol = this.safeString(info, 'maxVol');
@@ -4108,13 +4662,28 @@ export default class mexc extends Exchange {
         let floor = '0';
         const tiers = [];
         const quoteId = this.safeString(info, 'quoteCoin');
+        if (riskIncrVol === '0') {
+            return [
+                {
+                    'tier': 0,
+                    'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+                    'currency': this.safeCurrencyCode(quoteId),
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
+                    'maintenanceMarginRate': undefined,
+                    'maxLeverage': this.safeNumber(info, 'maxLeverage'),
+                    'info': info,
+                },
+            ];
+        }
         while (Precise.stringLt(floor, maxVol)) {
             const cap = Precise.stringAdd(floor, riskIncrVol);
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskIncrVol)),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode(quoteId),
-                'notionalFloor': this.parseNumber(floor),
-                'notionalCap': this.parseNumber(cap),
+                'minNotional': this.parseNumber(floor),
+                'maxNotional': this.parseNumber(cap),
                 'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
                 'maxLeverage': this.parseNumber(Precise.stringDiv('1', initialMarginRate)),
                 'info': info,
@@ -4127,77 +4696,85 @@ export default class mexc extends Exchange {
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
-        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //
+        //    {
+        //        coin: "USDT",
+        //        network: "BNB Smart Chain(BEP20)",
+        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //        memo:  null
+        //    }
         //
         const address = this.safeString(depositAddress, 'address');
-        const code = this.safeCurrencyCode(undefined, currency);
-        const networkId = this.safeString(depositAddress, 'chain');
-        const network = this.safeNetwork(networkId);
+        const currencyId = this.safeString(depositAddress, 'coin');
+        const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'network': network,
             'info': depositAddress,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId, currencyId),
+            'address': address,
+            'tag': this.safeString(depositAddress, 'memo'),
         };
     }
+    /**
+     * @method
+     * @name mexc#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchDepositAddressesByNetwork
-         * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
         const networkCode = this.safeString(params, 'network');
-        const networkId = this.networkCodeToId(networkCode, code);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            const networkUnified = this.networkIdToCode(networkCode, code);
+            const networks = this.safeDict(currency, 'networks', {});
+            if (networkUnified in networks) {
+                const network = this.safeDict(networks, networkUnified, {});
+                const networkInfo = this.safeValue(network, 'info', {});
+                networkId = this.safeString(networkInfo, 'network');
+            }
+            else {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
         params = this.omit(params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress(this.extend(request, params));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const depositAddress = response[i];
-            const coin = this.safeString(depositAddress, 'coin');
-            const currencyInner = this.currency(coin);
-            const networkIdInner = this.safeString(depositAddress, 'network');
-            const network = this.safeNetwork(networkIdInner);
-            const address = this.safeString(depositAddress, 'address', undefined);
-            const tag = this.safeString2(depositAddress, 'tag', 'memo', undefined);
-            result.push({
-                'currency': currencyInner['id'],
-                'network': network,
-                'address': address,
-                'tag': tag,
-            });
-        }
-        return result;
+        //
+        //    [
+        //        {
+        //            coin: "USDT",
+        //            network: "BNB Smart Chain(BEP20)",
+        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //            memo:  null
+        //        }
+        //        ...
+        //    ]
+        //
+        const addressStructures = this.parseDepositAddresses(response, undefined, false);
+        return this.indexBy(addressStructures, 'network');
     }
+    /**
+     * @method
+     * @name mexc#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network name
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async createDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name mexc3#createDepositAddress
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
-         * @description create a currency deposit address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.network] the blockchain network name
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -4207,7 +4784,18 @@ export default class mexc extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
         }
-        const networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        let networkId = undefined;
+        const networkUnified = this.networkIdToCode(networkCode, code);
+        const networks = this.safeDict(currency, 'networks', {});
+        if (networkUnified in networks) {
+            const network = this.safeDict(networks, networkUnified, {});
+            const networkInfo = this.safeValue(network, 'info', {});
+            networkId = this.safeString(networkInfo, 'network');
+        }
+        else {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4219,60 +4807,60 @@ export default class mexc extends Exchange {
         //        "address": "zzqqqqqqqqqq",
         //        "memo": "MX10068"
         //     }
-        return {
-            'info': response,
-            'currency': this.safeString(response, 'coin'),
-            'network': this.safeString(response, 'network'),
-            'address': this.safeString(response, 'address'),
-            'tag': this.safeString(response, 'memo'),
-        };
+        return this.parseDepositAddress(response, currency);
     }
+    /**
+     * @method
+     * @name mexc#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
-         */
-        const rawNetwork = this.safeStringUpper(params, 'network');
-        params = this.omit(params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork(code, params);
-        if (rawNetwork !== undefined) {
-            for (let i = 0; i < response.length; i++) {
-                const depositAddress = response[i];
-                const network = this.safeStringUpper(depositAddress, 'network');
-                if (rawNetwork === network) {
-                    return depositAddress;
-                }
+        const network = this.safeString(params, 'network');
+        const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
+        let result = undefined;
+        if (network !== undefined) {
+            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+        }
+        else {
+            const options = this.safeDict(this.options, 'defaultNetworks');
+            const defaultNetworkForCurrency = this.safeString(options, code);
+            if (defaultNetworkForCurrency !== undefined) {
+                result = this.safeDict(addressStructures, defaultNetworkForCurrency);
+            }
+            else {
+                const keys = Object.keys(addressStructures);
+                const key = this.safeString(keys, 0);
+                result = this.safeDict(addressStructures, key);
             }
         }
-        const result = this.safeValue(response, 0);
         if (result === undefined) {
-            throw new InvalidAddress(this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform');
+            throw new InvalidAddress(this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
         return result;
     }
+    /**
+     * @method
+     * @name mexc#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'coin': currency['id'] + network example: USDT-TRX,
         // 'status': 'status',
         // 'startTime': since, // default 90 days
-        // 'endTime': this.milliseconds (),
+        // 'endTime': this.nonce(),
         // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
@@ -4284,7 +4872,7 @@ export default class mexc extends Exchange {
             const rawNetwork = this.safeString(params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit(params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {
@@ -4300,39 +4888,39 @@ export default class mexc extends Exchange {
         //
         // [
         //     {
-        //         amount: '10',
-        //         coin: 'USDC-TRX',
-        //         network: 'TRX',
-        //         status: '5',
-        //         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        //         insertTime: '1664805021000',
-        //         unlockConfirm: '200',
-        //         confirmTimes: '203',
-        //         memo: 'xxyy1122'
+        //         "amount": "10",
+        //         "coin": "USDC-TRX",
+        //         "network": "TRX",
+        //         "status": "5",
+        //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "insertTime": "1664805021000",
+        //         "unlockConfirm": "200",
+        //         "confirmTimes": "203",
+        //         "memo": "xxyy1122"
         //     }
         // ]
         //
         return this.parseTransactions(response, currency, since, limit);
     }
+    /**
+     * @method
+     * @name mexc#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'coin': currency['id'],
         // 'status': 'status',
         // 'startTime': since, // default 90 days
-        // 'endTime': this.milliseconds (),
+        // 'endTime': this.nonce(),
         // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
@@ -4353,19 +4941,19 @@ export default class mexc extends Exchange {
         //
         // [
         //     {
-        //       id: 'adcd1c8322154de691b815eedcd10c42',
-        //       txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        //       coin: 'USDC-MATIC',
-        //       network: 'MATIC',
-        //       address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        //       amount: '2',
-        //       transferType: '0',
-        //       status: '7',
-        //       transactionFee: '1',
-        //       confirmNo: null,
-        //       applyTime: '1664882739000',
-        //       remark: '',
-        //       memo: null
+        //       "id": "adcd1c8322154de691b815eedcd10c42",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "coin": "USDC-MATIC",
+        //       "network": "MATIC",
+        //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //       "amount": "2",
+        //       "transferType": "0",
+        //       "status": "7",
+        //       "transactionFee": "1",
+        //       "confirmNo": null,
+        //       "applyTime": "1664882739000",
+        //       "remark": '',
+        //       "memo": null
         //     }
         // ]
         //
@@ -4376,34 +4964,34 @@ export default class mexc extends Exchange {
         // fetchDeposits
         //
         // {
-        //     amount: '10',
-        //     coin: 'USDC-TRX',
-        //     network: 'TRX',
-        //     status: '5',
-        //     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        //     insertTime: '1664805021000',
-        //     unlockConfirm: '200',
-        //     confirmTimes: '203',
-        //     memo: 'xxyy1122'
+        //     "amount": "10",
+        //     "coin": "USDC-TRX",
+        //     "network": "TRX",
+        //     "status": "5",
+        //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "insertTime": "1664805021000",
+        //     "unlockConfirm": "200",
+        //     "confirmTimes": "203",
+        //     "memo": "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
-        //     id: 'adcd1c8322154de691b815eedcd10c42',
-        //     txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        //     coin: 'USDC-MATIC',
-        //     network: 'MATIC',
-        //     address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        //     amount: '2',
-        //     transferType: '0',
-        //     status: '7',
-        //     transactionFee: '1',
-        //     confirmNo: null,
-        //     applyTime: '1664882739000',
-        //     remark: '',
-        //     memo: null
+        //     "id": "adcd1c8322154de691b815eedcd10c42",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "coin": "USDC-MATIC",
+        //     "network": "MATIC",
+        //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //     "amount": "2",
+        //     "transferType": "0",
+        //     "status": "7",
+        //     "transactionFee": "1",
+        //     "confirmNo": null,
+        //     "applyTime": "1664882739000",
+        //     "remark": '',
+        //     "memo": null
         //   }
         //
         // withdraw
@@ -4423,7 +5011,7 @@ export default class mexc extends Exchange {
         let network = undefined;
         const rawNetwork = this.safeString(transaction, 'network');
         if (rawNetwork !== undefined) {
-            network = this.safeNetwork(rawNetwork);
+            network = this.networkIdToCode(rawNetwork);
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
@@ -4460,6 +5048,8 @@ export default class mexc extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -4490,15 +5080,16 @@ export default class mexc extends Exchange {
         const statuses = this.safeValue(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name mexc#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPosition(symbol, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -4507,15 +5098,16 @@ export default class mexc extends Exchange {
         const response = await this.fetchPositions(undefined, this.extend(request, params));
         return this.safeValue(response, 0);
     }
+    /**
+     * @method
+     * @name mexc#fetchPositions
+     * @description fetch all open positions
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchPositions
-         * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
-         */
         await this.loadMarkets();
         const response = await this.contractPrivateGetPositionOpenPositions(params);
         //
@@ -4548,10 +5140,12 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
+        //
+        // fetchPositions
         //
         //     {
         //         "positionId": 1394650,
@@ -4576,6 +5170,40 @@ export default class mexc extends Exchange {
         //         "autoAddIm": false
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId: '390281084',
+        //        symbol: 'RVN_USDT',
+        //        positionType: '1',
+        //        openType: '2',
+        //        state: '3',
+        //        holdVol: '0',
+        //        frozenVol: '0',
+        //        closeVol: '1141',
+        //        holdAvgPrice: '0.03491',
+        //        holdAvgPriceFullyScale: '0.03491',
+        //        openAvgPrice: '0.03491',
+        //        openAvgPriceFullyScale: '0.03491',
+        //        closeAvgPrice: '0.03494',
+        //        liquidatePrice: '0.03433',
+        //        oim: '0',
+        //        im: '0',
+        //        holdFee: '0',
+        //        realised: '0.1829',
+        //        leverage: '50',
+        //        createTime: '1711512408000',
+        //        updateTime: '1711512553000',
+        //        autoAddIm: false,
+        //        version: '4',
+        //        profitRatio: '0.0227',
+        //        newOpenAvgPrice: '0.03491',
+        //        newCloseAvgPrice: '0.03494',
+        //        closeProfitLoss: '0.3423',
+        //        fee: '0.1593977',
+        //        positionShowStatus: 'CLOSED'
+        //    }
+        //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
         const contracts = this.safeString(position, 'holdVol');
@@ -4587,7 +5215,7 @@ export default class mexc extends Exchange {
         const marginType = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeNumber(position, 'leverage');
         const liquidationPrice = this.safeNumber(position, 'liquidatePrice');
-        const timestamp = this.safeNumber(position, 'updateTime');
+        const timestamp = this.safeInteger(position, 'updateTime');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4597,7 +5225,7 @@ export default class mexc extends Exchange {
             'entryPrice': entryPrice,
             'collateral': undefined,
             'side': side,
-            'unrealizedProfit': undefined,
+            'unrealizedPnl': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
             'marginMode': marginType,
@@ -4618,7 +5246,17 @@ export default class mexc extends Exchange {
             'lastUpdateTimestamp': undefined,
         });
     }
-    async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
+    /**
+     * @method
+     * @name mexc#fetchTransfer
+     * @description fetches a transfer
+     * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+     * @param {string} id transfer id
+     * @param {string} [code] not used by mexc fetchTransfer
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
         await this.loadMarkets();
         if (marketType === 'spot') {
@@ -4628,18 +5266,18 @@ export default class mexc extends Exchange {
             const response = await this.spot2PrivateGetAssetInternalTransferInfo(this.extend(request, query));
             //
             //     {
-            //         code: '200',
-            //         data: {
-            //             currency: 'USDT',
-            //             amount: '1',
-            //             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            //             from: 'MAIN',
-            //             to: 'CONTRACT',
-            //             transact_state: 'SUCCESS'
+            //         "code": "200",
+            //         "data": {
+            //             "currency": "USDT",
+            //             "amount": "1",
+            //             "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
+            //             "from": "MAIN",
+            //             "to": "CONTRACT",
+            //             "transact_state": "SUCCESS"
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data', {});
+            const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
         }
         else if (marketType === 'swap') {
@@ -4647,17 +5285,19 @@ export default class mexc extends Exchange {
         }
         return undefined;
     }
+    /**
+     * @method
+     * @name mexc#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTransfers
-         * @description fetch a history of internal transfers made on an account
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-         */
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
         await this.loadMarkets();
         const request = {};
@@ -4680,17 +5320,17 @@ export default class mexc extends Exchange {
             const response = await this.spot2PrivateGetAssetInternalTransferRecord(this.extend(request, query));
             //
             //     {
-            //         code: '200',
-            //         data: {
-            //             total_page: '1',
-            //             total_size: '5',
-            //             result_list: [{
-            //                     currency: 'USDT',
-            //                     amount: '1',
-            //                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            //                     from: 'MAIN',
-            //                     to: 'CONTRACT',
-            //                     transact_state: 'SUCCESS'
+            //         "code": "200",
+            //         "data": {
+            //             "total_page": "1",
+            //             "total_size": "5",
+            //             "result_list": [{
+            //                     "currency": "USDT",
+            //                     "amount": "1",
+            //                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
+            //                     "from": "MAIN",
+            //                     "to": "CONTRACT",
+            //                     "transact_state": "SUCCESS"
             //                 },
             //                 ...
             //             ]
@@ -4734,20 +5374,20 @@ export default class mexc extends Exchange {
         }
         return this.parseTransfers(resultList, currency, since, limit);
     }
+    /**
+     * @method
+     * @name mexc#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name mexc3#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const accounts = {
@@ -4798,12 +5438,12 @@ export default class mexc extends Exchange {
         // spot: fetchTransfer
         //
         //     {
-        //         currency: 'USDT',
-        //         amount: '1',
-        //         transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        //         from: 'MAIN',
-        //         to: 'CONTRACT',
-        //         transact_state: 'WAIT'
+        //         "currency": "USDT",
+        //         "amount": "1",
+        //         "transact_id": "b60c1df8e7b24b268858003f374ecb75",
+        //         "from": "MAIN",
+        //         "to": "CONTRACT",
+        //         "transact_state": "WAIT"
         //     }
         //
         // swap: fetchTransfer
@@ -4867,26 +5507,27 @@ export default class mexc extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name mexc#withdraw
+     * @description make a withdrawal
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#withdraw
-         * @description make a withdrawal
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper2(params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const networks = this.safeDict(this.options, 'networks', {});
+        let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId(network, currency['code']);
+        this.checkAddress(address);
         const request = {
             'coin': currency['id'],
             'address': address,
@@ -4896,10 +5537,10 @@ export default class mexc extends Exchange {
             request['memo'] = tag;
         }
         if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, 'network');
+            request['netWork'] = network;
+            params = this.omit(params, ['network', 'netWork']);
         }
-        const response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, params));
+        const response = await this.spotPrivatePostCapitalWithdraw(this.extend(request, params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -4907,6 +5548,16 @@ export default class mexc extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
+    /**
+     * @method
+     * @name mexc#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by mexc setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
@@ -4920,6 +5571,15 @@ export default class mexc extends Exchange {
         //
         return response;
     }
+    /**
+     * @method
+     * @name mexc#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+     * @param {string} symbol not used by mexc fetchPositionMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
     async fetchPositionMode(symbol = undefined, params = {}) {
         const response = await this.contractPrivateGetPositionPositionMode(params);
         //
@@ -4935,116 +5595,40 @@ export default class mexc extends Exchange {
             'hedged': (positionMode === 1),
         };
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#borrowMargin
-         * @description create a loan to borrow margin
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
-         * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
-         */
-        await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-        }
-        const market = this.market(symbol);
-        const currency = this.currency(code);
-        const request = {
-            'asset': currency['id'],
-            'amount': this.currencyToPrecision(code, amount),
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivatePostMarginLoan(this.extend(request, params));
-        //
-        //     {
-        //         "tranId": "762407666453712896"
-        //     }
-        //
-        const transaction = this.parseMarginLoan(response, currency);
-        return this.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
-    }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#repayMargin
-         * @description repay borrowed margin and interest
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.borrowId] transaction id '762407666453712896'
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
-         */
-        await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' repayMargin() requires a symbol argument for isolated margin');
-        }
-        const id = this.safeString2(params, 'id', 'borrowId');
-        if (id === undefined) {
-            throw new ArgumentsRequired(this.id + ' repayMargin() requires a borrowId argument in the params');
-        }
-        const market = this.market(symbol);
-        const currency = this.currency(code);
-        const request = {
-            'asset': currency['id'],
-            'amount': this.currencyToPrecision(code, amount),
-            'borrowId': id,
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivatePostMarginRepay(this.extend(request, params));
-        //
-        //     {
-        //         "tranId": "762407666453712896"
-        //     }
-        //
-        const transaction = this.parseMarginLoan(response, currency);
-        return this.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
-    }
+    /**
+     * @method
+     * @name mexc#fetchTransactionFees
+     * @description fetch deposit and withdrawal fees
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @param {string[]|undefined} codes returns fees for all currencies if undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchTransactionFees
-         * @description fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
-         * @param {string[]|undefined} codes returns fees for all currencies if undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
         //    [
         //       {
-        //           coin: 'AGLD',
-        //           name: 'Adventure Gold',
-        //           networkList: [
+        //           "coin": "AGLD",
+        //           "name": "Adventure Gold",
+        //           "networkList": [
         //               {
-        //                   coin: 'AGLD',
-        //                   depositDesc: null,
-        //                   depositEnable: true,
-        //                   minConfirm: '0',
-        //                   name: 'Adventure Gold',
-        //                   network: 'ERC20',
-        //                   withdrawEnable: true,
-        //                   withdrawFee: '10.000000000000000000',
-        //                   withdrawIntegerMultiple: null,
-        //                   withdrawMax: '1200000.000000000000000000',
-        //                   withdrawMin: '20.000000000000000000',
-        //                   sameAddress: false,
-        //                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                   withdrawTips: null,
-        //                   depositTips: null
+        //                   "coin": "AGLD",
+        //                   "depositDesc": null,
+        //                   "depositEnable": true,
+        //                   "minConfirm": "0",
+        //                   "name": "Adventure Gold",
+        //                   "network": "ERC20",
+        //                   "withdrawEnable": true,
+        //                   "withdrawFee": "10.000000000000000000",
+        //                   "withdrawIntegerMultiple": null,
+        //                   "withdrawMax": "1200000.000000000000000000",
+        //                   "withdrawMin": "20.000000000000000000",
+        //                   "sameAddress": false,
+        //                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips": null,
+        //                   "depositTips": null
         //               }
         //               ...
         //           ]
@@ -5074,25 +5658,25 @@ export default class mexc extends Exchange {
     parseTransactionFee(transaction, currency = undefined) {
         //
         //    {
-        //        coin: 'AGLD',
-        //        name: 'Adventure Gold',
-        //        networkList: [
+        //        "coin": "AGLD",
+        //        "name": "Adventure Gold",
+        //        "networkList": [
         //            {
-        //                coin: 'AGLD',
-        //                depositDesc: null,
-        //                depositEnable: true,
-        //                minConfirm: '0',
-        //                name: 'Adventure Gold',
-        //                network: 'ERC20',
-        //                withdrawEnable: true,
-        //                withdrawFee: '10.000000000000000000',
-        //                withdrawIntegerMultiple: null,
-        //                withdrawMax: '1200000.000000000000000000',
-        //                withdrawMin: '20.000000000000000000',
-        //                sameAddress: false,
-        //                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips: null,
-        //                depositTips: null
+        //                "coin": "AGLD",
+        //                "depositDesc": null,
+        //                "depositEnable": true,
+        //                "minConfirm": "0",
+        //                "name": "Adventure Gold",
+        //                "network": "ERC20",
+        //                "withdrawEnable": true,
+        //                "withdrawFee": "10.000000000000000000",
+        //                "withdrawIntegerMultiple": null,
+        //                "withdrawMax": "1200000.000000000000000000",
+        //                "withdrawMin": "20.000000000000000000",
+        //                "sameAddress": false,
+        //                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips": null,
+        //                "depositTips": null
         //            }
         //            ...
         //        ]
@@ -5109,40 +5693,40 @@ export default class mexc extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name mexc#fetchDepositWithdrawFees
+     * @description fetch deposit and withdrawal fees
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @param {string[]|undefined} codes returns fees for all currencies if undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchDepositWithdrawFees
-         * @description fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
-         * @param {string[]|undefined} codes returns fees for all currencies if undefined
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
         //    [
         //       {
-        //           coin: 'AGLD',
-        //           name: 'Adventure Gold',
-        //           networkList: [
+        //           "coin": "AGLD",
+        //           "name": "Adventure Gold",
+        //           "networkList": [
         //               {
-        //                   coin: 'AGLD',
-        //                   depositDesc: null,
-        //                   depositEnable: true,
-        //                   minConfirm: '0',
-        //                   name: 'Adventure Gold',
-        //                   network: 'ERC20',
-        //                   withdrawEnable: true,
-        //                   withdrawFee: '10.000000000000000000',
-        //                   withdrawIntegerMultiple: null,
-        //                   withdrawMax: '1200000.000000000000000000',
-        //                   withdrawMin: '20.000000000000000000',
-        //                   sameAddress: false,
-        //                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                   withdrawTips: null,
-        //                   depositTips: null
+        //                   "coin": "AGLD",
+        //                   "depositDesc": null,
+        //                   "depositEnable": true,
+        //                   "minConfirm": "0",
+        //                   "name": "Adventure Gold",
+        //                   "network": "ERC20",
+        //                   "withdrawEnable": true,
+        //                   "withdrawFee": "10.000000000000000000",
+        //                   "withdrawIntegerMultiple": null,
+        //                   "withdrawMax": "1200000.000000000000000000",
+        //                   "withdrawMin": "20.000000000000000000",
+        //                   "sameAddress": false,
+        //                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips": null,
+        //                   "depositTips": null
         //               }
         //               ...
         //           ]
@@ -5155,25 +5739,25 @@ export default class mexc extends Exchange {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //    {
-        //        coin: 'AGLD',
-        //        name: 'Adventure Gold',
-        //        networkList: [
+        //        "coin": "AGLD",
+        //        "name": "Adventure Gold",
+        //        "networkList": [
         //            {
-        //                coin: 'AGLD',
-        //                depositDesc: null,
-        //                depositEnable: true,
-        //                minConfirm: '0',
-        //                name: 'Adventure Gold',
-        //                network: 'ERC20',
-        //                withdrawEnable: true,
-        //                withdrawFee: '10.000000000000000000',
-        //                withdrawIntegerMultiple: null,
-        //                withdrawMax: '1200000.000000000000000000',
-        //                withdrawMin: '20.000000000000000000',
-        //                sameAddress: false,
-        //                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips: null,
-        //                depositTips: null
+        //                "coin": "AGLD",
+        //                "depositDesc": null,
+        //                "depositEnable": true,
+        //                "minConfirm": "0",
+        //                "name": "Adventure Gold",
+        //                "network": "ERC20",
+        //                "withdrawEnable": true,
+        //                "withdrawFee": "10.000000000000000000",
+        //                "withdrawIntegerMultiple": null,
+        //                "withdrawMax": "1200000.000000000000000000",
+        //                "withdrawMin": "20.000000000000000000",
+        //                "sameAddress": false,
+        //                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips": null,
+        //                "depositTips": null
         //            }
         //            ...
         //        ]
@@ -5198,20 +5782,77 @@ export default class mexc extends Exchange {
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
-    parseMarginLoan(info, currency = undefined) {
+    /**
+     * @method
+     * @name mexc#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetPositionLeverage(this.extend(request, params));
         //
         //     {
-        //         "tranId": "762407666453712896"
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
         //     }
         //
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger(entry, 'openType');
+            const positionType = this.safeInteger(entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger(entry, 'leverage');
+            }
+            else if (positionType === 2) {
+                shortLeverage = this.safeInteger(entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
         return {
-            'id': this.safeString(info, 'tranId'),
-            'currency': this.safeCurrencyCode(undefined, currency),
-            'amount': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
@@ -5219,18 +5860,138 @@ export default class mexc extends Exchange {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.margin] true for trading spot-margin
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';
         }
         return [marginMode, params];
+    }
+    /**
+     * @method
+     * @name mexc#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @param {string[]} [symbols] unified contract symbols
+     * @param {int} [since] not used by mexc fetchPositionsHistory
+     * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.type] position type，1: long, 2: short
+     * @param {int} [params.page_num] current page number, default is 1
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market(symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.contractPrivateGetPositionListHistoryPositions(this.extend(request, params));
+        //
+        //    {
+        //        success: true,
+        //        code: '0',
+        //        data: [
+        //            {
+        //                positionId: '390281084',
+        //                symbol: 'RVN_USDT',
+        //                positionType: '1',
+        //                openType: '2',
+        //                state: '3',
+        //                holdVol: '0',
+        //                frozenVol: '0',
+        //                closeVol: '1141',
+        //                holdAvgPrice: '0.03491',
+        //                holdAvgPriceFullyScale: '0.03491',
+        //                openAvgPrice: '0.03491',
+        //                openAvgPriceFullyScale: '0.03491',
+        //                closeAvgPrice: '0.03494',
+        //                liquidatePrice: '0.03433',
+        //                oim: '0',
+        //                im: '0',
+        //                holdFee: '0',
+        //                realised: '0.1829',
+        //                leverage: '50',
+        //                createTime: '1711512408000',
+        //                updateTime: '1711512553000',
+        //                autoAddIm: false,
+        //                version: '4',
+        //                profitRatio: '0.0227',
+        //                newOpenAvgPrice: '0.03491',
+        //                newCloseAvgPrice: '0.03494',
+        //                closeProfitLoss: '0.3423',
+        //                fee: '0.1593977',
+        //                positionShowStatus: 'CLOSED'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const positions = this.parsePositions(data, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
+    /**
+     * @method
+     * @name mexc#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required when there is no position, else provide params["positionId"]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionId] required when a position is set
+     * @param {string} [params.direction] "long" or "short" required when there is no position
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (market['spot']) {
+            throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const leverage = this.safeInteger(params, 'leverage');
+        if (leverage === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const direction = this.safeStringLower2(params, 'direction', 'positionId');
+        const request = {
+            'leverage': leverage,
+            'openType': (marginMode === 'isolated') ? 1 : 2,
+        };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (direction !== undefined) {
+            request['positionType'] = (direction === 'short') ? 2 : 1;
+        }
+        params = this.omit(params, 'direction');
+        const response = await this.contractPrivatePostPositionChangeLeverage(this.extend(request, params));
+        //
+        // { success: true, code: '0' }
+        //
+        return this.parseLeverage(response, market);
+    }
+    nonce() {
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const section = this.safeString(api, 0);
@@ -5244,13 +6005,23 @@ export default class mexc extends Exchange {
             else {
                 url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             }
-            let paramsEncoded = '';
+            let urlParams = params;
             if (access === 'private') {
-                params['timestamp'] = this.milliseconds();
-                params['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
+                    urlParams = {
+                        'timestamp': this.nonce(),
+                        'recvWindow': this.safeInteger(this.options, 'recvWindow', 5000),
+                    };
+                    body = this.json(params);
+                }
+                else {
+                    urlParams['timestamp'] = this.nonce();
+                    urlParams['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
+                }
             }
-            if (Object.keys(params).length) {
-                paramsEncoded = this.urlencode(params);
+            let paramsEncoded = '';
+            if (Object.keys(urlParams).length) {
+                paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
             if (access === 'private') {
@@ -5262,7 +6033,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }
@@ -5276,7 +6047,7 @@ export default class mexc extends Exchange {
             }
             else {
                 this.checkRequiredCredentials();
-                const timestamp = this.milliseconds().toString();
+                const timestamp = this.nonce().toString();
                 let auth = '';
                 headers = {
                     'ApiKey': this.apiKey,
@@ -5316,7 +6087,7 @@ export default class mexc extends Exchange {
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        const success = this.safeValue(response, 'success', false); // v1
+        const success = this.safeBool(response, 'success', false); // v1
         if (success === true) {
             return undefined;
         }

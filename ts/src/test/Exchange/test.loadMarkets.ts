@@ -1,8 +1,8 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testMarket from './base/test.market.js';
 
-async function testLoadMarkets (exchange, skippedProperties) {
+async function testLoadMarkets (exchange: Exchange, skippedProperties: object) {
     const method = 'loadMarkets';
     const markets = await exchange.loadMarkets ();
     assert (typeof exchange.markets === 'object', '.markets is not an object');
@@ -17,6 +17,7 @@ async function testLoadMarkets (exchange, skippedProperties) {
     for (let i = 0; i < marketValues.length; i++) {
         testMarket (exchange, skippedProperties, method, marketValues[i]);
     }
+    return true;
 }
 
 export default testLoadMarkets;

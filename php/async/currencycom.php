@@ -10,13 +10,15 @@ use ccxt\async\abstract\currencycom as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class currencycom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'currencycom',
             'name' => 'Currency.com',
@@ -48,13 +50,12 @@ class currencycom extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
-                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistory' => null,
-                'fetchBorrowRates' => null,
-                'fetchBorrowRatesPerSymbol' => null,
                 'fetchCanceledOrders' => null,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => null,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
@@ -67,6 +68,8 @@ class currencycom extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
@@ -103,6 +106,7 @@ class currencycom extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => null,
                 'setMarginMode' => null,
                 'setPositionMode' => null,
@@ -249,6 +253,81 @@ class currencycom extends Exchange {
                 'leverage_markets_suffix' => '_LEVERAGE',
                 'collateralCurrencies' => array( 'USD', 'EUR', 'USDT' ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true, // todo implementation
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => false,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                        'leverage' => true,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implementation
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'exceptions' => array(
                 'broad' => array(
                     'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order' => '\\ccxt\\InvalidOrder',
@@ -302,11 +381,14 @@ class currencycom extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/timeUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetV2Time ($params));
@@ -319,11 +401,14 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             // requires authentication
@@ -345,13 +430,13 @@ class currencycom extends Exchange {
             //             "minDeposit" => "90.0",
             //         ),
             //         array(
-            //             name => "Bitcoin",
-            //             displaySymbol => "BTC",
-            //             precision => "8",
-            //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-            //             minWithdrawal => "0.00020",
-            //             commissionFixed => "0.00010",
-            //             minDeposit => "0.00010",
+            //             "name" => "Bitcoin",
+            //             "displaySymbol" => "BTC",
+            //             "precision" => "8",
+            //             "type" => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+            //             "minWithdrawal" => "0.00020",
+            //             "commissionFixed" => "0.00010",
+            //             "minDeposit" => "0.00010",
             //         ),
             //     )
             //
@@ -392,59 +477,62 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for currencycom
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetV2ExchangeInfo ($params));
             //
             //     {
-            //         timezone => "UTC",
-            //         serverTime => "1645186287261",
-            //         rateLimits => array(
+            //         "timezone" => "UTC",
+            //         "serverTime" => "1645186287261",
+            //         "rateLimits" => array(
             //             array( rateLimitType => "REQUEST_WEIGHT", interval => "MINUTE", intervalNum => "1", limit => "1200" ),
             //             array( rateLimitType => "ORDERS", interval => "SECOND", intervalNum => "1", limit => "10" ),
             //             array( rateLimitType => "ORDERS", interval => "DAY", intervalNum => "1", limit => "864000" ),
             //         ),
-            //         exchangeFilters => array(),
-            //         symbols => array(
+            //         "exchangeFilters" => array(),
+            //         "symbols" => array(
             //             array(
-            //                 $symbol => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-            //                 name => "Bitcoin / Tether",
-            //                 status => "TRADING", // TRADING, BREAK, HALT
-            //                 baseAsset => "BTC",
-            //                 baseAssetPrecision => "4",
-            //                 quoteAsset => "USDT",
-            //                 quoteAssetId => "USDT", // USDT, USDT_LEVERAGE
-            //                 quotePrecision => "4",
-            //                 orderTypes => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
-            //                 $filters => array(
+            //                 "symbol" => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+            //                 "name" => "Bitcoin / Tether",
+            //                 "status" => "TRADING", // TRADING, BREAK, HALT
+            //                 "baseAsset" => "BTC",
+            //                 "baseAssetPrecision" => "4",
+            //                 "quoteAsset" => "USDT",
+            //                 "quoteAssetId" => "USDT", // USDT, USDT_LEVERAGE
+            //                 "quotePrecision" => "4",
+            //                 "orderTypes" => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
+            //                 "filters" => array(
             //                     array( filterType => "LOT_SIZE", minQty => "0.0001", maxQty => "100", stepSize => "0.0001", ),
             //                     array( filterType => "MIN_NOTIONAL", minNotional => "5", ),
             //                 ),
-            //                 marketModes => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
-            //                 marketType => "SPOT", // SPOT, LEVERAGE
-            //                 longRate => -0.0684932, // LEVERAGE only
-            //                 shortRate => -0.0684932, // LEVERAGE only
-            //                 swapChargeInterval => 1440, // LEVERAGE only
-            //                 country => "",
-            //                 sector => "",
-            //                 industry => "",
-            //                 tradingHours => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-            //                 tickSize => "0.01",
-            //                 tickValue => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-            //                 $exchangeFee => "0.2", // SPOT only
-            //                 tradingFee => 0.075, // LEVERAGE only
-            //                 $makerFee => -0.025, // LEVERAGE only
-            //                 $takerFee => 0.06, // LEVERAGE only
-            //                 maxSLGap => 50, // LEVERAGE only
-            //                 minSLGap => 1, // LEVERAGE only
-            //                 maxTPGap => 50, // LEVERAGE only
-            //                 minTPGap => 0.5, // LEVERAGE only
-            //                 assetType => "CRYPTOCURRENCY",
+            //                 "marketModes" => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
+            //                 "marketType" => "SPOT", // SPOT, LEVERAGE
+            //                 "longRate" => -0.0684932, // LEVERAGE only
+            //                 "shortRate" => -0.0684932, // LEVERAGE only
+            //                 "swapChargeInterval" => 1440, // LEVERAGE only
+            //                 "country" => "",
+            //                 "sector" => "",
+            //                 "industry" => "",
+            //                 "tradingHours" => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+            //                 "tickSize" => "0.01",
+            //                 "tickValue" => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+            //                 "exchangeFee" => "0.2", // SPOT only
+            //                 "tradingFee" => 0.075, // LEVERAGE only
+            //                 "makerFee" => -0.025, // LEVERAGE only
+            //                 "takerFee" => 0.06, // LEVERAGE only
+            //                 "maxSLGap" => 50, // LEVERAGE only
+            //                 "minSLGap" => 1, // LEVERAGE only
+            //                 "maxTPGap" => 50, // LEVERAGE only
+            //                 "minTPGap" => 0.5, // LEVERAGE only
+            //                 "assetType" => "CRYPTOCURRENCY",
             //             ),
             //         )
             //     }
@@ -573,6 +661,7 @@ class currencycom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -580,12 +669,15 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$account-structure $account structures} indexed by the $account type
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
              */
             $response = Async\await($this->privateGetV2Account ($params));
             //
@@ -637,27 +729,30 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2Account ($params));
             //
             //    {
-            //        makerCommission => '0.20',
-            //        takerCommission => '0.20',
-            //        buyerCommission => '0.20',
-            //        sellerCommission => '0.20',
-            //        canTrade => true,
-            //        canWithdraw => true,
-            //        canDeposit => true,
-            //        updateTime => '1645738976',
-            //        userId => '-1924114235',
-            //        balances => array()
+            //        "makerCommission" => "0.20",
+            //        "takerCommission" => "0.20",
+            //        "buyerCommission" => "0.20",
+            //        "sellerCommission" => "0.20",
+            //        "canTrade" => true,
+            //        "canWithdraw" => true,
+            //        "canDeposit" => true,
+            //        "updateTime" => "1645738976",
+            //        "userId" => "-1924114235",
+            //        "balances" => array()
             //    }
             //
             $makerFee = $this->safe_number($response, 'makerCommission');
@@ -715,12 +810,15 @@ class currencycom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2Account ($params));
@@ -759,14 +857,17 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/depthUsingGET
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -776,7 +877,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
             }
-            $response = Async\await($this->publicGetV2Depth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Depth ($this->extend($request, $params)));
             //
             //     {
             //         "lastUpdateId":1590999849037,
@@ -798,7 +899,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -877,20 +978,23 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV2Ticker24hr (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Ticker24hr ($this->extend($request, $params)));
             //
             //     {
             //         "symbol":"ETH/BTC",
@@ -915,13 +1019,16 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetV2Ticker24hr ($params));
@@ -947,7 +1054,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -968,15 +1075,18 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/klinesUsingGET
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -989,9 +1099,9 @@ class currencycom extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
-            $response = Async\await($this->publicGetV2Klines (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Klines ($this->extend($request, $params)));
             //
             //     [
             //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -1003,7 +1113,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1081,15 +1191,18 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/aggTradesUsingGET
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1103,7 +1216,7 @@ class currencycom extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->publicGetV2AggTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2AggTrades ($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -1119,7 +1232,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1211,7 +1324,6 @@ class currencycom extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1224,7 +1336,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'CREATED' => 'open',
@@ -1271,17 +1383,20 @@ class currencycom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1314,15 +1429,15 @@ class currencycom extends Exchange {
                     $request['type'] = 'STOP';
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 } elseif ($type === 'market') {
-                    $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                    $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
                     $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                    if ($stopPrice !== null) {
+                    if ($triggerPrice !== null) {
                         $request['type'] = 'STOP';
-                        $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                        $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
                     }
                 }
             }
-            $response = Async\await($this->privatePostV2Order (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2Order ($this->extend($request, $params)));
             //
             // limit
             //
@@ -1370,19 +1485,24 @@ class currencycom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+             *
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $this->check_required_symbol('fetchOrder', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'orderId' => $id,
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV2FetchOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2FetchOrder ($this->extend($request, $params)));
             //
             //    {
             //        "accountId" => "109698017413125316",
@@ -1409,15 +1529,18 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/openOrdersUsingGET
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1431,7 +1554,7 @@ class currencycom extends Exchange {
                 $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
             }
-            $response = Async\await($this->privateGetV2OpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2OpenOrders ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1459,10 +1582,13 @@ class currencycom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/cancelOrderUsingDELETE
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1480,7 +1606,7 @@ class currencycom extends Exchange {
             } else {
                 $request['origClientOrderId'] = $origClientOrderId;
             }
-            $response = Async\await($this->privateDeleteV2Order (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteV2Order ($this->extend($request, $params)));
             //
             //     {
             //         "symbol" => "DOGE/USD",
@@ -1502,11 +1628,14 @@ class currencycom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/myTradesUsingGET
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1519,7 +1648,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV2MyTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2MyTrades ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1542,43 +1671,52 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositsUsingGET
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Deposits', $code, $since, $limit, $params));
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getWithdrawalsUsingGET
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Withdrawals', $code, $since, $limit, $params));
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getTransactionsUsingGET
+             *
              * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Transactions', $code, $since, $limit, $params));
         }) ();
@@ -1598,7 +1736,16 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetV2Deposits') {
+                $response = Async\await($this->privateGetV2Deposits ($this->extend($request, $params)));
+            } elseif ($method === 'privateGetV2Withdrawals') {
+                $response = Async\await($this->privateGetV2Withdrawals ($this->extend($request, $params)));
+            } elseif ($method === 'privateGetV2Transactions') {
+                $response = Async\await($this->privateGetV2Transactions ($this->extend($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchTransactionsByMethod() not support this method');
+            }
             //
             //    array(
             //        array(
@@ -1619,7 +1766,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "616769213",
@@ -1647,7 +1794,7 @@ class currencycom extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'blockchainTransactionHash'),
@@ -1665,13 +1812,13 @@ class currencycom extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'updated' => null,
+            'internal' => null,
             'comment' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'APPROVAL' => 'pending',
             'PROCESSED' => 'ok',
@@ -1687,15 +1834,18 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string} $code unified $currency $code, default is null
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
+             *
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+             * @param {int} [$limit] max number of ledger entries to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1709,7 +1859,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV2Ledger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2Ledger ($this->extend($request, $params)));
             // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
             //
             // array(
@@ -1741,20 +1891,21 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $amount = Precise::string_abs($amountString);
         $timestamp = $this->safe_integer($item, 'timestamp');
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $feeCost = $this->safe_string($item, 'commission');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $direction = Precise::string_lt($amountString, '0') ? 'out' : 'in';
-        $result = array(
+        return $this->safe_ledger_entry(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1770,8 +1921,7 @@ class currencycom extends Exchange {
             'status' => $this->parse_ledger_entry_status($this->safe_string($item, 'status')),
             'fee' => $fee,
             'info' => $item,
-        );
-        return $result;
+        ), $currency);
     }
 
     public function parse_ledger_entry_status($status) {
@@ -1792,44 +1942,61 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
+             *
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure leverage structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV2LeverageSettings (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2LeverageSettings ($this->extend($request, $params)));
             //
-            // {
-            //     "values" => array( 1, 2, 5, 10, ),
-            //     "value" => "10",
-            // }
+            //     {
+            //         "values" => array( 1, 2, 5, 10, ),
+            //         "value" => "10",
+            //     }
             //
-            return $this->safe_number($response, 'value');
+            return $this->parse_leverage($response, $market);
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $leverageValue = $this->safe_integer($leverage, 'value');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET
+             *
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
             );
-            $response = Async\await($this->privateGetV2DepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2DepositAddress ($this->extend($request, $params)));
             //
             //     array( "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" )
             //
@@ -1837,16 +2004,16 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $currency = $this->safe_currency(null, $currency);
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -1859,7 +2026,7 @@ class currencycom extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $query = $this->urlencode(array_merge(array(
+            $query = $this->urlencode($this->extend(array(
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
@@ -1887,9 +2054,12 @@ class currencycom extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/tradingPositionsUsingGET
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2TradingPositions ($params));
@@ -1925,12 +2095,12 @@ class currencycom extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'positions', array());
+            $data = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "accountId" => "109698017416453793",
@@ -1961,7 +2131,7 @@ class currencycom extends Exchange {
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_number($position, 'createdTimestamp');
+        $timestamp = $this->safe_integer($position, 'createdTimestamp');
         $quantityRaw = $this->safe_string($position, 'openQuantity');
         $side = Precise::string_gt($quantityRaw, '0') ? 'long' : 'short';
         $quantity = Precise::string_abs($quantityRaw);
@@ -1981,7 +2151,7 @@ class currencycom extends Exchange {
             'collateral' => null,
             'side' => $side,
             // 'realizedProfit' => $this->safe_number($position, 'rpl'),
-            'unrealizedProfit' => $unrealizedProfit,
+            'unrealizedPnl' => $unrealizedProfit,
             'leverage' => $leverage,
             'percentage' => null,
             'marginMode' => null,
@@ -1995,14 +2165,13 @@ class currencycom extends Exchange {
             'maintenanceMarginPercentage' => null,
             'marginRatio' => null,
             'id' => null,
-            'unrealizedPnl' => null,
             'hedged' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($httpCode === 418) || ($httpCode === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $httpCode . ' ' . $reason . ' ' . $body);
         }

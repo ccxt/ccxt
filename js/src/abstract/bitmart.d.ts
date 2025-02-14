@@ -24,6 +24,7 @@ interface Exchange {
     publicGetContractPublicDepth(params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicOpenInterest(params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicFundingRate(params?: {}): Promise<implicitReturnType>;
+    publicGetContractPublicFundingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicKline(params?: {}): Promise<implicitReturnType>;
     publicGetAccountV1Currencies(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferList(params?: {}): Promise<implicitReturnType>;
@@ -58,7 +59,12 @@ interface Exchange {
     privateGetContractPrivateOrderHistory(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePosition(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateCurrentPlanOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivatePositionRisk(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateRebateList(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateTradeList(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateTransactionHistory(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub(params?: {}): Promise<implicitReturnType>;
@@ -78,6 +84,9 @@ interface Exchange {
     privatePostSpotV4QueryHistoryOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4QueryTrades(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4QueryOrderTrades(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4CancelOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4CancelAll(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4BatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3CancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2BatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2SubmitOrder(params?: {}): Promise<implicitReturnType>;
@@ -93,6 +102,10 @@ interface Exchange {
     privatePostContractPrivateSubmitPlanOrder(params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelPlanOrder(params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitTpSlOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPlanOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPresetPlanOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyTpSlOrder(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

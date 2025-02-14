@@ -31,6 +31,9 @@ abstract class bitopro extends \ccxt\Exchange {
     public function public_get_trading_history_pair($params = array()) {
         return $this->request('trading-history/{pair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_price_otc_currency($params = array()) {
+        return $this->request('price/otc/{currency}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_accounts_balance($params = array()) {
         return $this->request('accounts/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -57,6 +60,9 @@ abstract class bitopro extends \ccxt\Exchange {
     }
     public function private_get_wallet_withdrawhistory_currency($params = array()) {
         return $this->request('wallet/withdrawHistory/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_orders_open($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_orders_pair($params = array()) {
         return $this->request('orders/{pair}', 'private', 'POST', $params, null, null, array("cost" => 0.5));
@@ -103,6 +109,9 @@ abstract class bitopro extends \ccxt\Exchange {
     public function publicGetTradingHistoryPair($params = array()) {
         return $this->request('trading-history/{pair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetPriceOtcCurrency($params = array()) {
+        return $this->request('price/otc/{currency}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAccountsBalance($params = array()) {
         return $this->request('accounts/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -129,6 +138,9 @@ abstract class bitopro extends \ccxt\Exchange {
     }
     public function privateGetWalletWithdrawHistoryCurrency($params = array()) {
         return $this->request('wallet/withdrawHistory/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOrdersOpen($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrdersPair($params = array()) {
         return $this->request('orders/{pair}', 'private', 'POST', $params, null, null, array("cost" => 0.5));
