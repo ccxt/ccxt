@@ -447,26 +447,35 @@ export default class xt extends xtRest {
         client.resolve (cache, 'position::contract');
     }
 
-    handlePositions (client, message) {
+    handlePosition (client, message) {
         //
         //    {
-        //         "topic": "position",
-        //         "event": "position@123456",
-        //         "data": {
-        //              "symbol":"btc_usdt",
-        //              "contractType": "PERPUTUAL", //PERPUTUAL，DELIVERY
-        //              "positionType": "ISOLATED",  // "ISOLATED", "CROSSED"
-        //              "positionSide": "LONG",
-        //              "positionSize":"123",  // Position quantity
-        //              "closeOrderSize": "100",  //  Pending order quantity (Cont)
-        //              "availableCloseSize": "23",  //  Available quantity (Cont)
-        //              "realizedProfit": "123"   //  Realized profit and loss
-        //              "entryPrice":"213",   //  Open position average price
-        //              "isolatedMargin":"213",  //  Isolated Margin
-        //              "openOrderMarginFrozen": "123", //  Occupied open position margin
-        //              "underlyingType": ""// COIN_BASED, U_BASED
-        //              "leverage":20  // Leverage
-        //        }
+        //      topic: 'position',
+        //      event: 'position',
+        //      data: {
+        //        accountId: 245296,
+        //        accountType: 0,
+        //        symbol: 'eth_usdt',
+        //        contractType: 'PERPETUAL',
+        //        positionType: 'CROSSED',
+        //        positionSide: 'LONG',
+        //        positionSize: '1',
+        //        closeOrderSize: '0',
+        //        availableCloseSize: '1',
+        //        realizedProfit: '-0.0121',
+        //        entryPrice: '2637.87',
+        //        openOrderSize: '1',
+        //        isolatedMargin: '2.63787',
+        //        openOrderMarginFrozen: '2.78832014',
+        //        underlyingType: 'U_BASED',
+        //        leverage: 10,
+        //        welfareAccount: false,
+        //        profitFixedLatest: {},
+        //        closeProfit: '0.0000',
+        //        totalFee: '-0.0158',
+        //        totalFundFee: '0.0037',
+        //        markPrice: '2690.96'
+        //      }
         //    }
         //
         if (this.positions === undefined) {
@@ -1203,6 +1212,7 @@ export default class xt extends xtRest {
                 'agg_tickers': this.handleTickers,
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
+                'position': this.handlePosition,
             };
             let method = this.safeValue (methods, topic);
             if (topic === 'trade') {
