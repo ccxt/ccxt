@@ -6894,10 +6894,20 @@ export default class bybit extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
-        const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
+        const openInterest = this.safeNumber2 (interest, 'open_interest', 'openInterest');
+        let amount = undefined;
+        let value = undefined;
+        if (market['linear']) {
+            // the openInterest is in the base asset for linear and quote asset for inverse
+            amount = openInterest;
+            value = undefined;
+        } else {
+            amount = undefined;
+            value = openInterest;
+        }
         return this.safeOpenInterest ({
             'symbol': market['symbol'],
-            'openInterestAmount': undefined,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
