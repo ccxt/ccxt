@@ -1149,7 +1149,6 @@ export default class derive extends Exchange {
         const market = this.market (symbol);
         let subaccountId = undefined;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subaccount_id');
-        const maxFee = this.safeNumber (params, 'max_fee', 0);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
@@ -1162,7 +1161,7 @@ export default class derive extends Exchange {
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
         const priceString = price.toString ();
-        const maxFeeString = maxFee.toString ();
+        const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = amount.toString ();
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
@@ -1333,7 +1332,6 @@ export default class derive extends Exchange {
         const market = this.market (symbol);
         let subaccountId = undefined;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'editOrder', 'subaccount_id');
-        const maxFee = this.safeNumber (params, 'max_fee', 0);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
@@ -1345,7 +1343,7 @@ export default class derive extends Exchange {
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
         const priceString = price.toString ();
-        const maxFeeString = maxFee.toString ();
+        const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = amount.toString ();
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
