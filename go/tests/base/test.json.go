@@ -9,7 +9,7 @@ func TestJson()  {
         "id": "regirock",
     }, map[string]interface{}{}, exchange)
     // Test: object
-    var obj interface{} = map[string]interface{} {
+    var obj map[string]interface{} = map[string]interface{} {
         "k": "v",
     }
     var objJson interface{} = exchange.Json(obj)

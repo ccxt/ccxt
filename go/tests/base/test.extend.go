@@ -8,7 +8,7 @@ func TestExtend()  {
     exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
         "id": "regirock",
     }, map[string]interface{}{}, exchange)
-    var obj1 interface{} = map[string]interface{} {
+    var obj1 map[string]interface{} = map[string]interface{} {
         "a": 1,
         "b": []interface{}{1, 2},
         "c": []interface{}{map[string]interface{} {
@@ -30,7 +30,7 @@ func TestExtend()  {
         },
         "other1": "x",
     }
-    var obj2 interface{} = map[string]interface{} {
+    var obj2 map[string]interface{} = map[string]interface{} {
         "a": 2,
         "b": []interface{}{3, 4},
         "c": []interface{}{map[string]interface{} {

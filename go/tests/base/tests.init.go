@@ -6,6 +6,7 @@ package base
 
 func BaseTestsInit()  {
     TestLanguageSpecific()
+    TestAfterConstructor()
     TestExtend()
     TestDeepExtend()
     TestCryptography()
