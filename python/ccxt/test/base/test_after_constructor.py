@@ -15,26 +15,79 @@ sys.path.append(root)
 import ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-def test_after_constructor():
+def helper_test_init_throttler():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'rateLimit': 10.8,
     })
     # todo: assert (exchange.MAX_VALUE !== undefined);
-    # ############# throttler ############# #
-    tocken_bucket = exchange.get_property(exchange, 'tokenBucket')  # trick for uncamelcase transpilation
+    token_bucket = exchange.get_property(exchange, 'tokenBucket')  # trick for uncamelcase transpilation
+    if token_bucket is None:
+        token_bucket = exchange.get_property(exchange, 'TokenBucket')
+    assert token_bucket is not None
+    assert 'GO_SKIP_START'
     rate_limit = exchange.get_property(exchange, 'rateLimit')
     assert rate_limit == 10.8
-    assert tocken_bucket is not None
-    assert tocken_bucket['delay'] == 0.001
-    assert tocken_bucket['refillRate'] == 1 / rate_limit
+    assert token_bucket['delay'] == 0.001
+    assert token_bucket['refillRate'] == 1 / rate_limit
+    assert 'GO_SKIP_END'
     # fix decimal/integer issues across langs
-    assert exchange.in_array(tocken_bucket['capacity'], [1, 1])
-    assert exchange.in_array(tocken_bucket['cost'], [1, 1])
-    assert exchange.in_array(tocken_bucket['maxCapacity'], [1000, 1000])
-    # todo: assert (exchange.throttler !== undefined);
-    # todo: add after change assertion
-    # todo: add initial tockenbtucket test
+    assert exchange.in_array(token_bucket['capacity'], [1, 1])
+    cost = exchange.parse_to_numeric(exchange.safe_string_2(token_bucket, 'cost', 'defaultCost'))  # python sync, todo fix
+    assert exchange.in_array(cost, [1, 1])
+    assert not ('maxCapacity' in token_bucket) or exchange.in_array(token_bucket['maxCapacity'], [1000, 1000])
+
+
+def helper_test_sandbox_state(exchange, should_be_enabled=True):
+    assert exchange.urls is not None
+    assert 'test' in exchange.urls
+    assert 'GO_SKIP_START'
+    is_sandbox_mode_enabled = exchange.get_property(exchange, 'isSandboxModeEnabled')
+    if should_be_enabled:
+        assert is_sandbox_mode_enabled
+        assert exchange.urls['api']['public'] == 'https://example.org'
+        assert exchange.urls['apiBackup']['public'] == 'https://example.com'
+    else:
+        assert not is_sandbox_mode_enabled
+        assert exchange.urls['api']['public'] == 'https://example.com'
+        assert exchange.urls['test']['public'] == 'https://example.org'
+    assert 'GO_SKIP_END'
+
+
+def helper_test_init_sandbox():
+    # todo: sandbox for real exchanges
+    opts = {
+        'id': 'sampleexchange',
+        'options': {
+            'sandbox': False,
+        },
+        'urls': {
+            'api': {
+                'public': 'https://example.com',
+            },
+            'test': {
+                'public': 'https://example.org',
+            },
+        },
+    }
+    #
+    # CASE A: when sandbox is not enabled
+    #
+    exchange3 = ccxt.Exchange(opts)
+    helper_test_sandbox_state(exchange3, False)
+    exchange3.set_sandbox_mode(True)
+    helper_test_sandbox_state(exchange3, True)
+    #
+    # CASE B: when sandbox is enabled
+    #
+    opts['options']['sandbox'] = True
+    exchange4 = ccxt.Exchange(opts)
+    helper_test_sandbox_state(exchange4, True)
+    exchange4.set_sandbox_mode(False)
+    helper_test_sandbox_state(exchange4, False)
+
+
+def helper_test_init_market():
     # ############# markets ############# #
     sample_market = {
         'id': 'BtcUsd',
@@ -53,23 +106,9 @@ def test_after_constructor():
         },
     })
     assert exchange2.markets['BTC/USD'] is not None
-    assert 'GO_SKIP_START'
-    try:
-        exchange3 = ccxt.Exchange({
-            'id': 'sampleexchange',
-            'options': {
-                'sandbox': True,
-            },
-        })
-        # todo: some extra things should be checked in "catch" but atm skip complexity
-        assert exchange3.urls is not None
-        assert exchange3.urls['test'] is not None
-        is_sandbox_mode_enabled = exchange3.get_property(exchange3, 'isSandboxModeEnabled')
-        assert is_sandbox_mode_enabled
-    except Exception as e:
-        exchange3 = ccxt.Exchange({
-            'id': 'sampleexchange',
-        })
-        # if exception was thrown, it should only happen if 'test' was not in urls
-        assert exchange3.urls is None or not ('test' in exchange3.urls)
-    assert 'GO_SKIP_END'
+
+
+def test_after_constructor():
+    helper_test_init_throttler()
+    helper_test_init_sandbox()
+    helper_test_init_market()
