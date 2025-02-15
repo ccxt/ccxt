@@ -1426,6 +1426,8 @@ export default class xt extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 1000;
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
