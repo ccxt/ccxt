@@ -416,7 +416,7 @@ export default class derive extends Exchange {
             'commonCurrencies': {
             },
             'options': {
-                'contractWalletAddress': '', // a contract wallet address "0x"-prefixed hexstring
+                'deriveWalletAddress': '', // a derive wallet address "0x"-prefixed hexstring
                 'id': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
             },
         });
@@ -1174,8 +1174,8 @@ export default class derive extends Exchange {
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let contractWalletAddress = undefined;
-        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
+        let deriveWalletAddress = undefined;
+        [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
             subaccountId,
@@ -1183,7 +1183,7 @@ export default class derive extends Exchange {
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
-            contractWalletAddress,
+            deriveWalletAddress,
             this.walletAddress,
         ], this.privateKey);
         const request: Dict = {
@@ -1356,8 +1356,8 @@ export default class derive extends Exchange {
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let contractWalletAddress = undefined;
-        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'contractWalletAddress');
+        let deriveWalletAddress = undefined;
+        [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
             subaccountId,
@@ -1365,7 +1365,7 @@ export default class derive extends Exchange {
             TRADE_MODULE_ADDRESS,
             tradeModuleDataHash,
             signatureExpiry,
-            contractWalletAddress,
+            deriveWalletAddress,
             this.walletAddress,
         ], this.privateKey);
         const request: Dict = {
@@ -2320,10 +2320,10 @@ export default class derive extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let contractWalletAddress = undefined;
-        [ contractWalletAddress, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'contractWalletAddress');
+        let deriveWalletAddress = undefined;
+        [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request = {
-            'wallet': contractWalletAddress,
+            'wallet': deriveWalletAddress,
         };
         const response = await this.privatePostGetAllPortfolios (this.extend (request, params));
         //
@@ -2541,6 +2541,15 @@ export default class derive extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    handleDeriveWalletAddress (methodName: string, params: Dict) {
+        let deriveWalletAddress = undefined;
+        [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
+        if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
+            return [ deriveWalletAddress, params ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\', tha address can find in HOME => Developers tab.');
+    }
+
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
@@ -2566,8 +2575,9 @@ export default class derive extends Exchange {
                 this.checkRequiredCredentials ();
                 const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
-                const contractWalletAddress = this.safeString (this.options, 'contractWalletAddress');
-                headers['X-LyraWallet'] = contractWalletAddress;
+                let deriveWalletAddress = undefined;
+                [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('', params);
+                headers['X-LyraWallet'] = deriveWalletAddress;
                 headers['X-LyraTimestamp'] = now;
                 headers['X-LyraSignature'] = signature;
             }
