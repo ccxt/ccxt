@@ -2,6 +2,52 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": "{\"retCode\":0,\"retMsg\":\"OK\",\"result\":{\"symbol\":\"BTCUSD\",\"category\":\"inverse\",\"list\":[{\"openInterest\":\"338210507.00000000\",\"timestamp\":\"1739638800000\"},{\"openInterest\":\"338247271.00000000\",\"timestamp\":\"1739635200000\"},{\"openInterest\":\"338083663.00000000\",\"timestamp\":\"1739631600000\"},{\"openInterest\":\"338216611.00000000\",\"timestamp\":\"1739628000000\"},{\"openInterest\":\"338440381.00000000\",\"timestamp\":\"1739624400000\"},{\"openInterest\":\"338199081.00000000\",\"timestamp\":\"1739620800000\"},{\"openInterest\":\"338509647.00000000\",\"timestamp\":\"1739617200000\"},{\"openInterest\":\"338083128.00000000\",\"timestamp\":\"1739613600000\"},{\"openInterest\":\"338078307.00000000\",\"timestamp\":\"1739610000000\"},{\"openInterest\":\"338053513.00000000\",\"timestamp\":\"1739606400000\"},{\"openInterest\":\"337894291.00000000\",\"timestamp\":\"1739602800000\"},{\"openInterest\":\"338112787.00000000\",\"timestamp\":\"1739599200000\"},{\"openInterest\":\"338043855.00000000\",\"timestamp\":\"1739595600000\"},{\"openInterest\":\"338135921.00000000\",\"timestamp\":\"1739592000000\"},{\"openInterest\":\"338020647.00000000\",\"timestamp\":\"1739588400000\"},{\"openInterest\":\"338019935.00000000\",\"timestamp\":\"1739584800000\"},{\"openInterest\":\"338036775.00000000\",\"timestamp\":\"1739581200000\"},{\"openInterest\":\"337903731.00000000\",\"timestamp\":\"1739577600000\"},{\"openInterest\":\"337889439.00000000\",\"timestamp\":\"1739574000000\"},{\"openInterest\":\"337954328.00000000\",\"timestamp\":\"1739570400000\"},{\"openInterest\":\"338009318.00000000\",\"timestamp\":\"1739566800000\"},{\"openInterest\":\"338020235.00000000\",\"timestamp\":\"1739563200000\"},{\"openInterest\":\"338197383.00000000\",\"timestamp\":\"1739559600000\"},{\"openInterest\":\"338099033.00000000\",\"timestamp\":\"1739556000000\"},{\"openInterest\":\"337888277.00000000\",\"timestamp\":\"1739552400000\"},{\"openInterest\":\"337763443.00000000\",\"timestamp\":\"1739548800000\"},{\"openInterest\":\"338434494.00000000\",\"timestamp\":\"1739545200000\"},{\"openInterest\":\"337633127.00000000\",\"timestamp\":\"1739541600000\"},{\"openInterest\":\"338017504.00000000\",\"timestamp\":\"1739538000000\"},{\"openInterest\":\"337653308.00000000\",\"timestamp\":\"1739534400000\"},{\"openInterest\":\"337732751.00000000\",\"timestamp\":\"1739530800000\"},{\"openInterest\":\"337798887.00000000\",\"timestamp\":\"1739527200000\"},{\"openInterest\":\"337865921.00000000\",\"timestamp\":\"1739523600000\"},{\"openInterest\":\"337721367.00000000\",\"timestamp\":\"1739520000000\"},{\"openInterest\":\"337645907.00000000\",\"timestamp\":\"1739516400000\"},{\"openInterest\":\"337824497.00000000\",\"timestamp\":\"1739512800000\"},{\"openInterest\":\"337565187.00000000\",\"timestamp\":\"1739509200000\"},{\"openInterest\":\"337351779.00000000\",\"timestamp\":\"1739505600000\"},{\"openInterest\":\"337451815.00000000\",\"timestamp\":\"1739502000000\"},{\"openInterest\":\"337612771.00000000\",\"timestamp\":\"1739498400000\"},{\"openInterest\":\"337628081.00000000\",\"timestamp\":\"1739494800000\"},{\"openInterest\":\"337464481.00000000\",\"timestamp\":\"1739491200000\"},{\"openInterest\":\"337471259.00000000\",\"timestamp\":\"1739487600000\"},{\"openInterest\":\"337340138.00000000\",\"timestamp\":\"1739484000000\"},{\"openInterest\":\"337355510.00000000\",\"timestamp\":\"1739480400000\"},{\"openInterest\":\"337274281.00000000\",\"timestamp\":\"1739476800000\"},{\"openInterest\":\"337463215.00000000\",\"timestamp\":\"1739473200000\"},{\"openInterest\":\"337235985.00000000\",\"timestamp\":\"1739469600000\"},{\"openInterest\":\"337201175.00000000\",\"timestamp\":\"1739466000000\"},{\"openInterest\":\"337138713.00000000\",\"timestamp\":\"1739462400000\"}],\"nextPageCursor\":\"lastid%3D9752902%26lasttime%3D1739462400\"},\"retExtInfo\":{},\"time\":1739641072670}",
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "openInterestAmount": null,
+                    "openInterestValue": 338210507,
+                    "timestamp": 1739638800000,
+                    "datetime": "2025-02-15T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "338210507.00000000",
+                        "timestamp": "1739638800000",
+                        "nextPageCursor": "lastid%3D9752902%26lasttime%3D1739462400"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            },
+            {
+                "description": "linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": "{\"retCode\":0,\"retMsg\":\"OK\",\"result\":{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"list\":[{\"openInterest\":\"892358.26000000\",\"timestamp\":\"1739638800000\"},{\"openInterest\":\"892447.48700000\",\"timestamp\":\"1739635200000\"},{\"openInterest\":\"892374.83300000\",\"timestamp\":\"1739631600000\"},{\"openInterest\":\"892374.00800000\",\"timestamp\":\"1739628000000\"},{\"openInterest\":\"837883.62900000\",\"timestamp\":\"1739624400000\"},{\"openInterest\":\"835419.96300000\",\"timestamp\":\"1739620800000\"},{\"openInterest\":\"833803.90600000\",\"timestamp\":\"1739617200000\"},{\"openInterest\":\"833215.44100000\",\"timestamp\":\"1739613600000\"},{\"openInterest\":\"832458.07400000\",\"timestamp\":\"1739610000000\"},{\"openInterest\":\"831945.77500000\",\"timestamp\":\"1739606400000\"},{\"openInterest\":\"831979.79300000\",\"timestamp\":\"1739602800000\"},{\"openInterest\":\"821506.77500000\",\"timestamp\":\"1739599200000\"},{\"openInterest\":\"818283.35000000\",\"timestamp\":\"1739595600000\"},{\"openInterest\":\"815707.99800000\",\"timestamp\":\"1739592000000\"},{\"openInterest\":\"813603.97500000\",\"timestamp\":\"1739588400000\"},{\"openInterest\":\"812396.36100000\",\"timestamp\":\"1739584800000\"},{\"openInterest\":\"812395.66800000\",\"timestamp\":\"1739581200000\"},{\"openInterest\":\"812403.94900000\",\"timestamp\":\"1739577600000\"},{\"openInterest\":\"812403.58000000\",\"timestamp\":\"1739574000000\"},{\"openInterest\":\"812404.91800000\",\"timestamp\":\"1739570400000\"},{\"openInterest\":\"812404.02500000\",\"timestamp\":\"1739566800000\"},{\"openInterest\":\"812403.56700000\",\"timestamp\":\"1739563200000\"},{\"openInterest\":\"812439.62800000\",\"timestamp\":\"1739559600000\"},{\"openInterest\":\"812518.90900000\",\"timestamp\":\"1739556000000\"},{\"openInterest\":\"812557.57000000\",\"timestamp\":\"1739552400000\"},{\"openInterest\":\"812589.83400000\",\"timestamp\":\"1739548800000\"},{\"openInterest\":\"812618.08800000\",\"timestamp\":\"1739545200000\"},{\"openInterest\":\"812702.16100000\",\"timestamp\":\"1739541600000\"},{\"openInterest\":\"812702.24100000\",\"timestamp\":\"1739538000000\"},{\"openInterest\":\"812702.65600000\",\"timestamp\":\"1739534400000\"},{\"openInterest\":\"812702.67800000\",\"timestamp\":\"1739530800000\"},{\"openInterest\":\"812707.37500000\",\"timestamp\":\"1739527200000\"},{\"openInterest\":\"812707.21800000\",\"timestamp\":\"1739523600000\"},{\"openInterest\":\"812707.33700000\",\"timestamp\":\"1739520000000\"},{\"openInterest\":\"812707.65300000\",\"timestamp\":\"1739516400000\"},{\"openInterest\":\"812707.46300000\",\"timestamp\":\"1739512800000\"},{\"openInterest\":\"812703.91500000\",\"timestamp\":\"1739509200000\"},{\"openInterest\":\"812699.93900000\",\"timestamp\":\"1739505600000\"},{\"openInterest\":\"812699.53500000\",\"timestamp\":\"1739502000000\"},{\"openInterest\":\"812699.19100000\",\"timestamp\":\"1739498400000\"},{\"openInterest\":\"812700.04300000\",\"timestamp\":\"1739494800000\"},{\"openInterest\":\"812699.89300000\",\"timestamp\":\"1739491200000\"},{\"openInterest\":\"812523.85100000\",\"timestamp\":\"1739487600000\"},{\"openInterest\":\"812523.31100000\",\"timestamp\":\"1739484000000\"},{\"openInterest\":\"812523.22100000\",\"timestamp\":\"1739480400000\"},{\"openInterest\":\"812174.91600000\",\"timestamp\":\"1739476800000\"},{\"openInterest\":\"812174.39600000\",\"timestamp\":\"1739473200000\"},{\"openInterest\":\"812059.72200000\",\"timestamp\":\"1739469600000\"},{\"openInterest\":\"804333.86200000\",\"timestamp\":\"1739466000000\"},{\"openInterest\":\"800603.04800000\",\"timestamp\":\"1739462400000\"}],\"nextPageCursor\":\"lastid%3D9752268%26lasttime%3D1739462400\"},\"retExtInfo\":{},\"time\":1739641060371}",
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": 892358.26,
+                    "openInterestValue": null,
+                    "timestamp": 1739638800000,
+                    "datetime": "2025-02-15T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "892358.26000000",
+                        "timestamp": "1739638800000",
+                        "nextPageCursor": "lastid%3D9752268%26lasttime%3D1739462400"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
     "fetchBalance": [
             {
                 "description": "balance after availableToWithdraw update",
