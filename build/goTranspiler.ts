@@ -1560,6 +1560,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
+                [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
@@ -1644,8 +1646,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         let exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
-        baseTests = baseTests.filter (filename => filename !== 'test.throttle' && filename !== 'test.filterBy');
-        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.filterBy' && filename !== 'test.createOrder');
+        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
+        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.createOrder');
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {
