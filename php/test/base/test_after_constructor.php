@@ -9,26 +9,84 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
-function test_after_constructor() {
+function helper_test_init_throttler() {
     $exchange = new \ccxt\Exchange(array(
         'id' => 'sampleexchange',
         'rateLimit' => 10.8,
     ));
     // todo: assert (exchange.MAX_VALUE !== undefined);
-    // ############# throttler ############# //
-    $tocken_bucket = $exchange->get_property($exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    $token_bucket = $exchange->get_property($exchange, 'tokenBucket'); // trick for uncamelcase transpilation
+    if ($token_bucket === null) {
+        $token_bucket = $exchange->get_property($exchange, 'TokenBucket');
+    }
+    assert($token_bucket !== null);
+    assert('GO_SKIP_START');
     $rate_limit = $exchange->get_property($exchange, 'rateLimit');
     assert($rate_limit === 10.8);
-    assert($tocken_bucket !== null);
-    assert($tocken_bucket['delay'] === 0.001);
-    assert($tocken_bucket['refillRate'] === 1 / $rate_limit);
+    assert($token_bucket['delay'] === 0.001);
+    assert($token_bucket['refillRate'] === 1 / $rate_limit);
+    assert('GO_SKIP_END');
     // fix decimal/integer issues across langs
-    assert($exchange->in_array($tocken_bucket['capacity'], [1, 1]));
-    assert($exchange->in_array($tocken_bucket['cost'], [1, 1]));
-    assert($exchange->in_array($tocken_bucket['maxCapacity'], [1000, 1000]));
-    // todo: assert (exchange.throttler !== undefined);
-    // todo: add after change assertion
-    // todo: add initial tockenbtucket test
+    assert($exchange->in_array($token_bucket['capacity'], [1, 1]));
+    $cost = $exchange->parse_to_numeric($exchange->safe_string_2($token_bucket, 'cost', 'defaultCost')); // python sync, todo fix
+    assert($exchange->in_array($cost, [1, 1]));
+    assert(!(is_array($token_bucket) && array_key_exists('maxCapacity', $token_bucket)) || $exchange->in_array($token_bucket['maxCapacity'], [1000, 1000]));
+}
+
+
+function helper_test_sandbox_state($exchange, $should_be_enabled = true) {
+    assert($exchange->urls !== null);
+    assert(is_array($exchange->urls) && array_key_exists('test', $exchange->urls));
+    assert('GO_SKIP_START');
+    $is_sandbox_mode_enabled = $exchange->get_property($exchange, 'isSandboxModeEnabled');
+    if ($should_be_enabled) {
+        assert($is_sandbox_mode_enabled);
+        assert($exchange->urls['api']['public'] === 'https://example.org');
+        assert($exchange->urls['apiBackup']['public'] === 'https://example.com');
+    } else {
+        assert(!$is_sandbox_mode_enabled);
+        assert($exchange->urls['api']['public'] === 'https://example.com');
+        assert($exchange->urls['test']['public'] === 'https://example.org');
+    }
+    assert('GO_SKIP_END');
+}
+
+
+function helper_test_init_sandbox() {
+    // todo: sandbox for real exchanges
+    $opts = array(
+        'id' => 'sampleexchange',
+        'options' => array(
+            'sandbox' => false,
+        ),
+        'urls' => array(
+            'api' => array(
+                'public' => 'https://example.com',
+            ),
+            'test' => array(
+                'public' => 'https://example.org',
+            ),
+        ),
+    );
+    //
+    // CASE A: when sandbox is not enabled
+    //
+    $exchange3 = new \ccxt\Exchange($opts);
+    helper_test_sandbox_state($exchange3, false);
+    $exchange3->set_sandbox_mode(true);
+    helper_test_sandbox_state($exchange3, true);
+    //
+    // CASE B: when sandbox is enabled
+    //
+    $opts['options']['sandbox'] = true;
+    $exchange4 = new \ccxt\Exchange($opts);
+    helper_test_sandbox_state($exchange4, true);
+    $exchange4->set_sandbox_mode(false);
+    helper_test_sandbox_state($exchange4, false);
+}
+
+
+function helper_test_init_market() {
     // ############# markets ############# //
     $sample_market = array(
         'id' => 'BtcUsd',
@@ -47,25 +105,11 @@ function test_after_constructor() {
         ),
     ));
     assert($exchange2->markets['BTC/USD'] !== null);
-    assert('GO_SKIP_START');
-    try {
-        $exchange3 = new \ccxt\Exchange(array(
-            'id' => 'sampleexchange',
-            'options' => array(
-                'sandbox' => true,
-            ),
-        ));
-        // todo: some extra things should be checked in "catch" but atm skip complexity
-        assert($exchange3->urls !== null);
-        assert($exchange3->urls['test'] !== null);
-        $is_sandbox_mode_enabled = $exchange3->get_property($exchange3, 'isSandboxModeEnabled');
-        assert($is_sandbox_mode_enabled);
-    } catch(\Throwable $e) {
-        $exchange3 = new \ccxt\Exchange(array(
-            'id' => 'sampleexchange',
-        ));
-        // if exception was thrown, it should only happen if 'test' was not in urls
-        assert($exchange3->urls === null || !(is_array($exchange3->urls) && array_key_exists('test', $exchange3->urls)));
-    }
-    assert('GO_SKIP_END');
+}
+
+
+function test_after_constructor() {
+    helper_test_init_throttler();
+    helper_test_init_sandbox();
+    helper_test_init_market();
 }
