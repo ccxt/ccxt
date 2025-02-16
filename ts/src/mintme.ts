@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/mintme.js';
 import { BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
-import type { Dict, Int, OrderBook, Market, OrderType, OrderSide, Num, Order, Currencies, MarketInterface, Ticker, Trade, DepositAddress, Balances, Transaction } from './base/types.js';
+import type { Dict, Int, OrderBook, Market, OrderType, OrderSide, Num, Order, Currencies, MarketInterface, Ticker, Trade, DepositAddress, Balances, Transaction, TradingFeeInterface } from './base/types.js';
 import { TICK_SIZE } from './base/functions.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
@@ -33,16 +33,17 @@ export default class mintme extends Exchange {
                 'cancelOrder': false,
                 'createMarketOrder': false,
                 'createOrder': true,
-                'deleteOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'deleteOrder': true,
                 'fetchActiveMarketOrder': true,
                 'fetchActiveUserOrders': true,
                 'fetchAddresses': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': false,
+                'fetchCompletedTrades': true,
                 'fetchCurrencies': true,
                 'fetchCurrency': true,
                 'fetchDeposits': false,
@@ -51,9 +52,11 @@ export default class mintme extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
+                'fetchHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarketInfo': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
@@ -66,16 +69,14 @@ export default class mintme extends Exchange {
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickerMarketPairs': true,
-                'fetchCompletedTrades': true,
-                'fetchMarketInfo': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchTradesMarketPair': false,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
+                'fetchWithdrawalFee': true,
                 'fetchWithdrawals': false,
-                'fetchHistory': true,
                 'withdraw': true,
             },
             'urls': {
@@ -94,12 +95,11 @@ export default class mintme extends Exchange {
                         'orderbook/{base_quote}': 1,
                         'summary': 1,
                         'ticker': 1,
-                        'trades/{market}': 1,
+                        'trades/{market_pair}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'markets': 1,
                         'currencies': 1,
                         'currencies/{name}': 1,
                         'markets/{base}/{quote}': 1,
@@ -122,11 +122,40 @@ export default class mintme extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.001'),
-                    'taker': this.parseNumber ('0.001'),
+                    'regular': {
+                        'maker': this.parseNumber ('0.002'), // 0.2% regular trading
+                        'taker': this.parseNumber ('0.002'),
+                    },
+                    'quick': {
+                        'maker': this.parseNumber ('0.005'), // 0.5% quick trading
+                        'taker': this.parseNumber ('0.005'),
+                    },
                 },
                 'funding': {
-                    'withdraw': {},
+                    'withdraw': {
+                        'MINTME': { 'MintMe': 1 }, // Min MINTME Coin
+                        'BTC': { 'Bitcoin': 0.0004 },
+                        'ETH': {
+                            'Ethereum': 0.004,
+                            'Arbitrum': 0.0004,
+                            'BASE': 0.0004,
+                        },
+                        'USDC': {
+                            'Ethereum': 20,
+                            'BNB Smart Chain': 2,
+                        },
+                        'USDT': {
+                            'Ethereum': 20,
+                            'BNB Smart Chain': 2,
+                        },
+                        'BNB': { 'BNB Smart Chain': 0.002 },
+                        'MATIC': { 'Polygon': 1.5 },
+                        'SOL': { 'Solana': 0.008 },
+                        'CFX': { 'Conflux': 6 },
+                        'CRO': { 'Cronos': 10 },
+                        'AVAX': { 'Avalanche': 0.04 },
+                    },
+                    'Deposit': {}, // no deposit fees
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -143,6 +172,7 @@ export default class mintme extends Exchange {
      * @description Retrieves data on all markets for MintMe by paginating through API responses.
      * Since the API has a limit of 101 results per request, this method fetches all available markets.
      * by incrementally increasing the offset until no more data is returned.
+     * The `while (true)` loop ensures continuous fetching until all markets are retrieved.
      * @see https://www.mintme.com/dev/documentation/v2 /dev/api/v2/open/summary/
      * @param {object} params - Extra parameters for the API request.
      * @returns {object[]} an array of objects representing market data.
@@ -189,19 +219,11 @@ export default class mintme extends Exchange {
         // }
         let offset = 0; // Start fetching from the first record
         const limit = 101; // Maximum number of results the API allows per request
-        /**
-         * The `while (true)` loop ensures continuous fetching until all markets are retrieved.
-         * - It sends an API request using `publicGetSummary`, requesting `limit` (101) results at a time.
-         * - If the API response is empty (no more markets to retrieve), the loop breaks.
-         * - Otherwise, the returned markets are processed and stored in the `result` array.
-         * - The `offset` is then incremented by `limit` to fetch the next batch.
-         * - This continues until all available market data is collected.
-         */
         while (true) {
             // Fetch the next batch of markets
             const response = await this.publicGetSummary ({ ...params, offset, limit });
             // If the response is empty, stop fetching
-            if (!response || response.length === 0) {
+            if ((!response) || (response.length === 0)) {
                 break;
             }
             // Process each market in the response
@@ -296,7 +318,7 @@ export default class mintme extends Exchange {
         //     "timestamp": 1738613041
         // }
         // Get the market details from the symbol
-        const market = this.market (symbol);
+        const market = this.market (symbol.toUpperCase () + '_MINTME');
         // Construct the API request parameters
         const request: Dict = {
             'base_quote': market['symbol'],
@@ -336,16 +358,6 @@ export default class mintme extends Exchange {
         //         "base_volume": "0",
         //         "isFrozen": 0
         //       }
-        //     },
-        //     {
-        //       "Wrapped Fire_MINTME": {
-        //         "base_id": 15055,
-        //         "quote_id": 1,
-        //         "last_price": "0",
-        //         "quote_volume": "0",
-        //         "base_volume": "0",
-        //         "isFrozen": 0
-        //       }
         //     }
         // ]
         let offset = 0;
@@ -377,40 +389,39 @@ export default class mintme extends Exchange {
     /**
      * Fetches the most recent completed trades for a given market pair.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/open/trades/{markets_pair}
-     * @param {string} symbol - The market symbol (e.g., 'BTC/MINTME').
+     * @param {string} symbol - The market symbol (e.g., 'Rrush', 'THOR).
+     * @param {string} pair - The pair symbol (e.g., 'mintme', 'btc').
      * @param {object} [params] - Additional parameters for the API request.
      * @returns {Promise<Trade[]>} - A list of completed trades, including price, volume, timestamp, and trade type.
      * @throws {ExchangeError} - If the API response is empty.
      */
-    async fetchCompletedTrades (symbol: string, params = {}): Promise<Trade[]> {
+    async fetchCompletedTrades (symbol: string, pair:string, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         // [
-        //   {
-        //     "trade_id": 744857,
-        //     "price": "0.000100000000000000",
-        //     "base_volume": "100.000000000000000000",
-        //     "quote_volume": "0.010000000000000000",
-        //     "timestamp": 1736814042,
-        //     "type": "buy"
-        //   },
-        //   {
-        //     "trade_id": 744794,
-        //     "price": "0.000100000000000000",
-        //     "base_volume": "100.000000000000000000",
-        //     "quote_volume": "0.010000000000000000",
-        //     "timestamp": 1736629943,
-        //     "type": "buy"
-        //   }
+        //     {
+        //       id: '1025005',
+        //       symbol: 'Rrush_MINTME',
+        //       price: 4.95,
+        //       amount: 5.0403,
+        //       cost: 24.949485,
+        //       timestamp: 1739519424,
+        //       datetime: '1970-01-21T03:11:59.424Z',
+        //       side: 'buy'
+        //     }
         // ]
-        const market = this.market (symbol);
-        const request: Dict = {
-            'market': market['symbol'],
-        };
-        const response = await this.publicGetTradesMarket (this.extend (request, params));
-        if (!response) {
-            throw new ExchangeError (this.id + ' fetchCompletedTrades returned an empty response');
+        const marketPair = `${symbol}_${pair.toUpperCase ()}`;
+        const market = this.market (marketPair);
+        if (!market) {
+            throw new ExchangeError (this.id + ' fetchCompletedTrades() market not found for' + marketPair);
         }
-        return this.parseCompletedOrder (response, symbol);
+        const request: Dict = {
+            'market_pair': marketPair,
+        };
+        const response = await this.publicGetTradesMarketPair (this.extend (request, params));
+        if (!response) {
+            throw new ExchangeError (this.id + ' fetchCompletedTrades() returned an empty response');
+        }
+        return this.parseCompletedOrder (response, marketPair);
     }
 
     /**
@@ -428,12 +439,16 @@ export default class mintme extends Exchange {
         while (true) {
             const request = this.extend ({ offset, limit }, params);
             const response = await this.privateGetCurrencies (request);
-            if (!response || response.length === 0) {
+            if ((!response) || (response.length === 0)) {
                 break;
             }
             // Parse the response and merge it into the result object
             const parsedCurrencies = this.parseCurrencies (response);
-            Object.assign (result, parsedCurrencies);
+            const keys = Object.keys (parsedCurrencies);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                result[key] = parsedCurrencies[key];
+            }
             offset += limit;
         }
         return result;
@@ -442,7 +457,7 @@ export default class mintme extends Exchange {
     /**
      * Fetches details of a specific currency by its symbol.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/auth/currencies/{name}
-     * @param {string} symbol - The currency symbol (e.g., 'BTC', 'ETH', 'MINTME').
+     * @param {string} symbol - The currency symbol (e.g., 'Aurah', 'CoDan', 'GAMER').
      * @param {object} [params] - Additional parameters for the API request.
      * @returns {Promise<Currency>} - A promise that resolves to the detailed currency data.
      * @throws {ExchangeError} - If the API response is empty or an error occurs.
@@ -450,26 +465,23 @@ export default class mintme extends Exchange {
     async fetchCurrency (symbol: string, params = {}) {
         await this.loadMarkets ();
         // {
-        //     "id": 67955,
-        //     "name": "auto4541224578",
-        //     "priceDecimals": null,
-        //     "hasTax": false,
-        //     "isPausable": false,
-        //     "depositsDisabled": false,
-        //     "withdrawalsDisabled": false,
-        //     "tradesDisabled": false,
-        //     "type": "common",
-        //     "bondingCurvePool": null,
-        //     "symbol": "auto4541224578",
-        //     "deploymentStatus": "deployed",
-        //     "blocked": false,
-        //     "quiet": false,
-        //     "availableContentReward": false,
-        //     "bondingCurveType": false,
-        //     "networks": [
-        //       "SOL",
-        //       "MINTME"
-        //     ]
+        //     id: 10504,
+        //     name: 'GAMER',
+        //     priceDecimals: undefined,
+        //     hasTax: false,
+        //     isPausable: false,
+        //     depositsDisabled: false,
+        //     withdrawalsDisabled: false,
+        //     tradesDisabled: false,
+        //     type: 'common',
+        //     bondingCurvePool: undefined,
+        //     symbol: 'GAMER',
+        //     deploymentStatus: 'deployed',
+        //     blocked: false,
+        //     quiet: false,
+        //     availableContentReward: false,
+        //     bondingCurveType: false,
+        //     networks: [ 'MINTME' ]
         // }
         const request: Dict = {
             'name': symbol,
@@ -485,26 +497,26 @@ export default class mintme extends Exchange {
     /**
      * Fetches market information for a specific trading pair.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/auth/markets/{base}/{quote}
-     * @param {string} symbol - The market symbol (e.g., 'BTC_MINTME').
+     * @param {string} base - The market base (e.g., 'mintme').
+     * @param {string} quote - The market quote (e.g., 'btc').
      * @param {string} interval - The time interval for market data (e.g., '1d', '1h').
      * @param {object} params - Additional parameters for the API request.
      * @returns {Promise<MarketInfo>} - A promise that resolves to the market data.
      * @throws {ExchangeError} - If the API response is empty or an error occurs.
      */
-    async fetchMarketInfo (symbol: string, interval: string = '1d', params = {}) {
+    async fetchMarketInfo (base: string, quote: string, interval: string = '1d', params = {}) {
         // {
-        //     "last": "0.000000000000000000",
-        //     "volume": "0.000000000000",
-        //     "open": "0.000000000000000000",
-        //     "close": "0.000000000000000000",
-        //     "high": "0.000000000000000000",
-        //     "low": "0.000000000000000000",
-        //     "deal": "0.000000000000000000",
-        //     "quote": "MINTME",
-        //     "base": "Homelify",
-        //     "buyDepth": "51.798000000000000000"
+        //     last: '0.000000030000000000',
+        //     volume: '910.517500000000000000',
+        //     open: '0.000000030000000000',
+        //     close: '0.000000030000000000',
+        //     high: '0.000000030000000000',
+        //     low: '0.000000030000000000',
+        //     deal: '0.000027315525000000',
+        //     quote: 'btc',
+        //     base: 'mintme',
+        //     buyDepth: '0.003210174469000000'
         // }
-        const [ base, quote ] = symbol.split ('_');
         const request: Dict = {
             'interval': interval,
             'base': base,
@@ -521,8 +533,8 @@ export default class mintme extends Exchange {
     /**
      * Fetches active market orders for a given trading pair.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/auth/orders/active
-     * @param {string} base - The base currency (e.g., 'BTC').
-     * @param {string} quote - The quote currency (e.g., 'MINTME').
+     * @param {string} base - The base currency (e.g., 'btc').
+     * @param {string} quote - The quote currency (e.g., 'mintme').
      * @param {string} side - The order side ('buy' or 'sell').
      * @param {number} offset - The starting offset for pagination.
      * @param {number} limit - The number of results to return (max limit depends on API).
@@ -533,44 +545,17 @@ export default class mintme extends Exchange {
     async fetchActiveMarketOrder (base: string, quote: string, side: string, offset: number = 0, limit: number = 101, params = {}) {
         await this.loadMarkets ();
         // [
-        //   {
-        //     "id": 2418501,
-        //     "timestamp": 1738542721,
-        //     "createdTimestamp": 1738542721,
-        //     "side": 2,
-        //     "amount": "12.293000000000000000",
-        //     "price": "5.000000000000",
-        //     "fee": "0.003000000000000000",
-        //     "market": {
-        //       "base": {
-        //         "id": 67955,
-        //         "name": "auto4541224578",
-        //         "priceDecimals": null,
-        //         "hasTax": false,
-        //         "isPausable": false,
-        //         "depositsDisabled": false,
-        //         "withdrawalsDisabled": false,
-        //         "tradesDisabled": false,
-        //         "type": "common",
-        //         "bondingCurvePool": null,
-        //         "symbol": "auto4541224578",
-        //         "deploymentStatus": "deployed",
-        //         "blocked": false,
-        //         "quiet": false,
-        //         "availableContentReward": false,
-        //         "bondingCurveType": false,
-        //         "networks": [
-        //           "SOL",
-        //           "MINTME"
-        //         ]
-        //       },
-        //       "quote": {
-        //         "id": 1,
-        //         "name": "MintMe Coin",
-        //         "symbol": "MINTME"
-        //       }
-        //     }
-        //   }
+        //  {
+        //      id: '3462456',
+        //      timestamp: '1739581056',
+        //      createdTimestamp: '1738605874',
+        //      side: 2,
+        //      amount: '32887.482500000000000000',
+        //      price: '0.000000030000000000',
+        //      fee: '0.002000000000000000',
+        //      market: { base: [Object] },
+        //      quote: { id: '2', name: 'Bitcoin', symbol: 'BTC' }
+        //  }
         // ]
         const symbol = `${base}_${quote}`;
         const market = this.market (symbol.toUpperCase ());
@@ -596,8 +581,8 @@ export default class mintme extends Exchange {
     /**
      * Fetches finished market orders for a given trading pair.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/auth/orders/finished
-     * @param {string} base - The base currency (e.g., 'BTC').
-     * @param {string} quote - The quote currency (e.g., 'MINTME').
+     * @param {string} base - The base currency (e.g., 'btc').
+     * @param {string} quote - The quote currency (e.g., 'mintme').
      * @param {number} lastId - The ID of the last finished order, used for pagination.
      * @param {number} limit - The number of results to return (max limit depends on API).
      * @param {object} params - Additional parameters for the API request.
@@ -608,41 +593,15 @@ export default class mintme extends Exchange {
         await this.loadMarkets ();
         // [
         //     {
-        //       "id": 742223,
-        //       "timestamp": 1730652193,
-        //       "createdTimestamp": null,
-        //       "side": 2,
-        //       "amount": "99.400000000000000000",
-        //       "price": "7.000000000000",
-        //       "fee": "0.000000000000000000",
-        //       "market": {
-        //         "base": {
-        //           "id": 61691,
-        //           "name": "auto31124183815",
-        //           "priceDecimals": null,
-        //           "hasTax": false,
-        //           "isPausable": false,
-        //           "depositsDisabled": false,
-        //           "withdrawalsDisabled": false,
-        //           "tradesDisabled": false,
-        //           "type": "common",
-        //           "bondingCurvePool": null,
-        //           "symbol": "auto31124183815",
-        //           "deploymentStatus": "deployed",
-        //           "blocked": false,
-        //           "quiet": false,
-        //           "availableContentReward": false,
-        //           "bondingCurveType": false,
-        //           "networks": [
-        //             "MINTME"
-        //           ]
-        //         },
-        //         "quote": {
-        //           "id": 1,
-        //           "name": "MintMe Coin",
-        //           "symbol": "MINTME"
-        //         }
-        //       }
+        //       id: '1025094',
+        //       timestamp: '1739581056',
+        //       createdTimestamp: null,
+        //       side: 2,
+        //       amount: '910.517500000000000000',
+        //       price: '0.000000030000000000',
+        //       fee: '0.000000000000000000',
+        //       market: { base: [Object] },
+        //       quote: { id: '2', name: 'Bitcoin', symbol: 'BTC' }
         //     }
         // ]
         const symbol = `${base}_${quote}`;
@@ -795,7 +754,7 @@ export default class mintme extends Exchange {
     /**
      * Creates a new limit order.
      * @see https://www.mintme.com/dev/documentation/v2 dev/api/v2/auth/user/orders
-     * @param {string} symbol - The trading pair symbol (e.g., "BTC/USDT").
+     * @param {string} symbol - The trading pair symbol (e.g., "btc/usdt").
      * @param {OrderType} type - The order type (only "limit" is supported).
      * @param {OrderSide} side - The order side ("buy" or "sell").
      * @param {Num} price - The order price.
@@ -817,7 +776,7 @@ export default class mintme extends Exchange {
             throw new BadRequest (this.id + ' createOrder() only supports "limit" orders');
         }
         const [ base, quote ] = symbol.split ('/');
-        const market = this.market (`${base}_${quote}`);
+        const market = this.market (`${base.toUpperCase ()}_${quote.toUpperCase ()}`);
         const request: Dict = {
             'base': base,
             'quote': quote,
@@ -884,15 +843,6 @@ export default class mintme extends Exchange {
         //     "SOL": "Hz1fRdRRgSbgKRtXHhDPtALFVCuR79baqsczpvLPxfze",
         //     "CFX": "0xda60fekj0cba9356f6800c11de2ae01cd03cdc43",
         //     "BASE": "0xda60fefldcba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKETH": "0xda60fefn0cba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKBNB": "0xda60fef8mcba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKMINTME": "0xda60fef50cba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKCRO": "0xda60fef80cba9396f6800c11de2ae98cd03cdc43",
-        //     "TOKAVAX": "0xda60fef80cba9356f6800c118a2ae01cd03cdc43",
-        //     "TOKARB": "0xda60fef8dcba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKBASE": "0xda60fefvzcba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKCFX": "0xda60fad80cba9356f6800c11de2ae01cd03cdc43",
-        //     "TOKMATIC": "0xda60hlf80cba9356f6800c11de2ae01cd03cdc43"
         // }
         const response = await this.privateGetUserWalletAddresses (params);
         if ((!response) || (Object.keys (response).length === 0)) {
@@ -931,67 +881,6 @@ export default class mintme extends Exchange {
         //     "BTC": {
         //       "available": "0.100000000000000000",
         //       "freeze": "0.000000000000000000"
-        //     },
-        //     "ETH": {
-        //       "bonus": "0.000000000000000000",
-        //       "available": "0.100000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "USDC": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "BNB": {
-        //       "available": "0.100000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "CRO": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "MATIC": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "USDT": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "AVAX": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "ARB": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "SOL": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "CFX": {
-        //       "available": "0.000000000000000000",
-        //       "freeze": "0.000000000000000000"
-        //     },
-        //     "Tok7": {
-        //       "bonus": "0.000000000000",
-        //       "available": "0.000000000000",
-        //       "freeze": "0.000000000000"
-        //     },
-        //     "auto4541224578": {
-        //       "bonus": "0.000000000000",
-        //       "available": "145.003600000000",
-        //       "freeze": "0.000000000000"
-        //     },
-        //     "auto31124183815": {
-        //       "bonus": "0.000000000000",
-        //       "available": "0.000000000000",
-        //       "freeze": "0.000000000000"
-        //     },
-        //     "Testtok": {
-        //       "bonus": "0.000000000000",
-        //       "available": "0.000000000000",
-        //       "freeze": "0.000000000000"
         //     }
         // }
         const result: Balances = {
@@ -1058,31 +947,6 @@ export default class mintme extends Exchange {
         //       "isBonus": false,
         //       "address": "0xa54a326a46940997ad86244318f9d174aae90811",
         //       "feeCurrency": "MINTME"
-        //     },
-        //     {
-        //       "date": "2025-02-05T04:05:52+01:00",
-        //       "hash": null,
-        //       "blockchain": {
-        //         "id": 1,
-        //         "name": "MintMe Coin",
-        //         "symbol": "MINTME"
-        //       },
-        //       "amount": "5.000000000000000000",
-        //       "fee": "0.000000000000000000",
-        //       "tradable": {
-        //         "id": 1,
-        //         "name": "MintMe Coin",
-        //         "symbol": "MINTME"
-        //       },
-        //       "status": {
-        //         "statusCode": "paid"
-        //       },
-        //       "type": {
-        //         "typeCode": "deposit"
-        //       },
-        //       "isBonus": false,
-        //       "address": "0xda60fef80cba9356f6800c11de2ae01cd03cdc43",
-        //       "feeCurrency": "MINTME"
         //     }
         // ]
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
@@ -1115,6 +979,80 @@ export default class mintme extends Exchange {
             });
         }
         return result;
+    }
+
+    /**
+     * Fetches the trading fee for a given market symbol and type.
+     * @see https://www.mintme.com/kb/Trading-fees
+     * @param {string} symbol - The trading pair symbol (e.g., "usdt", "mintme").
+     * @param {string} type - The type of trading (e.g., "quick", "regular").
+     * @param {Record<string, any>} params - Additional request parameters.
+     * @returns {Promise<TradingFeeInterface>} A promise resolving to an object containing trading fee details.
+     */
+    async fetchTradingFee (symbol: string, type = 'regular', params: {} = {}): Promise<TradingFeeInterface> {
+        if (!this.fees.trading[type]) {
+            throw new Error (`Unknown trading type: ${type}`);
+        }
+        // {
+        //     symbol: 'USDT',
+        //     maker: 0.005,
+        //     taker: 0.005,
+        //     percentage: true,
+        //     tierBased: false,
+        //     info: { maker: 0.005, taker: 0.005 }
+        // }
+        return {
+            'symbol': symbol.toUpperCase (),
+            'maker': this.fees.trading[type].maker,
+            'taker': this.fees.trading[type].taker,
+            'percentage': true,
+            'tierBased': false,
+            'info': {
+                'maker': this.fees.trading[type].maker,
+                'taker': this.fees.trading[type].taker,
+            },
+        };
+    }
+
+    /**
+     * Fetches the withdrawal fee for a given currency and network.
+     * @see https://www.mintme.com/kb/Trading-fees
+     * @param {string} currency - The currency code (e.g., "usdt" ,"btc", "mintme").
+     * @param {string} network - The blockchain network (e.g., "BNB Smart Chain").
+     * @returns {Promise<{ symbol: string, network: string, fee: number | boolean }>}
+     * A promise resolving to an object containing withdrawal fee details.
+     */
+    async fetchWithdrawalFee (currency, network) {
+        const currencySymbol = currency.toUpperCase ();
+        const withdrawFees = this.fees.funding.withdraw[currencySymbol];
+        // [
+        //     {
+        //         symbol: 'USDT',
+        //         network: 'BNB Smart Chain',
+        //         fee: 2,
+        //     },
+        //     {
+        //         symbol: 'SOL',
+        //         network: 'Solana',
+        //         fee: 0.008,
+        //     }
+        // ]
+        if (!withdrawFees) {
+            return {
+                'symbol': currencySymbol,
+                'network': network,
+                'fee': false,
+            };
+        }
+        const fee = this.safeValue (withdrawFees, network, false);
+        if (fee === false) {
+            console.warn (`no withdrawl fee found for ${currencySymbol} on ${network}`);
+        }
+        return {
+            'symbol': currencySymbol,
+            'network': network,
+            'fee': fee,
+        };
     }
 
     /**
@@ -1546,46 +1484,55 @@ export default class mintme extends Exchange {
      * @throws {ExchangeError} If the withdrawal tag is not supported.
      */
     async withdraw (code: string, amount: number, address: string, network: string, tag = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const request: Dict = {
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'network': network,
-        };
-        if (tag !== undefined) {
-            throw new ExchangeError (
-                this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing on behalf of the exchange.'
-            );
-        }
-        const response = await this.privatePostUserWalletWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': undefined,
-            'txid': undefined,
-            'type': undefined,
-            'currency': undefined,
-            'network': undefined,
-            'amount': undefined,
-            'status': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'address': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tag': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'updated': undefined,
-            'comment': undefined,
-            'fee': {
+        try {
+            [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+            this.checkAddress (address);
+            await this.loadMarkets ();
+            const request: Dict = {
+                'currency': code,
+                'amount': amount,
+                'address': address,
+                'network': network,
+            };
+            if (tag !== undefined) {
+                throw new ExchangeError (
+                    this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing on behalf of the exchange.'
+                );
+            }
+            const response = await this.privatePostUserWalletWithdraw (this.extend (request, params));
+            return {
+                'info': response,
+                'id': undefined,
+                'txid': undefined,
+                'type': undefined,
                 'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
-        } as Transaction;
+                'network': undefined,
+                'amount': undefined,
+                'status': undefined,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'address': undefined,
+                'addressFrom': undefined,
+                'addressTo': undefined,
+                'tag': undefined,
+                'tagFrom': undefined,
+                'tagTo': undefined,
+                'updated': undefined,
+                'comment': undefined,
+                'fee': {
+                    'currency': undefined,
+                    'cost': undefined,
+                    'rate': undefined,
+                },
+            } as Transaction;
+        } catch (error: any) {
+            if (error.message.indexOf ('Minimum withdrawal amount is') !== -1) {
+                throw new ExchangeError (
+                    `Withdrawal failed: ${error.message} - Please increase your withdrawal amount.`
+                );
+            }
+            throw new ExchangeError (`Withdrawal failed: ${error.message}`);
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
