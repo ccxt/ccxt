@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { AuthenticationError } from '../base/errors.js';
-import type { Dict, Int, Trade } from '../base/types.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import type { Dict, Int, OHLCV, Trade } from '../base/types.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -20,7 +20,7 @@ export default class coindcx extends coindcxRest {
                 'watchTradesForSymbols': false,
                 'watchOrderBook': false,
                 'watchOrderBookForSymbols': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': false,
                 'watchMyTrades': false,
@@ -39,18 +39,20 @@ export default class coindcx extends coindcxRest {
             },
             'options': {
                 'timeframes': {
-                    '1m': '60s',
-                    '3m': '180s',
-                    '5m': '300s',
-                    '15m': '900s',
-                    '30m': '1800s',
-                    '1h': '3600s',
-                    '2h': '7200s',
-                    '4h': '14400s',
-                    '6h': '21600s',
-                    '12h': '43200s',
-                    '1d': '86400s',
+                    '1m': '1m',
+                    '5m': '5m',
+                    '15m': '15m',
+                    '30m': '30m',
+                    '1h': '1h',
+                    '4h': '4h',
+                    '8h': '8h',
+                    '1d': '1d',
+                    '3d': '3d',
+                    '1w': '1w',
+                    '1M': '1M',
                 },
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
             },
             'streaming': {
                 'ping': this.ping,
@@ -102,11 +104,12 @@ export default class coindcx extends coindcxRest {
         //     }
         //
         const data = this.safeDict (message, 'data');
+        const event = this.safeString (message, 'event');
         const timestamp = this.safeInteger (data, 'T');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = 'new-trade:' + symbol;
+        const messageHash = event + ':' + symbol;
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
@@ -157,6 +160,94 @@ export default class coindcx extends coindcxRest {
         }, market);
     }
 
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name coindcx#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.coindcx.com/#get-candlestick-info
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '4h') && (timeframe !== '8h') && (timeframe !== '1d') && (timeframe !== '3d') && (timeframe !== '1w') && (timeframe !== '1M')) {
+            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const channelName = marketId + '_' + interval;
+        const messageHash = 'candlestick:' + symbol;
+        const request: Dict = {
+            'type': 'subscribe',
+            'channelName': channelName,
+        };
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     event: 'candlestick',
+        //     data: {
+        //         B: '0',
+        //         L: 2161896984,
+        //         Q: '19756.34672800',
+        //         T: 1739742599999,
+        //         V: '7.35570000',
+        //         c: '2686.18000000',
+        //         channel: 'B-ETH_USDT_1m',
+        //         ecode: 'B',
+        //         f: 2161896848,
+        //         h: '2686.18000000',
+        //         i: '1m',
+        //         l: '2685.80000000',
+        //         n: 137,
+        //         o: '2685.80000000',
+        //         pr: 'spot',
+        //         q: '21310.62066800',
+        //         s: 'ETHUSDT',
+        //         t: 1739742540000,
+        //         v: '7.93440000',
+        //         x: false
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const event = this.safeString (message, 'event');
+        const channel = this.safeString (data, 'channel');
+        const parts = channel.split ('_');
+        const marketId = parts[0] + '_' + parts[1];
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timeframe = this.safeString (data, 'i');
+        const messageHash = event + ':' + symbol;
+        const parsed = [
+            this.safeInteger (data, 't'),
+            this.safeFloat (data, 'o'),
+            this.safeFloat (data, 'h'),
+            this.safeFloat (data, 'l'),
+            this.safeFloat (data, 'c'),
+            this.safeFloat (data, 'v'),
+        ];
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -164,6 +255,7 @@ export default class coindcx extends coindcxRest {
         const event = this.safeString (message, 'event');
         const methods: Dict = {
             'new-trade': this.handleTrade,
+            'candlestick': this.handleOHLCV,
         };
         if (event in methods) {
             const method = methods[event];
