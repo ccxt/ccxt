@@ -1730,7 +1730,6 @@ export default class Exchange {
         return Promise.all (tasks);
     }
 
-    describe () {
     describe (): any {
         return {
             'id': undefined,
