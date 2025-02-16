@@ -4332,7 +4332,7 @@ func  (this *bybit) CreateOrderRequest(symbol interface{}, typeVar interface{}, 
             } else if IsTrue(!IsEqual(price, nil)) {
                 AddElementToObject(request, "qty", this.GetCost(symbol, Precise.StringMul(amountString, priceString)))
             } else {
-                AddElementToObject(request, "qty", this.GetCost(symbol, this.NumberToString(amount)))
+                AddElementToObject(request, "qty", amountString)
             }
         }
     } else {

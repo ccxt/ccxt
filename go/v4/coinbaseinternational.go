@@ -19,7 +19,7 @@ func  (this *coinbaseinternational) Describe() interface{}  {
         "id": "coinbaseinternational",
         "name": "Coinbase International",
         "countries": []interface{}{"US"},
-        "certified": true,
+        "certified": false,
         "pro": true,
         "rateLimit": 100,
         "version": "v1",

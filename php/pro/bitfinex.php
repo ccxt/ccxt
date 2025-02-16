@@ -15,7 +15,7 @@ use \React\Promise\PromiseInterface;
 
 class bitfinex extends \ccxt\async\bitfinex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

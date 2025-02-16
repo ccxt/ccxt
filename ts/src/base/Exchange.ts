@@ -1731,6 +1731,7 @@ export default class Exchange {
     }
 
     describe () {
+    describe (): any {
         return {
             'id': undefined,
             'name': undefined,
@@ -7433,7 +7434,8 @@ export default class Exchange {
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit);
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     getMarketFromSymbols (symbols: Strings = undefined) {

@@ -10,7 +10,7 @@ import { ExchangeError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

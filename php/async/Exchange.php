@@ -45,11 +45,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.58';
+$version = '4.4.59';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.58';
+    const VERSION = '4.4.59';
 
     public $browser;
     public $marketsLoading = null;
@@ -356,64 +356,7 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function setup_stream() {
-        /**
-         * @ignore
-         * setup the $stream object $options and create subscriptions so the streams of multiple symbols publish to the individual ones
-         */
-        $stream = $this->stream;
-        if ($this->stream === null) {
-            return;
-        }
-        $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
-        $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'), true);
-        $stream->subscribe ('orders', $this->stream_to_symbol('orders'), true);
-        $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
-        $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
-        $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
-        $stream->subscribe ('ohlcvs', $this->stream_ohlcvs(), true);
-        $stream->subscribe ('liquidations', $this->stream_to_symbol('liquidations'), true);
-        $stream->subscribe ('myLiquidations', $this->stream_to_symbol('myLiquidations'), true);
-        $options = $this->safe_dict($this->options, 'streaming', array());
-        $reconnect = $this->safe_bool($options, 'autoreconnect', true);
-        if ($reconnect) {
-            $stream->subscribe ('errors', $this->stream_reconnect_on_error(), true);
-        }
-    }
-
-    public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
-        /**
-         * @ignore
-         * produce a message to a $topic of the $stream
-         * @return array(bool | null)
-         */
-        $stream = $this->stream;
-        $stream->produce ($topic, $payload, $error);
-    }
-
-    public function stream_reconnect() {
-        /**
-         * @ignore
-         * Calls all watchFunctions that were being used.
-         * @return array(bool | null)
-         */
-        if ($this->verbose) {
-            $this->log('Stream reconnecting active watch functions');
-        }
-        $stream = $this->stream;
-        $activeFunctions = $stream->active_watch_functions;
-        $tasks = array();
-        for ($i = 0; $i < count($activeFunctions); $i++) {
-            $activeFunction = $activeFunctions[$i];
-            $method = $this->safe_string($activeFunction, 'method');
-            $args = $this->safe_list($activeFunction, 'args');
-            $future = $this->spawn($this->$method, ...$args);
-            $tasks[] = $future;
-        }
-        return Promise\all($tasks);
-    }
-
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,
@@ -6204,7 +6147,8 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit);
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function get_market_from_symbols(?array $symbols = null) {

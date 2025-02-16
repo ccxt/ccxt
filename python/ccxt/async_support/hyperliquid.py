@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
 import math
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class hyperliquid(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -77,7 +77,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -3228,6 +3228,86 @@ class hyperliquid(Exchange, ImplicitAPI):
             'datetime': None,
             'info': interest,
         }, market)
+
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        userAddress = None
+        userAddress, params = self.handle_public_address('fetchFundingHistory', params)
+        request: dict = {
+            'user': userAddress,
+            'type': 'userFunding',
+        }
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if until is not None:
+            request['endTime'] = until
+        response = await self.publicPostInfo(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "time": 1734026400057,
+        #         "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        #         "delta": {
+        #             "type": "funding",
+        #             "coin": "SOL",
+        #             "usdc": "75.635093",
+        #             "szi": "-7375.9",
+        #             "fundingRate": "0.00004381",
+        #             "nSamples": null
+        #         }
+        #     }
+        # ]
+        #
+        return self.parse_incomes(response, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #     "time": 1734026400057,
+        #     "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        #     "delta": {
+        #         "type": "funding",
+        #         "coin": "SOL",
+        #         "usdc": "75.635093",
+        #         "szi": "-7375.9",
+        #         "fundingRate": "0.00004381",
+        #         "nSamples": null
+        #     }
+        # }
+        #
+        id = self.safe_string(income, 'hash')
+        timestamp = self.safe_integer(income, 'time')
+        delta = self.safe_dict(income, 'delta')
+        baseId = self.safe_string(delta, 'coin')
+        marketSymbol = baseId + '/USDC:USDC'
+        market = self.safe_market(marketSymbol)
+        symbol = market['symbol']
+        amount = self.safe_string(delta, 'usdc')
+        code = self.safe_currency_code('USDC')
+        rate = self.safe_number(delta, 'fundingRate')
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': self.parse_number(amount),
+            'rate': rate,
+        }
 
     def extract_type_from_delta(self, data=[]):
         records = []

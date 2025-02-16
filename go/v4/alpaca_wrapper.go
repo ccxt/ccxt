@@ -643,6 +643,7 @@ func (this *Alpaca) EditOrder(id string, symbol string, typeVar string, side str
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
+ * @param {string} [params.page_token] page_token - used for paging
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
 func (this *Alpaca) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {

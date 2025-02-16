@@ -14,7 +14,7 @@ import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, Orde
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
             'name': 'luno',

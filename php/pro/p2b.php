@@ -13,7 +13,7 @@ use \React\Promise\PromiseInterface;
 
 class p2b extends \ccxt\async\p2b {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

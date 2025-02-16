@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class bitget extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -1750,7 +1750,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicCommonGetV2PublicTime (params);
         //
         //     {
@@ -9308,7 +9308,7 @@ export default class bitget extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            headers['PAPTRADING'] = 1;
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -6,14 +6,14 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
-from ccxt.base.types import Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class ndax(ccxt.async_support.ndax):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(ndax, self).describe(), {
             'has': {
                 'ws': True,

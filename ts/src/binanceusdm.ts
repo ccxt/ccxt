@@ -7,7 +7,7 @@ import { InvalidOrder } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',

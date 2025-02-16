@@ -629,7 +629,7 @@ class vertex extends vertex$1 {
     async fetchTime(params = {}) {
         const response = await this.v1GatewayGetTime(params);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
     /**
      * @method

@@ -658,7 +658,8 @@
     "coinbaseinternational": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "i.e. coinbase does not have currency code TIA"
+                "currencyIdAndCode": "i.e. coinbase does not have currency code TIA",
+                "max": "zero values"
             },
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -1674,6 +1675,7 @@
     "coinlist": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode":"https://github.com/ccxt/ccxt/actions/runs/13326043833/job/37219610640?pr=25274#step:9:215",
                 "precision": "ammount is sometimes 0"
             },
             "ticker": {
@@ -1723,7 +1725,8 @@
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined",
-                "currencyIdAndCode": "different"
+                "currencyIdAndCode": "different",
+                "limits": "incorrect for some currencies"
             },
             "fetchTrades": {
                 "side": "not set"

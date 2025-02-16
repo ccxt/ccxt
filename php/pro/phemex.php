@@ -13,7 +13,7 @@ use \React\Promise\PromiseInterface;
 
 class phemex extends \ccxt\async\phemex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

@@ -10,7 +10,7 @@ use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
             'name' => 'BIT.TEAM',

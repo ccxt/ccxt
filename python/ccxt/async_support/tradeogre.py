@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tradeogre import ImplicitAPI
-from ccxt.base.types import IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
+from ccxt.base.types import Any, IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -17,7 +17,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class tradeogre(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(tradeogre, self).describe(), {
             'id': 'tradeogre',
             'name': 'tradeogre',

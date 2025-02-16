@@ -4110,7 +4110,7 @@ export default class bybit extends Exchange {
                     request['qty'] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
                 }
                 else {
-                    request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                    request['qty'] = amountString;
                 }
             }
         }

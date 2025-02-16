@@ -10,7 +10,7 @@ use ccxt\abstract\phemex as Exchange;
 
 class phemex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',

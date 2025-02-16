@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.58'
+__version__ = '4.4.59'
 
 # -----------------------------------------------------------------------------
 
@@ -1792,57 +1792,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def setup_stream(self):
-        """
- @ignore
-        setup the stream object options and create subscriptions so the streams of multiple symbols publish to the individual ones
-        """
-        stream = self.stream
-        if self.stream is None:
-            return
-        stream.subscribe('tickers', self.stream_to_symbol('tickers'), True)
-        stream.subscribe('orderbooks', self.stream_to_symbol('orderbooks'), True)
-        stream.subscribe('orders', self.stream_to_symbol('orders'), True)
-        stream.subscribe('positions', self.stream_to_symbol('positions'), True)
-        stream.subscribe('trades', self.stream_to_symbol('trades'), True)
-        stream.subscribe('myTrades', self.stream_to_symbol('myTrades'), True)
-        stream.subscribe('ohlcvs', self.stream_ohlcvs(), True)
-        stream.subscribe('liquidations', self.stream_to_symbol('liquidations'), True)
-        stream.subscribe('myLiquidations', self.stream_to_symbol('myLiquidations'), True)
-        options = self.safe_dict(self.options, 'streaming', {})
-        reconnect = self.safe_bool(options, 'autoreconnect', True)
-        if reconnect:
-            stream.subscribe('errors', self.stream_reconnect_on_error(), True)
-
-    def stream_produce(self, topic: str, payload: Any = None, error: Any = None):
-        """
- @ignore
-        produce a message to a topic of the stream
-        :returns bool | None:
-        """
-        stream = self.stream
-        stream.produce(topic, payload, error)
-
-    def stream_reconnect(self):
-        """
- @ignore
-        Calls all watchFunctions that were being used.
-        :returns bool | None:
-        """
-        if self.verbose:
-            self.log('Stream reconnecting active watch functions')
-        stream = self.stream
-        activeFunctions = stream.active_watch_functions
-        tasks = []
-        for i in range(0, len(activeFunctions)):
-            activeFunction = activeFunctions[i]
-            method = self.safe_string(activeFunction, 'method')
-            args = self.safe_list(activeFunction, 'args')
-            future = self.spawn(getattr(self, method), *args)
-            tasks.append(future)
-        return asyncio.gather(*tasks)
-
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,
@@ -6465,7 +6415,8 @@ class Exchange(object):
             parsed = self.parse_income(entry, market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def get_market_from_symbols(self, symbols: Strings = None):
         if symbols is None:

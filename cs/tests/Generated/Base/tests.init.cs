@@ -9,6 +9,7 @@ public partial class BaseTest
         public void baseTestsInit()
         {
             testLanguageSpecific();
+            testAfterConstructor();
             testExtend();
             testDeepExtend();
             testCryptography();
