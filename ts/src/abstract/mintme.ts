@@ -12,8 +12,7 @@ interface Exchange {
     publicGetOrderbookBaseQuote (params?: {}): Promise<implicitReturnType>;
     publicGetSummary (params?: {}): Promise<implicitReturnType>;
     publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTradesMarket (params?: {}): Promise<implicitReturnType>;
-    privateGetMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetTradesMarketPair (params?: {}): Promise<implicitReturnType>;
     privateGetCurrencies (params?: {}): Promise<implicitReturnType>;
     privateGetCurrenciesName (params?: {}): Promise<implicitReturnType>;
     privateGetMarketsBaseQuote (params?: {}): Promise<implicitReturnType>;
