@@ -12,7 +12,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
  * @augments Exchange
  */
 export default class max extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'max',
             'name': 'Max',
