@@ -18,14 +18,14 @@ export default class coindcx extends coindcxRest {
                 'ws': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': false,
                 'watchMyTrades': false,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // todo if any endpoint supports it
                 'watchBalance': false,
                 'createOrderWs': false,
                 'editOrderWs': false,
@@ -249,7 +249,7 @@ export default class coindcx extends coindcxRest {
         client.resolve (stored, messageHash);
     }
 
-       async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coindcx#watchOrderBook
@@ -426,29 +426,6 @@ export default class coindcx extends coindcxRest {
     handleErrorMessage (client: Client, message) {
         if (!('error' in message)) {
             return false;
-        }
-        const success = this.safeBool (message, 'success');
-        if (success) {
-            return false;
-        }
-        const errorMessage = this.safeString (message, 'errorMsg');
-        try {
-            if (errorMessage !== undefined) {
-                const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-            }
-            return false;
-        } catch (error) {
-            if (error instanceof AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject (error, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-            } else {
-                client.reject (error);
-            }
-            return true;
         }
     }
 }
