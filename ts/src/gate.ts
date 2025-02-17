@@ -1812,14 +1812,8 @@ export default class gate extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const parts = currencyId.split ('_');
             const partFirst = this.safeString (parts, 0);
-            let currencyName = undefined;
-            // if there's an underscore then the second part is always the chain name except the _OLD suffix
-            if (currencyId.endsWith ('_OLD')) {
-                currencyName = currencyId;
-            } else {
-                // however, if there is underscore, the exceptional is 'USD_USDC' inclusive currencies
-                currencyName = partFirst;
-            }
+            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
+            const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
             const withdrawEnabled = !this.safeBool (entry, 'withdraw_disabled');
             const depositEnabled = !this.safeBool (entry, 'deposit_disabled');
             const tradeDisabled = !this.safeBool (entry, 'trade_disabled');
@@ -1834,22 +1828,10 @@ export default class gate extends Exchange {
                 }
             }
             const type = isLeveragedToken ? 'leveraged' : 'crypto';
-            // check if first entry for the specific currency
-            if (!(code in result)) {
-                result[code] = this.safeCurrencyStructure ({
-                    'id': currencyName,
-                    'lowerCaseId': currencyName.toLowerCase (),
-                    'code': code,
-                    'type': type,
-                    'precision': precision,
-                    'limits': this.limits,
-                    'info': [], // will be filled below
-                });
-            }
             // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
             const networkId = this.safeString (entry, 'chain', currencyId);
             const networkCode = this.networkIdToCode (networkId, code);
-            result[code]['networks'][networkCode] = {
+            const networkEntry = {
                 'info': entry,
                 'id': networkId,
                 'network': networkCode,
@@ -1869,7 +1851,22 @@ export default class gate extends Exchange {
                 'fee': undefined,
                 'precision': precision,
             };
+            // check if first entry for the specific currency
+            if (!(code in result)) {
+                result[code] = {
+                    'id': currencyName,
+                    'lowerCaseId': currencyName.toLowerCase (),
+                    'code': code,
+                    'type': type,
+                    'precision': precision,
+                    'limits': this.limits,
+                    'networks': {},
+                    'info': [], // will be filled below
+                };
+            }
+            result[code]['networks'][networkCode] = networkEntry;
             result[code]['info'].push (entry);
+            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
         }
         return result;
     }
