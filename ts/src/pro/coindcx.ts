@@ -3,7 +3,7 @@
 
 import coindcxRest from '../coindcx.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, OHLCV, Trade } from '../base/types.js';
+import type { Dict, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // import { Precise } from '../base/Precise.js';
@@ -53,6 +53,7 @@ export default class coindcx extends coindcxRest {
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'orderbook': {},
             },
             'streaming': {
                 'ping': this.ping,
@@ -248,14 +249,173 @@ export default class coindcx extends coindcxRest {
         client.resolve (stored, messageHash);
     }
 
+       async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coindcx#watchOrderBook
+         * @see https://docs.coindcx.com/#get-depth-update-order-book
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (only 10, 20 or 50 are valid)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws'];
+        if ((limit !== 10) && (limit !== 20) && (limit !== 50)) {
+            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be 10, 20, or 50');
+        }
+        const channelName = marketId + '@' + 'orderbook' + '@' + limit;
+        const messageHash = 'orderbook' + ':' + symbol;
+        const request: Dict = {
+            'type': 'subscribe',
+            'channelName': channelName,
+        };
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBookSnapshot (client: Client, message) {
+        //
+        //     data: {
+        //         asks: {
+        //             '2712.49': '58.6325',
+        //             '2712.5': '2.305',
+        //             '2712.51': '0.5361',
+        //             '2712.52': '3.1691',
+        //             '2712.53': '0.0038',
+        //             '2712.56': '6.0051',
+        //             '2712.57': '0.0037',
+        //             '2712.58': '0.0019',
+        //             '2712.6': '5.4436',
+        //             '2712.64': '3.9163'
+        //         },
+        //         bids: {
+        //             '2712.37': '0.6',
+        //             '2712.4': '3.043',
+        //             '2712.41': '13.922',
+        //             '2712.42': '5.2907',
+        //             '2712.43': '0.0059',
+        //             '2712.44': '0.005',
+        //             '2712.45': '0.0069',
+        //             '2712.46': '0.005',
+        //             '2712.47': '0.0588',
+        //             '2712.48': '8.4747'
+        //         },
+        //         pr: 'spot',
+        //         pts: 1739782732137,
+        //         s: 'ETHUSDT',
+        //         ts: 1739782732129,
+        //         type: 'depth-snapshot'
+        //         vs: 59180538
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const pair = this.safeString (data, 's');
+        const product = this.safeString (data, 'pr');
+        const market = this.safeMarket (pair);
+        let symbol = market['symbol'];
+        if (product === 'spot') {
+            symbol = market['symbol'] + ':' + market['quote']; // todo is it right?
+        }
+        const messageHash = 'orderbook:' + symbol;
+        const timestamp = this.safeInteger (data, 'ts');
+        const increment = this.safeInteger (data, 'vs');
+        const orderbook = this.orderBook ({});
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+        snapshot['nonce'] = increment;
+        orderbook.reset (snapshot);
+        this.options['orderbook'][symbol] = {
+            'incrementalId': increment,
+        };
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleOrderBookUpdate (client: Client, message) {
+        //
+        //     data: {
+        //         asks: {
+        //             '2712.49': '58.6325',
+        //             '2712.5': '2.305',
+        //             '2712.51': '0.5361',
+        //             '2712.52': '3.1691',
+        //             '2712.53': '0.0038',
+        //             '2712.56': '6.0051',
+        //             '2712.57': '0.0037',
+        //             '2712.58': '0.0019',
+        //             '2712.6': '5.4436',
+        //             '2712.64': '3.9163'
+        //         },
+        //         bids: {
+        //             '2712.37': '0.6',
+        //             '2712.4': '3.043',
+        //             '2712.41': '13.922',
+        //             '2712.42': '5.2907',
+        //             '2712.43': '0.0059',
+        //             '2712.44': '0.005',
+        //             '2712.45': '0.0069',
+        //             '2712.46': '0.005',
+        //             '2712.47': '0.0588',
+        //             '2712.48': '8.4747'
+        //         },
+        //         pr: 'spot',
+        //         pts: 1739782732137,
+        //         s: 'ETHUSDT',
+        //         ts: 1739782732129,
+        //         type: 'depth-update',
+        //         vs: 59180538
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const pair = this.safeString (data, 's');
+        const product = this.safeString (data, 'pr');
+        const market = this.safeMarket (pair);
+        let symbol = market['symbol'];
+        if (product === 'spot') {
+            symbol = market['symbol'] + ':' + market['quote'];
+        }
+        const increment = this.safeInteger (data, 'vs');
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const messageHash = 'orderbook:' + symbol;
+        if (increment !== storedOrderBook['nonce'] + 1) {
+            delete client.subscriptions[messageHash];
+            client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
+        }
+        const timestamp = this.safeInteger (data, 'ts');
+        const asks = this.safeValue (data, 'asks', []);
+        const bids = this.safeValue (data, 'bids', []);
+        this.handleDeltas (storedOrderBook['asks'], asks);
+        this.handleDeltas (storedOrderBook['bids'], bids);
+        storedOrderBook['timestamp'] = timestamp;
+        storedOrderBook['datetime'] = this.iso8601 (timestamp);
+        storedOrderBook['nonce'] = increment;
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        bookside.storeArray (bidAsk);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const event = this.safeString (message, 'event');
+        const event = this.safeString2 (message, 'event', 'type');
         const methods: Dict = {
             'new-trade': this.handleTrade,
             'candlestick': this.handleOHLCV,
+            'depth-snapshot': this.handleOrderBookSnapshot,
+            'depth-update': this.handleOrderBookUpdate,
         };
         if (event in methods) {
             const method = methods[event];
@@ -264,7 +424,7 @@ export default class coindcx extends coindcxRest {
     }
 
     handleErrorMessage (client: Client, message) {
-        if (!('success' in message)) {
+        if (!('error' in message)) {
             return false;
         }
         const success = this.safeBool (message, 'success');
