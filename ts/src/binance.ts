@@ -64,6 +64,7 @@ export default class binance extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -5544,6 +5545,90 @@ export default class binance extends Exchange {
         } else {
             return await this.editContractOrder (id, symbol, type, side, amount, price, params);
         }
+    }
+
+    /**
+     * @method
+     * @name binance#editOrders
+     * @description edit a list of trade orders
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            orderSymbols.push (marketId);
+            const id = this.safeString (rawOrder, 'id');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            let orderParams = this.safeDict (rawOrder, 'params', {});
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, orderParams ] = this.handleOptionAndParams2 (orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
+            if (isPortfolioMargin) {
+                throw new NotSupported (this.id + ' editOrders() does not support portfolio margin orders');
+            }
+            const orderRequest = this.editContractOrderRequest (id, marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbols[0]);
+        if (market['spot'] || market['option']) {
+            throw new NotSupported (this.id + ' editOrders() does not support ' + market['type'] + ' orders');
+        }
+        let response = undefined;
+        let request: Dict = {
+            'batchOrders': ordersRequests,
+        };
+        request = this.extend (request, params);
+        if (market['linear']) {
+            response = await this.fapiPrivatePutBatchOrders (request);
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePutBatchOrders (request);
+        }
+        //
+        //   [
+        //       {
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
+        //       {
+        //          "orderId": 650640530,
+        //          "symbol": "LTCUSDT",
+        //          "status": "NEW",
+        //          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        //          "price": "54.00",
+        //          "avgPrice": "0.00",
+        //          "origQty": "0.100",
+        //          "executedQty": "0.000",
+        //          "cumQty": "0.000",
+        //          "cumQuote": "0.00000",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "reduceOnly": false,
+        //          "closePosition": false,
+        //          "side": "BUY",
+        //          "positionSide": "BOTH",
+        //          "stopPrice": "0.00",
+        //          "workingType": "CONTRACT_PRICE",
+        //          "priceProtect": false,
+        //          "origType": "LIMIT",
+        //          "priceMatch": "NONE",
+        //          "selfTradePreventionMode": "NONE",
+        //          "goodTillDate": 0,
+        //          "updateTime": 1698073926929
+        //       }
+        //   ]
+        //
+        return this.parseOrders (response);
     }
 
     parseOrderStatus (status: Str) {
@@ -11843,7 +11928,7 @@ export default class binance extends Exchange {
             }
             let query = undefined;
             // handle batchOrders
-            if ((path === 'batchOrders') && (method === 'POST')) {
+            if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders = this.safeValue (params, 'batchOrders');
                 const queryBatch = (this.json (batchOrders));
                 params['batchOrders'] = queryBatch;
