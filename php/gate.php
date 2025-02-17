@@ -10,7 +10,7 @@ use ccxt\abstract\gate as Exchange;
 
 class gate extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',
@@ -1064,7 +1064,7 @@ class gate extends Exchange {
         return $this->privateUnifiedPutUnifiedMode ($params);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *

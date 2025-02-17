@@ -15,12 +15,12 @@ import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction,
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': [ 'US' ],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
             'version': 'v1',

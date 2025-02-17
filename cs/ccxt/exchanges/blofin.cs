@@ -312,8 +312,7 @@ public partial class blofin : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
-                            { "limit", true },
-                            { "price", null },
+                            { "price", true },
                         } },
                         { "hedged", true },
                     } },

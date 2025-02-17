@@ -6,6 +6,7 @@ package base
 
 func BaseTestsInit()  {
     TestLanguageSpecific()
+    TestAfterConstructor()
     TestExtend()
     TestDeepExtend()
     TestCryptography()
@@ -13,9 +14,9 @@ func BaseTestsInit()  {
     TestNumber()
     TestSafeMethods()
     // testJson ();
-    
+    TestSortBy()
     TestSum()
     TestOmit()
     TestGroupBy()
-    
+    TestFilterBy()
 }

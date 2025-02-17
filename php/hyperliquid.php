@@ -10,7 +10,7 @@ use ccxt\abstract\hyperliquid as Exchange;
 
 class hyperliquid extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hyperliquid',
             'name' => 'Hyperliquid',
@@ -62,7 +62,7 @@ class hyperliquid extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -598,7 +598,10 @@ class hyperliquid extends Exchange {
             $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
             $amountPrecision = intval($amountPrecisionStr);
             $price = $this->safe_number($extraData, 'midPx');
-            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            $pricePrecision = 0;
+            if ($price !== null) {
+                $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            }
             $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
             $baseId = $this->number_to_string($index + 10000);
@@ -699,7 +702,10 @@ class hyperliquid extends Exchange {
         $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
         $amountPrecision = intval($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
-        $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecision = 0;
+        if ($price !== null) {
+            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        }
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
         $isDelisted = $this->safe_bool($market, 'isDelisted');
         $active = true;
@@ -3378,6 +3384,91 @@ class hyperliquid extends Exchange {
             'datetime' => null,
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchFundingHistory', $params);
+        $request = array(
+            'user' => $userAddress,
+            'type' => 'userFunding',
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        // array(
+        //     {
+        //         "time" => 1734026400057,
+        //         "hash" => "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //         "delta" => {
+        //             "type" => "funding",
+        //             "coin" => "SOL",
+        //             "usdc" => "75.635093",
+        //             "szi" => "-7375.9",
+        //             "fundingRate" => "0.00004381",
+        //             "nSamples" => null
+        //         }
+        //     }
+        // )
+        //
+        return $this->parse_incomes($response, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //     "time" => 1734026400057,
+        //     "hash" => "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //     "delta" => {
+        //         "type" => "funding",
+        //         "coin" => "SOL",
+        //         "usdc" => "75.635093",
+        //         "szi" => "-7375.9",
+        //         "fundingRate" => "0.00004381",
+        //         "nSamples" => null
+        //     }
+        // }
+        //
+        $id = $this->safe_string($income, 'hash');
+        $timestamp = $this->safe_integer($income, 'time');
+        $delta = $this->safe_dict($income, 'delta');
+        $baseId = $this->safe_string($delta, 'coin');
+        $marketSymbol = $baseId . '/USDC:USDC';
+        $market = $this->safe_market($marketSymbol);
+        $symbol = $market['symbol'];
+        $amount = $this->safe_string($delta, 'usdc');
+        $code = $this->safe_currency_code('USDC');
+        $rate = $this->safe_number($delta, 'fundingRate');
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $this->parse_number($amount),
+            'rate' => $rate,
+        );
     }
 
     public function extract_type_from_delta($data = []) {

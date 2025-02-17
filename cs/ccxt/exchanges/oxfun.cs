@@ -3147,7 +3147,7 @@ public partial class oxfun : Exchange
                 { "AccessKey", this.apiKey },
                 { "Timestamp", datetime },
                 { "Signature", signature },
-                { "Nonce", nonce },
+                { "Nonce", ((object)nonce).ToString() },
             };
         }
         return new Dictionary<string, object>() {

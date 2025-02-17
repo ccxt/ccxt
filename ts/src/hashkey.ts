@@ -15,7 +15,7 @@ import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHi
  * @augments Exchange
  */
 export default class hashkey extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hashkey',
             'name': 'HashKey Global',

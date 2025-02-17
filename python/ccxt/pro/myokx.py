@@ -4,11 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.okx import okx
+from ccxt.base.types import Any
 
 
 class myokx(okx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(myokx, self).describe(), {
             'id': 'myokx',
             'name': 'MyOKX',

@@ -20,6 +20,7 @@ if (isBaseTests) {
     else {
         baseTestsInitRest();
     }
+    console.log('base tests passed!');
     if (!runAll) {
         process.exit(0);
     }
