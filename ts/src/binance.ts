@@ -11928,7 +11928,7 @@ export default class binance extends Exchange {
             }
             let query = undefined;
             // handle batchOrders
-            if ((path === 'batchOrders') && (method === 'POST')) {
+            if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders = this.safeValue (params, 'batchOrders');
                 const queryBatch = (this.json (batchOrders));
                 params['batchOrders'] = queryBatch;
