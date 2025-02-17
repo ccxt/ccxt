@@ -40,13 +40,9 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     let market = undefined;
-    if (symbol !== undefined) {
+    const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
+    if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
         market = exchange.market (symbol);
-    } else {
-        symbol = exchange.safeString (entry, 'symbol');
-        if (symbol !== undefined) {
-            market = exchange.market (symbol);
-        }
     }
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
