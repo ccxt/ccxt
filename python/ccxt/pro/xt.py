@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -25,7 +25,7 @@ class xt(ccxt.async_support.xt):
                 'watchBalance': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
-                'watchPositions': None,  # TODO https://doc.xt.com/#futures_user_websocket_v2position
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -44,6 +44,11 @@ class xt(ccxt.async_support.xt):
                 },
                 'watchTickers': {
                     'method': 'tickers',  # agg_tickers(contract only)
+                },
+                'watchPositions': {
+                    'type': 'swap',
+                    'fetchPositionsSnapshot': True,
+                    'awaitPositionsSnapshot': True,
                 },
             },
             'streaming': {
@@ -351,6 +356,106 @@ class xt(ccxt.async_support.xt):
         await self.load_markets()
         name = 'balance'
         return await self.subscribe(name, 'private', 'watchBalance', None, None, params)
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+
+        https://doc.xt.com/#futures_user_websocket_v2position
+
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param number [since]: since timestamp
+        :param number [limit]: limit
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        url = self.urls['api']['ws']['contract'] + '/' + 'user'
+        client = self.client(url)
+        self.set_positions_cache(client)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
+        cache = self.positions
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.is_empty(cache):
+            snapshot = await client.future('fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        name = 'position'
+        newPositions = await self.subscribe(name, 'private', 'watchPositions', None, None, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client):
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot')
+        if fetchPositionsSnapshot:
+            messageHash = 'fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash)
+
+    async def load_positions_snapshot(self, client, messageHash):
+        positions = await self.fetch_positions(None)
+        self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        for i in range(0, len(positions)):
+            position = positions[i]
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, 'position::contract')
+
+    def handle_position(self, client, message):
+        #
+        #    {
+        #      topic: 'position',
+        #      event: 'position',
+        #      data: {
+        #        accountId: 245296,
+        #        accountType: 0,
+        #        symbol: 'eth_usdt',
+        #        contractType: 'PERPETUAL',
+        #        positionType: 'CROSSED',
+        #        positionSide: 'LONG',
+        #        positionSize: '1',
+        #        closeOrderSize: '0',
+        #        availableCloseSize: '1',
+        #        realizedProfit: '-0.0121',
+        #        entryPrice: '2637.87',
+        #        openOrderSize: '1',
+        #        isolatedMargin: '2.63787',
+        #        openOrderMarginFrozen: '2.78832014',
+        #        underlyingType: 'U_BASED',
+        #        leverage: 10,
+        #        welfareAccount: False,
+        #        profitFixedLatest: {},
+        #        closeProfit: '0.0000',
+        #        totalFee: '-0.0158',
+        #        totalFundFee: '0.0037',
+        #        markPrice: '2690.96'
+        #      }
+        #    }
+        #
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        data = self.safe_dict(message, 'data', {})
+        position = self.parse_position(data)
+        cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'position::contract')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array([position], 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve([position], 'position::contract')
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -1036,6 +1141,7 @@ class xt(ccxt.async_support.xt):
                 'agg_tickers': self.handle_tickers,
                 'balance': self.handle_balance,
                 'order': self.handle_order,
+                'position': self.handle_position,
             }
             method = self.safe_value(methods, topic)
             if topic == 'trade':
