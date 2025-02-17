@@ -2885,7 +2885,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'AccessKey': self.apiKey,
                 'Timestamp': datetime,
                 'Signature': signature,
-                'Nonce': nonce,
+                'Nonce': str(nonce),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

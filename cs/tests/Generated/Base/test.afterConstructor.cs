@@ -6,27 +6,86 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void testAfterConstructor()
+        public void helperTestInitThrottler()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "rateLimit", 10.8 },
             });
             // todo: Assert (exchange.MAX_VALUE !== undefined);
-            // ############# throttler ############# //
-            object tockenBucket = exchange.getProperty(exchange, "tokenBucket"); // trick for uncamelcase transpilation
+            object tokenBucket = exchange.getProperty(exchange, "tokenBucket"); // trick for uncamelcase transpilation
+            if (isTrue(isEqual(tokenBucket, null)))
+            {
+                tokenBucket = exchange.getProperty(exchange, "TokenBucket");
+            }
+            Assert(!isEqual(tokenBucket, null));
+            Assert("GO_SKIP_START");
             object rateLimit = exchange.getProperty(exchange, "rateLimit");
             Assert(isEqual(rateLimit, 10.8));
-            Assert(!isEqual(tockenBucket, null));
-            Assert(isEqual(getValue(tockenBucket, "delay"), 0.001));
-            Assert(isEqual(getValue(tockenBucket, "refillRate"), divide(1, rateLimit)));
+            Assert(isEqual(getValue(tokenBucket, "delay"), 0.001));
+            Assert(isEqual(getValue(tokenBucket, "refillRate"), divide(1, rateLimit)));
+            Assert("GO_SKIP_END");
             // fix decimal/integer issues across langs
-            Assert(exchange.inArray(getValue(tockenBucket, "capacity"), new List<object>() {1, 1}));
-            Assert(exchange.inArray(getValue(tockenBucket, "cost"), new List<object>() {1, 1}));
-            Assert(exchange.inArray(getValue(tockenBucket, "maxCapacity"), new List<object>() {1000, 1000}));
-            // todo: Assert (exchange.throttler !== undefined);
-            // todo: add after change Assertion
-            // todo: add initial tockenbtucket test
+            Assert(exchange.inArray(getValue(tokenBucket, "capacity"), new List<object>() {1, 1}));
+            object cost = exchange.parseToNumeric(exchange.safeString2(tokenBucket, "cost", "defaultCost")); // python sync, todo fix
+            Assert(exchange.inArray(cost, new List<object>() {1, 1}));
+            Assert(!isTrue((inOp(tokenBucket, "maxCapacity"))) || isTrue(exchange.inArray(getValue(tokenBucket, "maxCapacity"), new List<object>() {1000, 1000})));
+        }
+        public void helperTestSandboxState(Exchange exchange, object shouldBeEnabled = null)
+        {
+            shouldBeEnabled ??= true;
+            Assert(!isEqual(exchange.urls, null));
+            Assert(inOp(exchange.urls, "test"));
+            Assert("GO_SKIP_START");
+            object isSandboxModeEnabled = exchange.getProperty(exchange, "isSandboxModeEnabled");
+            if (isTrue(shouldBeEnabled))
+            {
+                Assert(isSandboxModeEnabled);
+                Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.org"));
+                Assert(isEqual(getValue(getValue(exchange.urls, "apiBackup"), "public"), "https://example.com"));
+            } else
+            {
+                Assert(!isTrue(isSandboxModeEnabled));
+                Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.com"));
+                Assert(isEqual(getValue(getValue(exchange.urls, "test"), "public"), "https://example.org"));
+            }
+            Assert("GO_SKIP_END");
+        }
+        public void helperTestInitSandbox()
+        {
+            // todo: sandbox for real exchanges
+            object opts = new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+                { "options", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                } },
+                { "urls", new Dictionary<string, object>() {
+                    { "api", new Dictionary<string, object>() {
+                        { "public", "https://example.com" },
+                    } },
+                    { "test", new Dictionary<string, object>() {
+                        { "public", "https://example.org" },
+                    } },
+                } },
+            };
+            //
+            // CASE A: when sandbox is not enabled
+            //
+            var exchange3 = new ccxt.Exchange(opts);
+            helperTestSandboxState(exchange3, false);
+            exchange3.setSandboxMode(true);
+            helperTestSandboxState(exchange3, true);
+            //
+            // CASE B: when sandbox is enabled
+            //
+            ((IDictionary<string,object>)getValue(opts, "options"))["sandbox"] = true;
+            var exchange4 = new ccxt.Exchange(opts);
+            helperTestSandboxState(exchange4, true);
+            exchange4.setSandboxMode(false);
+            helperTestSandboxState(exchange4, false);
+        }
+        public void helperTestInitMarket()
+        {
             // ############# markets ############# //
             object sampleMarket = new Dictionary<string, object>() {
                 { "id", "BtcUsd" },
@@ -45,28 +104,11 @@ public partial class BaseTest
                 } },
             });
             Assert(!isEqual(getValue(exchange2.markets, "BTC/USD"), null));
-            Assert("GO_SKIP_START");
-            try
-            {
-                var exchange3 = new ccxt.Exchange(new Dictionary<string, object>() {
-                    { "id", "sampleexchange" },
-                    { "options", new Dictionary<string, object>() {
-                        { "sandbox", true },
-                    } },
-                });
-                // todo: some extra things should be checked in "catch" but atm skip complexity
-                Assert(!isEqual(exchange3.urls, null));
-                Assert(!isEqual(getValue(exchange3.urls, "test"), null));
-                object isSandboxModeEnabled = exchange3.getProperty(exchange3, "isSandboxModeEnabled");
-                Assert(isSandboxModeEnabled);
-            } catch(Exception e)
-            {
-                var exchange3 = new ccxt.Exchange(new Dictionary<string, object>() {
-                    { "id", "sampleexchange" },
-                });
-                // if exception was thrown, it should only happen if 'test' was not in urls
-                Assert(isTrue(isEqual(exchange3.urls, null)) || !isTrue((inOp(exchange3.urls, "test"))));
-            }
-            Assert("GO_SKIP_END");
+        }
+        public void testAfterConstructor()
+        {
+            helperTestInitThrottler();
+            helperTestInitSandbox();
+            helperTestInitMarket();
         }
 }

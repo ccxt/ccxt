@@ -8,7 +8,7 @@ func TestSafeMethods()  {
     exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
         "id": "regirock",
     }, map[string]interface{}{}, exchange)
-    var inputDict interface{} = map[string]interface{} {
+    var inputDict map[string]interface{} = map[string]interface{} {
         "i": 1,
         "f": 0.123,
         "bool": true,
@@ -26,7 +26,7 @@ func TestSafeMethods()  {
         "floatString": "0.123",
     }
     var inputList interface{} = []interface{}{"Hi", 2}
-    var compareDict interface{} = map[string]interface{} {
+    var compareDict map[string]interface{} = map[string]interface{} {
         "a": 1,
     }
     var compareList interface{} = []interface{}{1, 2, 3}

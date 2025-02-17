@@ -22,7 +22,7 @@ func TestGroupBy()  {
     "foo": "c",
 }}
     var currentValue interface{} = exchange.GroupBy(sampleArray, "foo")
-    var storedValue interface{} = map[string]interface{} {
+    var storedValue map[string]interface{} = map[string]interface{} {
         "a": []interface{}{map[string]interface{} {
     "foo": "a",
 }},
