@@ -267,7 +267,6 @@ class Exchange {
     public $currencies_by_id = null;
     public $minFundingAddressLength = 1; // used in check_address
     public $substituteCommonCurrencyCodes = true;
-    public mixed $throttler;
 
     // whether fees should be summed by currency code
     public $reduceFees = true;
