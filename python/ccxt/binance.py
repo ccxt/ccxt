@@ -85,6 +85,7 @@ class binance(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -5391,6 +5392,85 @@ class binance(Exchange, ImplicitAPI):
             return self.edit_spot_order(id, symbol, type, side, amount, price, params)
         else:
             return self.edit_contract_order(id, symbol, type, side, amount, price, params)
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            id = self.safe_string(rawOrder, 'id')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            isPortfolioMargin = None
+            isPortfolioMargin, orderParams = self.handle_option_and_params_2(orderParams, 'editOrders', 'papi', 'portfolioMargin', False)
+            if isPortfolioMargin:
+                raise NotSupported(self.id + ' editOrders() does not support portfolio margin orders')
+            orderRequest = self.edit_contract_order_request(id, marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        if market['spot'] or market['option']:
+            raise NotSupported(self.id + ' editOrders() does not support ' + market['type'] + ' orders')
+        response = None
+        request: dict = {
+            'batchOrders': ordersRequests,
+        }
+        request = self.extend(request, params)
+        if market['linear']:
+            response = self.fapiPrivatePutBatchOrders(request)
+        elif market['inverse']:
+            response = self.dapiPrivatePutBatchOrders(request)
+        #
+        #   [
+        #       {
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
+        #       {
+        #          "orderId": 650640530,
+        #          "symbol": "LTCUSDT",
+        #          "status": "NEW",
+        #          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        #          "price": "54.00",
+        #          "avgPrice": "0.00",
+        #          "origQty": "0.100",
+        #          "executedQty": "0.000",
+        #          "cumQty": "0.000",
+        #          "cumQuote": "0.00000",
+        #          "timeInForce": "GTC",
+        #          "type": "LIMIT",
+        #          "reduceOnly": False,
+        #          "closePosition": False,
+        #          "side": "BUY",
+        #          "positionSide": "BOTH",
+        #          "stopPrice": "0.00",
+        #          "workingType": "CONTRACT_PRICE",
+        #          "priceProtect": False,
+        #          "origType": "LIMIT",
+        #          "priceMatch": "NONE",
+        #          "selfTradePreventionMode": "NONE",
+        #          "goodTillDate": 0,
+        #          "updateTime": 1698073926929
+        #       }
+        #   ]
+        #
+        return self.parse_orders(response)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -11242,7 +11322,7 @@ class binance(Exchange, ImplicitAPI):
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             # handle batchOrders
-            if (path == 'batchOrders') and (method == 'POST'):
+            if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
                 batchOrders = self.safe_value(params, 'batchOrders')
                 queryBatch = (self.json(batchOrders))
                 params['batchOrders'] = queryBatch
