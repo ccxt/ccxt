@@ -464,6 +464,17 @@ func WithEditOrderParams(params map[string]interface{}) EditOrderOptions {
     }
 }
 
+type EditOrdersOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type EditOrdersOptions func(opts *EditOrdersOptionsStruct)
+
+func WithEditOrdersParams(params map[string]interface{}) EditOrdersOptions {
+    return func(opts *EditOrdersOptionsStruct) {
+        opts.Params = &params
+    }
+}
 
 type FetchDepositAddressOptionsStruct struct {
     Params *map[string]interface{}
