@@ -87,6 +87,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
@@ -5105,6 +5106,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> editOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " editOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
