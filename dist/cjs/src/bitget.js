@@ -9373,7 +9373,8 @@ class bitget extends bitget$1 {
             }
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode && (path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headers === undefined) {
                 headers = {};
             }
