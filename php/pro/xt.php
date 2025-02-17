@@ -24,7 +24,7 @@ class xt extends \ccxt\async\xt {
                 'watchBalance' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
-                'watchPositions' => null, // TODO https://doc.xt.com/#futures_user_websocket_v2position
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -43,6 +43,11 @@ class xt extends \ccxt\async\xt {
                 ),
                 'watchTickers' => array(
                     'method' => 'tickers',  // agg_tickers (contract only)
+                ),
+                'watchPositions' => array(
+                    'type' => 'swap',
+                    'fetchPositionsSnapshot' => true,
+                    'awaitPositionsSnapshot' => true,
                 ),
             ),
             'streaming' => array(
@@ -403,6 +408,124 @@ class xt extends \ccxt\async\xt {
             $name = 'balance';
             return Async\await($this->subscribe($name, 'private', 'watchBalance', null, null, $params));
         }) ();
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             *
+             * @see https://doc.xt.com/#futures_user_websocket_v2position
+             *
+             * watch all open positions
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {number} [$since] $since timestamp
+             * @param {number} [$limit] $limit
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $url = $this->urls['api']['ws']['contract'] . '/' . 'user';
+            $client = $this->client($url);
+            $this->set_positions_cache($client);
+            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
+            $cache = $this->positions;
+            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->is_empty($cache)) {
+                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            }
+            $name = 'position';
+            $newPositions = Async\await($this->subscribe($name, 'private', 'watchPositions', null, null, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client) {
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
+        if ($fetchPositionsSnapshot) {
+            $messageHash = 'fetchPositionsSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
+            }
+        }
+    }
+
+    public function load_positions_snapshot($client, $messageHash) {
+        return Async\async(function () use ($client, $messageHash) {
+            $positions = Async\await($this->fetch_positions(null));
+            $this->positions = new ArrayCacheBySymbolBySide ();
+            $cache = $this->positions;
+            for ($i = 0; $i < count($positions); $i++) {
+                $position = $positions[$i];
+                $contracts = $this->safe_number($position, 'contracts', 0);
+                if ($contracts > 0) {
+                    $cache->append ($position);
+                }
+            }
+            // don't remove the $future from the .futures $cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ($cache);
+            $client->resolve ($cache, 'position::contract');
+        }) ();
+    }
+
+    public function handle_position($client, $message) {
+        //
+        //    {
+        //      topic => 'position',
+        //      event => 'position',
+        //      $data => {
+        //        accountId => 245296,
+        //        accountType => 0,
+        //        symbol => 'eth_usdt',
+        //        contractType => 'PERPETUAL',
+        //        positionType => 'CROSSED',
+        //        positionSide => 'LONG',
+        //        positionSize => '1',
+        //        closeOrderSize => '0',
+        //        availableCloseSize => '1',
+        //        realizedProfit => '-0.0121',
+        //        entryPrice => '2637.87',
+        //        openOrderSize => '1',
+        //        isolatedMargin => '2.63787',
+        //        openOrderMarginFrozen => '2.78832014',
+        //        underlyingType => 'U_BASED',
+        //        leverage => 10,
+        //        welfareAccount => false,
+        //        profitFixedLatest => array(),
+        //        closeProfit => '0.0000',
+        //        totalFee => '-0.0158',
+        //        totalFundFee => '0.0037',
+        //        markPrice => '2690.96'
+        //      }
+        //    }
+        //
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $data = $this->safe_dict($message, 'data', array());
+        $position = $this->parse_position($data);
+        $cache->append ($position);
+        $messageHashes = $this->find_message_hashes($client, 'position::contract');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array(array( $position ), 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve (array( $position ), 'position::contract');
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -1118,6 +1241,7 @@ class xt extends \ccxt\async\xt {
                 'agg_tickers' => array($this, 'handle_tickers'),
                 'balance' => array($this, 'handle_balance'),
                 'order' => array($this, 'handle_order'),
+                'position' => array($this, 'handle_position'),
             );
             $method = $this->safe_value($methods, $topic);
             if ($topic === 'trade') {
