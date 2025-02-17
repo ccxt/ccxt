@@ -9439,7 +9439,8 @@ class bitget extends Exchange {
             }
         }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode && ($path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if ($headers === null) {
                 $headers = array();
             }
