@@ -1268,7 +1268,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const preciseString = precise.toString ();
-        return this.parseToInt (preciseString);
+        return this.parseToNumeric (preciseString);
     }
 
     toEv (amount, market: Market = undefined) {
@@ -5061,10 +5061,11 @@ export default class phemex extends Exchange {
      */
     async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
+        const currency = this.currency (fromCode);
         const request: Dict = {
             'fromCurrency': fromCode,
             'toCurrency': toCode,
-            'fromAmountEv': amount,
+            'fromAmountEv': this.toEv (amount, currency),
         };
         const response = await this.privateGetAssetsQuote (this.extend (request, params));
         //
@@ -5109,7 +5110,8 @@ export default class phemex extends Exchange {
             'toCurrency': toCode,
         };
         if (amount !== undefined) {
-            request['fromAmountEv'] = amount;
+            const currency = this.currency (fromCode);
+            request['fromAmountEv'] = this.toEv (amount, currency);
         }
         const response = await this.privatePostAssetsConvert (this.extend (request, params));
         //
