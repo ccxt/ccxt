@@ -72,7 +72,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     #
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index']
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     has_index = ('index' in market)  # todo: add in all
     # check if string is consistent with 'type'
