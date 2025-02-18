@@ -3776,6 +3776,7 @@ export default class gate extends Exchange {
         let msString = this.safeString (trade, 'create_time_ms');
         if (msString !== undefined) {
             msString = Precise.stringMul (msString, '1000');
+            msString = msString.slice (0, 13);
             timestamp = this.parseToInt (msString);
         } else {
             timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
