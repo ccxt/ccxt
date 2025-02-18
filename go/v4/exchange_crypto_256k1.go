@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> aa1ec0f950fb3f6dd25d634b70a67038bc063a1b
 package ccxt
 
 import (
