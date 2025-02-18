@@ -45,6 +45,12 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         //
+        object market = null;
+        object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
+        if (isTrue(isTrue(!isEqual(symbolForMarket, null)) && isTrue((inOp(exchange.markets, symbolForMarket)))))
+        {
+            market = exchange.market(symbolForMarket);
+        }
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "low", "0");
@@ -68,8 +74,23 @@ public partial class testMainClass : BaseTest
         {
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
             {
-                assert(Precise.stringGe(quoteVolume, Precise.stringMul(baseVolume, low)), add("quoteVolume >= baseVolume * low", logText));
-                assert(Precise.stringLe(quoteVolume, Precise.stringMul(baseVolume, high)), add("quoteVolume <= baseVolume * high", logText));
+                object baseLow = Precise.stringMul(baseVolume, low);
+                object baseHigh = Precise.stringMul(baseVolume, high);
+                // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
+                object mPrecision = exchange.safeDict(market, "precision");
+                object amountPrecision = exchange.safeString(mPrecision, "amount");
+                if (isTrue(!isEqual(amountPrecision, null)))
+                {
+                    baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
+                    baseHigh = Precise.stringMul(Precise.stringAdd(baseVolume, amountPrecision), high);
+                } else
+                {
+                    // if nothing found, as an exclusion, just add 0.001%
+                    baseLow = Precise.stringMul(Precise.stringMul(baseVolume, "1.0001"), low);
+                    baseHigh = Precise.stringMul(Precise.stringDiv(baseVolume, "1.0001"), high);
+                }
+                assert(Precise.stringGe(quoteVolume, baseLow), add("quoteVolume should be => baseVolume * low", logText));
+                assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }
         }
         object vwap = exchange.safeString(entry, "vwap");

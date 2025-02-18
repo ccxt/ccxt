@@ -1616,6 +1616,27 @@ export default class gate extends gateRest {
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         const data = this.safeDict (message, 'data');
         const errs = this.safeDict (data, 'errs');
@@ -1634,6 +1655,20 @@ export default class gate extends gateRest {
                 client.reject (e, messageHash);
                 if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
                     delete client.subscriptions[messageHash];
+                }
+                // remove subscriptions for watchSymbols
+                const channel = this.safeString (message, 'channel');
+                if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
+                    const parsedChannel = channel.split ('.');
+                    const payload = this.safeList (message, 'payload', []);
+                    for (let i = 0; i < payload.length; i++) {
+                        const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
+                        const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
+                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
+                            delete client.subscriptions[messageHashSymbol];
+                        }
+                    }
                 }
             }
             if ((id !== undefined) && (id in client.subscriptions)) {
