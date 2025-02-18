@@ -5242,12 +5242,15 @@ export default class phemex extends Exchange {
         const timestamp = this.safeInteger (conversion, 'createTime', requestTime);
         const fromCoin = this.safeString (conversion, 'fromCurrency', this.safeString (fromCurrency, 'code'));
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
-        const to = this.safeString (conversion, 'toCurrency', this.safeString (toCurrency, 'code'));
-        const toCode = this.safeCurrencyCode (to, toCurrency);
-        const dataObject = (quoteArgs !== undefined) ? quoteArgs : conversion;
+        const toCoin = this.safeString (conversion, 'toCurrency', this.safeString (toCurrency, 'code'));
+        const toCode = this.safeCurrencyCode (toCoin, toCurrency);
         let fromAmount = this.safeString (conversion, 'fromAmountEv');
         if (fromAmount === undefined && quoteArgs !== undefined) {
             fromAmount = this.fromEn (this.safeString (quoteArgs, 'origin'), this.safeInteger (fromCurrency, 'valueScale'));
+        }
+        let toAmount = this.safeString (conversion, 'toAmountEv');
+        if (toAmount === undefined && quoteArgs !== undefined) {
+            toAmount = this.fromEn (this.safeString (quoteArgs, 'proceeds'), this.safeInteger (toCurrency, 'valueScale'));
         }
         return {
             'info': conversion,
@@ -5257,7 +5260,7 @@ export default class phemex extends Exchange {
             'fromCurrency': fromCode,
             'fromAmount': this.parseNumber (fromAmount),
             'toCurrency': toCode,
-            'toAmount': this.safeNumber2 (dataObject, 'toAmountEv', 'proceeds'),
+            'toAmount': this.parseNumber (toAmount),
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
         } as Conversion;
