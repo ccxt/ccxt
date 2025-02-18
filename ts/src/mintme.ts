@@ -123,8 +123,8 @@ export default class mintme extends Exchange {
             'fees': {
                 'trading': {
                     'regular': {
-                        'maker': this.parseNumber ('0.002'), // 0.2% regular trading
-                        'taker': this.parseNumber ('0.002'),
+                        'maker': this.parseNumber ('0.005'), // 0.5% regular trading
+                        'taker': this.parseNumber ('0.005'),
                     },
                     'quick': {
                         'maker': this.parseNumber ('0.005'), // 0.5% quick trading
@@ -155,7 +155,10 @@ export default class mintme extends Exchange {
                         'CRO': { 'Cronos': 10 },
                         'AVAX': { 'Avalanche': 0.04 },
                     },
-                    'Deposit': {}, // no deposit fees
+                    'Deposit': { 'fee': 0 },
+                },
+                'donation': {
+                    'direct_purchase_fee': this.parseNumber ('0.02'),
                 },
             },
             'precisionMode': TICK_SIZE,
