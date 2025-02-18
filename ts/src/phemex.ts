@@ -5118,20 +5118,25 @@ export default class phemex extends Exchange {
         const response = await this.privatePostAssetsConvert (this.extend (request, params));
         //
         //     {
-        //         "fromAmountEv": 0,
-        //         "fromCurrency": "string",
-        //         "linkKey": "string",
-        //         "moveOp": 0,
-        //         "status": 0,
-        //         "toAmountEv": 0,
-        //         "toCurrency": "string"
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "moveOp": 0,
+        //             "fromCurrency": "USDT",
+        //             "toCurrency": "BTC",
+        //             "fromAmountEv": 4000000000,
+        //             "toAmountEv": 41511,
+        //             "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //             "status": 10
+        //         }
         //     }
         //
-        const fromCurrencyId = this.safeString (response, 'fromCurrency', fromCode);
+        const data = this.safeDict (response, 'data', {});
+        const fromCurrencyId = this.safeString (data, 'fromCurrency', fromCode);
         const fromCurrency = this.currency (fromCurrencyId);
-        const toCurrencyId = this.safeString (response, 'toCurrency', toCode);
+        const toCurrencyId = this.safeString (data, 'toCurrency', toCode);
         const toCurrency = this.currency (toCurrencyId);
-        return this.parseConversion (response, fromCurrency, toCurrency);
+        return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
     /**
@@ -5163,21 +5168,30 @@ export default class phemex extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetAssetsConvert (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "conversionRate": 0,
-        //             "createTime": 0,
-        //             "errorCode": 0,
-        //             "fromAmountEv": 0,
-        //             "fromCurrency": "string",
-        //             "linkKey": "string",
-        //             "status": 0,
-        //             "toAmountEv": 0,
-        //             "toCurrency": "string"
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "total": 2,
+        //             "rows": [
+        //                 {
+        //                     "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //                     "createTime": 1739882294000,
+        //                     "fromCurrency": "USDT",
+        //                     "toCurrency": "BTC",
+        //                     "fromAmountEv": 4000000000,
+        //                     "toAmountEv": 41511,
+        //                     "status": 10,
+        //                     "conversionRate": 1037,
+        //                     "errorCode": 0
+        //                 },
+        //             ]
         //         }
-        //     ]
+        //     }
         //
-        return this.parseConversions (response, code, 'fromCurrency', 'toCurrency', since, limit);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
     }
 
     parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
@@ -5200,27 +5214,27 @@ export default class phemex extends Exchange {
         // createConvertTrade
         //
         //     {
-        //         "fromAmountEv": 0,
-        //         "fromCurrency": "string",
-        //         "linkKey": "string",
         //         "moveOp": 0,
-        //         "status": 0,
-        //         "toAmountEv": 0,
-        //         "toCurrency": "string"
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "status": 10
         //     }
         //
         // fetchConvertTradeHistory
         //
         //     {
-        //         "conversionRate": 0,
-        //         "createTime": 0,
-        //         "errorCode": 0,
-        //         "fromAmountEv": 0,
-        //         "fromCurrency": "string",
-        //         "linkKey": "string",
-        //         "status": 0,
-        //         "toAmountEv": 0,
-        //         "toCurrency": "string"
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "createTime": 1739882294000,
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "status": 10,
+        //         "conversionRate": 1037,
+        //         "errorCode": 0
         //     }
         //
         const quoteArgs = this.safeDict (conversion, 'quoteArgs', {});
