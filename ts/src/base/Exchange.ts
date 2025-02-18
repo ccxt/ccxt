@@ -2920,6 +2920,9 @@ export default class Exchange {
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const currencyDeposit = this.safeBool (currency, 'deposit');
+        const currencyWithdraw = this.safeBool (currency, 'withdraw');
+        const currencyActive = this.safeBool (currency, 'active');
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
@@ -2927,15 +2930,15 @@ export default class Exchange {
             for (let i = 0; i < length; i++) {
                 const network = networks[keys[i]];
                 const deposit = this.safeBool (network, 'deposit');
-                if (currency['deposit'] === undefined || deposit) {
+                if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool (network, 'withdraw');
-                if (currency['withdraw'] === undefined || withdraw) {
+                if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
                 const active = this.safeBool (network, 'active');
-                if (currency['active'] === undefined || active) {
+                if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
