@@ -10,7 +10,7 @@ use ccxt\abstract\delta as Exchange;
 
 class delta extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',
@@ -405,7 +405,7 @@ class delta extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

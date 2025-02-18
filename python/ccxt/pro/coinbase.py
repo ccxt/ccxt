@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -14,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class coinbase(ccxt.async_support.coinbase):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinbase, self).describe(), {
             'has': {
                 'ws': True,

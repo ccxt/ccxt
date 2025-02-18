@@ -6,9 +6,8 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -24,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class woo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woo, self).describe(), {
             'id': 'woo',
             'name': 'WOO X',
@@ -484,7 +483,7 @@ class woo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

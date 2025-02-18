@@ -15,7 +15,7 @@ import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',

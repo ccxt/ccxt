@@ -899,6 +899,21 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual void checkConstructor(Exchange exchange)
+    {
+        // todo: this might be moved in base tests later
+        if (isTrue(isEqual(exchange.id, "binance")))
+        {
+            assert(isEqual(exchange.hostname, null), "binance.com hostname should be empty");
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), add("https://api.binance.com/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
+            assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), add("SAPI should contain the endpoint lending/union/account, ", jsonStringify(getValue(getValue(exchange.api, "sapi"), "get"))));
+        } else if (isTrue(isEqual(exchange.id, "binanceus")))
+        {
+            assert(isEqual(exchange.hostname, "binance.us"), add("binance.us hostname does not match ", exchange.hostname));
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.us/api/v3"), add("https://api.binance.us/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
+        }
+    }
+
     public async virtual Task<object> startTest(Exchange exchange, object symbol)
     {
         // we do not need to test aliases
@@ -906,6 +921,7 @@ public partial class testMainClass
         {
             return true;
         }
+        this.checkConstructor(exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);

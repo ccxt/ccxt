@@ -20,7 +20,7 @@ class coinbase extends coinbase$1 {
             'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': true,
-            'certified': true,
+            'certified': false,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -5014,10 +5014,17 @@ class coinbase extends coinbase$1 {
         //        }
         //      ]
         //    }
+        // or
+        //   {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         let errorCode = this.safeString(response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString(response, 'error_description');
+            const errorMessage = this.safeString2(response, 'error_description', 'preview_failure_reason');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
             throw new errors.ExchangeError(feedback);

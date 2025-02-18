@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.60'
 
 # -----------------------------------------------------------------------------
 
@@ -1791,7 +1791,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,
@@ -1871,6 +1871,7 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
+                'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -3657,7 +3658,7 @@ class Exchange(object):
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
-        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
+        vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
@@ -5178,6 +5179,9 @@ class Exchange(object):
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
+
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
 
@@ -6118,7 +6122,8 @@ class Exchange(object):
             parsed = self.parse_income(entry, market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def get_market_from_symbols(self, symbols: Strings = None):
         if symbols is None:

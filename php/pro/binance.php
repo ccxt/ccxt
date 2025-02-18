@@ -11,12 +11,12 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class binance extends \ccxt\async\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }

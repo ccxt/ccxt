@@ -10,7 +10,7 @@ use ccxt\abstract\gate as Exchange;
 
 class gate extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',
@@ -1064,7 +1064,7 @@ class gate extends Exchange {
         return $this->privateUnifiedPutUnifiedMode ($params);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -3661,6 +3661,7 @@ class gate extends Exchange {
         //
         // public
         //
+        //  spot:
         //     {
         //         "id" => "1334253759",
         //         "create_time" => "1626342738",
@@ -3670,6 +3671,18 @@ class gate extends Exchange {
         //         "amount" => "0.0022",
         //         "price" => "32452.16"
         //     }
+        //
+        //  swap:
+        //
+        //    {
+        //        "id" => "442288327",
+        //        "contract" => "BTC_USDT",
+        //        "create_time" => "1739814676.707",
+        //        "create_time_ms" => "1739814676.707",
+        //        "size" => "-105",
+        //        "price" => "95594.8"
+        //    }
+        //
         //
         // public ws
         //
@@ -3747,8 +3760,15 @@ class gate extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'trade_id');
-        $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
-        $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
+        $timestamp = null;
+        $msString = $this->safe_string($trade, 'create_time_ms');
+        if ($msString !== null) {
+            $msString = Precise::string_mul($msString, '1000');
+            $msString = mb_substr($msString, 0, 13 - 0);
+            $timestamp = $this->parse_to_int($msString);
+        } else {
+            $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
+        }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $marketType = (is_array($trade) && array_key_exists('contract', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, '_', $marketType);

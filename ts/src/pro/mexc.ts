@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class mexc extends mexcRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -466,7 +466,10 @@ export default class mexc extends mexcRest {
         //    }
         //
         const parsedTicker = this.parseWsBidAsk (message);
-        const symbol = parsedTicker['symbol'];
+        const symbol = this.safeString (parsedTicker, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         this.bidsasks[symbol] = parsedTicker;
         const messageHash = 'bidask:' + symbol;
         client.resolve (parsedTicker, messageHash);

@@ -14,13 +14,13 @@ use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -1565,7 +1565,7 @@ class bybit extends Exchange {
         return $cost;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -4114,7 +4114,7 @@ class bybit extends Exchange {
                 } elseif ($price !== null) {
                     $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
                 } else {
-                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                    $request['qty'] = $amountString;
                 }
             }
         } else {
@@ -7000,10 +7000,13 @@ class bybit extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
-        $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        $openInterest = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        // the $openInterest is in the base asset for linear and quote asset for inverse
+        $amount = $market['linear'] ? $openInterest : null;
+        $value = $market['inverse'] ? $openInterest : null;
         return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
-            'openInterestAmount' => null,
+            'openInterestAmount' => $amount,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

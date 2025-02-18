@@ -87,6 +87,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
@@ -2667,7 +2668,7 @@ public partial class Exchange
         object change = this.omitZero(this.safeString(ticker, "change"));
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
-        object vwap = this.omitZero(this.safeString(ticker, "vwap"));
+        object vwap = this.safeString(ticker, "vwap");
         object baseVolume = this.safeString(ticker, "baseVolume");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
         if (isTrue(isEqual(vwap, null)))
@@ -5107,6 +5108,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> editOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " editOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -6643,7 +6650,8 @@ public partial class Exchange
             ((IList<object>)result).Add(parsed);
         }
         object sorted = this.sortBy(result, "timestamp");
-        return this.filterBySinceLimit(sorted, since, limit);
+        object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object getMarketFromSymbols(object symbols = null)

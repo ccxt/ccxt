@@ -755,11 +755,24 @@ class testMainClass {
         return true;
     }
 
+    public function check_constructor($exchange) {
+        // todo: this might be moved in base tests later
+        if ($exchange->id === 'binance') {
+            assert($exchange->hostname === null, 'binance.com hostname should be empty');
+            assert($exchange->urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' . $exchange->urls['api']['public']);
+            assert((is_array($exchange->api['sapi']['get']) && array_key_exists('lending/union/account', $exchange->api['sapi']['get'])), 'SAPI should contain the endpoint lending/union/account, ' . json_stringify($exchange->api['sapi']['get']));
+        } elseif ($exchange->id === 'binanceus') {
+            assert($exchange->hostname === 'binance.us', 'binance.us hostname does not match ' . $exchange->hostname);
+            assert($exchange->urls['api']['public'] === 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' . $exchange->urls['api']['public']);
+        }
+    }
+
     public function start_test($exchange, $symbol) {
         // we do not need to test aliases
         if ($exchange->alias) {
             return true;
         }
+        $this->check_constructor($exchange);
         if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
             $exchange->set_sandbox_mode(true);
         }

@@ -3477,7 +3477,7 @@ func  (this *oxfun) Sign(path interface{}, optionalArgs ...interface{}) interfac
             "AccessKey": this.ApiKey,
             "Timestamp": datetime,
             "Signature": signature,
-            "Nonce": nonce,
+            "Nonce": ToString(nonce),
         }
     }
     return map[string]interface{} {

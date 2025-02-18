@@ -315,7 +315,7 @@ class Exchange {
         this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
-        this.enableLastJsonResponse = true;
+        this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;
@@ -1376,6 +1376,7 @@ class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -3413,7 +3414,7 @@ class Exchange {
         let change = this.omitZero(this.safeString(ticker, 'change'));
         let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
         let average = this.omitZero(this.safeString(ticker, 'average'));
-        let vwap = this.omitZero(this.safeString(ticker, 'vwap'));
+        let vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'baseVolume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
@@ -5226,6 +5227,9 @@ class Exchange {
     async createOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
     }
+    async editOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' editOrders() is not supported yet');
+    }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
     }
@@ -6311,7 +6315,8 @@ class Exchange {
             result.push(parsed);
         }
         const sorted = this.sortBy(result, 'timestamp');
-        return this.filterBySinceLimit(sorted, since, limit);
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     getMarketFromSymbols(symbols = undefined) {
         if (symbols === undefined) {

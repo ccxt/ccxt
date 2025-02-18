@@ -12,13 +12,13 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class oxfun extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'oxfun',
             'name' => 'OXFUN',
@@ -3056,7 +3056,7 @@ class oxfun extends Exchange {
                 'AccessKey' => $this->apiKey,
                 'Timestamp' => $datetime,
                 'Signature' => $signature,
-                'Nonce' => $nonce,
+                'Nonce' => (string) $nonce,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

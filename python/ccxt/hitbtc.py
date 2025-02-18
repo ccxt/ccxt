@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class hitbtc(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -1408,7 +1408,7 @@ class hitbtc(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
-        takerOrMaker = None
+        takerOrMaker: str
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
         else:

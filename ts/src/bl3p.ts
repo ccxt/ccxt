@@ -14,7 +14,7 @@ import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticke
  * @augments Exchange
  */
 export default class bl3p extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
             'name': 'BL3P',

@@ -4,11 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.onetrading import onetrading
+from ccxt.base.types import Any
 
 
 class bitpanda(onetrading):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitpanda, self).describe(), {
             'alias': True,
             'id': 'bitpanda',

@@ -2000,7 +2000,7 @@ public partial class hollaex : Exchange
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        object coins = this.safeList(response, "coins");
+        object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
         return this.parseDepositWithdrawFees(coins, codes, "symbol");
     }
 

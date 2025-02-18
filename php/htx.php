@@ -10,7 +10,7 @@ use ccxt\abstract\htx as Exchange;
 
 class htx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'htx',
             'name' => 'HTX',
@@ -1592,7 +1592,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *

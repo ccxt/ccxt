@@ -3254,12 +3254,13 @@ func  (this *whitebit) HandleErrors(code interface{}, reason interface{}, url in
         // For cases where we have a meaningful status
         // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
         var status interface{} = this.SafeString(response, "status")
+        var errors interface{} = this.SafeValue(response, "errors")
         // {"code":10,"message":"Unauthorized request."}
         var message interface{} = this.SafeString(response, "message")
         // For these cases where we have a generic code variable error key
         // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
         var codeNew interface{} = this.SafeInteger(response, "code")
-        var hasErrorStatus interface{} = IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "200"))
+        var hasErrorStatus interface{} = IsTrue(IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "200"))) && IsTrue(!IsEqual(errors, nil))
         if IsTrue(IsTrue(hasErrorStatus) || IsTrue(!IsEqual(codeNew, nil))) {
             var feedback interface{} = Add(Add(this.Id, " "), body)
             var errorInfo interface{} = message
