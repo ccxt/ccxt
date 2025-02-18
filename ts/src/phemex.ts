@@ -1268,7 +1268,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const preciseString = precise.toString ();
-        return this.parseToInt (preciseString);
+        return this.parseToNumeric (preciseString);
     }
 
     toEv (amount, market: Market = undefined) {
@@ -5112,7 +5112,8 @@ export default class phemex extends Exchange {
             'toCurrency': toCode,
         };
         if (amount !== undefined) {
-            request['fromAmountEv'] = amount;
+            const currency = this.currency (fromCode);
+            request['fromAmountEv'] = this.toEv (amount, currency);
         }
         const response = await this.privatePostAssetsConvert (this.extend (request, params));
         //
