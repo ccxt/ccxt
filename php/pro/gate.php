@@ -1645,13 +1645,34 @@ class gate extends \ccxt\async\gate {
         //       header => array(
         //         response_time => '1718551891329',
         //         status => '400',
-        //         channel => 'spot.order_place',
+        //         $channel => 'spot.order_place',
         //         event => 'api',
         //         client_id => '81.34.68.6-0xc16375e2c0',
         //         conn_id => '9539116e0e09678f'
         //       ),
         //       $data => array( $errs => array( label => 'AUTHENTICATION_FAILED', $message => 'Not login' ) ),
         //       request_id => '10406147'
+        //     }
+        //     {
+        //         "time" => 1739853211,
+        //         "time_ms" => 1739853211201,
+        //         "id" => 1,
+        //         "conn_id" => "62f2c1dabbe186d7",
+        //         "trace_id" => "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel" => "spot.trades",
+        //         "event" => "subscribe",
+        //         "payload" => array(
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ),
+        //         "error" => array(
+        //             "code" => 2,
+        //             "message" => "unknown currency pair => LUNARLENS_USDT"
+        //         ),
+        //         "result" => array(
+        //             "status" => "fail"
+        //         ),
+        //         "requestId" => "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
         $data = $this->safe_dict($message, 'data');
@@ -1671,6 +1692,20 @@ class gate extends \ccxt\async\gate {
                 $client->reject ($e, $messageHash);
                 if (($messageHash !== null) && (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
                     unset($client->subscriptions[$messageHash]);
+                }
+                // remove subscriptions for watchSymbols
+                $channel = $this->safe_string($message, 'channel');
+                if (($channel !== null) && (mb_strpos($channel, '.') > 0)) {
+                    $parsedChannel = explode('.', $channel);
+                    $payload = $this->safe_list($message, 'payload', array());
+                    for ($i = 0; $i < count($payload); $i++) {
+                        $marketType = $parsedChannel[0] === 'futures' ? 'swap' : $parsedChannel[0];
+                        $symbol = $this->safe_symbol($payload[$i], null, '_', $marketType);
+                        $messageHashSymbol = $parsedChannel[1] . ':' . $symbol;
+                        if (($messageHashSymbol !== null) && (is_array($client->subscriptions) && array_key_exists($messageHashSymbol, $client->subscriptions))) {
+                            unset($client->subscriptions[$messageHashSymbol]);
+                        }
+                    }
                 }
             }
             if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions))) {
