@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
-// import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { ExchangeError } from '../base/errors.js';
+import type { Balances, Dict, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
@@ -404,6 +404,72 @@ export default class coindcx extends coindcxRest {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
+    }
+
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name coindcx#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.coindcx.com/#get-balance-update
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.authenticate (params);
+        const messageHash = 'balance';
+        const url = this.urls['api']['ws'];
+        const subscribe: Dict = {
+            'type': 'subscribe',
+            'channelName': 'coindcx',
+        };
+        const request = this.deepExtend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash, request);
+    }
+
+    handleBalance (client: Client, message) {
+        // todo: get the balance info from the message
+        //
+        const data = this.safeList (message, 'data', []);
+        const freeBalance = this.safeValue (data, 'balance', {});
+        const usedBalance = this.safeValue (data, 'obalance', {});
+        const result: Dict = {
+            'info': data,
+        };
+        const currencyIds = Object.keys (freeBalance);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const account = this.account ();
+            account['free'] = this.safeString (freeBalance, currencyId);
+            account['used'] = this.safeString (usedBalance, currencyId);
+            const code = this.safeCurrencyCode (currencyId);
+            result[code] = account;
+        }
+        this.balance = this.safeBalance (result);
+        const messageHash = this.safeString (message, 'oid');
+        client.resolve (this.balance, messageHash);
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
+        if (isAuthenticated === undefined) {
+            const body = {
+                'channel': 'coindcx',
+            };
+            const payload = this.json (body).toString ();
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+            const request: Dict = {
+                'type': 'subscribe',
+                'channelName': 'coindcx',
+                'apiKey': this.apiKey,
+                'authSignature': signature,
+            };
+            return this.watch (url, messageHash, this.extend (request, params), messageHash);
+        }
+        return await future;
     }
 
     handleMessage (client: Client, message) {
