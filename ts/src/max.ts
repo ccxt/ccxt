@@ -219,6 +219,91 @@ export default class max extends Exchange {
                     'AVAX': 'Avalanche',       // Avalanche C-Chain
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true, // support spot/margin
+                        'triggerPrice': true, // support stop orders
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': true, // only last price supported
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': true, // via stop orders
+                        'takeProfitPrice': true, // via stop orders
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true, // ioc_limit
+                            'FOK': false,
+                            'PO': true,  // post_only
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false, // not required for market orders
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000, // docs: 1-1000, default 50
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true, // market parameter required
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': true, // can fetch stop orders
+                        'trailing': false,
+                        'symbolRequired': false, // can query by id or client_oid
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'trigger': true, // includes stop orders
+                        'trailing': false,
+                        'symbolRequired': false, // market parameter optional
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true, // includes stop orders
+                        'trailing': false,
+                        'symbolRequired': true, // market parameter required
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true, // includes stop orders
+                        'trailing': false,
+                        'symbolRequired': false, // market parameter optional
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000, // docs: 1-10000, default 30
+                    },
+                },
+                'margin': {
+                    'mode': 'isolated', // only isolated margin
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '1001': ArgumentsRequired,    // INVALID_PARAMETER_ERROR
