@@ -20,7 +20,7 @@ var Blue = "\033[34m"
 var Reset = "\033[0m"
 
 const (
-	ROOT_DIR = "/../../"
+	ROOT_DIR = "/../"
 )
 
 var rateLimit = true
