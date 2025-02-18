@@ -10070,8 +10070,9 @@ public partial class bitget : Exchange
             }
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        if (isTrue(sandboxMode))
+        if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(path, "v2/public/time")))))
         {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (isTrue(isEqual(headers, null)))
             {
                 headers = new Dictionary<string, object>() {};

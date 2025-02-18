@@ -10670,7 +10670,8 @@ func  (this *bitget) Sign(path interface{}, optionalArgs ...interface{}) interfa
         }
     }
     var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
-    if IsTrue(sandboxMode) {
+    if IsTrue(IsTrue(sandboxMode) && IsTrue((!IsEqual(path, "v2/public/time")))) {
+        // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
         if IsTrue(IsEqual(headers, nil)) {
             headers = map[string]interface{} {}
         }

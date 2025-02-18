@@ -1493,6 +1493,27 @@ class gate(ccxt.async_support.gate):
         #       data: {errs: {label: 'AUTHENTICATION_FAILED', message: 'Not login'}},
         #       request_id: '10406147'
         #     }
+        #     {
+        #         "time": 1739853211,
+        #         "time_ms": 1739853211201,
+        #         "id": 1,
+        #         "conn_id": "62f2c1dabbe186d7",
+        #         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        #         "channel": "spot.trades",
+        #         "event": "subscribe",
+        #         "payload": [
+        #             "LUNARLENS_USDT",
+        #             "ETH_USDT"
+        #         ],
+        #         "error": {
+        #             "code": 2,
+        #             "message": "unknown currency pair: LUNARLENS_USDT"
+        #         },
+        #         "result": {
+        #             "status": "fail"
+        #         },
+        #         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        #     }
         #
         data = self.safe_dict(message, 'data')
         errs = self.safe_dict(data, 'errs')
@@ -1511,6 +1532,17 @@ class gate(ccxt.async_support.gate):
                 client.reject(e, messageHash)
                 if (messageHash is not None) and (messageHash in client.subscriptions):
                     del client.subscriptions[messageHash]
+                # remove subscriptions for watchSymbols
+                channel = self.safe_string(message, 'channel')
+                if (channel is not None) and (channel.find('.') > 0):
+                    parsedChannel = channel.split('.')
+                    payload = self.safe_list(message, 'payload', [])
+                    for i in range(0, len(payload)):
+                        marketType = parsedChannel[0] == 'swap' if 'futures' else parsedChannel[0]
+                        symbol = self.safe_symbol(payload[i], None, '_', marketType)
+                        messageHashSymbol = parsedChannel[1] + ':' + symbol
+                        if (messageHashSymbol is not None) and (messageHashSymbol in client.subscriptions):
+                            del client.subscriptions[messageHashSymbol]
             if (id is not None) and (id in client.subscriptions):
                 del client.subscriptions[id]
             return True

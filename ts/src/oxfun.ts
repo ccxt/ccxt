@@ -2995,7 +2995,7 @@ export default class oxfun extends Exchange {
                 'AccessKey': this.apiKey,
                 'Timestamp': datetime,
                 'Signature': signature,
-                'Nonce': nonce,
+                'Nonce': nonce.toString (),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

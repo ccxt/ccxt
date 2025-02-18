@@ -2,6 +2,58 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "linear OI",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "limit": 1
+                    }
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"OK","result":{"symbol":"BTCUSDT","category":"linear","list":[{"openInterest":"62129.45500000","timestamp":"1739725200000"}],"nextPageCursor":"lastid%3D10860016%26lasttime%3D1739725200"},"retExtInfo":{},"time":1739725954780},
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": 62129.455,
+                    "openInterestValue": null,
+                    "timestamp": 1739725200000,
+                    "datetime": "2025-02-16T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "62129.45500000",
+                        "timestamp": "1739725200000",
+                        "nextPageCursor": "lastid%3D10860016%26lasttime%3D1739725200"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            },
+            {
+                "description": "inverse OI",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC",
+                    {
+                        "limit": 1
+                    }
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"OK","result":{"symbol":"BTCUSD","category":"inverse","list":[{"openInterest":"1536179414.00000000","timestamp":"1739725200000"}],"nextPageCursor":"lastid%3D10860957%26lasttime%3D1739725200"},"retExtInfo":{},"time":1739725850253},
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "openInterestAmount": null,
+                    "openInterestValue": 1536179414,
+                    "timestamp": 1739725200000,
+                    "datetime": "2025-02-16T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "1536179414.00000000",
+                        "timestamp": "1739725200000",
+                        "nextPageCursor": "lastid%3D10860957%26lasttime%3D1739725200"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
     "fetchBalance": [
             {
                 "description": "balance after availableToWithdraw update",

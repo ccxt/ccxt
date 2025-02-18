@@ -987,9 +987,6 @@
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
             },
-            "fetchTrades":  {
-                "timestamp": "timestamp is in decimals"
-            },
             "ticker": {
                 "bid":"messed bid-ask",
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
