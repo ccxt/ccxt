@@ -65,7 +65,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         //
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index"};
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "other"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         object hasIndex = (inOp(market, "index")); // todo: add in all
         // check if string is consistent with 'type'
