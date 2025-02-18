@@ -9363,6 +9363,41 @@
                   "interval": null
                 }
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetch a conversion trade quote",
+                "method": "fetchConvertQuote",
+                "input": [
+                  "USDT",
+                  "BTC",
+                  10
+                ],
+                "httpResponse": {"code":0,"msg":"OK","data":{"code":"GKG...AAA","quoteArgs":{"origin":10,"price":"0.00000939","proceeds":"0.00000000","ttlMs":7000,"expireAt":1739876288299,"requestAt":1739876280299,"quoteAt":1739876277448}}},
+                "parsedResponse": {
+                  "info": {
+                    "code": "GKG...AAA",
+                    "quoteArgs": {
+                      "origin": "10",
+                      "price": "0.00000939",
+                      "proceeds": "0.00000000",
+                      "ttlMs": "7000",
+                      "expireAt": "1739876288299",
+                      "requestAt": "1739876280299",
+                      "quoteAt": "1739876277448"
+                    }
+                  },
+                  "timestamp": 1739876280299,
+                  "datetime": "2025-02-18T10:58:00.299Z",
+                  "id": "GKG...AAA",
+                  "fromCurrency": null,
+                  "fromAmount": null,
+                  "toCurrency": null,
+                  "toAmount": null,
+                  "price": 0.00000939,
+                  "fee": null
+                }
+            }
         ]
     }
 }

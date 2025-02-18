@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ export default class phemex extends Exchange {
                 'cancelOrder': true,
                 'closePosition': false,
                 'createOrder': true,
+                'createConvertTrade': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -46,6 +47,9 @@ export default class phemex extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -5042,6 +5046,198 @@ export default class phemex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         }, market);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://phemex-docs.github.io/#rfq-quote
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+            'fromAmountEv': amount,
+        };
+        const response = await this.privateGetAssetsQuote (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "code": "GIF...AAA",
+        //             "quoteArgs": {
+        //                 "origin": 10,
+        //                 "price": "0.00000939",
+        //                 "proceeds": "0.00000000",
+        //                 "ttlMs": 7000,
+        //                 "expireAt": 1739875826009,
+        //                 "requestAt": 1739875818009,
+        //                 "quoteAt": 1739875816594
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseConversion (data, undefined, undefined);
+    }
+
+    /**
+     * @method
+     * @name phemex#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://phemex-docs.github.io/#convert
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'code': id,
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+        };
+        if (amount !== undefined) {
+            request['fromAmountEv'] = amount;
+        }
+        const response = await this.privatePostAssetsConvert (this.extend (request, params));
+        //
+        //     {
+        //         "fromAmountEv": 0,
+        //         "fromCurrency": "string",
+        //         "linkKey": "string",
+        //         "moveOp": 0,
+        //         "status": 0,
+        //         "toAmountEv": 0,
+        //         "toCurrency": "string"
+        //     }
+        //
+        const fromCurrencyId = this.safeString (response, 'fromCurrency', fromCode);
+        const fromCurrency = this.currency (fromCurrencyId);
+        const toCurrencyId = this.safeString (response, 'toCurrency', toCode);
+        const toCurrency = this.currency (toCurrencyId);
+        return this.parseConversion (response, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://phemex-docs.github.io/#query-convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromCurrency] the currency that you sold and converted from
+     * @param {string} [params.toCurrency] the currency that you bought and converted into
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (code !== undefined) {
+            request['fromCurrency'] = code;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetAssetsConvert (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "conversionRate": 0,
+        //             "createTime": 0,
+        //             "errorCode": 0,
+        //             "fromAmountEv": 0,
+        //             "fromCurrency": "string",
+        //             "linkKey": "string",
+        //             "status": 0,
+        //             "toAmountEv": 0,
+        //             "toCurrency": "string"
+        //         }
+        //     ]
+        //
+        return this.parseConversions (response, code, 'fromCurrency', 'toCurrency', since, limit);
+    }
+
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "code": "GIF...AAA",
+        //         "quoteArgs": {
+        //             "origin": 10,
+        //             "price": "0.00000939",
+        //             "proceeds": "0.00000000",
+        //             "ttlMs": 7000,
+        //             "expireAt": 1739875826009,
+        //             "requestAt": 1739875818009,
+        //             "quoteAt": 1739875816594
+        //         }
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "fromAmountEv": 0,
+        //         "fromCurrency": "string",
+        //         "linkKey": "string",
+        //         "moveOp": 0,
+        //         "status": 0,
+        //         "toAmountEv": 0,
+        //         "toCurrency": "string"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "conversionRate": 0,
+        //         "createTime": 0,
+        //         "errorCode": 0,
+        //         "fromAmountEv": 0,
+        //         "fromCurrency": "string",
+        //         "linkKey": "string",
+        //         "status": 0,
+        //         "toAmountEv": 0,
+        //         "toCurrency": "string"
+        //     }
+        //
+        const quoteArgs = this.safeDict (conversion, 'quoteArgs', {});
+        const requestTime = this.safeInteger (quoteArgs, 'requestAt');
+        const timestamp = this.safeInteger (conversion, 'createTime', requestTime);
+        const fromCoin = this.safeString (conversion, 'fromCurrency');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const to = this.safeString (conversion, 'toCurrency');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'code'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber (conversion, 'fromAmountEv'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber (conversion, 'toAmountEv'),
+            'price': this.safeNumber (quoteArgs, 'price'),
+            'fee': undefined,
+        } as Conversion;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

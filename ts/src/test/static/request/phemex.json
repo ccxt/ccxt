@@ -861,6 +861,18 @@
                 "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetch a quote for a conversion trade",
+                "method": "fetchConvertQuote",
+                "url": "https://testnet-api.phemex.com/assets/quote?fromCurrency=USDT&toCurrency=BTC&fromAmountEv=10",
+                "input": [
+                  "USDT",
+                  "BTC",
+                  10
+                ]
+            }
         ]
     }
 }
