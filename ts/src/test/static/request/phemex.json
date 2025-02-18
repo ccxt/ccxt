@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchConvertTradeHistory": [
+            {
+                "description": "fetchConvertTradeHistory btc",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.phemex.com/assets/convert?fromCurrency=BTC",
+                "input": [
+                    "BTC"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",
@@ -863,6 +874,17 @@
             }
         ],
         "fetchConvertQuote": [
+            {
+                "description": "fetch convert quote",
+                "method": "fetchConvertQuote",
+                "url": "https://api.phemex.com/assets/quote?fromCurrency=BTC&toCurrency=USDT&fromAmountEv=100000",
+                "input": [
+                    "BTC",
+                    "USDT",
+                    0.001
+                ],
+                "output": null
+            },
             {
                 "description": "fetch a quote for a conversion trade",
                 "method": "fetchConvertQuote",

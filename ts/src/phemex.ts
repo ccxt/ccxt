@@ -5061,10 +5061,13 @@ export default class phemex extends Exchange {
      */
     async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
+        const currency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const valueScale = this.safeInteger (currency, 'valueScale');
         const request: Dict = {
             'fromCurrency': fromCode,
             'toCurrency': toCode,
-            'fromAmountEv': amount,
+            'fromAmountEv': this.toEn (amount, valueScale),
         };
         const response = await this.privateGetAssetsQuote (this.extend (request, params));
         //
@@ -5086,7 +5089,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseConversion (data, undefined, undefined);
+        return this.parseConversion (data, currency, toCurrency);
     }
 
     /**
@@ -5222,19 +5225,24 @@ export default class phemex extends Exchange {
         const quoteArgs = this.safeDict (conversion, 'quoteArgs', {});
         const requestTime = this.safeInteger (quoteArgs, 'requestAt');
         const timestamp = this.safeInteger (conversion, 'createTime', requestTime);
-        const fromCoin = this.safeString (conversion, 'fromCurrency');
+        const fromCoin = this.safeString (conversion, 'fromCurrency', this.safeString (fromCurrency, 'code'));
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
-        const to = this.safeString (conversion, 'toCurrency');
+        const to = this.safeString (conversion, 'toCurrency', this.safeString (toCurrency, 'code'));
         const toCode = this.safeCurrencyCode (to, toCurrency);
+        const dataObject = (quoteArgs !== undefined) ? quoteArgs : conversion;
+        let fromAmount = this.safeString (conversion, 'fromAmountEv');
+        if (fromAmount === undefined && quoteArgs !== undefined) {
+            fromAmount = this.fromEn (this.safeString (quoteArgs, 'origin'), this.safeInteger (fromCurrency, 'valueScale'));
+        }
         return {
             'info': conversion,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': this.safeString (conversion, 'code'),
             'fromCurrency': fromCode,
-            'fromAmount': this.safeNumber (conversion, 'fromAmountEv'),
+            'fromAmount': this.parseNumber (fromAmount),
             'toCurrency': toCode,
-            'toAmount': this.safeNumber (conversion, 'toAmountEv'),
+            'toAmount': this.safeNumber2 (dataObject, 'toAmountEv', 'proceeds'),
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
         } as Conversion;
