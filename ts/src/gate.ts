@@ -1792,103 +1792,83 @@ export default class gate extends Exchange {
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
-        //    {
-        //        "currency": "BCN",
-        //        "delisted": false,
-        //        "withdraw_disabled": true,
-        //        "withdraw_delayed": false,
-        //        "deposit_disabled": true,
-        //        "trade_disabled": false
-        //    }
+        //  [
+        //   {
+        //       "currency": "USDT_ETH",
+        //       "name": "Tether",
+        //       "delisted": false,
+        //       "withdraw_disabled": false,
+        //       "withdraw_delayed": false,
+        //       "deposit_disabled": false,
+        //       "trade_disabled": true,
+        //       "chain": "ETH"
+        //    },
+        //  ]
         //
-        //    {
-        //        "currency":"USDT_ETH",
-        //        "delisted":false,
-        //        "withdraw_disabled":false,
-        //        "withdraw_delayed":false,
-        //        "deposit_disabled":false,
-        //        "trade_disabled":false,
-        //        "chain":"ETH"
-        //    }
-        //
+        const indexedCurrencies = this.indexBy (response, 'currency');
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
-            const currencyIdLower = this.safeStringLower (entry, 'currency');
             const parts = currencyId.split ('_');
-            const currency = parts[0];
-            const code = this.safeCurrencyCode (currency);
-            const networkId = this.safeString (entry, 'chain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode (networkId, code);
+            const partFirst = this.safeString (parts, 0);
+            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
+            const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
+            const withdrawEnabled = !this.safeBool (entry, 'withdraw_disabled');
+            const depositEnabled = !this.safeBool (entry, 'deposit_disabled');
+            const tradeDisabled = !this.safeBool (entry, 'trade_disabled');
+            const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
+            const code = this.safeCurrencyCode (currencyName);
+            // check leveraged tokens (e.g. BTC3S, ETH5L)
+            let isLeveragedToken = false;
+            if (currencyId.endsWith ('3S') || currencyId.endsWith ('3L') || currencyId.endsWith ('5S') || currencyId.endsWith ('5L')) {
+                const realCurrencyId = currencyId.slice (0, -2);
+                if (realCurrencyId in indexedCurrencies) {
+                    isLeveragedToken = true;
+                }
             }
-            const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
-            const withdrawEnabled = !withdrawDisabled;
-            const depositEnabled = !depositDisabled;
-            const tradeEnabled = !tradeDisabled;
-            const listed = !delisted;
-            const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            if (this.safeValue (result, code) === undefined) {
+            const type = isLeveragedToken ? 'leveraged' : 'crypto';
+            // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
+            const networkId = this.safeString (entry, 'chain', currencyId);
+            const networkCode = this.networkIdToCode (networkId, code);
+            const networkEntry = {
+                'info': entry,
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'active': !tradeDisabled,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': precision,
+            };
+            // check if first entry for the specific currency
+            if (!(code in result)) {
                 result[code] = {
-                    'id': currency,
+                    'id': currencyName,
+                    'lowerCaseId': currencyName.toLowerCase (),
                     'code': code,
-                    'info': undefined,
-                    'name': undefined,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': undefined,
-                    'fees': [],
-                    'precision': this.parseNumber ('1e-4'),
+                    'type': type,
+                    'precision': precision,
                     'limits': this.limits,
                     'networks': {},
+                    'info': [], // will be filled below
                 };
             }
-            let depositAvailable = this.safeValue (result[code], 'deposit');
-            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
-            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
-            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue (result[code], 'networks', {});
-            if (networkCode !== undefined) {
-                networks[networkCode] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': networkCode,
-                    'currencyId': currencyId,
-                    'lowerCaseCurrencyId': currencyIdLower,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': undefined,
-                    'precision': this.parseNumber ('1e-4'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code]['networks'] = networks;
-            const info = this.safeValue (result[code], 'info', []);
+            result[code]['networks'][networkCode] = networkEntry;
+            const info = this.safeList (result[code], 'info', []);
             info.push (entry);
             result[code]['info'] = info;
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
+            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
         }
         return result;
     }
