@@ -1067,7 +1067,7 @@ class phemex extends phemex$1 {
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
             const type = this.safeStringLower(market, 'type');
-            if ((type === 'perpetual') || (type === 'perpetualv2')) {
+            if ((type === 'perpetual') || (type === 'perpetualv2') || (type === 'PerpetualPilot')) {
                 const id = this.safeString(market, 'symbol');
                 const riskLimitValues = this.safeValue(riskLimitsById, id, {});
                 market = this.extend(market, riskLimitValues);
