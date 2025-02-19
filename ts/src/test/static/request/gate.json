@@ -444,7 +444,7 @@
             {
                 "description": "spot & trigger",
                 "method": "fetchOpenOrders",
-                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=open",      
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=open",
                 "input": [
                   "BTC/USDT",
                   null,
@@ -517,9 +517,9 @@
                 ]
             },
             {
-                "description": "spot & trigger",
+                "description": "closed spot & trigger",
                 "method": "fetchClosedOrders",
-                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",  
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",
                 "input": [
                   "BTC/USDT",
                   null,
@@ -1277,6 +1277,19 @@
         ],
         "fetchFundingRateHistory": [
             {
+                "description": "funding rate with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT&from=1731669065&to=1731755465",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1731669065000,
+                    null,
+                    {
+                        "until": 1731755465000
+                    }
+                ]
+            },
+            {
                 "description": "Fetch Funding Rate History - swap",
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT",
@@ -1817,6 +1830,14 @@
                     "unifiedAccount": true
                   }
                 ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch the current exchange server time",
+                "method": "fetchTime",
+                "url": "https://api.gateio.ws/api/v4/spot/time",
+                "input": []
             }
         ]
     }

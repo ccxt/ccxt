@@ -721,6 +721,36 @@ public partial class binancecoinm : binance
         return await this.callAsync ("sapiGetEthStakingEthHistoryWbethRewardsHistory",parameters);
     }
 
+    public async Task<object> sapiGetSolStakingSolHistoryStakingHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingSolHistoryStakingHistory",parameters);
+    }
+
+    public async Task<object> sapiGetSolStakingSolHistoryRedemptionHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingSolHistoryRedemptionHistory",parameters);
+    }
+
+    public async Task<object> sapiGetSolStakingSolHistoryBnsolRewardsHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingSolHistoryBnsolRewardsHistory",parameters);
+    }
+
+    public async Task<object> sapiGetSolStakingSolHistoryRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingSolHistoryRateHistory",parameters);
+    }
+
+    public async Task<object> sapiGetSolStakingAccount (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingAccount",parameters);
+    }
+
+    public async Task<object> sapiGetSolStakingSolQuota (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSolStakingSolQuota",parameters);
+    }
+
     public async Task<object> sapiGetMiningPubAlgoList (object parameters = null)
     {
         return await this.callAsync ("sapiGetMiningPubAlgoList",parameters);
@@ -1069,6 +1099,11 @@ public partial class binancecoinm : binance
     public async Task<object> sapiGetPortfolioBalance (object parameters = null)
     {
         return await this.callAsync ("sapiGetPortfolioBalance",parameters);
+    }
+
+    public async Task<object> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
     }
 
     public async Task<object> sapiGetStakingProductList (object parameters = null)
@@ -1656,6 +1691,16 @@ public partial class binancecoinm : binance
         return await this.callAsync ("sapiPostEthStakingWbethWrap",parameters);
     }
 
+    public async Task<object> sapiPostSolStakingSolStake (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostSolStakingSolStake",parameters);
+    }
+
+    public async Task<object> sapiPostSolStakingSolRedeem (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostSolStakingSolRedeem",parameters);
+    }
+
     public async Task<object> sapiPostMiningHashTransferConfig (object parameters = null)
     {
         return await this.callAsync ("sapiPostMiningHashTransferConfig",parameters);
@@ -1761,6 +1806,16 @@ public partial class binancecoinm : binance
         return await this.callAsync ("sapiPostPortfolioRepayFuturesNegativeBalance",parameters);
     }
 
+    public async Task<object> sapiPostPortfolioMint (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioMint",parameters);
+    }
+
+    public async Task<object> sapiPostPortfolioRedeem (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioRedeem",parameters);
+    }
+
     public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
     {
         return await this.callAsync ("sapiPostLendingAutoInvestPlanAdd",parameters);
@@ -1814,6 +1869,11 @@ public partial class binancecoinm : binance
     public async Task<object> sapiPostSimpleEarnLockedSetAutoSubscribe (object parameters = null)
     {
         return await this.callAsync ("sapiPostSimpleEarnLockedSetAutoSubscribe",parameters);
+    }
+
+    public async Task<object> sapiPostSimpleEarnLockedSetRedeemOption (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostSimpleEarnLockedSetRedeemOption",parameters);
     }
 
     public async Task<object> sapiPostDciProductSubscribe (object parameters = null)
@@ -2936,6 +2996,26 @@ public partial class binancecoinm : binance
         return await this.callAsync ("eapiPrivateGetOrder",parameters);
     }
 
+    public async Task<object> eapiPrivateGetBlockOrderOrders (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockOrderOrders",parameters);
+    }
+
+    public async Task<object> eapiPrivateGetBlockOrderExecute (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockOrderExecute",parameters);
+    }
+
+    public async Task<object> eapiPrivateGetBlockUserTrades (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockUserTrades",parameters);
+    }
+
+    public async Task<object> eapiPrivateGetBlockTrades (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -2971,9 +3051,24 @@ public partial class binancecoinm : binance
         return await this.callAsync ("eapiPrivatePostCountdownCancelAllHeartBeat",parameters);
     }
 
+    public async Task<object> eapiPrivatePostBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePostBlockOrderCreate",parameters);
+    }
+
+    public async Task<object> eapiPrivatePostBlockOrderExecute (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePostBlockOrderExecute",parameters);
+    }
+
     public async Task<object> eapiPrivatePutListenKey (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePutListenKey",parameters);
+    }
+
+    public async Task<object> eapiPrivatePutBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePutBlockOrderCreate",parameters);
     }
 
     public async Task<object> eapiPrivateDeleteOrder (object parameters = null)
@@ -2999,6 +3094,11 @@ public partial class binancecoinm : binance
     public async Task<object> eapiPrivateDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("eapiPrivateDeleteListenKey",parameters);
+    }
+
+    public async Task<object> eapiPrivateDeleteBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateDeleteBlockOrderCreate",parameters);
     }
 
     public async Task<object> publicGetPing (object parameters = null)
@@ -3539,6 +3639,11 @@ public partial class binancecoinm : binance
     public async Task<object> papiGetCmSymbolConfig (object parameters = null)
     {
         return await this.callAsync ("papiGetCmSymbolConfig",parameters);
+    }
+
+    public async Task<object> papiGetRateLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("papiGetRateLimitOrder",parameters);
     }
 
     public async Task<object> papiPostUmOrder (object parameters = null)

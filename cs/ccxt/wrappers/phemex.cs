@@ -10,6 +10,7 @@ public partial class phemex
     /// retrieves data on all markets for phemex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-product-information-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -288,7 +289,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type = null, string side = null, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
         var price = price2 == 0 ? null : (object)price2;
@@ -610,7 +611,13 @@ public partial class phemex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.method</term>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
     /// <description>
     /// string : *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
     /// </description>
@@ -700,6 +707,7 @@ public partial class phemex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#set-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -796,6 +804,8 @@ public partial class phemex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#transfer-between-spot-and-futures"/>  <br/>
+    /// See <see href="https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -821,6 +831,7 @@ public partial class phemex
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

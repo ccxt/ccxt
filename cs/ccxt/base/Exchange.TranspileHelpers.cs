@@ -363,7 +363,10 @@ public partial class Exchange
         b = normalizeIntIfNeeded(b);
 
         if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int) || a.GetType() == typeof(double))
-            return (Convert.ToDouble(a)) % (Convert.ToDouble(b));
+        {
+            var res = (Convert.ToDouble(a)) % (Convert.ToDouble(b));
+            return Convert.ToInt64(res);
+        }
 
         return null;
 

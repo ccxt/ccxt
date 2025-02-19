@@ -161,14 +161,19 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PublicGetMarketHistoricalTrades",parameters);
     }
 
+    public async Task<object> swapV1PublicGetMarketMarkPriceKlines (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PublicGetMarketMarkPriceKlines",parameters);
+    }
+
+    public async Task<object> swapV1PublicGetTradeMultiAssetsRules (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PublicGetTradeMultiAssetsRules",parameters);
+    }
+
     public async Task<object> swapV1PrivateGetPositionSideDual (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivateGetPositionSideDual",parameters);
-    }
-
-    public async Task<object> swapV1PrivateGetMarketMarkPriceKlines (object parameters = null)
-    {
-        return await this.callAsync ("swapV1PrivateGetMarketMarkPriceKlines",parameters);
     }
 
     public async Task<object> swapV1PrivateGetTradeBatchCancelReplace (object parameters = null)
@@ -181,6 +186,46 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PrivateGetTradeFullOrder",parameters);
     }
 
+    public async Task<object> swapV1PrivateGetMaintMarginRatio (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetMaintMarginRatio",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetTradePositionHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetTradePositionHistory",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetPositionMarginHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetPositionMarginHistory",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetTwapOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetTwapOpenOrders",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetTwapHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetTwapHistoryOrders",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetTwapOrderDetail (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetTwapOrderDetail",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetTradeAssetMode (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetTradeAssetMode",parameters);
+    }
+
+    public async Task<object> swapV1PrivateGetUserMarginAssets (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetUserMarginAssets",parameters);
+    }
+
     public async Task<object> swapV1PrivatePostTradeCancelReplace (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivatePostTradeCancelReplace",parameters);
@@ -191,9 +236,34 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PrivatePostPositionSideDual",parameters);
     }
 
+    public async Task<object> swapV1PrivatePostTradeBatchCancelReplace (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeBatchCancelReplace",parameters);
+    }
+
     public async Task<object> swapV1PrivatePostTradeClosePosition (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivatePostTradeClosePosition",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTradeGetVst (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeGetVst",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTwapOrder (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTwapOrder",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTwapCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTwapCancelOrder",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTradeAssetMode (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeAssetMode",parameters);
     }
 
     public async Task<object> swapV2PublicGetServerTime (object parameters = null)
@@ -304,6 +374,11 @@ public partial class bingx : Exchange
     public async Task<object> swapV2PrivateGetTradeAllFillOrders (object parameters = null)
     {
         return await this.callAsync ("swapV2PrivateGetTradeAllFillOrders",parameters);
+    }
+
+    public async Task<object> swapV2PrivateGetTradeFillHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapV2PrivateGetTradeFillHistory",parameters);
     }
 
     public async Task<object> swapV2PrivateGetUserIncomeExport (object parameters = null)
@@ -471,6 +546,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("cswapV1PrivatePostTradeLeverage",parameters);
     }
 
+    public async Task<object> cswapV1PrivatePostTradeAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradeAllOpenOrders",parameters);
+    }
+
     public async Task<object> cswapV1PrivatePostTradeCloseAllPositions (object parameters = null)
     {
         return await this.callAsync ("cswapV1PrivatePostTradeCloseAllPositions",parameters);
@@ -576,6 +656,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("subAccountV1PrivateGetAssets",parameters);
     }
 
+    public async Task<object> subAccountV1PrivateGetAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("subAccountV1PrivateGetAllAccountBalance",parameters);
+    }
+
     public async Task<object> subAccountV1PrivatePostCreate (object parameters = null)
     {
         return await this.callAsync ("subAccountV1PrivatePostCreate",parameters);
@@ -611,9 +696,29 @@ public partial class bingx : Exchange
         return await this.callAsync ("accountV1PrivateGetApiKeyQuery",parameters);
     }
 
+    public async Task<object> accountV1PrivateGetAccountApiPermissions (object parameters = null)
+    {
+        return await this.callAsync ("accountV1PrivateGetAccountApiPermissions",parameters);
+    }
+
     public async Task<object> accountV1PrivatePostInnerTransferAuthorizeSubAccount (object parameters = null)
     {
         return await this.callAsync ("accountV1PrivatePostInnerTransferAuthorizeSubAccount",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivateGetSubAccountAssetTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivateGetSubAccountAssetTransferHistory",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins",parameters);
+    }
+
+    public async Task<object> accountTransferV1PrivatePostSubAccountTransferAsset (object parameters = null)
+    {
+        return await this.callAsync ("accountTransferV1PrivatePostSubAccountTransferAsset",parameters);
     }
 
     public async Task<object> userAuthPrivatePostUserDataStream (object parameters = null)

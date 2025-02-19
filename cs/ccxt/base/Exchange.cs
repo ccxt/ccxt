@@ -22,26 +22,14 @@ public partial class Exchange
         var empty = new List<string>();
         transformApiNew(this.api);
 
-        this.initRestLimiter();
         this.initHttpClient();
 
-        if (this.markets != null)
-        {
-            this.setMarkets(this.markets);
-        }
         this.afterConstruct();
-
-        var isSandbox2 = this.safeBool2(this.options, "sandbox", "testnet", false);
-        var isSandbox = (isSandbox2 != null) ? (bool)isSandbox2 : false;
-        if (isSandbox)
-        {
-            this.setSandboxMode(isSandbox);
-        }
     }
 
     private void initHttpClient()
     {
-        var handler = new HttpClientHandler{ AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
@@ -574,22 +562,6 @@ public partial class Exchange
         await (await this.throttler.throttle(cost));
     }
 
-    public void initRestLimiter()
-    {
-        if (this.id != null && this.rateLimit == -1)
-        {
-            throw new Exception(this.id + ".rateLimit property is not configured'");
-        }
-        this.tokenBucket = (dict)this.extend(new dict() {
-            {"delay" , 0.001},
-            {"capacity" , 1},
-            {"cost" , 1},
-            {"maxCapacity", 1000},
-            {"refillRate", (this.rateLimit > 0) ? 1 / this.rateLimit : float.MaxValue},
-        }, this.tokenBucket);
-        this.throttler = new Throttler(this.tokenBucket);
-    }
-
     public object clone(object o)
     {
         return o;
@@ -712,6 +684,24 @@ public partial class Exchange
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
+
+        if (array is byte[])
+        {
+            var byteArray = (byte[])array;
+            if (second == null)
+            {
+                if (firstInt < 0)
+                {
+                    var index = byteArray.Length + firstInt;
+                    index = index < 0 ? 0 : index;
+                    return byteArray[index..].ToList();
+                }
+                return byteArray[firstInt..].ToList();
+            }
+            var secondInt2 = Convert.ToInt32(second);
+            return byteArray[firstInt..secondInt2];
+        }
+
         var parsedArray = ((IList<object>)array);
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
@@ -771,6 +761,10 @@ public partial class Exchange
     public Task sleep(object ms)
     {
         return Task.Delay(Convert.ToInt32(ms));
+    }
+
+    public void initThrottler() {
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public bool isEmpty(object a)
@@ -991,6 +985,12 @@ public partial class Exchange
         {
             prop.SetValue(obj, defaultValue);
         }
+    }
+    public object getProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        return (prop != null) ? prop.GetValue(obj) : defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)

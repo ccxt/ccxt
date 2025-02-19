@@ -90,5 +90,28 @@
             "withdraw": {},
             "deposit": {}
         }
+    },
+    "SOL": {
+        "info": {
+            "in_cross_collateral_pool": false,
+            "currency_long": "Solana",
+            "min_confirmations": "1",
+            "withdrawal_priorities": [],
+            "coin_type": "SOL",
+            "fee_precision": "4",
+            "min_withdrawal_fee": "0.0001",
+            "withdrawal_fee": "0.0001",
+            "currency": "SOL"
+        },
+        "code": "SOL",
+        "id": "SOL",
+        "name": "Solana",
+        "fee": 0.0001,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
     }
 }

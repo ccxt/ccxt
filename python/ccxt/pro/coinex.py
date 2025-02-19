@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -20,7 +20,7 @@ from ccxt.base.errors import RequestTimeout
 
 class coinex(ccxt.async_support.coinex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinex, self).describe(), {
             'has': {
                 'ws': True,
@@ -251,8 +251,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
-        :see: https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+
+        https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+        https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -261,7 +263,10 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        currencies = list(self.currencies_by_id.keys())
+        # coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        activeCurrencies = self.filter_by(self.currencies_by_id, 'active', True)
+        activeCurrenciesById = self.index_by(activeCurrencies, 'id')
+        currencies = list(activeCurrenciesById.keys())
         if currencies is None:
             currencies = []
         messageHash = 'balances'
@@ -390,8 +395,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
-        :see: https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+
+        https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
+        https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+
         :param str [symbol]: unified symbol of the market the trades were made in
         :param int [since]: the earliest time in ms to watch trades
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -597,8 +604,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market
+        https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -611,8 +620,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market
+        https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -646,8 +657,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market-deals
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+        https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -660,8 +673,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watch the most recent trades for a list of symbols
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market-deals
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+        https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
         :param str[] symbols: unified symbols of the markets to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -700,8 +715,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market-depth
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+        https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -752,8 +769,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market-depth
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+        https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -831,8 +850,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.coinex.com/api/v2/spot/order/ws/user-order
-        :see: https://docs.coinex.com/api/v2/futures/order/ws/user-order
+
+        https://docs.coinex.com/api/v2/spot/order/ws/user-order
+        https://docs.coinex.com/api/v2/futures/order/ws/user-order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -841,7 +862,7 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'trigger', 'stop')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
         market = None
@@ -862,7 +883,7 @@ class coinex(ccxt.async_support.coinex):
             else:
                 messageHash += ':swap'
         method = None
-        if stop:
+        if trigger:
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'
@@ -1150,8 +1171,10 @@ class coinex(ccxt.async_support.coinex):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
-        :see: https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
-        :see: https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+        https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1218,7 +1241,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = self.safe_string(self.options, 'defaultType')
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
-        timestamp = self.safe_timestamp(ticker, 'updated_at')
+        timestamp = self.safe_integer(ticker, 'updated_at')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, defaultType),
             'timestamp': timestamp,

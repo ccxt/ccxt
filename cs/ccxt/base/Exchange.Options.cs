@@ -64,7 +64,10 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
+    public Dictionary<string, object> features { get; set; } = new dict();
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
+    public bool isSandboxModeEnabled { get; set; } = false;
+
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
@@ -122,6 +125,7 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+    public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
@@ -241,14 +245,19 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         // handle options
         var extendedOptions = safeDict(extendedProperties, "options");
         if (extendedOptions != null)
         {
+            extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
+        } else {
+            var dict2 = this.getDefaultOptions() as dict;
+            this.options =  new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
@@ -275,5 +284,6 @@ public partial class Exchange
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
+        this.features = SafeValue(extendedProperties, "features", features) as dict;
     }
 }

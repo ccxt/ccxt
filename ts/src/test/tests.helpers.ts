@@ -166,7 +166,7 @@ async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME ]);
+    const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;

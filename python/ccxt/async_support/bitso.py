@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bitso(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitso, self).describe(), {
             'id': 'bitso',
             'name': 'Bitso',
@@ -104,7 +104,7 @@ class bitso(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
+                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
                 'api': {
                     'rest': 'https://bitso.com/api',
                 },
@@ -195,6 +195,68 @@ class bitso(Exchange, ImplicitAPI):
                     ],
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo implementation
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        # todo: implementation for TIF
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 '0201': AuthenticationError,  # Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce,  # Cannot perform request - nonce must be higher than 1520307203724237
@@ -209,7 +271,7 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         request: dict = {}
         if limit is not None:
@@ -355,7 +417,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitso
-        :see: https://docs.bitso.com/bitso-api/docs/list-available-books
+
+        https://docs.bitso.com/bitso-api/docs/list-available-books
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -509,7 +573,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.bitso.com/bitso-api/docs/get-account-balance
+
+        https://docs.bitso.com/bitso-api/docs/get-account-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -545,7 +611,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.bitso.com/bitso-api/docs/list-order-book
+
+        https://docs.bitso.com/bitso-api/docs/list-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -608,7 +676,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.bitso.com/bitso-api/docs/ticker
+
+        https://docs.bitso.com/bitso-api/docs/ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -813,7 +883,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.bitso.com/bitso-api/docs/list-trades
+
+        https://docs.bitso.com/bitso-api/docs/list-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -831,7 +903,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+        https://docs.bitso.com/bitso-api/docs/list-fees
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -900,7 +974,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 25, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.bitso.com/bitso-api/docs/user-trades
+
+        https://docs.bitso.com/bitso-api/docs/user-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -934,7 +1010,9 @@ class bitso(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.bitso.com/bitso-api/docs/place-an-order
+
+        https://docs.bitso.com/bitso-api/docs/place-an-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -963,7 +1041,9 @@ class bitso(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+        https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
         :param str id: order id
         :param str symbol: not used by bitso cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -987,10 +1067,12 @@ class bitso(Exchange, ImplicitAPI):
             'id': orderId,
         })
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
-        :see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+        https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1019,10 +1101,12 @@ class bitso(Exchange, ImplicitAPI):
             orders.append(self.parse_order(id, market))
         return orders
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders
-        :see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+        https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
         :param None symbol: bitso does not support canceling orders for only a specific market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1086,7 +1170,6 @@ class bitso(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1101,7 +1184,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 25, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.bitso.com/bitso-api/docs/list-open-orders
+
+        https://docs.bitso.com/bitso-api/docs/list-open-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1136,7 +1221,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.bitso.com/bitso-api/docs/look-up-orders
+
+        https://docs.bitso.com/bitso-api/docs/look-up-orders
+
         :param str id: the order id
         :param str symbol: not used by bitso fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1156,7 +1243,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://docs.bitso.com/bitso-api/docs/list-user-trades
+
+        https://docs.bitso.com/bitso-api/docs/list-user-trades
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1175,7 +1264,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
-        :see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+        https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
         :param str id: deposit id
         :param str code: bitso does not support filtering by currency code and will ignore self argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1216,7 +1307,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+        https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1284,9 +1377,11 @@ class bitso(Exchange, ImplicitAPI):
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
-         * @deprecated
+ @deprecated
         please use fetchDepositWithdrawFees instead
-        :see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+        https://docs.bitso.com/bitso-api/docs/list-fees
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1373,7 +1468,9 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+        https://docs.bitso.com/bitso-api/docs/list-fees
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1500,7 +1597,7 @@ class bitso(Exchange, ImplicitAPI):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1647,6 +1744,7 @@ class bitso(Exchange, ImplicitAPI):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
+            endpoint = '/api' + endpoint
             request = ''.join([nonce, method, endpoint])
             if method != 'GET' and method != 'DELETE':
                 if query:
@@ -1656,7 +1754,7 @@ class bitso(Exchange, ImplicitAPI):
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                # 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

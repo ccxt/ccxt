@@ -225,6 +225,12 @@ public partial class probit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// string : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -521,15 +527,15 @@ public partial class probit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.until</term>
-    /// <description>
-    /// int : the latest time in ms to fetch transactions for
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch transactions for
     /// </description>
     /// </item>
     /// </list>

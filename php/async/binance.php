@@ -17,13 +17,13 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class binance extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
             'name' => 'Binance',
@@ -69,6 +69,7 @@ class binance extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'editOrders' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -115,7 +116,7 @@ class binance extends Exchange {
                 'fetchLongShortRatio' => false,
                 'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
-                'fetchMarginMode' => 'emulated',
+                'fetchMarginMode' => true,
                 'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -195,7 +196,7 @@ class binance extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
@@ -400,6 +401,12 @@ class binance extends Exchange {
                         'eth-staking/wbeth/history/wrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/history/unwrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/history/wbethRewardsHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/history/stakingHistory' => 15,
+                        'sol-staking/sol/history/redemptionHistory' => 15,
+                        'sol-staking/sol/history/bnsolRewardsHistory' => 15,
+                        'sol-staking/sol/history/rateHistory' => 15,
+                        'sol-staking/account' => 15,
+                        'sol-staking/sol/quota' => 15,
                         // mining endpoints
                         'mining/pub/algoList' => 0.1,
                         'mining/pub/coinList' => 0.1,
@@ -479,6 +486,7 @@ class binance extends Exchange {
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
+                        'portfolio/negative-balance-exchange-record' => 2,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -611,6 +619,8 @@ class binance extends Exchange {
                         'eth-staking/eth/stake' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/redeem' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/wrap' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/stake' => 15,
+                        'sol-staking/sol/redeem' => 15,
                         // mining endpoints
                         'mining/hash-transfer/config' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                         'mining/hash-transfer/config/cancel' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
@@ -633,6 +643,8 @@ class binance extends Exchange {
                         'portfolio/bnb-transfer' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/mint' => 20,
+                        'portfolio/redeem' => 20,
                         'lending/auto-invest/plan/add' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
@@ -645,6 +657,7 @@ class binance extends Exchange {
                         'simple-earn/locked/redeem' => 0.1,
                         'simple-earn/flexible/setAutoSubscribe' => 15,
                         'simple-earn/locked/setAutoSubscribe' => 15,
+                        'simple-earn/locked/setRedeemOption' => 5,
                         // convert
                         'dci/product/subscribe' => 0.1,
                         'dci/product/auto_compound/edit' => 0.1,
@@ -957,6 +970,10 @@ class binance extends Exchange {
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
                         'order' => 1,
+                        'block/order/orders' => 5,
+                        'block/order/execute' => 5,
+                        'block/user-trades' => 5,
+                        'blockTrades' => 5,
                     ),
                     'post' => array(
                         'order' => 1,
@@ -966,9 +983,12 @@ class binance extends Exchange {
                         'mmpReset' => 1,
                         'countdownCancelAll' => 1,
                         'countdownCancelAllHeartBeat' => 10,
+                        'block/order/create' => 5,
+                        'block/order/execute' => 5,
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                     'delete' => array(
                         'order' => 1,
@@ -976,6 +996,7 @@ class binance extends Exchange {
                         'allOpenOrders' => 1,
                         'allOpenOrdersByUnderlying' => 1,
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                 ),
                 'public' => array(
@@ -1112,6 +1133,7 @@ class binance extends Exchange {
                         'um/symbolConfig' => 1,
                         'cm/accountConfig' => 1,
                         'cm/symbolConfig' => 1,
+                        'rateLimit/order' => 1,
                     ),
                     'post' => array(
                         'um/order' => 1,
@@ -1313,7 +1335,8 @@ class binance extends Exchange {
                     'BEP20' => 'BSC',
                     'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
-                    'SPL' => 'SOL',
+                    'SPL' => 'SOL', // temporarily keep support for SPL (old name)
+                    'SOL' => 'SOL', // we shouldn't rename SOL
                 ),
                 // keeping this object for backward-compatibility
                 'reverseNetworks' => array(
@@ -1411,6 +1434,7 @@ class binance extends Exchange {
                     'explorer.zensystem.io' => 'ZEN',
                 ),
                 'networksById' => array(
+                    'SOL' => 'SOL', // temporary fix for SPL definition
                     'tronscan.org' => 'TRC20',
                     'etherscan.io' => 'ERC20',
                     'bscscan.com' => 'BSC',
@@ -1544,6 +1568,173 @@ class binance extends Exchange {
                 ),
                 'legalMoneyCurrenciesById' => array(
                     'BUSD' => 'USD',
+                ),
+                'defaultWithdrawPrecision' => 0.00000001,
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => array(
+                            'expire_maker' => true,
+                            'expire_taker' => true,
+                            'expire_both' => true,
+                            'none' => true,
+                        ),
+                        'trailing' => false, // todo => this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
+                        'icebergAmount' => true,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 1, // days between start-end
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'last' => true,
+                            'index' => false,
+                        ),
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null, // not supported
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                            // 'GTX' => true,
+                        ),
+                        'hedged' => true,
+                        // exchange-supported features
+                        'selfTradePrevention' => true, // todo
+                        'trailing' => true,
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 5,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'daysBack' => null,
+                        'limit' => 1000,
+                        'untilDays' => 7,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 90,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 90,
+                        'daysBackCanceled' => 3,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
                 ),
             ),
             'exceptions' => array(
@@ -1941,12 +2132,15 @@ class binance extends Exchange {
                         '-4088' => '\\ccxt\\PermissionDenied', // User can not place order currently
                         '-4114' => '\\ccxt\\BadRequest', // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115' => '\\ccxt\\BadRequest', // DUPLICATED_CLIENT_TRAN_ID
+                        '-4116' => '\\ccxt\\InvalidOrder', // DUPLICATED_CLIENT_ORDER_ID
+                        '-4117' => '\\ccxt\\OperationRejected', // STOP_ORDER_TRIGGERING
                         '-4118' => '\\ccxt\\OperationRejected', // REDUCE_ONLY_MARGIN_CHECK_FAILED
                         '-4131' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit
                         '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\OperationRejected', // Symbol is closed
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
-                        '-4164' => '\\ccxt\\InvalidOrder', // array("code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only).")
+                        '-4164' => '\\ccxt\\InvalidOrder', // array("code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."),
+                        '-4136' => '\\ccxt\\InvalidOrder', // array("code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition true")
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
                         '-4167' => '\\ccxt\\BadRequest', // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168' => '\\ccxt\\BadRequest', // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -2239,92 +2433,189 @@ class binance extends Exchange {
                 'portfolioMargin' => array(
                     'exact' => array(
                         //
-                        //        1xxx
+                        //        10xx General Server or Network Issues
                         //
-                        '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                        '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                        '-1023' => '\\ccxt\\BadRequest', // START_TIME_GREATER_THAN_END_TIME
-                        '-1109' => '\\ccxt\\BadRequest', // BAD_ACCOUNT
-                        '-1110' => '\\ccxt\\BadSymbol', // BAD_INSTRUMENT_TYPE
-                        '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                        '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1136' => '\\ccxt\\BadRequest', // INVALID_NEW_ORDER_RESP_TYPE
+                        '-1000' => '\\ccxt\\OperationFailed', // An unknown error occured while processing the request.
+                        '-1001' => '\\ccxt\\ExchangeError', // Internal error; unable to process your request. Please try again.
+                        '-1002' => '\\ccxt\\PermissionDenied', // You are not authorized to execute this request.
+                        '-1003' => '\\ccxt\\RateLimitExceeded', // Too many requests use the websocket for live updates to avoid polling the API.
+                        '-1004' => '\\ccxt\\BadRequest', // This IP is already on the white list.
+                        '-1005' => '\\ccxt\\PermissionDenied', // No such IP has been white listed.
+                        '-1006' => '\\ccxt\\BadResponse', // An unexpected response was received from the message bus. Execution status unknown.
+                        '-1007' => '\\ccxt\\BadResponse', // Timeout waiting for response from backend server. Send status unknown, execution status unknown.
+                        '-1008' => '\\ccxt\\OperationFailed', // WS Spot server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1010' => '\\ccxt\\ExchangeError', // ERROR_MSG_RECEIVED
+                        '-1011' => '\\ccxt\\PermissionDenied', // This IP cannot access this route.
+                        '-1013' => '\\ccxt\\ExchangeError', // INVALID_MESSAGE.
+                        '-1014' => '\\ccxt\\InvalidOrder', // Unsupported order combination.
+                        '-1015' => '\\ccxt\\InvalidOrder', // Too many new orders.
+                        '-1016' => '\\ccxt\\NotSupported', // This service is no longer available.
+                        '-1020' => '\\ccxt\\NotSupported', // This operation is not supported.
+                        '-1021' => '\\ccxt\\BadRequest', // Timestamp for this request is outside of the recvWindow 1000ms ahead of the servers time.
+                        '-1022' => '\\ccxt\\BadRequest', // Signature for this request is not valid.
+                        '-1023' => '\\ccxt\\BadRequest', // Start time is greater than end time
+                        '-1099' => '\\ccxt\\OperationFailed', // WS not found authenticated or authorized
                         //
-                        //        2xxx
+                        //        11xx Request Issues
                         //
-                        '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
-                        '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
-                        '-2019' => '\\ccxt\\InsufficientFunds', // Margin is insufficient
-                        '-2020' => '\\ccxt\\OrderNotFillable', // UNABLE_TO_FILL
+                        '-1100' => '\\ccxt\\BadRequest', // Illegal characters found in a parameter.
+                        '-1101' => '\\ccxt\\BadRequest', // Too many parameters sent for this endpoint.
+                        '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed.
+                        '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
+                        '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read.
+                        '-1105' => '\\ccxt\\BadRequest', // A parameter was empty.
+                        '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required.
+                        '-1108' => '\\ccxt\\BadRequest', // Invalid asset.
+                        '-1109' => '\\ccxt\\BadRequest', // Invalid account.
+                        '-1110' => '\\ccxt\\BadSymbol', // Invalid symbolType.
+                        '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
+                        '-1112' => '\\ccxt\\BadRequest', // No orders on book for symbol.
+                        '-1113' => '\\ccxt\\BadRequest', // Withdrawal amount must be negative.
+                        '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
+                        '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
+                        '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
+                        '-1117' => '\\ccxt\\BadRequest', // Invalid side.
+                        '-1118' => '\\ccxt\\BadRequest', // New client order ID was empty.
+                        '-1119' => '\\ccxt\\BadRequest', // Original client order ID was empty.
+                        '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
+                        '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
+                        '-1125' => '\\ccxt\\BadRequest', // This listenKey does not exist.
+                        '-1127' => '\\ccxt\\BadRequest', // Lookup interval is too big.
+                        '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid.
+                        '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter.
+                        '-1131' => '\\ccxt\\BadRequest', // WS recvWindow must be less than 60000
+                        '-1134' => '\\ccxt\\BadRequest', // WS strategyType was less than 1000000.
+                        '-1136' => '\\ccxt\\BadRequest', // Invalid newOrderRespType.
+                        '-1145' => '\\ccxt\\BadRequest', // WS cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
+                        '-1151' => '\\ccxt\\BadRequest', // WS Symbol is present multiple times in the list.
+                        //
+                        //        20xx Processing Issues
+                        //
+                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
+                        '-2011' => '\\ccxt\\OperationRejected', // CANCEL_REJECTED
+                        '-2013' => '\\ccxt\\OrderNotFound', // Order does not exist.
+                        '-2014' => '\\ccxt\\OperationRejected', // API-key format invalid.
+                        '-2015' => '\\ccxt\\OperationRejected', // Invalid API-key, IP, or permissions for action.
+                        '-2016' => '\\ccxt\\OperationFailed', // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                        '-2018' => '\\ccxt\\OperationFailed', // Balance is insufficient.
+                        '-2019' => '\\ccxt\\OperationFailed', // Margin is insufficient.
+                        '-2020' => '\\ccxt\\OrderNotFillable', // Unable to fill.
                         '-2021' => '\\ccxt\\OrderImmediatelyFillable', // Order would immediately trigger.
-                        '-2022' => '\\ccxt\\InvalidOrder', // ReduceOnly Order is rejected
-                        '-2023' => '\\ccxt\\OperationFailed', // User in liquidation mode now
-                        '-2024' => '\\ccxt\\OperationRejected', // Position is not sufficient
+                        '-2022' => '\\ccxt\\InvalidOrder', // ReduceOnly Order is rejected.
+                        '-2023' => '\\ccxt\\OperationFailed', // User in liquidation mode now.
+                        '-2024' => '\\ccxt\\OperationRejected', // Position is not sufficient.
                         '-2025' => '\\ccxt\\OperationRejected', // Reach max open order limit.
                         '-2026' => '\\ccxt\\InvalidOrder', // This OrderType is not supported when reduceOnly.
                         '-2027' => '\\ccxt\\OperationRejected', // Exceeded the maximum allowable position at current leverage.
                         '-2028' => '\\ccxt\\OperationRejected', // Leverage is smaller than permitted => insufficient margin balance.
                         //
-                        //        4xxx
+                        //        4xxx Filters and other issues
                         //
-                        '-4063' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_REQUEST_TYPE
-                        '-4064' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_TIME_FRAME
-                        '-4065' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_AMOUNT
-                        '-4066' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_EVENT_TYPE
-                        '-4069' => '\\ccxt\\BadRequest', // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4000' => '\\ccxt\\BadRequest', // Invalid order status.
+                        '-4001' => '\\ccxt\\BadRequest', // Price less than 0.
+                        '-4002' => '\\ccxt\\BadRequest', // Price greater than max price.
+                        '-4003' => '\\ccxt\\BadRequest', // Quantity less than zero.
+                        '-4004' => '\\ccxt\\BadRequest', // Quantity less than min quantity.
+                        '-4005' => '\\ccxt\\BadRequest', // Quantity greater than max quantity.
+                        '-4006' => '\\ccxt\\BadRequest', // Stop price less than zero.
+                        '-4007' => '\\ccxt\\BadRequest', // Stop price greater than max price.
+                        '-4008' => '\\ccxt\\BadRequest', // Tick size less than zero.
+                        '-4009' => '\\ccxt\\BadRequest', // Max price less than min price.
+                        '-4010' => '\\ccxt\\BadRequest', // Max qty less than min qty.
+                        '-4011' => '\\ccxt\\BadRequest', // Step size less than zero.
+                        '-4012' => '\\ccxt\\BadRequest', // Max mum orders less than zero.
+                        '-4013' => '\\ccxt\\BadRequest', // Price less than min price.
+                        '-4014' => '\\ccxt\\BadRequest', // Price not increased by tick size.
+                        '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid.
+                        '-4016' => '\\ccxt\\BadRequest', // Price is higher than mark price multiplier cap.
+                        '-4017' => '\\ccxt\\BadRequest', // Multiplier up less than zero.
+                        '-4018' => '\\ccxt\\BadRequest', // Multiplier down less than zero.
+                        '-4019' => '\\ccxt\\BadRequest', // Composite scale too large.
+                        '-4020' => '\\ccxt\\BadRequest', // Target strategy invalid for orderType '%s',reduceOnly '%b'.
+                        '-4021' => '\\ccxt\\BadRequest', // Invalid depth limit.
+                        '-4022' => '\\ccxt\\BadRequest', // market status sent is not valid.
+                        '-4023' => '\\ccxt\\BadRequest', // Qty not increased by step size.
+                        '-4024' => '\\ccxt\\BadRequest', // Price is lower than mark price multiplier floor.
+                        '-4025' => '\\ccxt\\BadRequest', // Multiplier decimal less than zero.
+                        '-4026' => '\\ccxt\\BadRequest', // Commission invalid.
+                        '-4027' => '\\ccxt\\BadRequest', // Invalid account type.
+                        '-4028' => '\\ccxt\\BadRequest', // Invalid leverage
+                        '-4029' => '\\ccxt\\BadRequest', // Tick size precision is invalid.
+                        '-4030' => '\\ccxt\\BadRequest', // Step size precision is invalid.
+                        '-4031' => '\\ccxt\\BadRequest', // Invalid parameter working type
+                        '-4032' => '\\ccxt\\BadRequest', // Exceed maximum cancel order size.
+                        '-4033' => '\\ccxt\\BadRequest', // Insurance account not found.
+                        '-4044' => '\\ccxt\\BadRequest', // Balance Type is invalid.
+                        '-4045' => '\\ccxt\\BadRequest', // Reach max stop order limit.
+                        '-4046' => '\\ccxt\\BadRequest', // No need to change margin type.
+                        '-4047' => '\\ccxt\\BadRequest', // Margin type cannot be changed if there exists open orders.
+                        '-4048' => '\\ccxt\\BadRequest', // Margin type cannot be changed if there exists position.
+                        '-4049' => '\\ccxt\\BadRequest', // Add margin only support for isolated position.
+                        '-4050' => '\\ccxt\\BadRequest', // Cross balance insufficient.
+                        '-4051' => '\\ccxt\\BadRequest', // Isolated balance insufficient.
+                        '-4052' => '\\ccxt\\BadRequest', // No need to change auto add margin.
+                        '-4053' => '\\ccxt\\BadRequest', // Auto add margin only support for isolated position.
+                        '-4054' => '\\ccxt\\BadRequest', // Cannot add position margin => position is 0.
+                        '-4055' => '\\ccxt\\BadRequest', // Amount must be positive.
+                        '-4056' => '\\ccxt\\PermissionDenied', // Invalid api key type.
+                        '-4057' => '\\ccxt\\PermissionDenied', // Invalid api public key
+                        '-4058' => '\\ccxt\\BadRequest', // maxPrice and priceDecimal too large,please check.
+                        '-4059' => '\\ccxt\\BadRequest', // No need to change position side.
+                        '-4060' => '\\ccxt\\BadRequest', // Invalid position side.
+                        '-4061' => '\\ccxt\\InvalidOrder', // Order's position side does not match user's setting.
+                        '-4062' => '\\ccxt\\BadRequest', // Invalid or improper reduceOnly value.
+                        '-4063' => '\\ccxt\\BadRequest', // Invalid options request type
+                        '-4064' => '\\ccxt\\BadRequest', // Invalid options time frame
+                        '-4065' => '\\ccxt\\BadRequest', // Invalid options amount
+                        '-4066' => '\\ccxt\\BadRequest', // Invalid options event type
+                        '-4067' => '\\ccxt\\BadRequest', // Position side cannot be changed if there exists open orders.
+                        '-4068' => '\\ccxt\\BadRequest', // Position side cannot be changed if there exists position.
+                        '-4069' => '\\ccxt\\BadRequest', // Invalid options premium fee
                         '-4070' => '\\ccxt\\BadRequest', // Client options id is not valid.
                         '-4071' => '\\ccxt\\BadRequest', // Invalid options direction
                         '-4072' => '\\ccxt\\OperationRejected', // premium fee is not updated, reject order
-                        '-4073' => '\\ccxt\\BadRequest', // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4073' => '\\ccxt\\BadRequest', // input premium fee is less than 0, reject order
                         '-4074' => '\\ccxt\\BadRequest', // Order amount is bigger than upper boundary or less than 0, reject order
                         '-4075' => '\\ccxt\\BadRequest', // output premium fee is less than 0, reject order
                         '-4076' => '\\ccxt\\OperationRejected', // original fee is too much higher than last fee
                         '-4077' => '\\ccxt\\OperationRejected', // place order amount has reached to limit, reject order
                         '-4078' => '\\ccxt\\OperationFailed', // options internal error
                         '-4079' => '\\ccxt\\BadRequest', // invalid options id
-                        '-4080' => '\\ccxt\\PermissionDenied', // user not found with id => %s
-                        '-4081' => '\\ccxt\\BadRequest', // OPTIONS_NOT_FOUND
+                        '-4080' => '\\ccxt\\PermissionDenied', // user not found
+                        '-4081' => '\\ccxt\\BadRequest', // options not found
+                        '-4082' => '\\ccxt\\BadRequest', // Invalid number of batch place orders.
+                        '-4083' => '\\ccxt\\BadRequest', // Fail to place batch orders.
+                        '-4084' => '\\ccxt\\NotSupported', // Method is not allowed currently. Upcoming soon.
                         '-4085' => '\\ccxt\\BadRequest', // Invalid notional limit coefficient
                         '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold
                         '-4087' => '\\ccxt\\PermissionDenied', // User can only place reduce only order
                         '-4088' => '\\ccxt\\PermissionDenied', // User can not place order currently
-                        '-4114' => '\\ccxt\\BadRequest', // INVALID_CLIENT_TRAN_ID_LEN
-                        '-4115' => '\\ccxt\\BadRequest', // DUPLICATED_CLIENT_TRAN_ID
-                        '-4118' => '\\ccxt\\OperationRejected', // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4104' => '\\ccxt\\BadRequest', // Invalid contract type
+                        '-4114' => '\\ccxt\\BadRequest', // clientTranId is not valid
+                        '-4115' => '\\ccxt\\BadRequest', // clientTranId is duplicated
+                        '-4118' => '\\ccxt\\OperationRejected', // ReduceOnly Order Failed. Please check your existing position and open orders
                         '-4131' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit
-                        '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
+                        '-4135' => '\\ccxt\\BadRequest', // Invalid activation price
+                        '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true
+                        '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true
+                        '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel
+                        '-4140' => '\\ccxt\\OrderImmediatelyFillable', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\BadRequest', // Symbol is closed
+                        '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
                         '-4161' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
-                        '-4164' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164' => '\\ccxt\\InvalidOrder', // Order's notional must be no smaller than 5.0 (unless you choose reduce only)
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
-                        '-4183' => '\\ccxt\\BadRequest', // Price is higher than stop price multiplier cap.
-                        '-4184' => '\\ccxt\\BadRequest', // Price is lower than stop price multiplier floor.
+                        '-4183' => '\\ccxt\\InvalidOrder', // Price is higher than stop price multiplier cap.
+                        '-4184' => '\\ccxt\\InvalidOrder', // Price is lower than stop price multiplier floor.
+                        '-4408' => '\\ccxt\\InvalidOrder', // This symbol is in reduce only mode due to regulation requirements. Please upgrade to Binance Credits Trading Mode.
                         //
-                        //        5xxx
+                        //        5xxx Order Execution Issues
                         //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
-                        //
-                        //        2xxxx
-                        //
-                        '-20121' => '\\ccxt\\ExchangeError', // override commons
-                        '-20124' => '\\ccxt\\ExchangeError', // override commons
-                        '-20130' => '\\ccxt\\ExchangeError', // override commons
-                        '-20132' => '\\ccxt\\ExchangeError', // override commons
-                        '-20194' => '\\ccxt\\ExchangeError', // override commons
-                        '-20195' => '\\ccxt\\ExchangeError', // override commons
-                        '-20196' => '\\ccxt\\ExchangeError', // override commons
-                        '-20198' => '\\ccxt\\ExchangeError', // override commons
-                        '-20204' => '\\ccxt\\ExchangeError', // override commons
-                        //   21xxx - PORTFOLIO MARGIN (is_array(spot docs) && array_key_exists(documented, spot docs))
-                        '-21001' => '\\ccxt\\BadRequest', // Request ID is not a Portfolio Margin Account.
-                        '-21002' => '\\ccxt\\BadRequest', // Portfolio Margin Account doesn't support transfer from margin to futures.
-                        '-21003' => '\\ccxt\\BadResponse', // Fail to retrieve margin assets.
-                        '-21004' => '\\ccxt\\OperationRejected', // User doesn’t have portfolio margin bankruptcy loan
-                        '-21005' => '\\ccxt\\InsufficientFunds', // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
-                        '-21006' => '\\ccxt\\OperationFailed', // User had portfolio margin bankruptcy loan repayment in process
-                        '-21007' => '\\ccxt\\OperationFailed', // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-5028' => '\\ccxt\\OperationFailed', // The requested timestamp is outside the recvWindow of the matching engine
+                        '-5041' => '\\ccxt\\RateLimitExceeded', // Time out for too many requests from this account queueing at the same time.
                     ),
                 ),
                 'exact' => array(
@@ -2656,13 +2947,15 @@ class binance extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -2688,8 +2981,10 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
              * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -2822,6 +3117,7 @@ class binance extends Exchange {
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
+                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
                 $minPrecision = null;
                 $isWithdrawEnabled = true;
                 $isDepositEnabled = true;
@@ -2833,6 +3129,7 @@ class binance extends Exchange {
                     $networkItem = $networkList[$j];
                     $network = $this->safe_string($networkItem, 'network');
                     $networkCode = $this->network_id_to_code($network);
+                    $isETF = ($network === 'ETF'); // e.g. BTCUP, ETHDOWN
                     // $name = $this->safe_string($networkItem, 'name');
                     $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                     $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
@@ -2844,11 +3141,24 @@ class binance extends Exchange {
                     if ($isDefault || ($fee === null)) {
                         $fee = $withdrawFee;
                     }
+                    // todo => default $networks in "setMarkets" overload
+                    // if ($isDefault) {
+                    //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
+                    // }
                     $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
-                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    // so, when there is zero instead of $i->e. 0.001, then we skip those cases, because we don't know the precision - it might be because of $network is suspended or other reasons
+                    $withdrawPrecision = $precisionTick;
+                    // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                     if (!Precise::string_eq($precisionTick, '0')) {
                         $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
+                    } else {
+                        if (!$isFiat && !$isETF) {
+                            // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                            // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                            $withdrawPrecision = $this->omit_zero($this->safe_string($networkItem, 'withdrawInternalMin'));
+                            if ($withdrawPrecision === null) {
+                                $withdrawPrecision = $this->safe_string($this->options, 'defaultWithdrawPrecision');
+                            }
+                        }
                     }
                     $networks[$networkCode] = array(
                         'info' => $networkItem,
@@ -2858,7 +3168,7 @@ class binance extends Exchange {
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
                         'fee' => $withdrawFee,
-                        'precision' => $this->parse_number($precisionTick),
+                        'precision' => $this->parse_number($withdrawPrecision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($networkItem, 'withdrawMin'),
@@ -2888,6 +3198,7 @@ class binance extends Exchange {
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'precision' => $this->parse_number($minPrecision),
                     'info' => $entry,
                     'active' => $active,
@@ -2908,12 +3219,14 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for binance
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
              * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
              * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -3414,7 +3727,11 @@ class binance extends Exchange {
                     $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
                     $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
                 } else {
-                    $account['total'] = $this->safe_string($entry, 'totalWalletBalance');
+                    $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
+                    $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
+                    $totalUsed = Precise::string_add($usedLinear, $usedInverse);
+                    $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
+                    $account['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
                 }
                 $result[$code] = $account;
             }
@@ -3500,6 +3817,7 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
              * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
              * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
@@ -3508,6 +3826,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               // future
              * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
@@ -3765,10 +4084,12 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4004,7 +4325,9 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             *
              * @see https://developers.binance.com/docs/wallet/others/system-status
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
@@ -4030,11 +4353,13 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$rolling-window-price-change-statistics                        // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
              * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->rolling] (spot only) default false, if true, uses the $rolling 24 hour ticker endpoint /api/v3/ticker
@@ -4073,9 +4398,11 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -4110,9 +4437,11 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the last price for multiple markets
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -4199,12 +4528,11 @@ class binance extends Exchange {
         $type = ($timestamp === null) ? 'spot' : 'swap';
         $marketId = $this->safe_string($entry, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $type);
-        $price = $this->safe_number($entry, 'price');
         return array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'price' => $price,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
             'side' => null,
             'info' => $entry,
         );
@@ -4214,10 +4542,12 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
              * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -4255,8 +4585,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches mark price for the $market
+             *
              * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
              * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -4290,8 +4622,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches mark prices for multiple markets
+             *
              * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
              * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -4384,6 +4718,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
@@ -4394,15 +4729,16 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {int} [$limit] the maximum amount of $candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
+             * @param {string} [$params->price] "mark" or "index" for mark $price and index $price $candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -4412,7 +4748,7 @@ class binance extends Exchange {
             }
             $market = $this->market($symbol);
             // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
-            // the reality is that the time range wider than 500 candles won't work right
+            // the reality is that the time range wider than 500 $candles won't work right
             $defaultLimit = 500;
             $maxLimit = 1500;
             $price = $this->safe_string($params, 'price');
@@ -4507,7 +4843,8 @@ class binance extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $candles = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            return $candles;
         }) ();
     }
 
@@ -4784,11 +5121,14 @@ class binance extends Exchange {
             /**
              * get the list of most recent trades for a particular $symbol
              * Default fetchTradesMethod
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+             *
              * Other fetchTradesMethod
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
@@ -4796,6 +5136,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
              * @param {int} [$limit] default 500, max 1000
@@ -4834,12 +5175,14 @@ class binance extends Exchange {
                     $request['endTime'] = $until;
                 }
             }
-            if ($limit !== null) {
-                $isFutureOrSwap = ($market['swap'] || $market['future']);
-                $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
-            }
             $method = $this->safe_string($this->options, 'fetchTradesMethod');
             $method = $this->safe_string_2($params, 'fetchTradesMethod', 'method', $method);
+            if ($limit !== null) {
+                $isFutureOrSwap = ($market['swap'] || $market['future']);
+                $isHistoricalEndpoint = ($method !== null) && (mb_strpos($method, 'GetHistoricalTrades') !== false);
+                $maxLimitForContractHistorical = $isHistoricalEndpoint ? 500 : 1000;
+                $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
+            }
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
             $response = null;
             if ($market['option'] || $method === 'eapiPublicGetTrades') {
@@ -4926,15 +5269,17 @@ class binance extends Exchange {
             /**
              * @ignore
              * edit a trade order
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5015,8 +5360,8 @@ class binance extends Exchange {
             $uppercaseType = 'LIMIT_MAKER';
         }
         $request['type'] = $uppercaseType;
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        if ($stopPrice !== null) {
+        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+        if ($triggerPrice !== null) {
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {
@@ -5026,7 +5371,7 @@ class binance extends Exchange {
         $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
             } else {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
             }
@@ -5045,7 +5390,7 @@ class binance extends Exchange {
         $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order $id, 'RESULT' for full order or 'FULL' for order with fills
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
-        $stopPriceIsRequired = false;
+        $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
@@ -5070,11 +5415,11 @@ class binance extends Exchange {
             $timeInForceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
             $timeInForceIsRequired = true;
         } elseif ($uppercaseType === 'LIMIT_MAKER') {
@@ -5093,11 +5438,11 @@ class binance extends Exchange {
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if ($stopPriceIsRequired) {
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' editOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+        if ($triggerPriceIsRequired) {
+            if ($triggerPrice === null) {
+                throw new InvalidOrder($this->id . ' editOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
             } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel $request fails, the new order placement will not be attempted.
@@ -5121,10 +5466,10 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
+            'orderId' => $id,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $request['orderId'] = $id;
-        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -5139,8 +5484,12 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -5148,16 +5497,32 @@ class binance extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
+            if ($market['linear'] || $isPortfolioMargin) {
+                if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+                    throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
+                }
+            }
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutUmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPutCmOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
+                }
             }
             //
             // swap and future
@@ -5194,9 +5559,11 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -5216,6 +5583,92 @@ class binance extends Exchange {
             } else {
                 return Async\await($this->edit_contract_order($id, $symbol, $type, $side, $amount, $price, $params));
             }
+        }) ();
+    }
+
+    public function edit_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * edit a list of trade $orders
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+             *
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $id = $this->safe_string($rawOrder, 'id');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $isPortfolioMargin = null;
+                list($isPortfolioMargin, $orderParams) = $this->handle_option_and_params_2($orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
+                if ($isPortfolioMargin) {
+                    throw new NotSupported($this->id . ' editOrders() does not support portfolio margin orders');
+                }
+                $orderRequest = $this->edit_contract_order_request($id, $marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($orderSymbols[0]);
+            if ($market['spot'] || $market['option']) {
+                throw new NotSupported($this->id . ' editOrders() does not support ' . $market['type'] . ' orders');
+            }
+            $response = null;
+            $request = array(
+                'batchOrders' => $ordersRequests,
+            );
+            $request = $this->extend($request, $params);
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivatePutBatchOrders ($request));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->dapiPrivatePutBatchOrders ($request));
+            }
+            //
+            //   array(
+            //       array(
+            //          "code" => -4005,
+            //          "msg" => "Quantity greater than max quantity."
+            //       ),
+            //       {
+            //          "orderId" => 650640530,
+            //          "symbol" => "LTCUSDT",
+            //          "status" => "NEW",
+            //          "clientOrderId" => "x-xcKtGhcu32184eb13585491289bbaf",
+            //          "price" => "54.00",
+            //          "avgPrice" => "0.00",
+            //          "origQty" => "0.100",
+            //          "executedQty" => "0.000",
+            //          "cumQty" => "0.000",
+            //          "cumQuote" => "0.00000",
+            //          "timeInForce" => "GTC",
+            //          "type" => "LIMIT",
+            //          "reduceOnly" => false,
+            //          "closePosition" => false,
+            //          "side" => "BUY",
+            //          "positionSide" => "BOTH",
+            //          "stopPrice" => "0.00",
+            //          "workingType" => "CONTRACT_PRICE",
+            //          "priceProtect" => false,
+            //          "origType" => "LIMIT",
+            //          "priceMatch" => "NONE",
+            //          "selfTradePreventionMode" => "NONE",
+            //          "goodTillDate" => 0,
+            //          "updateTime" => 1698073926929
+            //       }
+            //   )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -5763,7 +6216,7 @@ class binance extends Exchange {
             $type = 'limit';
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $triggerPrice = $this->parse_number($this->omit_zero($stopPriceString));
         $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -5788,7 +6241,7 @@ class binance extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -5804,10 +6257,13 @@ class binance extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * *contract only* create a list of trade $orders
+             *
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
              * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5884,8 +6340,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$test-new-order-trade
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$test-new-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
              * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
@@ -5896,6 +6353,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
              * @param {string} $side 'buy' or 'sell'
@@ -5912,6 +6370,8 @@ class binance extends Exchange {
              * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+             * @param {string} [$params->selfTradePrevention] set unified value for stp (see .features for available values)
+             * @param {float} [$params->icebergAmount] set iceberg $amount for limit orders
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
@@ -6012,15 +6472,10 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
-            // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            $params = $this->omit($params, 'reduceOnly');
-            if ($market['option']) {
-                $request['reduceOnly'] = $reduceOnly;
-            } else {
-                if ($reduceOnly) {
-                    $request['sideEffectType'] = 'AUTO_REPAY';
-                }
+        if ($reduceOnly) {
+            if ($marketType === 'margin' || (!$market['contract'] && ($marginMode !== null))) {
+                $params = $this->omit($params, 'reduceOnly');
+                $request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -6091,7 +6546,7 @@ class binance extends Exchange {
             $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
                 } else {
                     throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
                 }
@@ -6138,9 +6593,10 @@ class binance extends Exchange {
         $typeRequest = $isPortfolioMarginConditional ? 'strategyType' : 'type';
         $request[$typeRequest] = $uppercaseType;
         // additional required fields depending on the order $type
+        $closePosition = $this->safe_bool($params, 'closePosition', false);
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
-        $stopPriceIsRequired = false;
+        $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         //
         // spot/margin
@@ -6189,14 +6645,14 @@ class binance extends Exchange {
             $timeInForceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
             if ($market['linear'] || $market['inverse']) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
             $timeInForceIsRequired = true;
         } elseif ($uppercaseType === 'LIMIT_MAKER') {
@@ -6204,16 +6660,17 @@ class binance extends Exchange {
             $quantityIsRequired = true;
         } elseif ($uppercaseType === 'STOP') {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            $closePosition = $this->safe_bool($params, 'closePosition');
-            if ($closePosition === null) {
+            if (!$closePosition) {
                 $quantityIsRequired = true;
             }
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
         } elseif ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            $quantityIsRequired = true;
+            if (!$closePosition) {
+                $quantityIsRequired = true;
+            }
             if ($trailingPercent === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $trailingPercent param for a ' . $type . ' order');
             }
@@ -6244,15 +6701,15 @@ class binance extends Exchange {
                 $request['price'] = $this->parse_to_numeric($price); // some options don't have the $precision available
             }
         }
-        if ($stopPriceIsRequired) {
+        if ($triggerPriceIsRequired) {
             if ($market['contract']) {
                 if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
                 }
             } else {
                 // check for delta $price
                 if ($trailingDelta === null && $stopPrice === null && $trailingPercent === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
                 }
             }
             if ($stopPrice !== null) {
@@ -6260,7 +6717,7 @@ class binance extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
@@ -6277,7 +6734,21 @@ class binance extends Exchange {
             }
             $request['positionSide'] = ($side === 'buy') ? 'LONG' : 'SHORT';
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged' ));
+        // unified stp
+        $selfTradePrevention = $this->safe_string($params, 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            if ($market['spot']) {
+                $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            }
+        }
+        // unified iceberg
+        $icebergAmount = $this->safe_number($params, 'icebergAmount');
+        if ($icebergAmount !== null) {
+            if ($market['spot']) {
+                $request['icebergQty'] = $this->amount_to_precision($symbol, $icebergAmount);
+            }
+        }
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount' ));
         return $this->extend($request, $requestParams);
     }
 
@@ -6285,7 +6756,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $side, $cost, $params) {
             /**
              * create a $market order by providing the $symbol, $side and $cost
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $cost how much you want to trade in units of the quote currency
@@ -6306,7 +6779,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6326,7 +6801,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market sell order by providing the $symbol and $cost
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6346,6 +6823,7 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
@@ -6353,6 +6831,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+             *
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6420,6 +6899,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
@@ -6429,6 +6909,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -6437,7 +6918,7 @@ class binance extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -6691,6 +7172,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
@@ -6700,13 +7182,14 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account conditional orders
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -6786,16 +7269,19 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by the $id
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch for a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -6997,6 +7483,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
@@ -7006,13 +7493,14 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7028,6 +7516,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled $orders made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
@@ -7037,13 +7526,14 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+             *
              * @param {string} $symbol unified market $symbol of the market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7059,6 +7549,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled $orders made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
@@ -7068,13 +7559,14 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+             *
              * @param {string} $symbol unified market $symbol of the market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7093,6 +7585,7 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
@@ -7103,11 +7596,12 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to cancel a portfolio margin account conditional order
+             * @param {boolean} [$params->trigger] set to true if you would like to cancel a portfolio margin account conditional order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -7187,6 +7681,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-$symbol-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
              * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-$symbol
@@ -7196,11 +7691,12 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to cancel portfolio margin account conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7354,8 +7850,10 @@ class binance extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+             *
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -7426,10 +7924,12 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
              * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -7458,6 +7958,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
@@ -7465,6 +7966,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -7687,7 +8189,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all dust $trades made by the user
+             *
              * @see https://developers.binance.com/docs/wallet/asset/dust-log
+             *
              * @param {string} $symbol not used by binance fetchMyDustTrades ()
              * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
              * @param {int} [$limit] the maximum number of dust $trades to retrieve
@@ -7833,8 +8337,10 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://developers.binance.com/docs/wallet/capital/deposite-history
              * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -7946,8 +8452,10 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://developers.binance.com/docs/wallet/capital/withdraw-history
              * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -8388,7 +8896,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -8490,7 +9000,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of $internal transfers made on an account
+             *
              * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
@@ -8635,9 +9147,12 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://developers.binance.com/docs/wallet/capital/deposite-address
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] $network for fetch deposit address
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -8731,7 +9246,9 @@ class binance extends Exchange {
             /**
              * @deprecated
              * please use fetchDepositWithdrawFees instead
+             *
              * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+             *
              * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~
@@ -8846,7 +9363,9 @@ class binance extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+             *
              * @param {string[]|null} $codes not used by binance fetchDepositWithdrawFees ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -8968,11 +9487,13 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://developers.binance.com/docs/wallet/capital/withdraw
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -9041,11 +9562,13 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             *
              * @see https://developers.binance.com/docs/wallet/asset/trade-fee
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
@@ -9111,10 +9634,12 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://developers.binance.com/docs/wallet/asset/trade-$fee
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
@@ -9289,7 +9814,9 @@ class binance extends Exchange {
             /**
              * @ignore
              * transfer between futures account
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to transfer
              * @param {string} $type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -9321,8 +9848,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -9363,13 +9892,15 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -9419,29 +9950,36 @@ class binance extends Exchange {
             //         "fundingTime" => "1621267200000",
             //     }
             //
-            $rates = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $timestamp = $this->safe_integer($entry, 'fundingTime');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
-                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+            return $this->parse_funding_rate_histories($response, $market, $since, $limit);
         }) ();
+    }
+
+    public function parse_funding_rate_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $timestamp = $this->safe_integer($contract, 'fundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($this->safe_string($contract, 'symbol'), null, null, 'swap'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -9462,8 +10000,7 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
             }
-            $result = $this->parse_funding_rates($response);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 
@@ -10110,10 +10647,12 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
@@ -10215,6 +10754,7 @@ class binance extends Exchange {
             $bracket = $brackets[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),
@@ -10230,7 +10770,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
+             *
              * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+             *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -10275,7 +10817,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch data on open options positions
+             *
              * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+             *
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
@@ -10353,7 +10897,7 @@ class binance extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'quantity');
@@ -10392,14 +10936,17 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
              * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+             *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+             * @param {array} [$params->params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
              * @param {bool} [$params->useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
@@ -10430,11 +10977,13 @@ class binance extends Exchange {
             /**
              * @ignore
              * fetch account positions
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+             *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
@@ -10558,11 +11107,13 @@ class binance extends Exchange {
             /**
              * @ignore
              * fetch positions risk
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
@@ -10733,10 +11284,12 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -10796,10 +11349,12 @@ class binance extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -10846,8 +11401,10 @@ class binance extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+             *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -10910,10 +11467,12 @@ class binance extends Exchange {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a market
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+             *
              * @param {bool} $hedged set to true to use $dualSidePosition
              * @param {string} $symbol not used by binance setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -10967,11 +11526,13 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the set leverage for all markets
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+             *
              * @param {string[]} [$symbols] a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -11045,7 +11606,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
+             *
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+             *
              * @param {string} $symbol unified $market $symbol of the settlement history
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records, default 100, max 100
@@ -11092,7 +11655,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records of the user
+             *
              * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+             *
              * @param {string} $symbol unified $market $symbol of the settlement history
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
@@ -11231,11 +11796,13 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+             *
              * @param {string} $id the identification number of the ledger entry
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -11270,11 +11837,13 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+             *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
              * @param {int} [$limit] max number of ledger entries to return
@@ -11283,13 +11852,13 @@ class binance extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, null, false));
             }
             $type = null;
             $subType = null;
@@ -11493,7 +12062,7 @@ class binance extends Exchange {
             }
             $query = null;
             // handle $batchOrders
-            if (($path === 'batchOrders') && ($method === 'POST')) {
+            if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
                 $batchOrders = $this->safe_value($params, 'batchOrders');
                 $queryBatch = ($this->json($batchOrders));
                 $params['batchOrders'] = $queryBatch;
@@ -11562,16 +12131,16 @@ class binance extends Exchange {
     public function get_exceptions_by_url(string $url, string $exactOrBroad) {
         $marketType = null;
         $hostname = ($this->hostname !== null) ? $this->hostname : 'binance.com';
-        if (str_starts_with($url, 'https://api.' . $hostname . '/')) {
+        if (str_starts_with($url, 'https://api.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binance.vision')) {
             $marketType = 'spot';
-        } elseif (str_starts_with($url, 'https://dapi.' . $hostname . '/')) {
+        } elseif (str_starts_with($url, 'https://dapi.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binancefuture.com/dapi')) {
             $marketType = 'inverse';
-        } elseif (str_starts_with($url, 'https://fapi.' . $hostname . '/')) {
+        } elseif (str_starts_with($url, 'https://fapi.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binancefuture.com/fapi')) {
             $marketType = 'linear';
         } elseif (str_starts_with($url, 'https://eapi.' . $hostname . '/')) {
             $marketType = 'option';
         } elseif (str_starts_with($url, 'https://papi.' . $hostname . '/')) {
-            $marketType = 'portfoliomargin';
+            $marketType = 'portfolioMargin';
         }
         if ($marketType !== null) {
             $exceptionsForMarketType = $this->safe_dict($this->exceptions, $marketType, array());
@@ -11792,8 +12361,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -11807,8 +12378,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -11822,7 +12395,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-$rate-structure borrow $rate structure~
@@ -11853,7 +12428,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
+             *
              * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+             *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
@@ -11873,7 +12450,9 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies
+             *
              * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->symbol] unified $market $symbol
              *
@@ -11919,7 +12498,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * retrieves a history of a currencies borrow interest rate at specific time slots
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] timestamp for the earliest borrow rate
              * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
@@ -12022,7 +12603,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create gift $code
+             *
              * @see https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+             *
              * @param {string} $code gift $code
              * @param {float} $amount amount of $currency for the gift
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -12061,7 +12644,9 @@ class binance extends Exchange {
         return Async\async(function () use ($giftcardCode, $params) {
             /**
              * redeem gift code
+             *
              * @see https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+             *
              * @param {string} $giftcardCode
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} $response from the exchange
@@ -12089,7 +12674,9 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $params) {
             /**
              * verify gift code
+             *
              * @see https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+             *
              * @param {string} $id reference number $id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} $response from the exchange
@@ -12110,12 +12697,14 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+             *
              * @param {string} [$code] unified $currency $code
              * @param {string} [$symbol] unified $market $symbol when fetch $interest in isolated markets
              * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
@@ -12192,21 +12781,20 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $symbol = $this->safe_string($info, 'isolatedSymbol');
         $timestamp = $this->safe_integer($info, 'interestAccuredTime');
         $marginMode = ($symbol === null) ? 'cross' : 'isolated';
         return array(
-            'account' => ($symbol === null) ? 'cross' : $symbol,
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
             'amountBorrowed' => $this->safe_number($info, 'principal'),
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 
@@ -12214,9 +12802,11 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
+             *
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+             *
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -12276,7 +12866,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+             *
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
@@ -12308,8 +12900,10 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+             *
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -12346,7 +12940,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
+             *
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+             *
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
@@ -12408,8 +13004,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Retrieves the open interest history of a currency
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+             *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
              * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
@@ -12420,7 +13018,7 @@ class binance extends Exchange {
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
              */
             if ($timeframe === '1m') {
-                throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+                throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
             $paginate = false;
@@ -12472,7 +13070,7 @@ class binance extends Exchange {
             //      ...
             //  )
             //
-            return $this->parse_open_interests($response, $market, $since, $limit);
+            return $this->parse_open_interests_history($response, $market, $since, $limit);
         }) ();
     }
 
@@ -12480,9 +13078,11 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a contract trading pair
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
@@ -12539,7 +13139,7 @@ class binance extends Exchange {
             //
             if ($market['option']) {
                 $symbol = $market['symbol'];
-                $result = $this->parse_open_interests($response, $market);
+                $result = $this->parse_open_interests_history($response, $market);
                 for ($i = 0; $i < count($result); $i++) {
                     $item = $result[$i];
                     if ($item['symbol'] === $symbol) {
@@ -12576,11 +13176,13 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the users liquidated positions
+             *
              * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+             *
              * @param {string} [$symbol] unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -12760,7 +13362,7 @@ class binance extends Exchange {
         //         "price" => "10871.09",
         //         "avgPrice" => "10913.21000",
         //         "origQty" => "0.001",
-        //         "executedQty" => "0.001",
+        //         "executedQty" => "0.002",
         //         "cumQuote" => "10.91321",
         //         "timeInForce" => "IOC",
         //         "type" => "LIMIT",
@@ -12821,7 +13423,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch greeks for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
@@ -12914,8 +13518,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -12952,10 +13558,12 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
+             *
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-             * @param {string} symbol unified symbol of the $market the order was made in
+             *
+             * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
@@ -13043,6 +13651,50 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a specific $symbol
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+             *
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $request = array(
+                    'symbol' => $market['id'],
+                );
+                $response = Async\await($this->fapiPrivateGetSymbolConfig ($this->extend($request, $params)));
+                //
+                // array(
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "marginType" => "CROSSED",
+                //         "isAutoAddMargin" => "false",
+                //         "leverage" => 21,
+                //         "maxNotionalValue" => "1000000",
+                //     }
+                // )
+                //
+            } elseif ($subType === 'inverse') {
+                $fetchMarginModesResponse = Async\await($this->fetch_margin_modes(array( $symbol ), $params));
+                return $fetchMarginModesResponse[$symbol];
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginMode () supports linear and inverse subTypes only');
+            }
+            return $this->parse_margin_mode($response[0], $market);
+        }) ();
+    }
+
     public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $market = $this->safe_market($marketId, $market);
@@ -13066,7 +13718,9 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option $chain
+             *
              * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
@@ -13156,8 +13810,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
             /**
              * fetches the history of margin added or reduced from contract isolated positions
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {string} [$type] "add" or "reduce"
              * @param {int} [$since] timestamp in ms of the earliest change to fetch
@@ -13194,7 +13850,7 @@ class binance extends Exchange {
             } elseif ($market['inverse']) {
                 $response = Async\await($this->dapiPrivateGetPositionMarginHistory ($this->extend($request, $params)));
             } else {
-                throw new BadRequest($this->id . 'fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
+                throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
             }
             //
             //    array(
@@ -13220,7 +13876,9 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies that can be converted
+             *
              * @see https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -13276,7 +13934,9 @@ class binance extends Exchange {
         return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
             /**
              * fetch a quote for converting from one currency to another
+             *
              * @see https://developers.binance.com/docs/convert/trade/Send-quote-$request
+             *
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
              * @param {float} $amount how much you want to trade in units of the from currency
@@ -13314,7 +13974,9 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
             /**
              * convert from one currency to another
+             *
              * @see https://developers.binance.com/docs/convert/trade/Accept-Quote
+             *
              * @param {string} $id the $id of the trade that you want to make
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
@@ -13361,7 +14023,9 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch the $data for a conversion trade
+             *
              * @see https://developers.binance.com/docs/convert/trade/Order-Status
+             *
              * @param {string} $id the $id of the trade that you want to fetch
              * @param {string} [$code] the unified $currency $code of the conversion trade
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -13439,7 +14103,9 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the users history of conversion trades
+             *
              * @see https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+             *
              * @param {string} [$code] the unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch conversions for
              * @param {int} [$limit] the maximum number of conversion structures to retrieve
@@ -13628,8 +14294,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate interval for multiple markets
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+             *
              * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
@@ -13663,8 +14331,7 @@ class binance extends Exchange {
             //         ),
             //     )
             //
-            $result = $this->parse_funding_rates($response, $market);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 
@@ -13672,8 +14339,10 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches the long short ratio history for a unified $market $symbol
+             *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
              * @param {string} [$timeframe] the period for the ratio, default is 24 hours
              * @param {int} [$since] the earliest time in ms to fetch ratios for

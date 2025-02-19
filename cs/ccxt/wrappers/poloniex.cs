@@ -238,7 +238,7 @@ public partial class poloniex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set true to fetch trigger orders instead of regular orders
     /// </description>
@@ -275,7 +275,7 @@ public partial class poloniex
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *spot only* The price at which a trigger order is triggered at
+    /// float : the price at which a trigger order is triggered at
     /// </description>
     /// </item>
     /// <item>

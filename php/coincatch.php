@@ -10,7 +10,7 @@ use ccxt\abstract\coincatch as Exchange;
 
 class coincatch extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincatch',
             'name' => 'CoinCatch',
@@ -407,6 +407,94 @@ class coincatch extends Exchange {
                     'CronosChain' => 'CRO', // todo check
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 50,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo implement
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'marketType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo check
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => false,
+                        ),
+                    ),
+                    'fetchMyTrades' => array(
+                        'limit' => 100,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -481,10 +569,12 @@ class coincatch extends Exchange {
         }
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-server-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -503,7 +593,9 @@ class coincatch extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -623,8 +715,10 @@ class coincatch extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for the exchange
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbols
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -834,8 +928,8 @@ class coincatch extends Exchange {
             $settleId = $this->safe_string($supportMarginCoins, 0);
             $settle = $this->safe_currency_code($settleId);
             $suffix = ':' . $settle;
-            $isLinear = $baseId === $settleId; // todo check
-            $isInverse = $quoteId === $settleId; // todo check
+            $isLinear = $quoteId === $settleId; // todo check
+            $isInverse = $baseId === $settleId; // todo check
             if ($isLinear) {
                 $subType = 'linear';
             } elseif ($isInverse) {
@@ -938,8 +1032,10 @@ class coincatch extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-single-ticker
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-$symbol-ticker
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1018,8 +1114,10 @@ class coincatch extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' (default 'spot')
@@ -1191,8 +1289,10 @@ class coincatch extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-merged-depth-$data
          * @see https://coincatch.github.io/github.io/en/mix/#get-merged-depth-$data
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (maximum and default value is 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1243,8 +1343,10 @@ class coincatch extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-candle-$data
          * @see https://coincatch.github.io/github.io/en/mix/#get-candle-$data
+         *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1357,8 +1459,10 @@ class coincatch extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-recent-trades
          * @see https://coincatch.github.io/github.io/en/mix/#get-fills
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1528,7 +1632,9 @@ class coincatch extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -1593,7 +1699,9 @@ class coincatch extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of entries to fetch
@@ -1653,7 +1761,9 @@ class coincatch extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
          * @param {string} [$params->productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
@@ -1661,8 +1771,8 @@ class coincatch extends Exchange {
          */
         $this->load_markets();
         $methodName = 'fetchBalance';
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, null, $params, $marketType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params($methodName, null, $params);
         $response = null;
         if ($marketType === 'spot') {
             //
@@ -1777,7 +1887,9 @@ class coincatch extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#transfer
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer from
@@ -1851,10 +1963,12 @@ class coincatch extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
+         *
          * @param {string} $code unified $currency $code
-         * @param {string} [$params->network] network for fetch deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] network for fetch deposit address
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -1918,7 +2032,9 @@ class coincatch extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-deposit-list
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (not used by exchange)
@@ -1979,7 +2095,9 @@ class coincatch extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -2016,10 +2134,12 @@ class coincatch extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#withdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2047,14 +2167,24 @@ class coincatch extends Exchange {
             $request['chain'] = $this->network_code_to_id($networkCode);
         }
         $response = $this->privatePostApiSpotV1WalletWithdrawalV2 ($this->extend($request, $params));
-        // todo add after withdrawal
         //
-        return $response;
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
+        //
         //     {
         //         "id" => "1213046466852196352",
         //         "txId" => "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2074,7 +2204,17 @@ class coincatch extends Exchange {
         //         "uTime" => "1724938746015"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
         $status = $this->safe_string($transaction, 'status');
         if ($status === 'success') {
             $status = 'ok';
@@ -2100,7 +2240,7 @@ class coincatch extends Exchange {
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string_2($transaction, 'id', 'orderId'),
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2125,7 +2265,9 @@ class coincatch extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2145,10 +2287,12 @@ class coincatch extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
          * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
          * @param {string} $side 'buy' or 'sell'
@@ -2177,8 +2321,10 @@ class coincatch extends Exchange {
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order on spot $market
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
          * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -2340,9 +2486,11 @@ class coincatch extends Exchange {
     public function create_swap_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order on swap $market
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#place-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-stop-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -2585,8 +2733,9 @@ class coincatch extends Exchange {
     public function create_orders(array $orders, $params = array ()) {
         /**
          * create a list of trade $orders (all $orders should be of the same $symbol)
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-$orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+         *
+         * @see https://coincatch.github.io/github.io/en/spot/#batch-order
+         *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params (max 50 entries)
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2717,7 +2866,9 @@ class coincatch extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade trigger, stop-looss or take-profit order
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -2744,7 +2895,9 @@ class coincatch extends Exchange {
         /**
          * @ignore
          * edit a trade order
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -2815,8 +2968,10 @@ class coincatch extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * fetches information on an $order made by the user (non-trigger orders only)
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-$order-details
          * @see https://coincatch.github.io/github.io/en/mix/#get-$order-details
+         *
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in (is mandatory for swap)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2944,11 +3099,13 @@ class coincatch extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
          * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2982,8 +3139,10 @@ class coincatch extends Exchange {
         /**
          * @ignore
          * fetch all unfilled currently open orders for spot markets
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
          * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3082,9 +3241,11 @@ class coincatch extends Exchange {
         /**
          * @ignore
          * fetch all unfilled currently open orders for swap markets
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-$plan-order-tpsl-list
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3211,11 +3372,13 @@ class coincatch extends Exchange {
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple canceled and closed orders made by the user
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
          * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+         *
          * @param {string} $symbol *is mandatory* unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3249,8 +3412,10 @@ class coincatch extends Exchange {
         /**
          * @ignore
          * fetches information on multiple canceled and closed orders made by the user on spot markets
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
          * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+         *
          * @param {string} $symbol *is mandatory* unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3391,9 +3556,11 @@ class coincatch extends Exchange {
         /**
          * @ignore
          * fetches information on multiple canceled and closed orders made by the user on swap markets
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-$plan-orders-tpsl
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3545,10 +3712,12 @@ class coincatch extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
          * @see https://coincatch.github.io/github.io/en/mix/#cancel-order
          * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3611,12 +3780,14 @@ class coincatch extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancels all open orders
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
          * @see https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#batch-cancel-$order
          * @see https://coincatch.github.io/github.io/en/mix/#cancel-$order-by-$symbol
          * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-$order-tpsl-by-$symbol
          * @see https://coincatch.github.io/github.io/en/mix/#cancel-all-$trigger-$order-tpsl
+         *
          * @param {string} [$symbol] unified $symbol of the $market the orders were made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to cancel orders for (default 'spot')
@@ -3737,7 +3908,9 @@ class coincatch extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple non-trigger orders
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol *is mandatory* unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4030,7 +4203,6 @@ class coincatch extends Exchange {
             'amount' => $amount,
             'filled' => $this->safe_string_2($order, 'fillQuantity', 'filledQty'),
             'remaining' => null,
-            'stopPrice' => null,
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
@@ -4118,9 +4290,11 @@ class coincatch extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all trades made by the user
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
          * @see https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
+         *
          * @param {string} $symbol *is mandatory* unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -4263,7 +4437,9 @@ class coincatch extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all the trades made from a single order
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -4285,7 +4461,9 @@ class coincatch extends Exchange {
     public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of the trading pair
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
@@ -4349,7 +4527,9 @@ class coincatch extends Exchange {
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#change-margin-mode
+         *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4399,7 +4579,9 @@ class coincatch extends Exchange {
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
         /**
          * fetchs the position mode, hedged or one way
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch entry for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the $market is in hedged or one-way mode
@@ -4428,7 +4610,9 @@ class coincatch extends Exchange {
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a $market
+         *
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         *
          * @param {bool} $hedged set to true to use dualSidePosition
          * @param {string} $symbol unified $symbol of the $market to fetch entry for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4473,7 +4657,9 @@ class coincatch extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
@@ -4495,7 +4681,9 @@ class coincatch extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-$leverage-trade
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4650,7 +4838,9 @@ class coincatch extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4664,7 +4854,9 @@ class coincatch extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4678,10 +4870,12 @@ class coincatch extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade $position
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-$symbol-$position
+         *
          * @param {string} $symbol unified market $symbol of the market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string}  [parmas.side] 'long' or 'short' *for non-hedged $position mode only* (default 'long')
+         * @param {string}  [$params->side] 'long' or 'short' *for non-hedged $position mode only* (default 'long')
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $methodName = 'fetchPosition';
@@ -4703,7 +4897,9 @@ class coincatch extends Exchange {
     public function fetch_positions_for_symbol(string $symbol, $params = array ()): array {
         /**
          * fetch open positions for a single $market
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-$symbol-position
+         *
          * fetch all open positions for specific $symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4754,7 +4950,9 @@ class coincatch extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
+         *
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-position
+         *
          * @param {string[]} [$symbols] list of unified market $symbols (all $symbols must belong to the same product type)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] 'umcbl' or 'dmcbl' (default 'umcbl' if $symbols are not provided)
@@ -4928,8 +5126,10 @@ class coincatch extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         *
          * @see https://coincatch.github.io/github.io/en/spot/#get-bills
          * @see https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -4944,7 +5144,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->business] *swap only*
          * @param {string} [$params->lastEndId] *swap only*
          * @param {bool} [$params->next] *swap only*
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $methodName = 'fetchLedger';
         $this->load_markets();

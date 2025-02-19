@@ -57,8 +57,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -154,6 +154,9 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+}
+
+export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
 export interface Ticker {
@@ -340,19 +343,20 @@ export interface Position {
 }
 
 export interface BorrowInterest {
-    account?: Str;
+    info: any;
+    symbol?: Str;
     currency?: Str;
     interest?: number;
     interestRate?: number;
     amountBorrowed?: number;
     marginMode?: Str;
-    timestamp?: number;
+    timestamp?: Int;
     datetime?: Str;
-    info: any;
 }
 
 export interface LeverageTier {
     tier?: number;
+    symbol?: Str;
     currency?: Str;
     minNotional?: number;
     maxNotional?: number;
@@ -441,6 +445,9 @@ export interface OpenInterest {
     timestamp?: number;
     datetime?: Str;
     info: any;
+}
+
+export interface OpenInterests extends Dictionary<OpenInterest> {
 }
 
 export interface Liquidation {

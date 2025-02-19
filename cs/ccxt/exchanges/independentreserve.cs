@@ -84,10 +84,10 @@ public partial class independentreserve : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"GetValidPrimaryCurrencyCodes", "GetValidSecondaryCurrencyCodes", "GetValidLimitOrderTypes", "GetValidMarketOrderTypes", "GetValidOrderTypes", "GetValidTransactionTypes", "GetMarketSummary", "GetOrderBook", "GetAllOrders", "GetTradeHistorySummary", "GetRecentTrades", "GetFxRates", "GetOrderMinimumVolumes", "GetCryptoWithdrawalFees"} },
+                    { "get", new List<object>() {"GetValidPrimaryCurrencyCodes", "GetValidSecondaryCurrencyCodes", "GetValidLimitOrderTypes", "GetValidMarketOrderTypes", "GetValidOrderTypes", "GetValidTransactionTypes", "GetMarketSummary", "GetOrderBook", "GetAllOrders", "GetTradeHistorySummary", "GetRecentTrades", "GetFxRates", "GetOrderMinimumVolumes", "GetCryptoWithdrawalFees", "GetCryptoWithdrawalFees2", "GetNetworks", "GetPrimaryCurrencyConfig2"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"GetOpenOrders", "GetClosedOrders", "GetClosedFilledOrders", "GetOrderDetails", "GetAccounts", "GetTransactions", "GetFiatBankAccounts", "GetDigitalCurrencyDepositAddress", "GetDigitalCurrencyDepositAddresses", "GetTrades", "GetBrokerageFees", "GetDigitalCurrencyWithdrawal", "PlaceLimitOrder", "PlaceMarketOrder", "CancelOrder", "SynchDigitalCurrencyDepositAddressWithBlockchain", "RequestFiatWithdrawal", "WithdrawFiatCurrency", "WithdrawDigitalCurrency"} },
+                    { "post", new List<object>() {"GetOpenOrders", "GetClosedOrders", "GetClosedFilledOrders", "GetOrderDetails", "GetAccounts", "GetTransactions", "GetFiatBankAccounts", "GetDigitalCurrencyDepositAddress", "GetDigitalCurrencyDepositAddress2", "GetDigitalCurrencyDepositAddresses", "GetDigitalCurrencyDepositAddresses2", "GetTrades", "GetBrokerageFees", "GetDigitalCurrencyWithdrawal", "PlaceLimitOrder", "PlaceMarketOrder", "CancelOrder", "SynchDigitalCurrencyDepositAddressWithBlockchain", "RequestFiatWithdrawal", "WithdrawFiatCurrency", "WithdrawDigitalCurrency", "WithdrawCrypto"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -98,22 +98,144 @@ public partial class independentreserve : Exchange
                     { "tierBased", false },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", null },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "PLA", "PlayChip" },
             } },
             { "precisionMode", TICK_SIZE },
+            { "options", new Dictionary<string, object>() {
+                { "defaultNetworks", new Dictionary<string, object>() {
+                    { "USDT", "Ethereum" },
+                    { "USDC", "Ethereum" },
+                    { "BTC", "Bitcoin" },
+                    { "BCH", "BitcoinCash" },
+                    { "ETH", "Ethereum" },
+                    { "LTC", "Litecoin" },
+                    { "XRP", "XrpLedger" },
+                    { "ZRX", "Ethereum" },
+                    { "EOS", "EosIo" },
+                    { "XLM", "Stellar" },
+                    { "BAT", "Ethereum" },
+                    { "ETC", "EthereumClassic" },
+                    { "LINK", "Ethereum" },
+                    { "MKR", "Ethereum" },
+                    { "DAI", "Ethereum" },
+                    { "COMP", "Ethereum" },
+                    { "SNX", "Ethereum" },
+                    { "YFI", "Ethereum" },
+                    { "AAVE", "Ethereum" },
+                    { "GRT", "Ethereum" },
+                    { "DOT", "Polkadot" },
+                    { "UNI", "Ethereum" },
+                    { "ADA", "Cardano" },
+                    { "MATIC", "Ethereum" },
+                    { "DOGE", "Dogecoin" },
+                    { "SOL", "Solana" },
+                    { "MANA", "Ethereum" },
+                    { "SAND", "Ethereum" },
+                    { "SHIB", "Ethereum" },
+                    { "TRX", "Tron" },
+                    { "RENDER", "Solana" },
+                    { "WIF", "Solana" },
+                    { "RLUSD", "Ethereum" },
+                    { "PEPE", "Ethereum" },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "Bitcoin" },
+                    { "ETH", "Ethereum" },
+                    { "BCH", "BitcoinCash" },
+                    { "LTC", "Litecoin" },
+                    { "XRP", "XrpLedger" },
+                    { "EOS", "EosIo" },
+                    { "XLM", "Stellar" },
+                    { "ETC", "EthereumClassic" },
+                    { "BSV", "BitcoinSV" },
+                    { "DOGE", "Dogecoin" },
+                    { "DOT", "Polkadot" },
+                    { "ADA", "Cardano" },
+                    { "SOL", "Solana" },
+                    { "TRX", "Tron" },
+                } },
+            } },
         });
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchMarkets
+     * @description retrieves data on all markets for independentreserve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchMarkets
-        * @description retrieves data on all markets for independentreserve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
         //     ['Xbt', 'Eth', 'Usdt', ...]
@@ -215,32 +337,32 @@ public partial class independentreserve : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostGetAccounts(parameters);
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -303,16 +425,16 @@ public partial class independentreserve : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -444,7 +566,6 @@ public partial class independentreserve : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "Price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", this.safeString(order, "Value") },
             { "average", this.safeString(order, "AvgPrice") },
@@ -475,16 +596,17 @@ public partial class independentreserve : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchOrder
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostGetOrderDetails(this.extend(new Dictionary<string, object>() {
@@ -498,18 +620,18 @@ public partial class independentreserve : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = this.ordered(new Dictionary<string, object>() {});
@@ -531,18 +653,18 @@ public partial class independentreserve : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = this.ordered(new Dictionary<string, object>() {});
@@ -564,18 +686,18 @@ public partial class independentreserve : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         limit ??= 50;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -643,18 +765,18 @@ public partial class independentreserve : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -667,15 +789,15 @@ public partial class independentreserve : Exchange
         return this.parseTrades(getValue(response, "Trades"), market, since, limit);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostGetBrokerageFees(parameters);
@@ -718,20 +840,20 @@ public partial class independentreserve : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name independentreserve#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#createOrder
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -758,18 +880,18 @@ public partial class independentreserve : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name independentreserve#cancelOrder
+     * @description cancels an open order
+     * @see https://www.independentreserve.com/features/api#CancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#cancelOrder
-        * @description cancels an open order
-        * @see https://www.independentreserve.com/features/api#CancelOrder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -794,17 +916,17 @@ public partial class independentreserve : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name independentreserve#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -844,23 +966,23 @@ public partial class independentreserve : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name independentreserve#withdraw
+     * @description make a withdrawal
+     * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name independentreserve#withdraw
-        * @description make a withdrawal
-        * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];

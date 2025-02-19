@@ -49,7 +49,7 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests =  args.Contains("--requestTests") || args.Contains("--responseTests");
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
         isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
@@ -116,7 +116,7 @@ public class Tests
             {
                 RestBaseTests();
             }
-            Helper.Green(" [C#] base tests passed");
+            Helper.Green("[C#] base tests passed");
         }
 
         if (raceCondition)

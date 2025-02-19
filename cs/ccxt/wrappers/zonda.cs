@@ -204,7 +204,7 @@ public partial class zonda
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -284,6 +284,7 @@ public partial class zonda
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.zondacrypto.exchange/reference/new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

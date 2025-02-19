@@ -23,6 +23,7 @@ interface Exchange {
     v1GetExchangePublicProducts(params?: {}): Promise<implicitReturnType>;
     v1GetApiDataPublicDataFundingRateHistory(params?: {}): Promise<implicitReturnType>;
     v2GetPublicProducts(params?: {}): Promise<implicitReturnType>;
+    v2GetPublicProductsPlus(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Orderbook(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Trade(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hr(params?: {}): Promise<implicitReturnType>;

@@ -260,6 +260,7 @@ public partial class cex
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -293,6 +294,7 @@ public partial class cex
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -323,6 +325,58 @@ public partial class cex
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetches information on an open order made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> FetchOpenOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetches information on an closed order made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> FetchClosedOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchClosedOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -344,6 +398,12 @@ public partial class cex
     /// <term>params.accountId</term>
     /// <description>
     /// string : account-id to use (default is empty string)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : the price at which a trigger order is triggered at
     /// </description>
     /// </item>
     /// </list>
@@ -433,7 +493,7 @@ public partial class cex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

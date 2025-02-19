@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress, OrderBooks } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderS
  * @augments Exchange
  */
 export default class yobit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
@@ -310,6 +310,65 @@ export default class yobit extends Exchange {
                     'Rate Limited': RateLimitExceeded,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'orders': {}, // orders cache / emulation
         });
     }
@@ -336,15 +395,15 @@ export default class yobit extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchBalance
+     * @see https://yobit.net/en/api
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name yobit#fetchBalance
-         * @see https://yobit.net/en/api
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
         //
@@ -375,15 +434,15 @@ export default class yobit extends Exchange {
         return this.parseBalance (response);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchMarkets
+     * @see https://yobit.net/en/api
+     * @description retrieves data on all markets for yobit
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name yobit#fetchMarkets
-         * @see https://yobit.net/en/api
-         * @description retrieves data on all markets for yobit
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetInfo (params);
         //
         //     {
@@ -473,17 +532,17 @@ export default class yobit extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOrderBook
+     * @see https://yobit.net/en/api
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name yobit#fetchOrderBook
-         * @see https://yobit.net/en/api
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -501,17 +560,17 @@ export default class yobit extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#fetchOrderBooks
-         * @see https://yobit.net/en/api
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-         * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
-         */
+    /**
+     * @method
+     * @name yobit#fetchOrderBooks
+     * @see https://yobit.net/en/api
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+     * @param {int} [limit] max number of entries per orderbook to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+     */
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -600,17 +659,17 @@ export default class yobit extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTickers
+     * @see https://yobit.net/en/api
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name yobit#fetchTickers
-         * @see https://yobit.net/en/api
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         let allSymbols = undefined;
         [ allSymbols, params ] = this.handleParamBool (params, 'all', false);
         if (symbols === undefined && !allSymbols) {
@@ -656,16 +715,16 @@ export default class yobit extends Exchange {
         return finalResult;
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTicker
+     * @see https://yobit.net/en/api
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name yobit#fetchTicker
-         * @see https://yobit.net/en/api
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol] as Ticker;
     }
@@ -749,18 +808,18 @@ export default class yobit extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTrades
+     * @see https://yobit.net/en/api
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name yobit#fetchTrades
-         * @see https://yobit.net/en/api
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -793,15 +852,15 @@ export default class yobit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTradingFees
+     * @see https://yobit.net/en/api
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        /**
-         * @method
-         * @name yobit#fetchTradingFees
-         * @see https://yobit.net/en/api
-         * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const response = await this.publicGetInfo (params);
         //
@@ -846,20 +905,20 @@ export default class yobit extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name yobit#createOrder
+     * @see https://yobit.net/en/api
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#createOrder
-         * @see https://yobit.net/en/api
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -897,17 +956,17 @@ export default class yobit extends Exchange {
         return this.parseOrder (result, market);
     }
 
+    /**
+     * @method
+     * @name yobit#cancelOrder
+     * @see https://yobit.net/en/api
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol not used by yobit cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#cancelOrder
-         * @see https://yobit.net/en/api
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol not used by yobit cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'order_id': parseInt (id),
@@ -1037,7 +1096,6 @@ export default class yobit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
@@ -1050,16 +1108,17 @@ export default class yobit extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOrder
+     * @see https://yobit.net/en/api
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol not used by yobit fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#fetchOrder
-         * @see https://yobit.net/en/api
-         * @description fetches information on an order made by the user
-         * @param {string} symbol not used by yobit fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'order_id': parseInt (id),
@@ -1086,18 +1145,18 @@ export default class yobit extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOpenOrders
+     * @see https://yobit.net/en/api
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name yobit#fetchOpenOrders
-         * @see https://yobit.net/en/api
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1136,18 +1195,18 @@ export default class yobit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchMyTrades
+     * @see https://yobit.net/en/api
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#fetchMyTrades
-         * @see https://yobit.net/en/api
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1200,16 +1259,16 @@ export default class yobit extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
+    /**
+     * @method
+     * @name yobit#createDepositAddress
+     * @see https://yobit.net/en/api
+     * @description create a currency deposit address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async createDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name yobit#createDepositAddress
-         * @see https://yobit.net/en/api
-         * @description create a currency deposit address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         const request: Dict = {
             'need_new': 1,
         };
@@ -1224,16 +1283,16 @@ export default class yobit extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name yobit#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://yobit.net/en/api
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        /**
-         * @method
-         * @name yobit#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://yobit.net/en/api
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let currencyId = currency['id'];
@@ -1262,19 +1321,19 @@ export default class yobit extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name yobit#withdraw
-         * @see https://yobit.net/en/api
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
+    /**
+     * @method
+     * @name yobit#withdraw
+     * @see https://yobit.net/en/api
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

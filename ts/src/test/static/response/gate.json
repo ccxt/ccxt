@@ -1288,6 +1288,17 @@
                   }
                 ]
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch time response",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                  "server_time": "1731448079476"
+                },
+                "parsedResponse": 1731448079476
+            }
         ]
     }
 }

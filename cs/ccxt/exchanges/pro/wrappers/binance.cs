@@ -735,6 +735,12 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -754,6 +760,12 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -775,6 +787,18 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -932,6 +956,18 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// number : since timestamp
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// number : limit
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params.portfolioMargin</term>
     /// <description>
