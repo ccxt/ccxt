@@ -15,7 +15,7 @@ use \React\Promise\PromiseInterface;
 
 class bitvavo extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
@@ -369,7 +369,7 @@ class bitvavo extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server

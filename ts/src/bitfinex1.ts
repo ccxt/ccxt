@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class bitfinex1 extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex1',
             'name': 'Bitfinex',

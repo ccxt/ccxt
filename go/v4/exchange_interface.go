@@ -31,6 +31,9 @@ type IExchange interface {
 	GetLast_request_headers() map[string]interface{}
 	GetHas() map[string]interface{}
 	GetId() string
+	GetHostname() string
+	GetUrls() interface{}
+	GetApi() map[string]interface{}
 	GetOptions() map[string]interface{}
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}

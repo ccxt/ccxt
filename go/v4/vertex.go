@@ -663,7 +663,7 @@ func  (this *vertex) FetchTime(optionalArgs ...interface{}) <- chan interface{} 
             PanicOnError(response)
         
                 // 1717481623452
-        ch <- this.ParseNumber(response)
+        ch <- this.ParseToInt(response)
             return nil
         
             }()

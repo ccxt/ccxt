@@ -237,6 +237,7 @@ class bybit extends bybit$1 {
                         'v5/spot-lever-token/reference': 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -4107,7 +4108,7 @@ class bybit extends bybit$1 {
                     request['qty'] = this.getCost(symbol, Precise["default"].stringMul(amountString, priceString));
                 }
                 else {
-                    request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                    request['qty'] = amountString;
                 }
             }
         }
@@ -6917,10 +6918,13 @@ class bybit extends bybit$1 {
         //    }
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
-        const value = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        const openInterest = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        // the openInterest is in the base asset for linear and quote asset for inverse
+        const amount = market['linear'] ? openInterest : undefined;
+        const value = market['inverse'] ? openInterest : undefined;
         return this.safeOpenInterest({
             'symbol': market['symbol'],
-            'openInterestAmount': undefined,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

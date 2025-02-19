@@ -220,6 +220,7 @@ export default class Exchange {
     };
     headers: any = {};
     origin = '*' // CORS origin
+    MAX_VALUE: Num = Number.MAX_VALUE;
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -609,19 +610,9 @@ export default class Exchange {
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-        // init the request rate limiter
-        this.initRestRateLimiter ()
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets (this.markets)
-        }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
-        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode (isSandbox);
-        }
     }
 
     encodeURIComponent (...args) {
@@ -659,22 +650,12 @@ export default class Exchange {
         return result
     }
 
-    initRestRateLimiter () {
-        if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend ({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler (this.tokenBucket);
-    }
-
     throttle (cost = undefined) {
         return this.throttler.throttle (cost)
+    }
+
+    initThrottler () {
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -1615,7 +1596,7 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    describe () {
+    describe (): any {
         return {
             'id': undefined,
             'name': undefined,
@@ -1695,6 +1676,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2753,8 +2735,40 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets (this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter ();
+        // sanbox mode
+        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode (isSandbox);
+        }
+    }
+
+    initRestRateLimiter () {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
+            throw new ExchangeError (this.id + '.rateLimit property is not configured');
+        }
+        let refillRate = this.MAX_VALUE;
+        if (this.rateLimit > 0) {
+            refillRate = 1 / this.rateLimit;
+        }
+        const defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        this.initThrottler ();
     }
 
     featuresGenerator () {
@@ -5781,6 +5795,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
+    async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' editOrders() is not supported yet');
+    }
+
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
@@ -6965,7 +6983,8 @@ export default class Exchange {
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit);
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     getMarketFromSymbols (symbols: Strings = undefined) {

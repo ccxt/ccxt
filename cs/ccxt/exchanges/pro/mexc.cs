@@ -504,7 +504,11 @@ public partial class mexc : ccxt.mexc
         //    }
         //
         object parsedTicker = this.parseWsBidAsk(message);
-        object symbol = getValue(parsedTicker, "symbol");
+        object symbol = this.safeString(parsedTicker, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
         object messageHash = add("bidask:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});

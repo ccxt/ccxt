@@ -16,7 +16,7 @@ use \React\Promise\PromiseInterface;
 
 class poloniex extends \ccxt\async\poloniex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

@@ -16,7 +16,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
  * @augments Exchange
  */
 export default class coinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -1218,7 +1218,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v2PublicGetTime (params);
         //
         //     {

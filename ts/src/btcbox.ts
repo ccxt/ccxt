@@ -16,7 +16,7 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
  * @augments Exchange
  */
 export default class btcbox extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'btcbox',
             'name': 'BtcBox',

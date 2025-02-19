@@ -10,7 +10,7 @@ use ccxt\abstract\bitflyer as Exchange;
 
 class bitflyer extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',

@@ -10,7 +10,7 @@ use ccxt\abstract\tradeogre as Exchange;
 
 class tradeogre extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tradeogre',
             'name' => 'tradeogre',

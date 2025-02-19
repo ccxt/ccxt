@@ -989,10 +989,10 @@ func  (this *bit2c) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
         var isMaker interface{} = this.SafeValue(trade, "isMaker")
         makerOrTaker = Ternary(IsTrue(isMaker), "maker", "taker")
         orderId = Ternary(IsTrue(isMaker), GetValue(reference_parts, 2), GetValue(reference_parts, 1))
-        side = this.SafeInteger(trade, "action")
-        if IsTrue(IsEqual(side, 0)) {
+        var action interface{} = this.SafeInteger(trade, "action")
+        if IsTrue(IsEqual(action, 0)) {
             side = "buy"
-        } else if IsTrue(IsEqual(side, 1)) {
+        } else {
             side = "sell"
         }
         var feeCost interface{} = this.SafeString(trade, "feeAmount")

@@ -1403,6 +1403,24 @@
                   1726652765781
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSD&intervalTime=1h&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
         ]
     },
     "disabled": []

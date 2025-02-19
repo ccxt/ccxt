@@ -617,10 +617,21 @@ class testMainClass:
             dump('[TEST_WARNING]' + error_message)
         return True
 
+    def check_constructor(self, exchange):
+        # todo: this might be moved in base tests later
+        if exchange.id == 'binance':
+            assert exchange.hostname is None, 'binance.com hostname should be empty'
+            assert exchange.urls['api']['public'] == 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']
+            assert ('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + json_stringify(exchange.api['sapi']['get'])
+        elif exchange.id == 'binanceus':
+            assert exchange.hostname == 'binance.us', 'binance.us hostname does not match ' + exchange.hostname
+            assert exchange.urls['api']['public'] == 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' + exchange.urls['api']['public']
+
     def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
             return True
+        self.check_constructor(exchange)
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         try:

@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.57';
+$version = '4.4.61';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.57';
+    const VERSION = '4.4.61';
 
     public $browser;
     public $marketsLoading = null;
@@ -72,7 +72,6 @@ class Exchange extends \ccxt\Exchange {
         parent::__construct($options);
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
-        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function set_request_browser($connector) {
@@ -294,6 +293,10 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
+    public function init_throttler() {
+        $this->throttler = new Throttler($this->tokenBucket);
+    }
+
     public function throttle($cost = null) {
         // stub so the async throttler gets called instead of the sync throttler
         return call_user_func($this->throttler, $cost);
@@ -351,7 +354,7 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,
@@ -431,6 +434,7 @@ class Exchange extends \ccxt\Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
+                'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -1486,8 +1490,40 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function after_construct() {
+        // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
+        // init predefined markets if any
+        if ($this->markets) {
+            $this->set_markets($this->markets);
+        }
+        // init the request rate limiter
+        $this->init_rest_rate_limiter();
+        // sanbox mode
+        $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
+        if ($isSandbox) {
+            $this->set_sandbox_mode($isSandbox);
+        }
+    }
+
+    public function init_rest_rate_limiter() {
+        if ($this->rateLimit === null || ($this->id !== null && $this->rateLimit === -1)) {
+            throw new ExchangeError($this->id . '.rateLimit property is not configured');
+        }
+        $refillRate = $this->MAX_VALUE;
+        if ($this->rateLimit > 0) {
+            $refillRate = 1 / $this->rateLimit;
+        }
+        $defaultBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => $refillRate,
+        );
+        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
+        $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
+        $this->init_throttler();
     }
 
     public function features_generator() {
@@ -4523,6 +4559,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
     }
 
+    public function edit_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' editOrders() is not supported yet');
+    }
+
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
     }
@@ -5757,7 +5797,8 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit);
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function get_market_from_symbols(?array $symbols = null) {

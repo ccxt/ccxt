@@ -74,6 +74,7 @@ class Exchange {
         };
         this.headers = {};
         this.origin = '*'; // CORS origin
+        this.MAX_VALUE = Number.MAX_VALUE;
         //
         this.agent = undefined; // maintained for backwards compatibility
         this.nodeHttpModuleLoaded = false;
@@ -360,18 +361,8 @@ class Exchange {
         if (this.api) {
             this.defineRestApi(this.api, 'request');
         }
-        // init the request rate limiter
-        this.initRestRateLimiter();
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets(this.markets);
-        }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
-        const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode(isSandbox);
-        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -401,21 +392,11 @@ class Exchange {
         }
         return result;
     }
-    initRestRateLimiter() {
-        if (this.rateLimit === undefined) {
-            throw new Error(this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler(this.tokenBucket);
-    }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
+    }
+    initThrottler() {
+        this.throttler = new Throttler(this.tokenBucket);
     }
     defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split(/[^a-zA-Z0-9]/);
@@ -1376,6 +1357,7 @@ class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2338,8 +2320,39 @@ class Exchange {
         return timestamp;
     }
     afterConstruct() {
+        // networks
         this.createNetworksByIdObject();
         this.featuresGenerator();
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets(this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter();
+        // sanbox mode
+        const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode(isSandbox);
+        }
+    }
+    initRestRateLimiter() {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
+            throw new errors.ExchangeError(this.id + '.rateLimit property is not configured');
+        }
+        let refillRate = this.MAX_VALUE;
+        if (this.rateLimit > 0) {
+            refillRate = 1 / this.rateLimit;
+        }
+        const defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend(defaultBucket, existingBucket);
+        this.initThrottler();
     }
     featuresGenerator() {
         //
@@ -5226,6 +5239,9 @@ class Exchange {
     async createOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
     }
+    async editOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' editOrders() is not supported yet');
+    }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
     }
@@ -6311,7 +6327,8 @@ class Exchange {
             result.push(parsed);
         }
         const sorted = this.sortBy(result, 'timestamp');
-        return this.filterBySinceLimit(sorted, since, limit);
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     getMarketFromSymbols(symbols = undefined) {
         if (symbols === undefined) {

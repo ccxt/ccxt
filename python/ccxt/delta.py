@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class delta(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(delta, self).describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -413,7 +413,7 @@ class delta(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(delta, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint

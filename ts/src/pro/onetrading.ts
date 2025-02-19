@@ -11,7 +11,7 @@ import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class onetrading extends onetradingRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

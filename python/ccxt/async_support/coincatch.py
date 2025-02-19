@@ -8,7 +8,7 @@ from ccxt.abstract.coincatch import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class coincatch(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincatch, self).describe(), {
             'id': 'coincatch',
             'name': 'CoinCatch',
@@ -586,7 +586,7 @@ class coincatch(Exchange, ImplicitAPI):
         else:
             return cost
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

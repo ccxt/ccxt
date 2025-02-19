@@ -1050,7 +1050,7 @@ func  (this *phemex) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             for i := 0; IsLessThan(i, GetArrayLength(products)); i++ {
                 var market interface{} = GetValue(products, i)
                 var typeVar interface{} = this.SafeStringLower(market, "type")
-                if IsTrue(IsTrue((IsEqual(typeVar, "perpetual"))) || IsTrue((IsEqual(typeVar, "perpetualv2")))) {
+                if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "perpetual"))) || IsTrue((IsEqual(typeVar, "perpetualv2")))) || IsTrue((IsEqual(typeVar, "PerpetualPilot")))) {
                     var id interface{} = this.SafeString(market, "symbol")
                     var riskLimitValues interface{} = this.SafeValue(riskLimitsById, id, map[string]interface{} {})
                     market = this.Extend(market, riskLimitValues)

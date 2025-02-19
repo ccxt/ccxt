@@ -20,7 +20,7 @@ use \React\Promise\PromiseInterface;
 
 class xt extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'xt',
             'name' => 'XT',
@@ -807,7 +807,7 @@ class xt extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the xt server
@@ -1422,9 +1422,16 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1435,6 +1442,13 @@ class xt extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 1000;
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
+            if ($until !== null) {
+                $request['endTime'] = $until;
             }
             $response = null;
             if ($market['linear']) {

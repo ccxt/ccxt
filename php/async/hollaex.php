@@ -15,7 +15,7 @@ use \React\Promise\PromiseInterface;
 
 class hollaex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
@@ -1996,7 +1996,7 @@ class hollaex extends Exchange {
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            $coins = $this->safe_list($response, 'coins');
+            $coins = $this->safe_dict($response, 'coins', array());
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
         }) ();
     }
