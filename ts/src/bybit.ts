@@ -58,6 +58,7 @@ export default class bybit extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
                 'fetchBorrowRateHistories': false,
@@ -1223,6 +1224,9 @@ export default class bybit extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
+                    },
+                    'editOrders': {
+                        'max': 10,
                     },
                 },
                 'spot': {
@@ -4174,10 +4178,11 @@ export default class bybit extends Exchange {
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (symbols[0]);
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 3);
         let category = undefined;
         [ category, params ] = this.getBybitType ('createOrders', market, params);
-        if (category === 'inverse') {
-            throw new NotSupported (this.id + ' createOrders does not allow inverse orders');
+        if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
+            throw new NotSupported (this.id + ' createOrders does not allow inverse orders for non UTA2.0 account');
         }
         const request: Dict = {
             'category': category,
