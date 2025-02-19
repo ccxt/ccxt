@@ -5101,28 +5101,33 @@ export default class Exchange {
          * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @returns {[string, object]} the market type and params with type and defaultType omitted
          */
+        // type from param
         const type = this.safeString2 (params, 'defaultType', 'type');
         if (type !== undefined) {
             params = this.omit (params, [ 'defaultType', 'type' ]);
             return [ type, params ];
         }
+        // type from market
         if (market !== undefined) {
             return [ market['type'], params ];
         }
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        if (defaultValue === undefined) {  // defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType;
+        // type from default-argument
+        if (defaultValue !== undefined) {
+            return [ defaultValue, params ];
         }
         const methodOptions = this.safeDict (this.options, methodName);
-        let methodType = defaultValue;
-        if (methodOptions !== undefined) {  // user defined methodType takes precedence over defaultValue
+        if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
+                return [ methodOptions, params ];
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+                const typeFromMethod = this.safeString2 (methodOptions, 'defaultType', 'type');
+                if (typeFromMethod !== undefined) {
+                    return [ typeFromMethod, params ];
+                }
             }
         }
-        return [ methodType, params ];
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        return [ defaultType, params ];
     }
 
     handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
