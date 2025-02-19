@@ -1398,8 +1398,45 @@ public partial class Exchange
 
     public virtual void afterConstruct()
     {
+        // networks
         this.createNetworksByIdObject();
         this.featuresGenerator();
+        // init predefined markets if any
+        if (isTrue(this.markets))
+        {
+            this.setMarkets(this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter();
+        // sanbox mode
+        object isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
+        if (isTrue(isSandbox))
+        {
+            this.setSandboxMode(isSandbox);
+        }
+    }
+
+    public virtual void initRestRateLimiter()
+    {
+        if (isTrue(isTrue(isEqual(this.rateLimit, null)) || isTrue((isTrue(!isEqual(this.id, null)) && isTrue(isEqual(this.rateLimit, -1))))))
+        {
+            throw new ExchangeError ((string)add(this.id, ".rateLimit property is not configured")) ;
+        }
+        object refillRate = this.MAX_VALUE;
+        if (isTrue(isGreaterThan(this.rateLimit, 0)))
+        {
+            refillRate = divide(1, this.rateLimit);
+        }
+        object defaultBucket = new Dictionary<string, object>() {
+            { "delay", 0.001 },
+            { "capacity", 1 },
+            { "cost", 1 },
+            { "maxCapacity", 1000 },
+            { "refillRate", refillRate },
+        };
+        object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
+        this.tokenBucket = this.extend(defaultBucket, existingBucket);
+        this.initThrottler();
     }
 
     public virtual void featuresGenerator()
