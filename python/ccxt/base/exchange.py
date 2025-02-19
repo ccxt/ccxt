@@ -2738,8 +2738,35 @@ class Exchange(object):
         return timestamp
 
     def after_construct(self):
+        # networks
         self.create_networks_by_id_object()
         self.features_generator()
+        # init predefined markets if any
+        if self.markets:
+            self.set_markets(self.markets)
+        # init the request rate limiter
+        self.init_rest_rate_limiter()
+        # sanbox mode
+        isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if isSandbox:
+            self.set_sandbox_mode(isSandbox)
+
+    def init_rest_rate_limiter(self):
+        if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
+            raise ExchangeError(self.id + '.rateLimit property is not configured')
+        refillRate = self.MAX_VALUE
+        if self.rateLimit > 0:
+            refillRate = 1 / self.rateLimit
+        defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }
+        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
+        self.tokenBucket = self.extend(defaultBucket, existingBucket)
+        self.init_throttler()
 
     def features_generator(self):
         #
