@@ -428,24 +428,31 @@ export default class coindcx extends coindcxRest {
 
     handleBalance (client: Client, message) {
         // todo: get the balance info from the message
+        //     [
+        //         {
+        //             "id":"102a7916-a622-11ee-bd36-479d3cf6751b",
+        //             "balance":"265.01745775027309",
+        //             "locked_balance":"258.600771",
+        //             "currency_id":"cfe01e2a-f1af-4e52-9696-9a19d9a8eb4f",
+        //             "currency_short_name":"INR"
+        //         }
+        //     ]
         //
         const data = this.safeList (message, 'data', []);
-        const freeBalance = this.safeValue (data, 'balance', {});
-        const usedBalance = this.safeValue (data, 'obalance', {});
         const result: Dict = {
             'info': data,
         };
-        const currencyIds = Object.keys (freeBalance);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const account = this.account ();
-            account['free'] = this.safeString (freeBalance, currencyId);
-            account['used'] = this.safeString (usedBalance, currencyId);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency_short_name');
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = account;
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked_balance');
+            this.balance[code] = account;
         }
         this.balance = this.safeBalance (result);
-        const messageHash = this.safeString (message, 'oid');
+        const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
 
@@ -482,6 +489,7 @@ export default class coindcx extends coindcxRest {
             'candlestick': this.handleOHLCV,
             'depth-snapshot': this.handleOrderBookSnapshot,
             'depth-update': this.handleOrderBookUpdate,
+            'balance-update': this.handleBalance,
         };
         if (event in methods) {
             const method = methods[event];
