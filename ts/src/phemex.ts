@@ -5061,9 +5061,9 @@ export default class phemex extends Exchange {
      */
     async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
-        const currency = this.currency (fromCode);
+        const fromCurrency = this.currency (fromCode);
         const toCurrency = this.currency (toCode);
-        const valueScale = this.safeInteger (currency, 'valueScale');
+        const valueScale = this.safeInteger (fromCurrency, 'valueScale');
         const request: Dict = {
             'fromCurrency': fromCode,
             'toCurrency': toCode,
@@ -5089,7 +5089,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseConversion (data, currency, toCurrency);
+        return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
     /**
@@ -5106,14 +5106,16 @@ export default class phemex extends Exchange {
      */
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const valueScale = this.safeInteger (fromCurrency, 'valueScale');
         const request: Dict = {
             'code': id,
             'fromCurrency': fromCode,
             'toCurrency': toCode,
         };
         if (amount !== undefined) {
-            const currency = this.currency (fromCode);
-            request['fromAmountEv'] = this.toEv (amount, currency);
+            request['fromAmountEv'] = this.toEn (amount, valueScale);
         }
         const response = await this.privatePostAssetsConvert (this.extend (request, params));
         //
@@ -5132,11 +5134,11 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const fromCurrencyId = this.safeString (data, 'fromCurrency', fromCode);
-        const fromCurrency = this.currency (fromCurrencyId);
-        const toCurrencyId = this.safeString (data, 'toCurrency', toCode);
-        const toCurrency = this.currency (toCurrencyId);
-        return this.parseConversion (data, fromCurrency, toCurrency);
+        const fromCurrencyId = this.safeString (data, 'fromCurrency');
+        const from = this.safeCurrency (fromCurrencyId, fromCurrency);
+        const toCurrencyId = this.safeString (data, 'toCurrency');
+        const to = this.safeCurrency (toCurrencyId, toCurrency);
+        return this.parseConversion (data, from, to);
     }
 
     /**
@@ -5244,13 +5246,15 @@ export default class phemex extends Exchange {
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
         const toCoin = this.safeString (conversion, 'toCurrency', this.safeString (toCurrency, 'code'));
         const toCode = this.safeCurrencyCode (toCoin, toCurrency);
-        let fromAmount = this.safeString (conversion, 'fromAmountEv');
+        const fromValueScale = this.safeInteger (fromCurrency, 'valueScale');
+        const toValueScale = this.safeInteger (toCurrency, 'valueScale');
+        let fromAmount = this.fromEn (this.safeString (conversion, 'fromAmountEv'), fromValueScale);
         if (fromAmount === undefined && quoteArgs !== undefined) {
-            fromAmount = this.fromEn (this.safeString (quoteArgs, 'origin'), this.safeInteger (fromCurrency, 'valueScale'));
+            fromAmount = this.fromEn (this.safeString (quoteArgs, 'origin'), fromValueScale);
         }
-        let toAmount = this.safeString (conversion, 'toAmountEv');
+        let toAmount = this.fromEn (this.safeString (conversion, 'toAmountEv'), toValueScale);
         if (toAmount === undefined && quoteArgs !== undefined) {
-            toAmount = this.fromEn (this.safeString (quoteArgs, 'proceeds'), this.safeInteger (toCurrency, 'valueScale'));
+            toAmount = this.fromEn (this.safeString (quoteArgs, 'proceeds'), toValueScale);
         }
         return {
             'info': conversion,
