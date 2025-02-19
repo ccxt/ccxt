@@ -72,7 +72,6 @@ class Exchange extends \ccxt\Exchange {
         parent::__construct($options);
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
-        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function set_request_browser($connector) {
@@ -292,6 +291,10 @@ class Exchange extends \ccxt\Exchange {
                 $resolve(null);
             });
         });
+    }
+
+    public function init_throttler() {
+        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function throttle($cost = null) {
