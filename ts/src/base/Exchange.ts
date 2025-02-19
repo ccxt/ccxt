@@ -168,6 +168,7 @@ import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
+import nodeFetch, { AbortError, FetchError} from "../static_dependencies/node-fetch/index.js";
 import Client from './ws/Client.js'
 // ----------------------------------------------------------------------------
 /**
@@ -890,10 +891,9 @@ export default class Exchange {
                     this.agent = this.httpsAgent;
                 }
                 try {
-                    const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
-                    this.AbortError = module.AbortError
-                    this.fetchImplementation = module.default
-                    this.FetchError = module.FetchError
+                    this.AbortError = AbortError
+                    this.fetchImplementation = nodeFetch
+                    this.FetchError = FetchError
                 }
                 catch (e) {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
