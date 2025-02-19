@@ -45,6 +45,7 @@ jobs:
         ini-values: |
           zend.assertions=1
           display_errors=On
+          memory_limit=1024M
     - uses: actions/setup-node@v4
       with:
         node-version: '20'

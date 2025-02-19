@@ -225,6 +225,7 @@ export default class bitget extends bitgetRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -509,6 +510,8 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
+            const resolvedData = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', resolvedData);
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (stored, messageHash);
@@ -726,12 +729,14 @@ export default class bitget extends bitgetRest {
             orderbook.reset (parsedOrderbook);
             this.orderbooks[symbol] = orderbook;
         }
+        this.streamProduce ('orderbooks', this.orderbooks[symbol]);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        this.streamProduce ('orderbooks::' + symbol, undefined, error);
         client.reject (error, messageHash);
     }
 
@@ -860,6 +865,7 @@ export default class bitget extends bitgetRest {
             const rawTrade = data[index];
             const parsed = this.parseWsTrade (rawTrade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
@@ -1050,6 +1056,7 @@ export default class bitget extends bitgetRest {
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
+            this.streamProduce ('positions', position);
             cache.append (position);
         }
         const messageHashes = this.findMessageHashes (client, instType + ':positions::');
@@ -1287,6 +1294,7 @@ export default class bitget extends bitgetRest {
             const marketId = this.safeString (order, 'instId', argInstId);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder (order, market);
+            this.streamProduce ('orders', parsed);
             stored.append (parsed);
             const symbol = parsed['symbol'];
             marketSymbols[symbol] = true;
@@ -1666,6 +1674,7 @@ export default class bitget extends bitgetRest {
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const symbolSpecificMessageHash = 'myTrades:' + symbol;
+            this.streamProduce ('myTrades', parsed);
             client.resolve (stored, symbolSpecificMessageHash);
         }
         client.resolve (stored, messageHash);
@@ -1794,6 +1803,7 @@ export default class bitget extends bitgetRest {
         const arg = this.safeValue (message, 'arg');
         const instType = this.safeStringLower (arg, 'instType');
         const messageHash = 'balance:' + instType;
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1902,6 +1912,7 @@ export default class bitget extends bitgetRest {
                 // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 client.reject (e);
             }
+            this.streamProduce ('errors', undefined, e);
             return true;
         }
     }
@@ -1952,6 +1963,7 @@ export default class bitget extends bitgetRest {
         //        ]
         //    }
         //
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

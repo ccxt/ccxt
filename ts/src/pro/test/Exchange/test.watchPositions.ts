@@ -2,12 +2,28 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, ExchangeError, Message } from '../../../../ccxt.js';
 
 async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    const consumer = function consumer (message: Message) {
+        if (message.error) {
+            throw new ExchangeError (message.error);
+        }
+        if (!message.payload) {
+            throw new ExchangeError ("received null or undefined payload");
+        }
+        // TODO: add payload test
+    };
+    try {
+        await exchange.subscribePositions ([ symbol ], consumer);
+    } catch (e) {
+        if (!testSharedMethods.isTemporaryFailure (e)) {
+            throw e;
+        }
+    }
     while (now < ends) {
         let response = undefined;
         try {
