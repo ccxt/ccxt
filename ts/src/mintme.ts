@@ -779,7 +779,10 @@ export default class mintme extends Exchange {
             throw new BadRequest (this.id + ' createOrder() only supports "limit" orders');
         }
         const [ base, quote ] = symbol.split ('/');
-        const market = this.market (`${base.toUpperCase ()}_${quote.toUpperCase ()}`);
+        const market = this.market (`${base}_${quote.toUpperCase ()}`);
+        if (!market) {
+            throw new Error (`Market not found for symbol: ${symbol}`);
+        }
         const request: Dict = {
             'base': base,
             'quote': quote,
@@ -816,7 +819,7 @@ export default class mintme extends Exchange {
         const request: Dict = {
             'id': orderId,
             'base': base,
-            'quote': quote,
+            'quote': quote.toUpperCase (),
         };
         const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
         if (response.message === 'Invalid request') {
