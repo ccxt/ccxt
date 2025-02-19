@@ -134,17 +134,35 @@ export default class coindcx extends coindcxRest {
         //         "s": 'B-ETH_USDT'
         //     }
         //
+        // watchMyTrades
+        //     {
+        //         T: 1739840633115.661,
+        //         c: null,
+        //         f: '1.46342355',
+        //         m: true,
+        //         o: '38780e28-ed94-11ef-b30e-f7f0224a5bdf',
+        //         p: '248037.89',
+        //         q: '0.001',
+        //         s: 'ETHINR',
+        //         t: '209292754',
+        //         x: 'filled'
+        //     }
+        //
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeInteger (trade, 'T');
         const makerOrTakerIndex = this.safeString (trade, 'm');
         let takerOrMaker = 'taker';
         if (makerOrTakerIndex === '1') {
             takerOrMaker = 'maker';
         }
+        const fee = {
+            'cost': this.safeString (trade, 'fee_amount'),
+            'currency': undefined,
+        };
         return this.safeTrade ({
             'id': this.safeString (trade, 'tradeId'),
             'timestamp': timestamp,
@@ -157,7 +175,7 @@ export default class coindcx extends coindcxRest {
             'order': undefined,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -473,11 +491,13 @@ export default class coindcx extends coindcxRest {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
+        let messageHash = 'order-update';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
-        const messageHash = 'order-update';
         const message: Dict = {
             'type': 'subscribe',
             'channelName': 'coindcx',
@@ -523,38 +543,111 @@ export default class coindcx extends coindcxRest {
         //         }
         //     ]
         //
-        const data = this.safeList (message, 'data', []);
-        const messageHash = 'order-update';
-        const dataLength = data.length;
-        if (dataLength > 0) {
+        const orders = this.safeList (message, 'data', []);
+        if (orders === undefined) {
+            return;
+        }
+        const ordersLength = orders.length;
+        const newOrders = [];
+        const symbols: Dict = {};
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const symbols = {};
-            let symbol = undefined;
-            for (let i = 0; i < dataLength; i++) {
-                const currentOrder = data[i];
-                const orderId = this.safeString (currentOrder, 'id');
-                const previousOrder = this.safeValue (stored.hashmap, orderId);
-                let rawOrder = currentOrder;
-                if (previousOrder !== undefined) {
-                    rawOrder = this.extend (previousOrder['info'], currentOrder);
-                }
-                const order = this.parseOrder (rawOrder);
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.parseOrder (orders[i]);
                 stored.append (order);
-                const marketId = this.safeString2 (currentOrder, 'market', 'pair');
-                const market = this.safeMarket (marketId);
-                symbol = market['symbol'];
+                newOrders.push (order);
+                const symbol = order['symbol'];
                 symbols[symbol] = true;
             }
-            client.resolve (this.orders, messageHash);
-            const keys = Object.keys (symbols);
-            for (let i = 0; i < keys.length; i++) {
-                symbol = keys[i];
-                client.resolve (this.orders, messageHash + ':' + symbol);
-            }
+        }
+        const messageHash = 'order-update';
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = messageHash + '::' + symbol;
+            client.resolve (newOrders, symbolSpecificMessageHash);
+        }
+        client.resolve (newOrders, messageHash);
+    }
+
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coindcx#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
+        const name = 'trade-update';
+        let messageHash = name;
+        symbol = this.symbol (symbol);
+        messageHash += ':' + symbol;
+        const url = this.urls['api']['ws'];
+        const message: Dict = {
+            'type': 'subscribe',
+            'channelName': 'coindcx',
+        };
+        const request = this.deepExtend (message, params);
+        const trades = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        //     event: 'trade-update',
+        //     data: [
+        //         {
+        //             T: 1739840633115.661,
+        //             c: null,
+        //             f: '1.46342355',
+        //             m: true,
+        //             o: '38780e28-ed94-11ef-b30e-f7f0224a5bdf',
+        //             p: '248037.89',
+        //             q: '0.001',
+        //             s: 'ETHINR',
+        //             t: '209292754',
+        //             x: 'filled'
+        //         }
+        //     ]
+        //
+        const messageHash = this.safeString (message, 'event');
+        const data = this.safeValue (message, 'data', []);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const newTrades = [];
+        const stored = this.myTrades;
+        const symbols: Dict = {};
+        for (let j = 0; j < data.length; j++) {
+            const trade = this.parseWsTrade (data[j]);
+            stored.append (trade);
+            newTrades.push (trade);
+            const symbol = trade['symbol'];
+            symbols[symbol] = trade;
+        }
+        const numTrades = newTrades.length;
+        if (numTrades > 0) {
+            client.resolve (stored, messageHash);
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            client.resolve (stored, messageHash + ':' + keys[i]);
         }
     }
 
@@ -593,6 +686,7 @@ export default class coindcx extends coindcxRest {
             'depth-update': this.handleOrderBookUpdate,
             'balance-update': this.handleBalance,
             'order-update': this.handleOrder,
+            'trade-update': this.handleMyTrades,
         };
         if (event in methods) {
             const method = methods[event];
