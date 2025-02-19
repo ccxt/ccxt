@@ -26,7 +26,7 @@
             "best_ask": "66367.59"
           },
           "parsedResponse": {
-            "symbol": "BTC/USD",
+            "symbol": "BTC/USDC",
             "timestamp": 1713952598063,
             "datetime": "2024-04-24T09:56:38.063595Z",
             "bid": 66367.58,
