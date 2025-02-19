@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { ExchangeError } from '../base/errors.js';
-import type { Balances, Dict, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -52,6 +52,7 @@ export default class coindcx extends coindcxRest {
                     '1M': '1M',
                 },
                 'tradesLimit': 1000,
+                'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'orderbook': {},
             },
@@ -443,7 +444,7 @@ export default class coindcx extends coindcxRest {
             'info': data,
         };
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i, {});
             const currencyId = this.safeString (balance, 'currency_short_name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -454,6 +455,107 @@ export default class coindcx extends coindcxRest {
         this.balance = this.safeBalance (result);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coindcx#watchOrders
+         * @description get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
+         * @see https://docs.coindcx.com/#get-order-update
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        await this.authenticate (params);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'order-update';
+        const message: Dict = {
+            'type': 'subscribe',
+            'channelName': 'coindcx',
+        };
+        const request = this.deepExtend (message, params);
+        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client, message) {
+        //
+        //     event: 'order-update',
+        //     data: [
+        //         {
+        //             avg_price: 0,
+        //             base_currency_name: 'Indian Rupee',
+        //             base_currency_precision: 2,
+        //             base_currency_short_name: 'INR',
+        //             client_order_id: null,
+        //             created_at: 1739840633009,
+        //             fee: 0.59,
+        //             fee_amount: 0,
+        //             id: '38780e28-ed94-11ef-b30e-f7f0224a5bdf',
+        //             maker_fee: 0.59,
+        //             market: 'ETHINR',
+        //             order_type: 'market_order',
+        //             price_per_unit: 0,
+        //             remaining_quantity: 0.001,
+        //             side: 'sell',
+        //             source: 'web',
+        //             status: 'open',
+        //             stop_price: 0,
+        //             taker_fee: 0.59,
+        //             target_currency_name: 'Ethereum',
+        //             target_currency_precision: 4,
+        //             target_currency_short_name: 'ETH',
+        //             time_in_force: 'good_till_cancel',
+        //             total_quantity: 0.001,
+        //             updated_at: 1739840633009
+        //         }
+        //     ]
+        //
+        const data = this.safeList (message, 'data', []);
+        const messageHash = 'order-update';
+        const dataLength = data.length;
+        if (dataLength > 0) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const symbols = {};
+            let symbol = undefined;
+            for (let i = 0; i < dataLength; i++) {
+                const currentOrder = data[i];
+                const orderId = this.safeString (currentOrder, 'id');
+                const previousOrder = this.safeValue (stored.hashmap, orderId);
+                let rawOrder = currentOrder;
+                if (previousOrder !== undefined) {
+                    rawOrder = this.extend (previousOrder['info'], currentOrder);
+                }
+                const order = this.parseOrder (rawOrder);
+                stored.append (order);
+                const marketId = this.safeString2 (currentOrder, 'market', 'pair');
+                const market = this.safeMarket (marketId);
+                symbol = market['symbol'];
+                symbols[symbol] = true;
+            }
+            client.resolve (this.orders, messageHash);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                symbol = keys[i];
+                client.resolve (this.orders, messageHash + ':' + symbol);
+            }
+        }
     }
 
     async authenticate (params = {}) {
@@ -490,6 +592,7 @@ export default class coindcx extends coindcxRest {
             'depth-snapshot': this.handleOrderBookSnapshot,
             'depth-update': this.handleOrderBookUpdate,
             'balance-update': this.handleBalance,
+            'order-update': this.handleOrder,
         };
         if (event in methods) {
             const method = methods[event];
