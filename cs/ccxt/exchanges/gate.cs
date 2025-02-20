@@ -646,23 +646,59 @@ public partial class gate : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
-                    { "LINEA", "LINEAETH" },
-                    { "KON", "KONET" },
-                    { "AVAXC", "AVAX_C" },
-                    { "BEP20", "BSC" },
-                    { "EOS", "EOS" },
-                    { "ERC20", "ETH" },
-                    { "GATECHAIN", "GTEVM" },
-                    { "HRC20", "HT" },
-                    { "KUSAMA", "KSMSM" },
-                    { "NEAR", "NEAR" },
-                    { "OKC", "OKT" },
-                    { "OPTIMISM", "OPETH" },
-                    { "POLKADOT", "DOTSM" },
-                    { "TRC20", "TRX" },
-                    { "LUNA", "LUNC" },
-                    { "BASE", "BASEEVM" },
+                    { "BTC", "BTC" },
                     { "BRC20", "BTCBRC" },
+                    { "ETH", "ETH" },
+                    { "ERC20", "ETH" },
+                    { "TRX", "TRX" },
+                    { "TRC20", "TRX" },
+                    { "HECO", "HT" },
+                    { "HRC20", "HT" },
+                    { "BSC", "BSC" },
+                    { "BEP20", "BSC" },
+                    { "SOL", "SOL" },
+                    { "POLYGON", "POL" },
+                    { "MATIC", "POL" },
+                    { "OP", "OPETH" },
+                    { "OPTIMISM", "OPETH" },
+                    { "ADA", "ADA" },
+                    { "AVAXC", "AVAX_C" },
+                    { "NEAR", "NEAR" },
+                    { "ARBONE", "ARBEVM" },
+                    { "BASE", "BASEEVM" },
+                    { "SUI", "SUI" },
+                    { "CRONOS", "CRO" },
+                    { "CRO", "CRO" },
+                    { "APT", "APT" },
+                    { "SCROLL", "SCROLLETH" },
+                    { "TAIKO", "TAIKOETH" },
+                    { "HYPE", "HYPE" },
+                    { "ALGO", "ALGO" },
+                    { "LINEA", "LINEAETH" },
+                    { "BLAST", "BLASTETH" },
+                    { "XLM", "XLM" },
+                    { "RSK", "RBTC" },
+                    { "TON", "TON" },
+                    { "MNT", "MNT" },
+                    { "CELO", "CELO" },
+                    { "HBAR", "HBAR" },
+                    { "ZKSERA", "ZKSERA" },
+                    { "KLAY", "KLAY" },
+                    { "EOS", "EOS" },
+                    { "ACA", "ACA" },
+                    { "XTZ", "XTZ" },
+                    { "EGLD", "EGLD" },
+                    { "GLMR", "GLMR" },
+                    { "AURORA", "AURORAEVM" },
+                    { "KON", "KONET" },
+                    { "GATECHAIN", "GTEVM" },
+                    { "KUSAMA", "KSMSM" },
+                    { "OKC", "OKT" },
+                    { "POLKADOT", "DOTSM" },
+                    { "LUNA", "LUNC" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "OPETH", "OP" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },
@@ -3869,6 +3905,7 @@ public partial class gate : Exchange
         //
         // public
         //
+        //  spot:
         //     {
         //         "id": "1334253759",
         //         "create_time": "1626342738",
@@ -3878,6 +3915,18 @@ public partial class gate : Exchange
         //         "amount": "0.0022",
         //         "price": "32452.16"
         //     }
+        //
+        //  swap:
+        //
+        //    {
+        //        "id": "442288327",
+        //        "contract": "BTC_USDT",
+        //        "create_time": "1739814676.707",
+        //        "create_time_ms": "1739814676.707",
+        //        "size": "-105",
+        //        "price": "95594.8"
+        //    }
+        //
         //
         // public ws
         //
@@ -3955,8 +4004,17 @@ public partial class gate : Exchange
         //     }
         //
         object id = this.safeString2(trade, "id", "trade_id");
-        object timestamp = this.safeTimestamp2(trade, "time", "create_time");
-        timestamp = this.safeInteger(trade, "create_time_ms", timestamp);
+        object timestamp = null;
+        object msString = this.safeString(trade, "create_time_ms");
+        if (isTrue(!isEqual(msString, null)))
+        {
+            msString = Precise.stringMul(msString, "1000");
+            msString = slice(msString, 0, 13);
+            timestamp = this.parseToInt(msString);
+        } else
+        {
+            timestamp = this.safeTimestamp2(trade, "time", "create_time");
+        }
         object marketId = this.safeString2(trade, "currency_pair", "contract");
         object marketType = ((bool) isTrue((inOp(trade, "contract")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);

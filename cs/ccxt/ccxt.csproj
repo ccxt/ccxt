@@ -10,9 +10,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.4.60</PackageVersion>
-    <AssemblyVersion>4.4.60</AssemblyVersion>
-    <FileVersion>4.4.60</FileVersion>
+    <PackageVersion>4.4.61</PackageVersion>
+    <AssemblyVersion>4.4.61</AssemblyVersion>
+    <FileVersion>4.4.61</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
