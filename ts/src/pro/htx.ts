@@ -674,7 +674,7 @@ export default class htx extends htxRest {
                 if (market['spot']) {
                     // *this* is the time to request a snapshot
                     const subscription = client.subscriptions[messageHash];
-                    this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
+                    this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
                 }
             }
             orderbook.cache.push (message);
