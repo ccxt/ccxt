@@ -668,6 +668,15 @@ export default class htx extends htxRest {
         }
         const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
+            if (orderbook.cache.length === 0) {
+                // first orderbook update message
+                const market = this.markets[symbol];
+                if (market['spot']) {
+                    // *this* is the time to request a snapshot
+                    const subscription = client.subscriptions[messageHash];
+                    this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
+                }
+            }
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message);
@@ -681,7 +690,9 @@ export default class htx extends htxRest {
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         if (market['spot']) {
-            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+            // *this* is NOT the time to request a snapshot
+            // if we do this now, we run the risk of getting InvalidNonce errors
+            // this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
 
