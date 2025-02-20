@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestDatetime()  {
-    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.DerivedExchange = exchange; exchange.InitParent(map[string]interface{} {
         "id": "regirock",
     }, map[string]interface{}{}, exchange)
     Assert(IsEqual(exchange.Iso8601(514862627000), "1986-04-26T01:23:47.000Z"))

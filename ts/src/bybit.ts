@@ -239,6 +239,7 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/reference': 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,

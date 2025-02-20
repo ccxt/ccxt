@@ -1045,7 +1045,7 @@ public partial class phemex : Exchange
         {
             object market = getValue(products, i);
             object type = this.safeStringLower(market, "type");
-            if (isTrue(isTrue((isEqual(type, "perpetual"))) || isTrue((isEqual(type, "perpetualv2")))))
+            if (isTrue(isTrue(isTrue((isEqual(type, "perpetual"))) || isTrue((isEqual(type, "perpetualv2")))) || isTrue((isEqual(type, "PerpetualPilot")))))
             {
                 object id = this.safeString(market, "symbol");
                 object riskLimitValues = this.safeValue(riskLimitsById, id, new Dictionary<string, object>() {});
