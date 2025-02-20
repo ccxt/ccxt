@@ -716,9 +716,11 @@ export default class cryptomus extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const base = this.safeCurrencyCode (market['base']);
-        const quote = this.safeCurrencyCode (market['quote']);
-        const request: Dict = {};
+        const base = this.currencyId (market['base']);
+        const quote = this.currencyId (market['quote']);
+        const request: Dict = {
+            'tag': 'ccxt',
+        };
         const sideBuy = side === 'buy';
         if (sideBuy) {
             request['from'] = quote;
@@ -727,13 +729,13 @@ export default class cryptomus extends Exchange {
             request['from'] = base;
             request['to'] = quote;
         }
-        const amountToString = amount.toString ();
+        const amountToString = this.numberToString (amount);
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an amount parameter');
         } else {
             request['amount'] = amountToString;
         }
-        const priceToString = price.toString ();
+        const priceToString = this.numberToString (price);
         let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
         let response = undefined;
