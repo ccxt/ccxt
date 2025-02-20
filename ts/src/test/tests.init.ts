@@ -1,6 +1,6 @@
 
 
-import { getCliArgValue, argvExchange, argvSymbol, argvMethod, getBaseTestsCounter } from './tests.helpers.js';
+import { getCliArgValue, argvExchange, argvSymbol, argvMethod } from './tests.helpers.js';
 import testMainClass from './tests.js';
 import baseTestsInitRest from './base/tests.init.js';
 import baseTestsInitWs from '../pro/test/base/tests.init.js';
