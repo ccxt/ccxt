@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -59,6 +59,11 @@ export default class coindcx extends coindcxRest {
             'streaming': {
                 'ping': this.ping,
                 'keepAlive': 50000,
+            },
+            'exceptions': {
+                'exact': {
+                    'unrecognised input': AuthenticationError,
+                },
             },
         });
     }
@@ -695,8 +700,27 @@ export default class coindcx extends coindcxRest {
     }
 
     handleErrorMessage (client: Client, message) {
-        if (!('error' in message)) {
+        //
+        //     { error: 'unrecognised input' }
+        //
+        const errorMessage = this.safeString (message, 'error');
+        try {
+            if (errorMessage !== undefined) {
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            }
             return false;
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject (error, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            } else {
+                client.reject (error);
+            }
+            return true;
         }
     }
 }
