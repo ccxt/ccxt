@@ -3,7 +3,7 @@
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest } from './base/types.js';
 
@@ -2189,6 +2189,30 @@ export default class gate extends Exchange {
 
     /**
      * @method
+     * @name gate#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        const chains = this.safeValue (response, 'multichain_addresses', []);
+        const currencyId = this.safeString (response, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy (parsed, 'network') as DepositAddress[];
+    }
+
+    /**
+     * @method
      * @name gate#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2199,73 +2223,32 @@ export default class gate extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        params = this.omit (params, 'network');
-        const request: Dict = {
-            'currency': currency['id'], // todo: currencies have network-junctions
-        };
-        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (code, params);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        return chainsIndexedById[selectedNetworkId];
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
-        //    {
-        //        "currency": "XRP",
-        //        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        //        "multichain_addresses": [
-        //            {
-        //                "chain": "XRP",
-        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        //                "payment_id": "391331007",
-        //                "payment_name": "Tag",
-        //                "obtain_failed": 0
-        //            }
-        //        ]
-        //    }
+        //     {
+        //         chain: "BTC",
+        //         address: "1Nxu.......Ys",
+        //         payment_id: "",
+        //         payment_name: "",
+        //         obtain_failed: "0",
+        //     }
         //
-        const currencyId = this.safeString (response, 'currency');
-        code = this.safeCurrencyCode (currencyId);
-        const networkId = this.networkCodeToId (rawNetwork, code);
-        let network = undefined;
-        let tag = undefined;
-        let address = undefined;
-        if (networkId !== undefined) {
-            const addresses = this.safeValue (response, 'multichain_addresses');
-            for (let i = 0; i < addresses.length; i++) {
-                const entry = addresses[i];
-                const entryNetwork = this.safeString (entry, 'chain');
-                if (networkId === entryNetwork) {
-                    const obtainFailed = this.safeInteger (entry, 'obtain_failed');
-                    if (obtainFailed) {
-                        break;
-                    }
-                    address = this.safeString (entry, 'address');
-                    tag = this.safeString (entry, 'payment_id');
-                    network = this.networkIdToCode (networkId, code);
-                    break;
-                }
-            }
-        } else {
-            const addressField = this.safeString (response, 'address');
-            if (addressField !== undefined) {
-                if (addressField.indexOf ('New address is being generated for you, please wait') >= 0) {
-                    throw new BadResponse (this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
-                }
-                if (addressField.indexOf (' ') >= 0) {
-                    const splitted = addressField.split (' ');
-                    address = splitted[0];
-                    tag = splitted[1];
-                } else {
-                    address = addressField;
-                }
-            }
-        }
+        const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
-            'info': response,
-            'currency': code,
-            'network': network,
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
             'address': address,
-            'tag': tag,
-        } as DepositAddress;
+            'tag': this.safeString (depositAddress, 'payment_id'),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
+        };
     }
 
     /**
@@ -3983,14 +3966,10 @@ export default class gate extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, 'network');
-        } else {
-            request['chain'] = currency['id']; // todo: currencies have network-junctions
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
