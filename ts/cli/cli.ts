@@ -2,9 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import ansi from 'ansicolor'
 import asTable from 'as-table'
-import ololog from 'ololog'
 import ccxt from '../ccxt.js'
 import { Agent } from 'https'
 import { add_static_result } from '../../utils/update-static-tests-data.js'
