@@ -87,6 +87,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
@@ -1397,8 +1398,45 @@ public partial class Exchange
 
     public virtual void afterConstruct()
     {
+        // networks
         this.createNetworksByIdObject();
         this.featuresGenerator();
+        // init predefined markets if any
+        if (isTrue(this.markets))
+        {
+            this.setMarkets(this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter();
+        // sanbox mode
+        object isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
+        if (isTrue(isSandbox))
+        {
+            this.setSandboxMode(isSandbox);
+        }
+    }
+
+    public virtual void initRestRateLimiter()
+    {
+        if (isTrue(isTrue(isEqual(this.rateLimit, null)) || isTrue((isTrue(!isEqual(this.id, null)) && isTrue(isEqual(this.rateLimit, -1))))))
+        {
+            throw new ExchangeError ((string)add(this.id, ".rateLimit property is not configured")) ;
+        }
+        object refillRate = this.MAX_VALUE;
+        if (isTrue(isGreaterThan(this.rateLimit, 0)))
+        {
+            refillRate = divide(1, this.rateLimit);
+        }
+        object defaultBucket = new Dictionary<string, object>() {
+            { "delay", 0.001 },
+            { "capacity", 1 },
+            { "cost", 1 },
+            { "maxCapacity", 1000 },
+            { "refillRate", refillRate },
+        };
+        object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
+        this.tokenBucket = this.extend(defaultBucket, existingBucket);
+        this.initThrottler();
     }
 
     public virtual void featuresGenerator()
@@ -2667,7 +2705,7 @@ public partial class Exchange
         object change = this.omitZero(this.safeString(ticker, "change"));
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
-        object vwap = this.omitZero(this.safeString(ticker, "vwap"));
+        object vwap = this.safeString(ticker, "vwap");
         object baseVolume = this.safeString(ticker, "baseVolume");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
         if (isTrue(isEqual(vwap, null)))
@@ -5107,6 +5145,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> editOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " editOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5752,7 +5796,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrder")))
         {
-            throw new NotSupported ((string)add(this.id, "createPostOnlyOrder() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createPostOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
@@ -5765,7 +5809,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrderWs")))
         {
-            throw new NotSupported ((string)add(this.id, "createPostOnlyOrderWs() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
@@ -5778,7 +5822,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrder")))
         {
-            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrder() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
@@ -5791,7 +5835,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrderWs")))
         {
-            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrderWs() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
@@ -6643,7 +6687,8 @@ public partial class Exchange
             ((IList<object>)result).Add(parsed);
         }
         object sorted = this.sortBy(result, "timestamp");
-        return this.filterBySinceLimit(sorted, since, limit);
+        object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object getMarketFromSymbols(object symbols = null)

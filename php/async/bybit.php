@@ -14,13 +14,13 @@ use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -243,6 +243,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/reference' => 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data' => 5,
+                        'v5/spot-margin-trade/collateral' => 5,
                         'v5/spot-cross-margin-trade/data' => 5,
                         'v5/spot-cross-margin-trade/pledge-token' => 5,
                         'v5/spot-cross-margin-trade/borrow-token' => 5,
@@ -1424,8 +1425,8 @@ class bybit extends Exchange {
 
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
-        $quote = 'USD';
-        $settle = 'USDC';
+        $quote = null;
+        $settle = null;
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $base = null;
@@ -1433,9 +1434,21 @@ class bybit extends Exchange {
         if (mb_strpos($symbol, '/') > -1) {
             $base = $this->safe_string($symbolBase, 0);
             $expiry = $this->safe_string($optionParts, 1);
+            $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
+            $splitQuote = explode(':', $symbolQuoteAndSettle);
+            $quoteAndSettle = $this->safe_string($splitQuote, 0);
+            $quote = $quoteAndSettle;
+            $settle = $quoteAndSettle;
         } else {
             $base = $this->safe_string($optionParts, 0);
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
+            if (str_ends_with($symbol, '-USDT')) {
+                $quote = 'USDT';
+                $settle = 'USDT';
+            } else {
+                $quote = 'USDC';
+                $settle = 'USDC';
+            }
         }
         $strike = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
@@ -1553,7 +1566,7 @@ class bybit extends Exchange {
         return $cost;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -4102,7 +4115,7 @@ class bybit extends Exchange {
                 } elseif ($price !== null) {
                     $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
                 } else {
-                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                    $request['qty'] = $amountString;
                 }
             }
         } else {
@@ -6957,7 +6970,7 @@ class bybit extends Exchange {
              * @return An array of open interest structures
              */
             if ($timeframe === '1m') {
-                throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+                throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
             $paginate = $this->safe_bool($params, 'paginate');
@@ -6988,10 +7001,13 @@ class bybit extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
-        $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        $openInterest = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        // the $openInterest is in the base asset for linear and quote asset for inverse
+        $amount = $market['linear'] ? $openInterest : null;
+        $value = $market['inverse'] ? $openInterest : null;
         return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
-            'openInterestAmount' => null,
+            'openInterestAmount' => $amount,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

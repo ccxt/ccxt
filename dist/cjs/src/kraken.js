@@ -976,9 +976,9 @@ class kraken extends kraken$1 {
             'high': this.safeString(high, 1),
             'low': this.safeString(low, 1),
             'bid': this.safeString(bid, 0),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString(bid, 2),
             'ask': this.safeString(ask, 0),
-            'askVolume': undefined,
+            'askVolume': this.safeString(ask, 2),
             'vwap': vwap,
             'open': this.safeString(ticker, 'o'),
             'close': last,
@@ -2483,7 +2483,7 @@ class kraken extends kraken$1 {
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
         if (timeout > 86400000) {
-            throw new errors.BadRequest(this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         await this.loadMarkets();
         const request = {

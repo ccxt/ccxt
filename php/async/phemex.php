@@ -14,12 +14,12 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class phemex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
@@ -1076,7 +1076,7 @@ class phemex extends Exchange {
             for ($i = 0; $i < count($products); $i++) {
                 $market = $products[$i];
                 $type = $this->safe_string_lower($market, 'type');
-                if (($type === 'perpetual') || ($type === 'perpetualv2')) {
+                if (($type === 'perpetual') || ($type === 'perpetualv2') || ($type === 'perpetualpilot')) {
                     $id = $this->safe_string($market, 'symbol');
                     $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
                     $market = $this->extend($market, $riskLimitValues);

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.precise import Precise
@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class currencycom(ccxt.async_support.currencycom):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(currencycom, self).describe(), {
             'has': {
                 'ws': True,

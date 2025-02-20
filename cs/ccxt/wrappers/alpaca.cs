@@ -609,6 +609,12 @@ public partial class alpaca
     /// int : the latest time in ms to fetch trades for
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.page_token</term>
+    /// <description>
+    /// string : page_token - used for paging
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>

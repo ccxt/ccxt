@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class bybit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bybit, self).describe(), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -254,6 +254,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/reference': 5,
                         # spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -1420,8 +1421,8 @@ class bybit(Exchange, ImplicitAPI):
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
-        quote = 'USD'
-        settle = 'USDC'
+        quote = None
+        settle = None
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         base = None
@@ -1429,9 +1430,20 @@ class bybit(Exchange, ImplicitAPI):
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
+            symbolQuoteAndSettle = self.safe_string(symbolBase, 1)
+            splitQuote = symbolQuoteAndSettle.split(':')
+            quoteAndSettle = self.safe_string(splitQuote, 0)
+            quote = quoteAndSettle
+            settle = quoteAndSettle
         else:
             base = self.safe_string(optionParts, 0)
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+            if symbol.endswith('-USDT'):
+                quote = 'USDT'
+                settle = 'USDT'
+            else:
+                quote = 'USDC'
+                settle = 'USDC'
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
         datetime = self.convert_expire_date(expiry)
@@ -1535,7 +1547,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.cost_to_precision(symbol, cost)
         return cost
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -3895,7 +3907,7 @@ class bybit(Exchange, ImplicitAPI):
                 elif price is not None:
                     request['qty'] = self.get_cost(symbol, Precise.string_mul(amountString, priceString))
                 else:
-                    request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
+                    request['qty'] = amountString
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
                 request['qty'] = amountString
@@ -6488,7 +6500,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
         self.load_markets()
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
@@ -6513,10 +6525,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #    }
         #
         timestamp = self.safe_integer(interest, 'timestamp')
-        value = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        openInterest = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        # the openInterest is in the base asset for linear and quote asset for inverse
+        amount = openInterest if market['linear'] else None
+        value = openInterest if market['inverse'] else None
         return self.safe_open_interest({
             'symbol': market['symbol'],
-            'openInterestAmount': None,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

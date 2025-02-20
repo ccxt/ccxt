@@ -10,7 +10,7 @@ use ccxt\abstract\yobit as Exchange;
 
 class yobit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'yobit',
             'name' => 'YoBit',

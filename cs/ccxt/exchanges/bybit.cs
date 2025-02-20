@@ -218,6 +218,7 @@ public partial class bybit : Exchange
                         { "v5/spot-lever-token/info", 5 },
                         { "v5/spot-lever-token/reference", 5 },
                         { "v5/spot-margin-trade/data", 5 },
+                        { "v5/spot-margin-trade/collateral", 5 },
                         { "v5/spot-cross-margin-trade/data", 5 },
                         { "v5/spot-cross-margin-trade/pledge-token", 5 },
                         { "v5/spot-cross-margin-trade/borrow-token", 5 },
@@ -1359,8 +1360,8 @@ public partial class bybit : Exchange
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
-        object quote = "USD";
-        object settle = "USDC";
+        object quote = null;
+        object settle = null;
         object optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
@@ -1369,10 +1370,24 @@ public partial class bybit : Exchange
         {
             bs = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
+            object symbolQuoteAndSettle = this.safeString(symbolBase, 1);
+            object splitQuote = ((string)symbolQuoteAndSettle).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            object quoteAndSettle = this.safeString(splitQuote, 0);
+            quote = quoteAndSettle;
+            settle = quoteAndSettle;
         } else
         {
             bs = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
+            if (isTrue(((string)symbol).EndsWith(((string)"-USDT"))))
+            {
+                quote = "USDT";
+                settle = "USDT";
+            } else
+            {
+                quote = "USDC";
+                settle = "USDC";
+            }
         }
         object strike = this.safeString(optionParts, 2);
         object optionType = this.safeString(optionParts, 3);
@@ -4264,7 +4279,7 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
                 } else
                 {
-                    ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, this.numberToString(amount));
+                    ((IDictionary<string,object>)request)["qty"] = amountString;
                 }
             }
         } else
@@ -7350,7 +7365,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(timeframe, "1m")))
         {
-            throw new BadRequest ((string)add(this.id, "fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
         await this.loadMarkets();
         object paginate = this.safeBool(parameters, "paginate");
@@ -7384,10 +7399,13 @@ public partial class bybit : Exchange
         //    }
         //
         object timestamp = this.safeInteger(interest, "timestamp");
-        object value = this.safeNumber2(interest, "open_interest", "openInterest");
+        object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
+        // the openInterest is in the base asset for linear and quote asset for inverse
+        object amount = ((bool) isTrue(getValue(market, "linear"))) ? openInterest : null;
+        object value = ((bool) isTrue(getValue(market, "inverse"))) ? openInterest : null;
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
-            { "openInterestAmount", null },
+            { "openInterestAmount", amount },
             { "openInterestValue", value },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

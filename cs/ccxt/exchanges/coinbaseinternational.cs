@@ -11,7 +11,7 @@ public partial class coinbaseinternational : Exchange
             { "id", "coinbaseinternational" },
             { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v1" },
@@ -1831,7 +1831,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isEqual(price, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() requires a price parameter for a limit order types")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -1850,7 +1850,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isTrue(!isEqual(tif, null)) && isTrue(!isEqual(tif, "IOC"))))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() market orders must have tif set to \"IOC\"")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
             tif = "IOC";
         } else

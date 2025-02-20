@@ -989,9 +989,9 @@ public partial class kraken : Exchange
             { "high", this.safeString(high, 1) },
             { "low", this.safeString(low, 1) },
             { "bid", this.safeString(bid, 0) },
-            { "bidVolume", null },
+            { "bidVolume", this.safeString(bid, 2) },
             { "ask", this.safeString(ask, 0) },
-            { "askVolume", null },
+            { "askVolume", this.safeString(ask, 2) },
             { "vwap", vwap },
             { "open", this.safeString(ticker, "o") },
             { "close", last },
@@ -2662,7 +2662,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {

@@ -11,7 +11,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 //  ---------------------------------------------------------------------------
 
 export default class coincatch extends coincatchRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -1524,7 +1524,7 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'orderbook ' + symbol);
+        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
@@ -1547,7 +1547,7 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'trades ' + symbol);
+        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
@@ -1570,7 +1570,7 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'ticker ' + symbol);
+        const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }

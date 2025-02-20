@@ -18,7 +18,7 @@ import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
  * @augments Exchange
  */
 export default class paradex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -361,7 +361,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSystemTime (params);
         //
         //     {

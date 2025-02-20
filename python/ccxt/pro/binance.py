@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -19,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class binance(ccxt.async_support.binance):
 
-    def describe(self):
+    def describe(self) -> Any:
         superDescribe = super(binance, self).describe()
         return self.deep_extend(superDescribe, self.describe_data())
 
@@ -247,7 +246,7 @@ class binance(ccxt.async_support.binance):
         type = None
         type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if type == 'spot':
-            raise BadRequest(self.id + 'watchLiquidationsForSymbols is not supported for spot symbols')
+            raise BadRequest(self.id + ' watchLiquidationsForSymbols is not supported for spot symbols')
         subType = None
         subType, params = self.handle_sub_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if self.isLinear(type, subType):
@@ -3705,7 +3704,7 @@ class binance(ccxt.async_support.binance):
             payload['limit'] = limit
         fromId = self.safe_integer(params, 'fromId')
         if fromId is not None and since is not None:
-            raise BadRequest(self.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
+            raise BadRequest(self.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time')
         message: dict = {
             'id': messageHash,
             'method': 'myTrades',

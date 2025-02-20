@@ -240,6 +240,7 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/reference': 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -1414,8 +1415,8 @@ export default class bybit extends Exchange {
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
-        const quote = 'USD';
-        const settle = 'USDC';
+        let quote = undefined;
+        let settle = undefined;
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         let base = undefined;
@@ -1423,10 +1424,23 @@ export default class bybit extends Exchange {
         if (symbol.indexOf('/') > -1) {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
+            const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
+            const splitQuote = symbolQuoteAndSettle.split(':');
+            const quoteAndSettle = this.safeString(splitQuote, 0);
+            quote = quoteAndSettle;
+            settle = quoteAndSettle;
         }
         else {
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
+            if (symbol.endsWith('-USDT')) {
+                quote = 'USDT';
+                settle = 'USDT';
+            }
+            else {
+                quote = 'USDC';
+                settle = 'USDC';
+            }
         }
         const strike = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
@@ -4097,7 +4111,7 @@ export default class bybit extends Exchange {
                     request['qty'] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
                 }
                 else {
-                    request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                    request['qty'] = amountString;
                 }
             }
         }
@@ -6881,7 +6895,7 @@ export default class bybit extends Exchange {
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate');
@@ -6910,10 +6924,13 @@ export default class bybit extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
-        const value = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        const openInterest = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        // the openInterest is in the base asset for linear and quote asset for inverse
+        const amount = market['linear'] ? openInterest : undefined;
+        const value = market['inverse'] ? openInterest : undefined;
         return this.safeOpenInterest({
             'symbol': market['symbol'],
-            'openInterestAmount': undefined,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

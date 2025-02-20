@@ -24,9 +24,11 @@ from ccxt.test.base.test_sum import test_sum  # noqa E402
 from ccxt.test.base.test_omit import test_omit  # noqa E402
 from ccxt.test.base.test_group_by import test_group_by  # noqa E402
 from ccxt.test.base.test_filter_by import test_filter_by  # noqa E402
+from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
 
 def base_tests_init():
     test_language_specific()
+    test_after_constructor()
     test_extend()
     test_deep_extend()
     test_cryptography()

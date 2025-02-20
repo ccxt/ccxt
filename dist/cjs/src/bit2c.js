@@ -635,7 +635,7 @@ class bit2c extends bit2c$1 {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status = undefined;
+        let status;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -816,13 +816,13 @@ class bit2c extends bit2c$1 {
         //         "isMaker": True,
         //     }
         //
-        let timestamp = undefined;
-        let id = undefined;
+        let timestamp;
+        let id;
         let price = undefined;
         let amount = undefined;
         let orderId = undefined;
         let fee = undefined;
-        let side = undefined;
+        let side;
         let makerOrTaker = undefined;
         const reference = this.safeString(trade, 'reference');
         if (reference !== undefined) {
@@ -838,11 +838,11 @@ class bit2c extends bit2c$1 {
             const isMaker = this.safeValue(trade, 'isMaker');
             makerOrTaker = isMaker ? 'maker' : 'taker';
             orderId = isMaker ? reference_parts[2] : reference_parts[1];
-            side = this.safeInteger(trade, 'action');
-            if (side === 0) {
+            const action = this.safeInteger(trade, 'action');
+            if (action === 0) {
                 side = 'buy';
             }
-            else if (side === 1) {
+            else {
                 side = 'sell';
             }
             const feeCost = this.safeString(trade, 'feeAmount');

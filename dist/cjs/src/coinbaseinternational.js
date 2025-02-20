@@ -18,7 +18,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100,
             'version': 'v1',
@@ -1721,7 +1721,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         request['type'] = typeId;
         if (type === 'limit') {
             if (price === undefined) {
-                throw new errors.InvalidOrder(this.id + 'createOrder() requires a price parameter for a limit order types');
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
         }
@@ -1735,7 +1735,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
-                throw new errors.InvalidOrder(this.id + 'createOrder() market orders must have tif set to "IOC"');
+                throw new errors.InvalidOrder(this.id + ' createOrder() market orders must have tif set to "IOC"');
             }
             tif = 'IOC';
         }

@@ -17,7 +17,7 @@ import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OH
  * @augments Exchange
  */
 export default class vertex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'vertex',
             'name': 'Vertex',
@@ -637,10 +637,10 @@ export default class vertex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v1GatewayGetTime (params);
         // 1717481623452
-        return this.parseNumber (response);
+        return this.parseToInt (response);
     }
 
     /**
@@ -1573,7 +1573,7 @@ export default class vertex extends Exchange {
         if (base.indexOf ('PERP') > 0) {
             marketId = marketId.replace ('-PERP', '') + ':USDC';
         }
-        market = this.market (marketId);
+        market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': market['symbol'],

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -33,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class kraken(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(kraken, self).describe(), {
             'id': 'kraken',
             'name': 'Kraken',
@@ -981,9 +981,9 @@ class kraken(Exchange, ImplicitAPI):
             'high': self.safe_string(high, 1),
             'low': self.safe_string(low, 1),
             'bid': self.safe_string(bid, 0),
-            'bidVolume': None,
+            'bidVolume': self.safe_string(bid, 2),
             'ask': self.safe_string(ask, 0),
-            'askVolume': None,
+            'askVolume': self.safe_string(ask, 2),
             'vwap': vwap,
             'open': self.safe_string(ticker, 'o'),
             'close': last,
@@ -2365,7 +2365,7 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict: the api result
         """
         if timeout > 86400000:
-            raise BadRequest(self.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
+            raise BadRequest(self.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
         self.load_markets()
         request: dict = {
             'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
@@ -2715,7 +2715,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

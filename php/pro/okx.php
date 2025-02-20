@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class okx extends \ccxt\async\okx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -2298,7 +2298,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             if ($market['type'] !== 'option') {
-                throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
+                throw new BadRequest($this->id . ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
             $messageHash = $this->request_id();

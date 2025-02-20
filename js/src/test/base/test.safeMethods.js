@@ -242,6 +242,10 @@ function testSafeMethods() {
     assert(exchange.safeNumber(inputDict, 'f') === exchange.parseNumber(0.123));
     assert(exchange.safeNumber(inputDict, 'strNumber') === exchange.parseNumber(3));
     assert(exchange.safeNumber(inputList, 1) === exchange.parseNumber(2));
+    assert(exchange.safeNumber(inputList, 'bool') === undefined);
+    assert(exchange.safeNumber(inputList, 'list') === undefined);
+    assert(exchange.safeNumber(inputList, 'dict') === undefined);
+    assert(exchange.safeNumber(inputList, 'str') === undefined);
     // safeNumber2
     assert(exchange.safeNumber2(inputDict, 'a', 'i') === exchange.parseNumber(1));
     assert(exchange.safeNumber2(inputDict, 'a', 'f') === exchange.parseNumber(0.123));

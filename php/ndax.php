@@ -10,7 +10,7 @@ use ccxt\abstract\ndax as Exchange;
 
 class ndax extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ndax',
             'name' => 'NDAX',

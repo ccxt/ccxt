@@ -233,6 +233,10 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeNumber(inputDict, "f"), exchange.parseNumber(0.123)));
             Assert(isEqual(exchange.safeNumber(inputDict, "strNumber"), exchange.parseNumber(3)));
             Assert(isEqual(exchange.safeNumber(inputList, 1), exchange.parseNumber(2)));
+            Assert(isEqual(exchange.safeNumber(inputList, "bool"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "list"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "dict"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "str"), null));
             // safeNumber2
             Assert(isEqual(exchange.safeNumber2(inputDict, "a", "i"), exchange.parseNumber(1)));
             Assert(isEqual(exchange.safeNumber2(inputDict, "a", "f"), exchange.parseNumber(0.123)));
