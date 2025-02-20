@@ -36,8 +36,8 @@ export default class phemex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closePosition': false,
-                'createOrder': true,
                 'createConvertTrade': true,
+                'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -5135,10 +5135,10 @@ export default class phemex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const fromCurrencyId = this.safeString (data, 'fromCurrency');
-        const from = this.safeCurrency (fromCurrencyId, fromCurrency);
+        const fromResult = this.safeCurrency (fromCurrencyId, fromCurrency);
         const toCurrencyId = this.safeString (data, 'toCurrency');
         const to = this.safeCurrency (toCurrencyId, toCurrency);
-        return this.parseConversion (data, from, to);
+        return this.parseConversion (data, fromResult, to);
     }
 
     /**
