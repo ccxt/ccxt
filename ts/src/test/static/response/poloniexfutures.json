@@ -98,6 +98,8 @@
                     "average": null,
                     "baseVolume": 14,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "sequence": "16769039",
                         "symbol": "BTCUSDTPERP",

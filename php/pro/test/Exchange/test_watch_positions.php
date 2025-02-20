@@ -47,7 +47,7 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
                 $now = $exchange->milliseconds();
                 continue;
             }
-            assert(gettype($positions_for_symbols) === 'array' && array_keys($positions_for_symbols) === array_keys(array_keys($positions_for_symbols)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbols));
+            assert(gettype($positions_for_symbols) === 'array' && array_is_list($positions_for_symbols), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbols));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert(count($positions_for_symbols) <= 4, $exchange->id . ' ' . $method . ' positions length for particular symbol should be less than 4, returned ' . $exchange->json($positions_for_symbols));
             $now = $exchange->milliseconds();

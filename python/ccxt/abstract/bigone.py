@@ -42,4 +42,4 @@ class ImplicitAPI:
     contractprivate_put_positions_symbol_risk_limit = contractPrivatePutPositionsSymbolRiskLimit = Entry('positions/{symbol}/risk-limit', 'contractPrivate', 'PUT', {})
     contractprivate_delete_orders_id = contractPrivateDeleteOrdersId = Entry('orders/{id}', 'contractPrivate', 'DELETE', {})
     contractprivate_delete_orders_batch = contractPrivateDeleteOrdersBatch = Entry('orders/batch', 'contractPrivate', 'DELETE', {})
-    webexchange_get_uc_v2_assets = webExchangeGetUcV2Assets = Entry('uc/v2/assets', 'webExchange', 'GET', {})
+    webexchange_get_v3_assets = webExchangeGetV3Assets = Entry('v3/assets', 'webExchange', 'GET', {})

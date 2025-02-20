@@ -49,18 +49,19 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     public async virtual Task<object> subscribe(object name, object isPrivate, object symbol = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description subscribes to a websocket channel
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
-        * @param {string} name the name of the channel
-        * @param {string|string[]} [symbol] unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} subscription to a websocket channel
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -91,18 +92,19 @@ public partial class coinbase : ccxt.coinbase
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     public async virtual Task<object> subscribeMultiple(object name, object isPrivate, object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description subscribes to a websocket channel
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
-        * @param {string} name the name of the channel
-        * @param {string[]} [symbols] unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} subscription to a websocket channel
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object productIds = new List<object>() {};
@@ -162,33 +164,33 @@ public partial class coinbase : ccxt.coinbase
         return subscribe;
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+     * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
-        * @param {string} [symbol] unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object name = "ticker";
         return await this.subscribe(name, false, symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTickers
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
-        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
         {
@@ -392,19 +394,19 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -417,19 +419,19 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTradesForSymbols
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "market_trades";
@@ -443,19 +445,19 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "user";
@@ -467,18 +469,18 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "level2";
@@ -488,18 +490,18 @@ public partial class coinbase : ccxt.coinbase
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "level2";

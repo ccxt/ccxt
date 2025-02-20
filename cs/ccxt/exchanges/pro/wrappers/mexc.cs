@@ -12,11 +12,18 @@ public partial class mexc
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.miniTicker</term>
+    /// <description>
+    /// boolean : set to true for using the miniTicker endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -33,11 +40,18 @@ public partial class mexc
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.miniTicker</term>
+    /// <description>
+    /// boolean : set to true for using the miniTicker endpoint
     /// </description>
     /// </item>
     /// </list>

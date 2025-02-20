@@ -90,6 +90,8 @@
                         "volume": "22.3857",
                         "volumeQuote": "1543992.8584"
                     },
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "timestamp": 1710328246615,
                     "datetime": "2024-03-13T11:10:46.615Z",
                     "high": null,

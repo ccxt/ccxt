@@ -55,6 +55,16 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitopro.com/v3/orders/open?pair=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

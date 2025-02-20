@@ -430,6 +430,8 @@
                     "average": 72780.11,
                     "baseVolume": 1319.26278,
                     "quoteVolume": 94847393.3889236,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "ask": "73369.04",
                         "bid": "73369.03",
@@ -475,6 +477,100 @@
                         2.9851
                     ]
                 ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "contract_type": "perpetual",
+                  "mark_price": "96997.13",
+                  "index_price": "97003.05",
+                  "funding_rate": "-0.000183473092423284",
+                  "open_interest": "94.1502",
+                  "next_funding_time": "2024-12-20T08:00:00.000Z",
+                  "indicative_funding_rate": "-0.000274006550393978",
+                  "premium_index": "-0.000987503270808292",
+                  "avg_premium_index": "-0.000683473092423284",
+                  "interest_rate": "0.0001",
+                  "timestamp": "2024-12-20T05:20:21.693Z"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "openInterestAmount": null,
+                  "openInterestValue": 94.1502,
+                  "timestamp": 1734672021693,
+                  "datetime": "2024-12-20T05:20:21.693Z",
+                  "info": {
+                    "contract_type": "perpetual",
+                    "mark_price": "96997.13",
+                    "index_price": "97003.05",
+                    "funding_rate": "-0.000183473092423284",
+                    "open_interest": "94.1502",
+                    "next_funding_time": "2024-12-20T08:00:00.000Z",
+                    "indicative_funding_rate": "-0.000274006550393978",
+                    "premium_index": "-0.000987503270808292",
+                    "avg_premium_index": "-0.000683473092423284",
+                    "interest_rate": "0.0001",
+                    "timestamp": "2024-12-20T05:20:21.693Z"
+                  },
+                  "baseVolume": null,
+                  "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch linear swap open interests with a symbols argument",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "BTCUSDT_PERP": {
+                    "contract_type": "perpetual",
+                    "mark_price": "97163.86",
+                    "index_price": "97169.87",
+                    "funding_rate": "-0.000183473092423284",
+                    "open_interest": "94.1498",
+                    "next_funding_time": "2024-12-20T08:00:00.000Z",
+                    "indicative_funding_rate": "-0.000273139953764934",
+                    "premium_index": "-0.000833428680318160",
+                    "avg_premium_index": "-0.000683473092423284",
+                    "interest_rate": "0.0001",
+                    "timestamp": "2024-12-20T05:18:09.693Z"
+                  }
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": null,
+                    "openInterestValue": 94.1498,
+                    "timestamp": 1734671889693,
+                    "datetime": "2024-12-20T05:18:09.693Z",
+                    "info": {
+                      "contract_type": "perpetual",
+                      "mark_price": "97163.86",
+                      "index_price": "97169.87",
+                      "funding_rate": "-0.000183473092423284",
+                      "open_interest": "94.1498",
+                      "next_funding_time": "2024-12-20T08:00:00.000Z",
+                      "indicative_funding_rate": "-0.000273139953764934",
+                      "premium_index": "-0.000833428680318160",
+                      "avg_premium_index": "-0.000683473092423284",
+                      "interest_rate": "0.0001",
+                      "timestamp": "2024-12-20T05:18:09.693Z"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                  }
+                }
             }
         ]
     }

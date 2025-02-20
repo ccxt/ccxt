@@ -84,6 +84,8 @@
                     "average": null,
                     "baseVolume": 0.3111,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "pair": "XBTUSDT",
                         "timestamp": "1710328244969",

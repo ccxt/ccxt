@@ -14,7 +14,8 @@ public partial class deribit : ccxt.deribit
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchMyTrades", true },
@@ -71,16 +72,16 @@ public partial class deribit : ccxt.deribit
         return requestId;
     }
 
+    /**
+     * @method
+     * @name deribit#watchBalance
+     * @see https://docs.deribit.com/#user-portfolio-currency
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchBalance
-        * @see https://docs.deribit.com/#user-portfolio-currency
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object messageHash = "balance";
@@ -160,18 +161,18 @@ public partial class deribit : ccxt.deribit
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
 
+    /**
+     * @method
+     * @name deribit#watchTicker
+     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @description watches a price ticker, a statistical calculation with the information for a specific market.
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchTicker
-        * @see https://docs.deribit.com/#ticker-instrument_name-interval
-        * @description watches a price ticker, a statistical calculation with the information for a specific market.
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -194,6 +195,54 @@ public partial class deribit : ccxt.deribit
         };
         object request = this.deepExtend(message, parameters);
         return await this.watch(url, channel, request, channel, request);
+    }
+
+    /**
+     * @method
+     * @name deribit#watchTickers
+     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object interval = this.safeString(parameters, "interval", "100ms");
+        parameters = this.omit(parameters, "interval");
+        await this.loadMarkets();
+        if (isTrue(isEqual(interval, "raw")))
+        {
+            await this.authenticate();
+        }
+        object channels = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)channels).Add(add(add(add("ticker.", getValue(market, "id")), "."), interval));
+        }
+        object message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "public/subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        object newTickers = await this.watchMultiple(url, channels, request, channels, request);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -237,38 +286,124 @@ public partial class deribit : ccxt.deribit
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
+    /**
+     * @method
+     * @name deribit#watchBidsAsks
+     * @see https://docs.deribit.com/#quote-instrument_name
+     * @description watches best bid & ask for symbols
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object channels = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
+        }
+        object message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "public/subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        object newTickers = await this.watchMultiple(url, channels, request, channels, request);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "quote.BTC_USDT",
+        //             "data": {
+        //                 "best_bid_amount": 0.026,
+        //                 "best_ask_amount": 0.026,
+        //                 "best_bid_price": 63908,
+        //                 "best_ask_price": 63940,
+        //                 "instrument_name": "BTC_USDT",
+        //                 "timestamp": 1727765131750
+        //             }
+        //         }
+        //     }
+        //
+        object parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        object ticker = this.parseWsBidAsk(data);
+        object symbol = getValue(ticker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        object messageHash = this.safeString(parameters, "channel");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "instrument_name");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "best_ask_price") },
+            { "askVolume", this.safeString(ticker, "best_ask_amount") },
+            { "bid", this.safeString(ticker, "best_bid_price") },
+            { "bidVolume", this.safeString(ticker, "best_bid_amount") },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name deribit#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.deribit.com/#trades-instrument_name-interval
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTrades";
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name deribit#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchTradesForSymbols
-        * @description get the list of most recent trades for a list of symbols
-        * @see https://docs.deribit.com/#trades-instrument_name-interval
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object interval = null;
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
@@ -336,20 +471,20 @@ public partial class deribit : ccxt.deribit
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
+    /**
+     * @method
+     * @name deribit#watchMyTrades
+     * @description get the list of trades associated with the user
+     * @see https://docs.deribit.com/#user-trades-instrument_name-interval
+     * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchMyTrades
-        * @description get the list of trades associated with the user
-        * @see https://docs.deribit.com/#user-trades-instrument_name-interval
-        * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         if (isTrue(!isEqual(symbol, null)))
@@ -429,36 +564,36 @@ public partial class deribit : ccxt.deribit
         callDynamically(client as WebSocketClient, "resolve", new object[] {cachedTrades, channel});
     }
 
+    /**
+     * @method
+     * @name deribit#watchOrderBook
+     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchOrderBook
-        * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrderBook";
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name deribit#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object interval = null;
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
@@ -618,19 +753,19 @@ public partial class deribit : ccxt.deribit
         }
     }
 
+    /**
+     * @method
+     * @name deribit#watchOrders
+     * @see https://docs.deribit.com/#user-orders-instrument_name-raw
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchOrders
-        * @see https://docs.deribit.com/#user-orders-instrument_name-raw
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate(parameters);
@@ -722,20 +857,20 @@ public partial class deribit : ccxt.deribit
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, channel});
     }
 
+    /**
+     * @method
+     * @name deribit#watchOHLCV
+     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchOHLCV
-        * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -744,24 +879,24 @@ public partial class deribit : ccxt.deribit
         return getValue(getValue(ohlcvs, symbol), timeframe);
     }
 
+    /**
+     * @method
+     * @name deribit#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#watchOHLCVForSymbols
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
-        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         parameters ??= new Dictionary<string, object>();
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\'BTC/USDT\', \'1m\'], [\'LTC/USDT\', \'5m\']]")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
         var symboltimeframecandlesVariable = await this.watchMultipleWrapper("chart.trades", null, symbolsAndTimeframes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
@@ -963,6 +1098,7 @@ public partial class deribit : ccxt.deribit
             };
             object handlers = new Dictionary<string, object>() {
                 { "ticker", this.handleTicker },
+                { "quote", this.handleBidAsk },
                 { "book", this.handleOrderBook },
                 { "trades", this.handleTrades },
                 { "chart", this.handleOHLCV },

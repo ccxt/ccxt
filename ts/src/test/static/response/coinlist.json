@@ -96,6 +96,8 @@
                     "average": null,
                     "baseVolume": 2.5014,
                     "quoteVolume": 179840.0702,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "type": "spot",
                         "last_price": "73366.28000000",

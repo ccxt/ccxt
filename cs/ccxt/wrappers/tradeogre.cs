@@ -127,6 +127,7 @@ public partial class tradeogre
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -185,6 +186,7 @@ public partial class tradeogre
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -214,6 +216,21 @@ public partial class tradeogre
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    /// <summary>
+    /// fetches information on an order made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);

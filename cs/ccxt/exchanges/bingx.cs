@@ -36,15 +36,18 @@ public partial class bingx : Exchange
                 { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createStopLossOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTrailingAmountOrder", true },
                 { "createTrailingPercentOrder", true },
                 { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -58,7 +61,10 @@ public partial class bingx : Exchange
                 { "fetchMarginMode", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrice", true },
+                { "fetchMarkPrices", true },
                 { "fetchMyLiquidations", true },
+                { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
@@ -69,7 +75,7 @@ public partial class bingx : Exchange
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
-                { "fetchPositionsHistory", false },
+                { "fetchPositionsHistory", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -186,19 +192,33 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "ticker/price", 1 },
                                 { "market/historicalTrades", 1 },
+                                { "market/markPriceKlines", 1 },
+                                { "trade/multiAssetsRules", 1 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "positionSide/dual", 5 },
-                                { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "maintMarginRatio", 2 },
+                                { "trade/positionHistory", 2 },
+                                { "positionMargin/history", 2 },
+                                { "twap/openOrders", 5 },
+                                { "twap/historyOrders", 5 },
+                                { "twap/orderDetail", 5 },
+                                { "trade/assetMode", 5 },
+                                { "user/marginAssets", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
                                 { "positionSide/dual", 5 },
+                                { "trade/batchCancelReplace", 5 },
                                 { "trade/closePosition", 2 },
+                                { "trade/getVst", 5 },
+                                { "twap/order", 5 },
+                                { "twap/cancelOrder", 5 },
+                                { "trade/assetMode", 5 },
                             } },
                         } },
                     } },
@@ -231,6 +251,7 @@ public partial class bingx : Exchange
                                 { "trade/forceOrders", 1 },
                                 { "trade/allOrders", 2 },
                                 { "trade/allFillOrders", 2 },
+                                { "trade/fillHistory", 2 },
                                 { "user/income/export", 2 },
                                 { "user/commissionRate", 2 },
                                 { "quote/bookTicker", 1 },
@@ -288,6 +309,7 @@ public partial class bingx : Exchange
                             { "post", new Dictionary<string, object>() {
                                 { "trade/order", 2 },
                                 { "trade/leverage", 2 },
+                                { "trade/allOpenOrders", 2 },
                                 { "trade/closeAllPositions", 2 },
                                 { "trade/marginType", 2 },
                                 { "trade/positionMargin", 2 },
@@ -337,6 +359,7 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "list", 10 },
                                 { "assets", 2 },
+                                { "allAccountBalance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "create", 10 },
@@ -354,9 +377,23 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "uid", 1 },
                                 { "apiKey/query", 2 },
+                                { "account/apiPermissions", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 1 },
+                            } },
+                        } },
+                    } },
+                    { "transfer", new Dictionary<string, object>() {
+                        { "v1", new Dictionary<string, object>() {
+                            { "private", new Dictionary<string, object>() {
+                                { "get", new Dictionary<string, object>() {
+                                    { "subAccount/asset/transferHistory", 1 },
+                                } },
+                                { "post", new Dictionary<string, object>() {
+                                    { "subAccount/transferAsset/supportCoins", 1 },
+                                    { "subAccount/transferAsset", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -459,6 +496,8 @@ public partial class bingx : Exchange
                 { "SNOW", "Snowman" },
                 { "OMNI", "OmniCat" },
                 { "NAP", "$NAP" },
+                { "TRUMP", "TRUMPMAGA" },
+                { "TRUMPSOL", "TRUMP" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
@@ -483,21 +522,152 @@ public partial class bingx : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ARB", "ARBITRUM" },
+                    { "MATIC", "POLYGON" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "defaultForLinear", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", true },
+                            } },
+                            { "price", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 512 },
+                        { "daysBack", 30 },
+                        { "untilDays", 30 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 20000 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "defaultForInverse", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrders", null },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPriceType", null },
+                        { "attachedStopLossTakeProfit", null },
+                        { "trailing", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                        { "daysBack", 1 },
+                        { "untilDays", 1 },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                        { "untilDays", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "defaultForLinear" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "defaultForInverse" },
+                    } },
+                } },
+                { "defaultForFuture", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "fetchOrders", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "defaultForFuture" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "defaultForFuture" },
+                    } },
                 } },
             } },
         });
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @see https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the bingx server
-        * @see https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the bingx server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV2PublicGetServerTime(parameters);
         //
@@ -513,16 +683,16 @@ public partial class bingx : Exchange
         return this.safeInteger(data, "serverTime");
     }
 
+    /**
+     * @method
+     * @name bingx#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
@@ -583,9 +753,8 @@ public partial class bingx : Exchange
             object networkList = this.safeList(entry, "networkList");
             object networks = new Dictionary<string, object>() {};
             object fee = null;
-            object active = null;
-            object depositEnabled = null;
-            object withdrawEnabled = null;
+            object depositEnabled = false;
+            object withdrawEnabled = false;
             object defaultLimits = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
@@ -593,32 +762,42 @@ public partial class bingx : Exchange
                 object network = this.safeString(rawNetwork, "network");
                 object networkCode = this.networkIdToCode(network);
                 object isDefault = this.safeBool(rawNetwork, "isDefault");
-                depositEnabled = this.safeBool(rawNetwork, "depositEnable");
-                withdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
+                object networkDepositEnabled = this.safeBool(rawNetwork, "depositEnable");
+                if (isTrue(networkDepositEnabled))
+                {
+                    depositEnabled = true;
+                }
+                object networkWithdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
+                if (isTrue(networkWithdrawEnabled))
+                {
+                    withdrawEnabled = true;
+                }
                 object limits = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
                 };
+                fee = this.safeNumber(rawNetwork, "withdrawFee");
                 if (isTrue(isDefault))
                 {
-                    fee = this.safeNumber(rawNetwork, "withdrawFee");
-                    active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
                     defaultLimits = limits;
                 }
+                object precision = this.safeNumber(rawNetwork, "withdrawPrecision");
+                object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", network },
                     { "network", networkCode },
                     { "fee", fee },
-                    { "active", active },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "precision", null },
+                    { "active", networkActive },
+                    { "deposit", networkDepositEnabled },
+                    { "withdraw", networkWithdrawEnabled },
+                    { "precision", precision },
                     { "limits", limits },
                 };
             }
+            object active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", code },
@@ -648,13 +827,18 @@ public partial class bingx : Exchange
         //              "symbols": [
         //                  {
         //                    "symbol": "GEAR-USDT",
-        //                    "minQty": 735,
-        //                    "maxQty": 2941177,
+        //                    "minQty": 735, // deprecated
+        //                    "maxQty": 2941177, // deprecated
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
         //                    "tickSize": 0.000001,
-        //                    "stepSize": 1
+        //                    "stepSize": 1,
+        //                    "apiStateSell": true,
+        //                    "apiStateBuy": true,
+        //                    "timeOnline": 0,
+        //                    "offTime": 0,
+        //                    "maintainTime": 0
         //                  },
         //                  ...
         //              ]
@@ -773,12 +957,17 @@ public partial class bingx : Exchange
         if (isTrue(isTrue((isEqual(this.safeString(market, "apiStateOpen"), "true"))) && isTrue((isEqual(this.safeString(market, "apiStateClose"), "true")))))
         {
             isActive = true; // swap active
-        } else if (isTrue(isTrue(this.safeBool(market, "apiStateSell")) && isTrue(this.safeBool(market, "apiStateBuy"))))
+        } else if (isTrue(isTrue(isTrue(this.safeBool(market, "apiStateSell")) && isTrue(this.safeBool(market, "apiStateBuy"))) && isTrue((isEqual(this.safeString(market, "status"), "1")))))
         {
             isActive = true; // spot active
         }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
+        object minAmount = null;
+        if (!isTrue(spot))
+        {
+            minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
+        }
         object timeOnline = this.safeInteger(market, "timeOnline");
         if (isTrue(isEqual(timeOnline, 0)))
         {
@@ -821,8 +1010,8 @@ public partial class bingx : Exchange
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
-                    { "max", this.safeNumber(market, "maxQty") },
+                    { "min", minAmount },
+                    { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", minTickSize },
@@ -838,18 +1027,18 @@ public partial class bingx : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bingx#fetchMarkets
+     * @description retrieves data on all markets for bingx
+     * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchMarkets
-        * @description retrieves data on all markets for bingx
-        * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object requests = new List<object> {this.fetchSwapMarkets(parameters)};
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
@@ -866,26 +1055,26 @@ public partial class bingx : Exchange
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+     * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
-        * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -904,7 +1093,7 @@ public partial class bingx : Exchange
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            ((IDictionary<string,object>)request)["startTime"] = mathMax(subtract(since, 1), 0);
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -931,7 +1120,7 @@ public partial class bingx : Exchange
                 parameters = this.omit(parameters, "price");
                 if (isTrue(isEqual(price, "mark")))
                 {
-                    response = await this.swapV1PrivateGetMarketMarkPriceKlines(this.extend(request, parameters));
+                    response = await this.swapV1PublicGetMarketMarkPriceKlines(this.extend(request, parameters));
                 } else
                 {
                     response = await this.swapV3PublicGetQuoteKlines(this.extend(request, parameters));
@@ -1023,20 +1212,20 @@ public partial class bingx : Exchange
         return new List<object> {this.safeInteger2(ohlcv, "time", "closeTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1274,20 +1463,20 @@ public partial class bingx : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1378,18 +1567,18 @@ public partial class bingx : Exchange
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1424,34 +1613,23 @@ public partial class bingx : Exchange
         return this.parseFundingRate(data, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchFundingRates
+     * @description fetch the current funding rate for multiple symbols
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, "swap", true);
         object response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        object filteredResponse = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            object item = getValue(data, i);
-            object marketId = this.safeString(item, "symbol");
-            object market = this.safeMarket(marketId, null, null, "swap");
-            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
-            {
-                ((IList<object>)filteredResponse).Add(this.parseFundingRate(item, market));
-            }
-        }
-        return filteredResponse;
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -1485,24 +1663,25 @@ public partial class bingx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1551,37 +1730,40 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            object entry = getValue(data, i);
-            object marketId = this.safeString(entry, "symbol");
-            object symbolInner = this.safeSymbol(marketId, market, "-", "swap");
-            object timestamp = this.safeInteger(entry, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", symbolInner },
-                { "fundingRate", this.safeNumber(entry, "fundingRate") },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
-        }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.parseFundingRateHistories(data, market, since, limit);
     }
 
+    public override object parseFundingRateHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "fundingRate": "0.0001",
+        //         "fundingTime": 1585684800000
+        //     }
+        //
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(this.safeString(contract, "symbol"), market, "-", "swap") },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchOpenInterest
+     * @description retrieves the open interest of a trading pair
+     * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOpenInterest
-        * @description retrieves the open interest of a trading pair
-        * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
-        * @param {string} symbol unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1671,19 +1853,19 @@ public partial class bingx : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1742,19 +1924,19 @@ public partial class bingx : Exchange
         return this.parseTicker(dataDict, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1822,8 +2004,121 @@ public partial class bingx : Exchange
         return this.parseTickers(tickers, symbols);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchMarkPrice
+     * @description fetches mark prices for the market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(request, parameters));
+        } else
+        {
+            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, parameters));
+        }
+        if (isTrue(((getValue(response, "data") is IList<object>) || (getValue(response, "data").GetType().IsGenericType && getValue(response, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            return this.parseTicker(this.safeDict(getValue(response, "data"), 0, new Dictionary<string, object>() {}), market);
+        }
+        return this.parseTicker(getValue(response, "data"), market);
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbols = this.marketSymbols(symbols);
+            object firstSymbol = this.safeString(symbols, 0);
+            if (isTrue(!isEqual(firstSymbol, null)))
+            {
+                market = this.market(firstSymbol);
+            }
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.cswapV1PublicGetMarketPremiumIndex(parameters);
+        } else
+        {
+            response = await this.swapV2PublicGetQuotePremiumIndex(parameters);
+        }
+        //
+        // spot and swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720647285296,
+        //         "data": [
+        //             {
+        //                 "symbol": "SOL-USD",
+        //                 "priceChange": "-2.418",
+        //                 "priceChangePercent": "-1.6900%",
+        //                 "lastPrice": "140.574",
+        //                 "lastQty": "1",
+        //                 "highPrice": "146.190",
+        //                 "lowPrice": "138.586",
+        //                 "volume": "1464648.00",
+        //                 "quoteVolume": "102928.12",
+        //                 "openPrice": "142.994",
+        //                 "closeTime": "1720647284976",
+        //                 "bidPrice": "140.573",
+        //                 "bidQty": "372",
+        //                 "askPrice": "140.577",
+        //                 "askQty": "58"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        object tickers = this.safeList(response, "data");
+        return this.parseTickers(tickers, symbols);
+    }
+
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        // mark price
+        // {
+        //     "symbol": "string",
+        //     "lastFundingRate": "string",
+        //     "markPrice": "string",
+        //     "indexPrice": "string",
+        //     "nextFundingTime": "int64"
+        // }
         //
         // spot
         //    {
@@ -1913,24 +2208,26 @@ public partial class bingx : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
+     * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+     * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract balances
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-        * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
-        * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.standard] whether to fetch standard contract balances
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = null;
@@ -2083,30 +2380,106 @@ public partial class bingx : Exchange
         {
             object linearSwapData = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object linearSwapBalance = this.safeDict(linearSwapData, "balance");
-            object currencyId = this.safeString(linearSwapBalance, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(linearSwapBalance))
+            {
+                object currencyId = this.safeString(linearSwapBalance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTs"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTs", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = null;
+        if (isTrue(getValue(market, "linear")))
+        {
+            response = await this.swapV1PrivateGetTradePositionHistory(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchPositionHistory() is not supported for inverse swap positions")) ;
+        }
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "positionHistory": [
+        //                 {
+        //                     "positionId": "1861675561156571136",
+        //                     "symbol": "LTC-USDT",
+        //                     "isolated": false,
+        //                     "positionSide": "LONG",
+        //                     "openTime": 1732693017000,
+        //                     "updateTime": 1733310292000,
+        //                     "avgPrice": "95.18",
+        //                     "avgClosePrice": "129.48",
+        //                     "realisedProfit": "102.89",
+        //                     "netProfit": "99.63",
+        //                     "positionAmt": "30.0",
+        //                     "closePositionAmt": "30.0",
+        //                     "leverage": 6,
+        //                     "closeAllPositions": true,
+        //                     "positionCommission": "-0.33699650000000003",
+        //                     "totalFunding": "-2.921461693902908"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "positionHistory", new List<object>() {});
+        object positions = this.parsePositions(records);
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchPositions
+     * @description fetch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+     * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchPositions
-        * @description fetch all open positions
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
-        * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.standard] whether to fetch standard contract positions
-        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2146,18 +2519,18 @@ public partial class bingx : Exchange
         return this.parsePositions(positions, symbols);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2244,6 +2617,27 @@ public partial class bingx : Exchange
         //         "positionAmt": "1.20365912",
         //     }
         //
+        // linear swap fetchPositionHistory
+        //
+        //     {
+        //         "positionId": "1861675561156571136",
+        //         "symbol": "LTC-USDT",
+        //         "isolated": false,
+        //         "positionSide": "LONG",
+        //         "openTime": 1732693017000,
+        //         "updateTime": 1733310292000,
+        //         "avgPrice": "95.18",
+        //         "avgClosePrice": "129.48",
+        //         "realisedProfit": "102.89",
+        //         "netProfit": "99.63",
+        //         "positionAmt": "30.0",
+        //         "closePositionAmt": "30.0",
+        //         "leverage": 6,
+        //         "closeAllPositions": true,
+        //         "positionCommission": "-0.33699650000000003",
+        //         "totalFunding": "-2.921461693902908"
+        //     }
+        //
         object marketId = this.safeString(position, "symbol", "");
         marketId = ((string)marketId).Replace((string)"/", (string)"-"); // standard return different format
         object isolated = this.safeBool(position, "isolated");
@@ -2252,6 +2646,7 @@ public partial class bingx : Exchange
         {
             marginMode = ((bool) isTrue(isolated)) ? "isolated" : "cross";
         }
+        object timestamp = this.safeInteger(position, "openTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "positionId") },
@@ -2269,8 +2664,8 @@ public partial class bingx : Exchange
             { "lastPrice", null },
             { "side", this.safeStringLower(position, "positionSide") },
             { "hedged", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", this.safeInteger(position, "updateTime") },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
@@ -2284,50 +2679,50 @@ public partial class bingx : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bingx#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#createMarketOrderWithCost
-        * @description create a market order by providing the symbol, side and cost
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
         return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name bingx#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name bingx#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#createMarketSellOrderWithCost
-        * @description create a market sell order by providing the symbol and cost
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
         return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
@@ -2363,6 +2758,11 @@ public partial class bingx : Exchange
         };
         object isMarketOrder = isEqual(type, "MARKET");
         object isSpot = isEqual(marketType, "spot");
+        object isTwapOrder = isEqual(type, "TWAP");
+        if (isTrue(isTrue(isTwapOrder) && isTrue(isSpot)))
+        {
+            throw new BadSymbol ((string)add(this.id, " createOrder() twap order supports swap contracts only")) ;
+        }
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
@@ -2440,6 +2840,28 @@ public partial class bingx : Exchange
             }
         } else
         {
+            if (isTrue(isTwapOrder))
+            {
+                object twapRequest = new Dictionary<string, object>() {
+                    { "symbol", getValue(request, "symbol") },
+                    { "side", getValue(request, "side") },
+                    { "positionSide", ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT" },
+                    { "triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)) },
+                    { "totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
+                };
+                //     {
+                //         "symbol": "LTC-USDT",
+                //         "side": "BUY",
+                //         "positionSide": "LONG",
+                //         "priceType": "constant",
+                //         "priceVariance": "10",
+                //         "triggerPrice": "120",
+                //         "interval": 8,
+                //         "amountPerOrder": "0.5",
+                //         "totalAmount": "1"
+                //     }
+                return this.extend(twapRequest, parameters);
+            }
             if (isTrue(isEqual(timeInForce, "FOK")))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
@@ -2565,45 +2987,52 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
+            object amountReq = amount;
+            if (!isTrue(getValue(market, "inverse")))
+            {
+                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            }
+            ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bingx#createOrder
+     * @description create a trade order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {bool} [params.postOnly] true to place a post only order
+     * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+     * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
+     * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+     * @param {float} [params.stopLossPrice] stop loss trigger price
+     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+     * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+     * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#createOrder
-        * @description create a trade order
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @param {bool} [params.postOnly] true to place a post only order
-        * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
-        * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
-        * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-        * @param {float} [params.stopLossPrice] stop loss trigger price
-        * @param {float} [params.takeProfitPrice] take profit trigger price
-        * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
-        * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
-        * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
-        * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2619,6 +3048,9 @@ public partial class bingx : Exchange
             } else if (isTrue(getValue(market, "inverse")))
             {
                 response = await this.cswapV1PrivatePostTradeOrder(request);
+            } else if (isTrue(isEqual(type, "twap")))
+            {
+                response = await this.swapV1PrivatePostTwapOrder(request);
             } else
             {
                 response = await this.swapV2PrivatePostTradeOrder(request);
@@ -2680,6 +3112,17 @@ public partial class bingx : Exchange
         //         "timeInForce": ""
         //     }
         //
+        // twap order
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1732693774386,
+        //         "data": {
+        //             "mainOrderId": "4633860139993029715"
+        //         }
+        //     }
+        //
         if (isTrue((response is string)))
         {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
@@ -2697,7 +3140,7 @@ public partial class bingx : Exchange
                 result = response;
             } else
             {
-                result = this.safeDict(data, "order", new Dictionary<string, object>() {});
+                result = this.safeDict(data, "order", data);
             }
         } else
         {
@@ -2706,37 +3149,29 @@ public partial class bingx : Exchange
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name bingx#createOrders
+     * @description create a list of trade orders
+     * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#createOrders
-        * @description create a list of trade orders
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
-        object symbol = null;
+        object marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            if (isTrue(isEqual(symbol, null)))
-            {
-                symbol = marketId;
-            } else
-            {
-                if (isTrue(!isEqual(symbol, marketId)))
-                {
-                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
-                }
-            }
             object type = this.safeString(rawOrder, "type");
+            ((IList<object>)marketIds).Add(marketId);
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
@@ -2744,15 +3179,26 @@ public partial class bingx : Exchange
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object market = this.market(symbol);
+        object symbols = this.marketSymbols(marketIds, null, false, true, true);
+        object symbolsLength = getArrayLength(symbols);
+        object market = this.market(getValue(symbols, 0));
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
+            if (isTrue(isGreaterThan(symbolsLength, 5)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
+            }
             ((IDictionary<string,object>)request)["batchOrders"] = this.json(ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
+            object sync = this.safeBool(parameters, "sync", false);
+            if (isTrue(sync))
+            {
+                ((IDictionary<string,object>)request)["sync"] = true;
+            }
             ((IDictionary<string,object>)request)["data"] = this.json(ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders(request);
         }
@@ -2801,6 +3247,14 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
+        if (isTrue((response is string)))
+        {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(result, market);
@@ -3130,9 +3584,9 @@ public partial class bingx : Exchange
             market = this.safeMarket(marketId, null, null, marketType);
         }
         object side = this.safeStringLower2(order, "side", "S");
-        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E"});
+        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E", "createdTime"});
         object lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
-        object statusId = this.safeStringUpper2(order, "status", "X");
+        object statusId = this.safeStringUpperN(order, new List<object>() {"status", "X", "orderStatus"});
         object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         object feeCost = this.safeStringN(order, new List<object>() {"fee", "commission", "n"});
         if (isTrue((isEqual(feeCurrencyCode, null))))
@@ -3199,7 +3653,7 @@ public partial class bingx : Exchange
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
-            { "id", this.safeString2(order, "orderId", "i") },
+            { "id", this.safeStringN(order, new List<object>() {"orderId", "i", "mainOrderId"}) },
             { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "clientOrderId", "origClientOrderId", "c"}) },
             { "symbol", this.safeSymbol(marketId, market, "-", marketType) },
             { "timestamp", timestamp },
@@ -3211,13 +3665,12 @@ public partial class bingx : Exchange
             { "postOnly", null },
             { "side", this.parseOrderSide(side) },
             { "price", this.safeString2(order, "price", "p") },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", this.safeString2(order, "avgPrice", "ap") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },
-            { "amount", this.safeStringN(order, new List<object>() {"origQty", "q", "quantity"}) },
+            { "amount", this.safeStringN(order, new List<object>() {"origQty", "q", "quantity", "totalAmount"}) },
             { "filled", this.safeString2(order, "executedQty", "z") },
             { "remaining", null },
             { "status", this.parseOrderStatus(statusId) },
@@ -3226,7 +3679,7 @@ public partial class bingx : Exchange
                 { "cost", Precise.stringAbs(feeCost) },
             } },
             { "trades", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "ro") },
         }, market);
     }
 
@@ -3236,6 +3689,7 @@ public partial class bingx : Exchange
             { "NEW", "open" },
             { "PENDING", "open" },
             { "PARTIALLY_FILLED", "open" },
+            { "RUNNING", "open" },
             { "FILLED", "closed" },
             { "CANCELED", "canceled" },
             { "CANCELLED", "canceled" },
@@ -3244,60 +3698,73 @@ public partial class bingx : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bingx#cancelOrder
+     * @description cancels an open order
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#cancelOrder
-        * @description cancels an open order
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOrderID");
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["clientOrderID"] = clientOrderId;
-        } else
-        {
-            ((IDictionary<string,object>)request)["orderId"] = id;
-        }
+        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        parameters = this.omit(parameters, "twap");
         object response = null;
-        object type = null;
-        object subType = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(isEqual(type, "spot")))
+        object market = null;
+        if (isTrue(isTwapOrder))
         {
-            response = await this.spotV1PrivatePostTradeCancel(this.extend(request, parameters));
+            object twapRequest = new Dictionary<string, object>() {
+                { "mainOrderId", id },
+            };
+            response = await this.swapV1PrivatePostTwapCancelOrder(this.extend(twapRequest, parameters));
         } else
         {
-            if (isTrue(isEqual(subType, "inverse")))
+            if (isTrue(isEqual(symbol, null)))
             {
-                response = await this.cswapV1PrivateDeleteTradeCancelOrder(this.extend(request, parameters));
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            }
+            market = this.market(symbol);
+            object request = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOrderID");
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                ((IDictionary<string,object>)request)["clientOrderID"] = clientOrderId;
             } else
             {
-                response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["orderId"] = id;
+            }
+            object type = null;
+            object subType = null;
+            var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            type = ((IList<object>)typeparametersVariable)[0];
+            parameters = ((IList<object>)typeparametersVariable)[1];
+            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
+            subType = ((IList<object>)subTypeparametersVariable)[0];
+            parameters = ((IList<object>)subTypeparametersVariable)[1];
+            if (isTrue(isEqual(type, "spot")))
+            {
+                response = await this.spotV1PrivatePostTradeCancel(this.extend(request, parameters));
+            } else
+            {
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await this.cswapV1PrivateDeleteTradeCancelOrder(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, parameters));
+                }
             }
         }
         //
@@ -3403,19 +3870,19 @@ public partial class bingx : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name bingx#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
-        * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3448,20 +3915,20 @@ public partial class bingx : Exchange
         return this.parseOrders(orders);
     }
 
+    /**
+     * @method
+     * @name bingx#cancelOrders
+     * @description cancel multiple orders
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+     * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#cancelOrders
-        * @description cancel multiple orders
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3509,19 +3976,19 @@ public partial class bingx : Exchange
         return this.parseOrders(success);
     }
 
+    /**
+     * @method
+     * @name bingx#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap market
+     * @returns {object} the api result
+     */
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#cancelAllOrdersAfter
-        * @description dead man's switch, cancel all orders after the given timeout
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
-        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] spot or swap market
-        * @returns {object} the api result
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object isActive = (isGreaterThan(timeout, 0));
@@ -3558,51 +4025,65 @@ public partial class bingx : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name bingx#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "orderId", id },
-        };
-        object type = null;
-        object subType = null;
+        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        parameters = this.omit(parameters, "twap");
         object response = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(isEqual(type, "spot")))
+        object market = null;
+        if (isTrue(isTwapOrder))
         {
-            response = await this.spotV1PrivateGetTradeQuery(this.extend(request, parameters));
+            object twapRequest = new Dictionary<string, object>() {
+                { "mainOrderId", id },
+            };
+            response = await this.swapV1PrivateGetTwapOrderDetail(this.extend(twapRequest, parameters));
         } else
         {
-            if (isTrue(isEqual(subType, "inverse")))
+            if (isTrue(isEqual(symbol, null)))
             {
-                response = await this.cswapV1PrivateGetTradeOrderDetail(this.extend(request, parameters));
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
+            }
+            market = this.market(symbol);
+            object request = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "orderId", id },
+            };
+            object type = null;
+            object subType = null;
+            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+            type = ((IList<object>)typeparametersVariable)[0];
+            parameters = ((IList<object>)typeparametersVariable)[1];
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
+            subType = ((IList<object>)subTypeparametersVariable)[0];
+            parameters = ((IList<object>)subTypeparametersVariable)[1];
+            if (isTrue(isEqual(type, "spot")))
+            {
+                response = await this.spotV1PrivateGetTradeQuery(this.extend(request, parameters));
             } else
             {
-                response = await this.swapV2PrivateGetTradeOrder(this.extend(request, parameters));
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await this.cswapV1PrivateGetTradeOrderDetail(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.swapV2PrivateGetTradeOrder(this.extend(request, parameters));
+                }
             }
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -3610,21 +4091,22 @@ public partial class bingx : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3650,13 +4132,9 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-        object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (isTrue(!isEqual(endTime, null)))
-        {
-            ((IDictionary<string,object>)request)["endTime"] = endTime;
-        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.swapV1PrivateGetTradeFullOrder(this.extend(request, parameters));
         //
         //     {
@@ -3715,21 +4193,23 @@ public partial class bingx : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap open orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3753,7 +4233,12 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
         } else
         {
-            if (isTrue(isEqual(subType, "inverse")))
+            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            parameters = this.omit(parameters, "twap");
+            if (isTrue(isTwapOrder))
+            {
+                response = await this.swapV1PrivateGetTwapOpenOrders(this.extend(request, parameters));
+            } else if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.cswapV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
             } else
@@ -3870,77 +4355,109 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
+        // twap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1702731661854,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BNB-USDT",
+        //                     "side": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "priceType": "constant",
+        //                     "priceVariance": "2000",
+        //                     "triggerPrice": "68000",
+        //                     "interval": 8,
+        //                     "amountPerOrder": "0.111",
+        //                     "totalAmount": "0.511",
+        //                     "orderStatus": "Running",
+        //                     "executedQty": "0.1",
+        //                     "duration": 800,
+        //                     "maxDuration": 9000,
+        //                     "createdTime": 1702731661854,
+        //                     "updateTime": 1702731661854
+        //                 }
+        //             ],
+        //             "total": 1
+        //         }
+        //     }
+        //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeList(data, "orders", new List<object>() {});
+        object orders = this.safeList2(data, "orders", "list", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+     * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.standard] whether to fetch standard contract orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
-        * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-        * @param {string} symbol unified market symbol of the closed orders
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the max number of closed orders to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @param {boolean} [params.standard] whether to fetch standard contract orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
         return this.filterBy(orders, "status", "closed");
     }
 
+    /**
+     * @method
+     * @name bingx#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+     * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+     * @param {string} symbol unified market symbol of the canceled orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of canceled orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.standard] whether to fetch standard contract orders
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchCanceledOrders
-        * @description fetches information on multiple canceled orders made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
-        * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-        * @param {string} symbol unified market symbol of the canceled orders
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the max number of canceled orders to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @param {boolean} [params.standard] whether to fetch standard contract orders
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
         return this.filterBy(orders, "status", "canceled");
     }
 
+    /**
+     * @method
+     * @name bingx#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+     * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.standard] whether to fetch standard contract orders
+     * @param {boolean} [params.twap] if fetching twap orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchCanceledAndClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
-        * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @param {boolean} [params.standard] whether to fetch standard contract orders
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3969,10 +4486,25 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "spot")))
         {
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters));
         } else
         {
-            if (isTrue(isEqual(subType, "inverse")))
+            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            parameters = this.omit(parameters, "twap");
+            if (isTrue(isTwapOrder))
+            {
+                ((IDictionary<string,object>)request)["pageIndex"] = 1;
+                ((IDictionary<string,object>)request)["pageSize"] = ((bool) isTrue((isEqual(limit, null)))) ? 100 : limit;
+                ((IDictionary<string,object>)request)["startTime"] = ((bool) isTrue((isEqual(since, null)))) ? 1 : since;
+                object until = this.safeInteger(parameters, "until", this.milliseconds());
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["endTime"] = until;
+                response = await this.swapV1PrivateGetTwapHistoryOrders(this.extend(request, parameters));
+            } else if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.cswapV1PrivateGetTradeOrderHistory(this.extend(request, parameters));
             } else
@@ -3981,24 +4513,24 @@ public partial class bingx : Exchange
             }
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeList(data, "orders", new List<object>() {});
+        object orders = this.safeList2(data, "orders", "list", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bingx#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -4029,19 +4561,19 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTransfers
-        * @description fetch a history of internal transfers made on an account
-        * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
-        * @param {string} [code] unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of transfers structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -4115,17 +4647,17 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchDepositAddressesByNetwork
+     * @description fetch the deposit addresses for a currency associated with this account
+     * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+     */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchDepositAddressesByNetwork
-        * @description fetch the deposit addresses for a currency associated with this account
-        * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -4161,18 +4693,18 @@ public partial class bingx : Exchange
         return this.indexBy(parsed, "network");
     }
 
+    /**
+     * @method
+     * @name bingx#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
@@ -4199,43 +4731,44 @@ public partial class bingx : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
-        //     {
-        //         "coinId": "799",
-        //         "coin": "USDT",
-        //         "network": "BEP20",
-        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag": ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        object address = this.safeString(depositAddress, "address");
         object tag = this.safeString(depositAddress, "tag");
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        object network = this.safeString(depositAddress, "network");
+        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object networkdId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkdId, code);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
-        * @param {string} [code] unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -4274,19 +4807,19 @@ public partial class bingx : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
-        * @param {string} [code] unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -4449,19 +4982,19 @@ public partial class bingx : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bingx#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
-        * @param {string} marginMode 'cross' or 'isolated'
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4517,18 +5050,18 @@ public partial class bingx : Exchange
         return await this.setMargin(symbol, amount, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bingx#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#setMargin
-        * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
-        * @param {string} symbol unified market symbol of the market to set margin in
-        * @param {float} amount the amount to set the margin to
-        * @param {object} [params] parameters specific to the bingx api endpoint
-        * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
         if (isTrue(isEqual(type, null)))
@@ -4583,18 +5116,18 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4653,20 +5186,20 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4690,24 +5223,25 @@ public partial class bingx : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name bingx#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
+     * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+     * @param {string} params.orderId the order id required for inverse swap
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
-        * @param {string} [symbol] unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-        * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
-        * @param {string} params.orderId the order id required for inverse swap
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4741,7 +5275,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)[(string)startTimeReq] = since;
             } else if (isTrue(getValue(market, "swap")))
             {
-                ((IDictionary<string,object>)request)["startTs"] = subtract(now, 7776000000); // 90 days
+                ((IDictionary<string,object>)request)["startTs"] = subtract(now, multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000)); // 30 days for swap
             }
             object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
@@ -4755,6 +5289,10 @@ public partial class bingx : Exchange
             }
             if (isTrue(getValue(market, "spot")))
             {
+                if (isTrue(!isEqual(limit, null)))
+                {
+                    ((IDictionary<string,object>)request)["limit"] = limit; // default 500, maximum 1000
+                }
                 response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, parameters));
                 object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 fills = this.safeList(data, "fills", new List<object>() {});
@@ -4844,17 +5382,17 @@ public partial class bingx : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bingx#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
@@ -4862,22 +5400,26 @@ public partial class bingx : Exchange
         return this.parseDepositWithdrawFees(coins, codes, "coin");
     }
 
+    /**
+     * @method
+     * @name bingx#withdraw
+     * @description make a withdrawal
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#withdraw
-        * @description make a withdrawal
-        * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} [tag]
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
         object walletType = this.safeInteger(parameters, "walletType");
@@ -4892,13 +5434,17 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
-            { "amount", this.numberToString(amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "walletType", walletType },
         };
         object network = this.safeStringUpper(parameters, "network");
         if (isTrue(!isEqual(network, null)))
         {
             ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+        }
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["addressTag"] = tag;
         }
         parameters = this.omit(parameters, new List<object>() {"walletType", "network"});
         object response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters));
@@ -4940,21 +5486,21 @@ public partial class bingx : Exchange
         return sortedParams;
     }
 
+    /**
+     * @method
+     * @name bingx#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bingx api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchMyLiquidations
-        * @description retrieves the users liquidated positions
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
-        * @param {string} [symbol] unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the bingx api endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -5095,20 +5641,20 @@ public partial class bingx : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bingx#closePosition
+     * @description closes open positions for a market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] not used by bingx
+     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#closePosition
-        * @description closes open positions for a market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} [side] not used by bingx
-        * @param {object} [params] extra parameters specific to the bingx api endpoint
-        * @param {string|undefined} [params.positionId] the id of the position you would like to close
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5133,18 +5679,18 @@ public partial class bingx : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitget#closePositions
+     * @description closes open positions for a market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {string} [params.recvWindow] request valid time window value
+     * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> closeAllPositions(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitget#closePositions
-        * @description closes open positions for a market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
-        * @param {object} [params] extra parameters specific to the bingx api endpoint
-        * @param {string} [params.recvWindow] request valid time window value
-        * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
@@ -5185,17 +5731,17 @@ public partial class bingx : Exchange
         return positions;
     }
 
-    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    /**
+     * @method
+     * @name bingx#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchPositionMode
-        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an object detailing whether the market is in hedged or one-way mode
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.swapV1PrivateGetPositionSideDual(parameters);
         //
@@ -5216,18 +5762,18 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#setPositionMode
-        * @description set hedged to true or false for a market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
-        * @param {bool} hedged set to true to use dualSidePosition
-        * @param {string} symbol not used by bingx setPositionMode ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object dualSidePosition = null;
         if (isTrue(hedged))
@@ -5251,39 +5797,39 @@ public partial class bingx : Exchange
         return await this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bingx#editOrder
+     * @description cancels an order and places a new order
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  // spot
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  // swap
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
+     * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
+     * @param {float} [params.quoteOrderQty] order amount
+     * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
+     * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
+     * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
+     * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
+     * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#editOrder
-        * @description cancels an order and places a new order
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  // spot
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  // swap
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.stopPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
-        * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
-        * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
-        * @param {float} [params.quoteOrderQty] order amount
-        * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
-        * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
-        * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-        * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
-        * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5302,18 +5848,18 @@ public partial class bingx : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bingx#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchMarginMode
-        * @description fetches the margin mode of the trading pair
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
-        * @param {string} symbol unified symbol of the market to fetch the margin mode for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5348,19 +5894,19 @@ public partial class bingx : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bingx#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
-        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5442,6 +5988,57 @@ public partial class bingx : Exchange
         };
     }
 
+    public virtual object customEncode(object parameters)
+    {
+        object sortedParams = this.keysort(parameters);
+        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        object adjustedValue = null;
+        object result = null;
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(sortedParams, key);
+            if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object arrStr = null;
+                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                {
+                    object arrayElement = getValue(value, j);
+                    object isString = ((arrayElement is string));
+                    if (isTrue(isString))
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(add(add(",", "\""), ((object)arrayElement).ToString()), "\""));
+                        } else
+                        {
+                            arrStr = add(add("\"", ((object)arrayElement).ToString()), "\"");
+                        }
+                    } else
+                    {
+                        if (isTrue(isGreaterThan(j, 0)))
+                        {
+                            arrStr = add(arrStr, add(",", ((object)arrayElement).ToString()));
+                        } else
+                        {
+                            arrStr = ((object)arrayElement).ToString();
+                        }
+                    }
+                }
+                adjustedValue = add(add("[", arrStr), "]");
+                value = adjustedValue;
+            }
+            if (isTrue(isEqual(i, 0)))
+            {
+                result = add(add(key, "="), value);
+            } else
+            {
+                result = add(result, add(add(add("&", key), "="), value));
+            }
+        }
+        return result;
+    }
+
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
@@ -5456,21 +6053,29 @@ public partial class bingx : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
         }
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
-        {
-            url = add(url, "/api");
-        } else
-        {
-            url = add(url, add("/", type));
-        }
-        url = add(url, add(add("/", version), "/"));
         path = this.implodeParams(path, parameters);
-        url = add(url, path);
+        if (isTrue(isEqual(version, "transfer")))
+        {
+            type = "account/transfer";
+            version = getValue(section, 2);
+            access = getValue(section, 3);
+        }
+        if (isTrue(!isEqual(path, "account/apiPermissions")))
+        {
+            if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
+            {
+                url = add(url, "/api");
+            } else
+            {
+                url = add(url, add("/", type));
+            }
+        }
+        url = add(url, add(add(add("/", version), "/"), path));
         parameters = this.omit(parameters, this.extractParams(path));
+        ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
         parameters = this.keysort(parameters);
         if (isTrue(isEqual(access, "public")))
         {
-            ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
@@ -5478,23 +6083,32 @@ public partial class bingx : Exchange
         } else if (isTrue(isEqual(access, "private")))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
-            object parsedParams = this.parseParams(parameters);
-            object query = this.urlencode(parsedParams);
-            object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            object isJsonContentType = (isTrue((isTrue((isEqual(type, "subAccount"))) || isTrue((isEqual(type, "account/transfer"))))) && isTrue((isEqual(method, "POST"))));
+            object parsedParams = null;
+            object encodeRequest = null;
+            if (isTrue(isJsonContentType))
             {
-                query = add(add("?", query), "&");
+                encodeRequest = this.customEncode(parameters);
             } else
             {
-                query = add(query, "?");
+                parsedParams = this.parseParams(parameters);
+                encodeRequest = this.rawencode(parsedParams);
             }
-            query = add(query, add("signature=", signature));
+            object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },
             };
-            url = add(url, query);
+            if (isTrue(isJsonContentType))
+            {
+                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                ((IDictionary<string,object>)parameters)["signature"] = signature;
+                body = this.json(parameters);
+            } else
+            {
+                object query = this.urlencode(parsedParams);
+                url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },

@@ -7,6 +7,104 @@
     "methods": {
         "createOrder": [
             {
+                "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    395,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT1234561b1598e7648198f0\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"395\"}"
+            },
+            {
+                "description": "swap +buy +market +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT123456b6074ff3d4d3ad71\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
+                "description": "swap +sell +market +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Sell\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT12345604588208b43c8181\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
+                "description": "swap +buy +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 200,
+                        "triggerDirection": "down",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT1234567a026aa3e4c0b839\",\"stopPxRp\":\"200\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
+                "description": "swap +marginMode +stopLoss +takeProfit +triggerLimitPrices",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    192,
+                    {
+                        "marginMode": "isolated",
+                        "stopLoss": {
+                            "triggerPrice": 190,
+                            "price": 189,
+                            "triggerPriceType": "mark"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 277,
+                            "price": 278,
+                            "triggerPriceType": "last"
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456efbeec36d415aadf\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"stopLossRp\":\"190\",\"slTrigger\":\"ByMarkPrice\",\"slPxRp\":\"189\",\"takeProfitRp\":\"277\",\"tpTrigger\":\"ByLastPrice\",\"tpPxRp\":\"278\",\"priceRp\":\"192\",\"marginMode\":\"isolated\"}"
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://testnet-api.phemex.com/spot/orders",
@@ -109,21 +207,38 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
             },
             {
-                "description": "Swap limit buy with trigger price",
+                "description": "Swap sell hedged reduceOnly order",
                 "method": "createOrder",
                 "url": "https://testnet-api.phemex.com/g-orders",
                 "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.1,
-                    "55",
-                    {
-                        "triggerPrice": 60,
-                        "clientOrderId": "myordr2"
-                    }
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT1234569a4fe87934c6ab0c\",\"posSide\":\"Long\",\"orderQtyRq\":0.001}"
+            },
+            {
+                "description": "Swap buy hedged reduceOnly order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT123456f0ddc1de04ee9efb\",\"posSide\":\"Short\",\"orderQtyRq\":0.001}"
             }
         ],
         "editOrder": [
@@ -376,7 +491,19 @@
                 ]
             }
         ],
-        "fetchPositions": [
+    "fetchPositions": [
+            {
+                "description": "fetch btc positions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    null,
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
@@ -709,11 +836,29 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "fundingRate",
+                "description": "linear swap funding rate",
                 "method": "fetchFundingRate",
                 "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://testnet-api.phemex.com/v1/md/ticker/24hr?symbol=BTCUSD",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                "BTC/USDT:USDT"
                 ]
             }
         ]

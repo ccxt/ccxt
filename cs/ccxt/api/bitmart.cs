@@ -126,6 +126,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("publicGetContractPublicFundingRate",parameters);
     }
 
+    public async Task<object> publicGetContractPublicFundingRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetContractPublicFundingRateHistory",parameters);
+    }
+
     public async Task<object> publicGetContractPublicKline (object parameters = null)
     {
         return await this.callAsync ("publicGetContractPublicKline",parameters);
@@ -319,6 +324,11 @@ public partial class bitmart : Exchange
     public async Task<object> privateGetContractPrivateAffilateTradeList (object parameters = null)
     {
         return await this.callAsync ("privateGetContractPrivateAffilateTradeList",parameters);
+    }
+
+    public async Task<object> privateGetContractPrivateTransactionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetContractPrivateTransactionHistory",parameters);
     }
 
     public async Task<object> privatePostAccountSubAccountMainV1SubToMain (object parameters = null)

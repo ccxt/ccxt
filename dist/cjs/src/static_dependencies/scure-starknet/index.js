@@ -11,7 +11,7 @@ var weierstrass = require('../noble-curves/abstract/weierstrass.js');
 var utils$1 = require('../noble-curves/abstract/utils.js');
 var _shortw_utils = require('../noble-curves/_shortw_utils.js');
 
-/*! scure-starknet - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// ----------------------------------------------------------------------------
 const CURVE_ORDER = BigInt('3618502788666131213697322783095070105526743751716087489154079457884512865583');
 // 2**251, limit for msgHash and Signature.r
 const MAX_VALUE = BigInt('0x800000000000000000000000000000000000000000000000000000000000000');

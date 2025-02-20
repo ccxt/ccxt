@@ -108,7 +108,9 @@
                     "baseVolume": 13.182049999999991,
                     "quoteVolume": 949482.9634477801,
                     "bidVolume": null,
-                    "askVolume": null
+                    "askVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null
                 }
             }
         ]
