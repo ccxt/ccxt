@@ -9450,11 +9450,11 @@
                       "createTime": 1739967284000,
                       "fromCurrency": "USDT",
                       "toCurrency": "BTC",
-                      "fromAmountEv": "1000000000",
-                      "toAmountEv": "10359",
-                      "status": "10",
-                      "conversionRate": "1035",
-                      "errorCode": "0"
+                      "fromAmountEv": 1000000000,
+                      "toAmountEv": 10359,
+                      "status": 10,
+                      "conversionRate": 1035,
+                      "errorCode": 0
                     },
                     "timestamp": 1739967284000,
                     "datetime": "2025-02-19T12:14:44.000Z",
