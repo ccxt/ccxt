@@ -1793,7 +1793,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    editOrdersReqquest (orders, params = {}) {
+    editOrdersRequest (orders, params = {}) {
         this.checkRequiredCredentials ();
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
@@ -1953,7 +1953,7 @@ export default class hyperliquid extends Exchange {
      */
     async editOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const request = this.editOrdersReqquest (orders, params);
+        const request = this.editOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
         //     {
