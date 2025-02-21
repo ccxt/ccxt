@@ -63,6 +63,7 @@ class bybit extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => 'emulated',
                 'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -2544,6 +2545,23 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $tickerList = $this->safe_list($result, 'list', array());
             return $this->parse_tickers($tickerList, $parsedSymbols);
+        }) ();
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the bid and ask price and volume for multiple markets
+             *
+             * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+             *
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
+             * @param {string} [$params->baseCoin] *option only* base coin, default is 'BTC'
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            return Async\await($this->fetch_tickers($symbols, $params));
         }) ();
     }
 
