@@ -51,7 +51,7 @@ function helperTestHandleMarketTypeAndParams () {
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
-    exchange['options']['defaultType'] = undefined;
+    exchange.options['defaultType'] = undefined;
     const [ marketType6, params6 ] = exchange.handleMarketTypeAndParams ('fetchY', undefined, {}, undefined);
     assert (marketType6 === 'spot');
 }
