@@ -2637,7 +2637,6 @@ export default class phemex extends Exchange {
         const market = this.market (symbol);
         const requestSide = this.capitalize (side);
         type = this.capitalize (type);
-        const reduceOnly = this.safeBool (params, 'reduceOnly');
         const request: Dict = {
             // common
             'symbol': market['id'],
@@ -2731,8 +2730,10 @@ export default class phemex extends Exchange {
             let posSide = this.safeStringLower (params, 'posSide');
             if (posSide === undefined) {
                 if (hedged) {
+                    const reduceOnly = this.safeBool (params, 'reduceOnly');
                     if (reduceOnly) {
                         side = (side === 'buy') ? 'sell' : 'buy';
+                        params = this.omit (params, 'reduceOnly');
                     }
                     posSide = (side === 'buy') ? 'Long' : 'Short';
                 } else {
@@ -2837,7 +2838,6 @@ export default class phemex extends Exchange {
             }
             params = this.omit (params, 'stopLossPrice');
         }
-        params = this.omit (params, 'reduceOnly');
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privatePostGOrders (this.extend (request, params));
