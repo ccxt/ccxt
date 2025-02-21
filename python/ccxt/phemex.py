@@ -2551,7 +2551,6 @@ class phemex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         requestSide = self.capitalize(side)
         type = self.capitalize(type)
-        reduceOnly = self.safe_bool(params, 'reduceOnly')
         request: dict = {
             # common
             'symbol': market['id'],
@@ -2634,8 +2633,10 @@ class phemex(Exchange, ImplicitAPI):
             posSide = self.safe_string_lower(params, 'posSide')
             if posSide is None:
                 if hedged:
+                    reduceOnly = self.safe_bool(params, 'reduceOnly')
                     if reduceOnly:
                         side = 'sell' if (side == 'buy') else 'buy'
+                        params = self.omit(params, 'reduceOnly')
                     posSide = 'Long' if (side == 'buy') else 'Short'
                 else:
                     posSide = 'Merged'
@@ -2713,7 +2714,6 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
-        params = self.omit(params, 'reduceOnly')
         response = None
         if market['settle'] == 'USDT':
             response = self.privatePostGOrders(self.extend(request, params))
