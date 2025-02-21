@@ -2652,7 +2652,6 @@ class phemex extends Exchange {
             $market = $this->market($symbol);
             $requestSide = $this->capitalize($side);
             $type = $this->capitalize($type);
-            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             $request = array(
                 // common
                 'symbol' => $market['id'],
@@ -2746,8 +2745,10 @@ class phemex extends Exchange {
                 $posSide = $this->safe_string_lower($params, 'posSide');
                 if ($posSide === null) {
                     if ($hedged) {
+                        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
                         if ($reduceOnly) {
                             $side = ($side === 'buy') ? 'sell' : 'buy';
+                            $params = $this->omit($params, 'reduceOnly');
                         }
                         $posSide = ($side === 'buy') ? 'Long' : 'Short';
                     } else {
@@ -2852,7 +2853,6 @@ class phemex extends Exchange {
                 }
                 $params = $this->omit($params, 'stopLossPrice');
             }
-            $params = $this->omit($params, 'reduceOnly');
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privatePostGOrders ($this->extend($request, $params)));
