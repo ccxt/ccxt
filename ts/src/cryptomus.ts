@@ -130,6 +130,8 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
+                        'v1/user-api/exchange/markets': 1,
+                        'v1/user-api/exchange/markets/price': 1,
                         'v1/exchange/market/assets': 1,
                         'v1/exchange/market/order-book/{currencyPair}': 1,
                         'v1/exchange/market/tickers': 1,
@@ -138,17 +140,21 @@ export default class cryptomus extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'v1/user-api/exchange/markets/price': 1,
                         'v2/user-api/balance': 1,
-                        'v2/user-api/convert/direction-list': 1,
-                        'v2/user-api/convert/order-list': 1,
+                        'v1/user-api/exchange/orders': 1,
+                        'v1/user-api/exchange/orders/history': 1,
+                        'v1/user-api/account/tariffs': 1,
+                        'v2/user-api/payment/services': 1,
+                        'v2/user-api/payout/services': 1,
+                        'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v2/user-api/convert/calculate': 1,
-                        'v2/user-api/convert/': 1,
-                        'v2/user-api/convert/limit': 1,
+                        'v1/user-api/exchange/orders': 1,
+                        'v1/user-api/exchange/orders/market': 1,
                     },
                     'delete': {
-                        'v2/user-api/convert/{orderUuid}': 1,
+                        'v1/user-api/exchange/orders/{orderId}': 1,
                     },
                 },
             },
@@ -703,8 +709,8 @@ export default class cryptomus extends Exchange {
          * @method
          * @name cryptomus#createOrder
          * @description create a trade order
-         * @see https://doc.cryptomus.com/personal/converts/market-order
-         * @see https://doc.cryptomus.com/personal/converts/limit-order
+         * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+         * @see https://api.cryptomus.com/v1/user-api/exchange/orders
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or for spot
          * @param {string} side 'buy' or 'sell'
@@ -712,23 +718,18 @@ export default class cryptomus extends Exchange {
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.client_order_id] a unique identifier for the order (optional)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const base = this.currencyId (market['base']);
-        const quote = this.currencyId (market['quote']);
         const request: Dict = {
+            'market': market['id'],
+            'direction': side,
             'tag': 'ccxt',
         };
         const sideBuy = side === 'buy';
-        if (sideBuy) {
-            request['from'] = quote;
-            request['to'] = base;
-        } else {
-            request['from'] = base;
-            request['to'] = quote;
-        }
         const amountToString = this.numberToString (amount);
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an amount parameter');
@@ -736,7 +737,7 @@ export default class cryptomus extends Exchange {
             request['amount'] = amountToString;
         }
         const priceToString = this.numberToString (price);
-        let cost: Str = undefined;
+        let cost = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
         let response = undefined;
         if (type === 'market') {
@@ -754,41 +755,20 @@ export default class cryptomus extends Exchange {
                 }
             }
             request['amount'] = sideBuy ? cost : amountToString;
-            response = await this.privatePostV2UserApiConvert (this.extend (request, params));
+            request['value'] = price;
+            response = await this.privatePostV1UserApiExchangeOrdersMarket (this.extend (request, params));
         } else if (type === 'limit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
-            } else {
-                request['price'] = priceToString;
             }
-            if (sideBuy) {
-                request['amount'] = Precise.stringMul (amountToString, priceToString);
-            } else {
-                request['amount'] = amountToString;
-            }
-            response = await this.privatePostV2UserApiConvertLimit (this.extend (request, params));
+            request['price'] = price;
+            response = await this.privatePostV1UserApiExchangeOrders (this.extend (request, params));
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a type parameter (limit or market)');
         }
         //
         //     {
-        //         "state": 0,
-        //         "result": {
-        //             "order_id": 0,
-        //             "uuid": "997c8a3c-17df-407f-a971-c13c8723fb57",
-        //             "convert_amount_from": "15",
-        //             "convert_amount_to": "0.00681818",
-        //             "executed_amount_from": "15",
-        //             "executed_amount_to": "0.00681818",
-        //             "convert_currency_from": "USDT",
-        //             "convert_currency_to": "ETH",
-        //             "type": "limit",
-        //             "status": "active",
-        //             "created_at": "2024-09-10T17:37:52+03:00",
-        //             "current_rate": "2200",
-        //             "limit": "2200",
-        //             "expires_at": null
-        //         }
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
         const result = this.safeDict (response, 'result', {});
@@ -800,7 +780,7 @@ export default class cryptomus extends Exchange {
          * @method
          * @name hashkey#cancelOrder
          * @description cancels an open limit order
-         * @see https://doc.cryptomus.com/personal/converts/cancel-limit-order
+         * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -808,27 +788,11 @@ export default class cryptomus extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        request['orderUuid'] = id;
-        const response = await this.privateDeleteV2UserApiConvertOrderUuid (this.extend (request, params));
+        request['orderId'] = id;
+        const response = await this.privateDeleteV1UserApiExchangeOrdersOrderId (this.extend (request, params));
         //
         //     {
-        //         "state": 0,
-        //         "result": {
-        //             "order_id": 0,
-        //             "uuid": "1b96da42-c850-4543-ad10-fd78d433bfe2",
-        //             "convert_amount_from": "0.006",
-        //             "convert_amount_to": "13.2",
-        //             "executed_amount_from": "0.006",
-        //             "executed_amount_to": "13.2",
-        //             "convert_currency_from": "ETH",
-        //             "convert_currency_to": "USDT",
-        //             "type": "limit",
-        //             "status": "cancelled",
-        //             "created_at": "2024-09-10T18:26:57+03:00",
-        //             "current_rate": null,
-        //             "limit": "2200",
-        //             "expires_at": null
-        //         }
+        //         "success": true
         //     }
         //
         const result = this.safeDict (response, 'result', {});
@@ -840,94 +804,132 @@ export default class cryptomus extends Exchange {
          * @method
          * @name cryptomus#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @see https://doc.cryptomus.com/personal/converts/orders-list
+         * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
          * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
          * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
          * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.direction] order direction 'buy' or 'sell'
+         * @param {string} [params.order_id] order id
+         * @param {string} [params.client_order_id] client order id
+         * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+         * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.privateGetV2UserApiConvertOrderList (params);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+
+        };
+        const response = await this.privateGetV1UserApiExchangeOrdersHistory (this.extend (request, params));
         //
         //     {
-        //         "state": 0,
-        //         "result": {
-        //             "items": [
-        //                 {
-        //                     "order_id": 0,
-        //                     "uuid": "68ebc2f8-1aee-4ccc-b9b2-fabc67546221",
-        //                     "convert_amount_from": "0.012",
-        //                     "convert_amount_to": "28.8",
-        //                     "executed_amount_from": "0.012",
-        //                     "executed_amount_to": "28.8",
-        //                     "convert_currency_from": "ETH",
-        //                     "convert_currency_to": "USDT",
-        //                     "type": "limit",
-        //                     "status": "active",
-        //                     "created_at": "2024-09-12T13:23:49+03:00",
-        //                     "current_rate": "2400",
-        //                     "limit": "2400",
-        //                     "expires_at": null
-        //                 },
-        //                 ...
-        //             ],
-        //             "paginate": {
-        //                 "count": 5,
-        //                 "hasPages": false,
-        //                 "nextCursor": null,
-        //                 "previousCursor": null,
-        //                 "perPage": 15
-        //             }
-        //         }
+        //         "result": [
+        //             {
+        //                 "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //                 "type": "market",
+        //                 "direction": "sell",
+        //                 "symbol": "TRX_USDT",
+        //                 "quantity": "67.5400000000000000",
+        //                 "filledQuantity": "67.5400000000000000",
+        //                 "filledValue": "20.0053480000000000",
+        //                 "state": "completed",
+        //                 "internalState": "filled",
+        //                 "createdAt": "2024-12-12 11:40:19",
+        //                 "finishedAt": "2024-12-12 11:40:21",
+        //                 "deal": {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //                     "state": "completed",
+        //                     "createdAt": "2024-12-12 11:40:21",
+        //                     "completedAt": "2024-12-12 11:40:21",
+        //                     "averageFilledPrice": "0.2962000000000000",
+        //                     "transactions": [
+        //                         {
+        //                             "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                             "tradeRole": "taker",
+        //                             "filledPrice": "0.2962000000000000",
+        //                             "filledQuantity": "67.5400000000000000",
+        //                             "filledValue": "20.0053480000000000",
+        //                             "fee": "0.0000000000000000",
+        //                             "feeCurrency": "USDT",
+        //                             "committedAt": "2024-12-12 11:40:21"
+        //                         }
+        //                     ]
+        //                 }
+        //             },
+        //             ...
+        //         ]
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
-        const orders = this.safeList (result, 'items', []);
-        return this.parseOrders (orders, market, undefined, undefined);
+        const result = this.safeList (response, 'result', []);
+        const orders = [];
+        for (let i = 0; i < result.length; i++) {
+            const order = result[i];
+            orders.push (this.parseOrder (order, market));
+        }
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrder
         //     {
-        //         "order_id": 0,
-        //         "uuid": "997c8a3c-17df-407f-a971-c13c8723fb57",
-        //         "convert_amount_from": "15",
-        //         "convert_amount_to": "0.00681818",
-        //         "executed_amount_from": "15",
-        //         "executed_amount_to": "0.00681818",
-        //         "convert_currency_from": "USDT",
-        //         "convert_currency_to": "ETH",
-        //         "type": "limit",
-        //         "status": "active",
-        //         "created_at": "2024-09-10T17:37:52+03:00",
-        //         "current_rate": "2200",
-        //         "limit": "2200",
-        //         "expires_at": null
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
-        const id = this.safeString (order, 'uuid');
+        // cancelOrder
+        //     {
+        //         "success": true
+        //     }
+        //
+        // fetchOrders
+        //     {
+        //         "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //         "type": "market",
+        //         "direction": "sell",
+        //         "symbol": "TRX_USDT",
+        //         "quantity": "67.5400000000000000",
+        //         "filledQuantity": "67.5400000000000000",
+        //         "filledValue": "20.0053480000000000",
+        //         "state": "completed",
+        //         "internalState": "filled",
+        //         "createdAt": "2024-12-12 11:40:19",
+        //         "finishedAt": "2024-12-12 11:40:21",
+        //         "deal": {
+        //             "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //             "state": "completed",
+        //             "createdAt": "2024-12-12 11:40:21",
+        //             "completedAt": "2024-12-12 11:40:21",
+        //             "averageFilledPrice": "0.2962000000000000",
+        //             "transactions": [
+        //                 {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                     "tradeRole": "taker",
+        //                     "filledPrice": "0.2962000000000000",
+        //                     "filledQuantity": "67.5400000000000000",
+        //                     "filledValue": "20.0053480000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "feeCurrency": "USDT",
+        //                     "committedAt": "2024-12-12 11:40:21"
+        //                 }
+        //             ]
+        //         }
+        //     },
+        //     ...
+        //
+        const id = this.safeString2 (order, 'order_id', 'id');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         const dateTime = this.safeString (order, 'created_at');
         const timestamp = this.parse8601 (dateTime);
-        const fromId = this.safeString (order, 'convert_currency_from');
-        const toId = this.safeString (order, 'convert_currency_to');
-        const marketId = this.parseOrderMarketId (fromId, toId);
-        market = this.safeMarket (marketId, market);
-        let isSell = undefined;
-        if (market['baseId'] === fromId) {
-            isSell = true;
-        } else if (market['baseId'] === toId) {
-            isSell = false;
-        }
         const type = this.safeString (order, 'type');
-        const price = this.safeNumber (order, 'limit');
-        const amount = this.safeNumber (order, 'convert_amount_to');
-        const cost = this.safeNumber (order, 'convert_amount_from');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = this.safeString (order, 'direction');
+        const price = this.safeNumber (order, 'filledValue');
+        const amount = this.safeNumber (order, 'filledQuantity');
+        const cost = this.safeNumber (order, 'filledValue');
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const deal = this.safeDict (order, 'deal', {});
+        const averageFilledPrice = this.safeNumber (deal, 'averageFilledPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -938,13 +940,13 @@ export default class cryptomus extends Exchange {
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': isSell ? 'sell' : 'buy',
+            'side': side,
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': averageFilledPrice,
             'filled': undefined,
             'remaining': undefined,
             'status': status,
@@ -952,18 +954,6 @@ export default class cryptomus extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
-    }
-
-    parseOrderMarketId (fromId: string, toId: string): string {
-        let marketId = fromId + '_' + toId;
-        if (marketId in this.markets_by_id) {
-            return marketId;
-        }
-        marketId = toId + '_' + fromId;
-        if (marketId in this.markets_by_id) {
-            return marketId;
-        }
-        return undefined;
     }
 
     parseOrderStatus (status: string): string {
