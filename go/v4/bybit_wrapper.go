@@ -132,6 +132,40 @@ func (this *Bybit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 }
 /**
  * @method
+ * @name bybit#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+ * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Bybit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+
+    opts := FetchBidsAsksOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchBidsAsks(symbols, params)
+    if IsError(res) {
+        return Tickers{}, CreateReturnError(res)
+    }
+    return NewTickers(res), nil
+}
+/**
+ * @method
  * @name bybit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://bybit-exchange.github.io/docs/v5/market/kline
