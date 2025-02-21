@@ -22,7 +22,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT1234561b1598e7648198f0\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"395\"}"
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT1234561b1598e7648198f0\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"395\",\"reduceOnly\":true}"
             },
             {
                 "description": "swap +buy +market +triggerPrice +triggerDirection +reduceOnly",
@@ -40,7 +40,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT123456b6074ff3d4d3ad71\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT123456b6074ff3d4d3ad71\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
             },
             {
                 "description": "swap +sell +market +triggerPrice +triggerDirection +reduceOnly",
@@ -58,7 +58,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Sell\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT12345604588208b43c8181\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Sell\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT12345604588208b43c8181\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
             },
             {
                 "description": "swap +buy +triggerPrice +triggerDirection +reduceOnly",
@@ -76,7 +76,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT1234567a026aa3e4c0b839\",\"stopPxRp\":\"200\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT1234567a026aa3e4c0b839\",\"stopPxRp\":\"200\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
             },
             {
                 "description": "swap +marginMode +stopLoss +takeProfit +triggerLimitPrices",
