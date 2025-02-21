@@ -2903,6 +2903,7 @@ export default class binance extends binanceRest {
      * @description create a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2917,7 +2918,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('createOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
