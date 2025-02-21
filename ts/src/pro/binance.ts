@@ -2651,6 +2651,7 @@ export default class binance extends binanceRest {
      * @name binance#fetchPositionsWs
      * @description fetch all open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2659,17 +2660,23 @@ export default class binance extends binanceRest {
      */
     async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        const url = this.urls['api']['ws']['ws-api']['future'];
-        const requestId = this.requestId (url);
-        const messageHash = requestId.toString ();
         const payload: Dict = {};
+        let market = undefined;
+        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
-                payload['symbol'] = this.marketId (symbols[0]);
+                market = this.market (symbols[0]);
+                payload['symbol'] = market['id'];
             }
         }
+        const type = this.getMarketType ('fetchPositionsWs', market, params);
+        if (type !== 'future' && type !== 'delivery') {
+            throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][type];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
