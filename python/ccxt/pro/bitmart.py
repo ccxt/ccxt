@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.order_book_side import Asks, Bids
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.errors import NotSupported
 
 class bitmart(ccxt.async_support.bitmart):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitmart, self).describe(), {
             'has': {
                 'createOrderWs': False,
@@ -108,6 +108,10 @@ class bitmart(ccxt.async_support.bitmart):
             }
         else:
             messageHash = 'futures/' + channel + ':' + market['id']
+            speed = self.safe_string(params, 'speed')
+            if speed is not None:
+                params = self.omit(params, 'speed')
+                messageHash += ':' + speed
             request = {
                 'action': 'subscribe',
                 'args': [messageHash],
@@ -1149,6 +1153,7 @@ class bitmart(ccxt.async_support.bitmart):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.speed]: *futures only* '100ms' or '200ms'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()

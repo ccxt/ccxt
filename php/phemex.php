@@ -10,7 +10,7 @@ use ccxt\abstract\phemex as Exchange;
 
 class phemex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
@@ -285,6 +285,114 @@ class phemex extends Exchange {
                     'percentage' => true,
                     'taker' => $this->parse_number('0.001'),
                     'maker' => $this->parse_number('0.001'),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'last' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'untilDays' => 2, // todo implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 100000,
+                        'untilDays' => 2,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerDirection' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'mark' => true,
+                                'last' => true,
+                                'index' => true,
+                            ),
+                            'price' => true,
+                        ),
+                        'hedged' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'requiredCredentials' => array(
@@ -958,7 +1066,7 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($products); $i++) {
             $market = $products[$i];
             $type = $this->safe_string_lower($market, 'type');
-            if (($type === 'perpetual') || ($type === 'perpetualv2')) {
+            if (($type === 'perpetual') || ($type === 'perpetualv2') || ($type === 'perpetualpilot')) {
                 $id = $this->safe_string($market, 'symbol');
                 $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
                 $market = $this->extend($market, $riskLimitValues);
@@ -1167,7 +1275,7 @@ class phemex extends Exchange {
     }
 
     public function from_en($en, $scale) {
-        if ($en === null) {
+        if ($en === null || $scale === null) {
             return null;
         }
         $precise = new Precise ($en);
@@ -2121,8 +2229,10 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $result = ($type === 'swap') ? $this->parse_swap_balance($response) : $this->parse_spot_balance($response);
-        return $result;
+        if ($type === 'swap') {
+            return $this->parse_swap_balance($response);
+        }
+        return $this->parse_spot_balance($response);
     }
 
     public function parse_order_status(?string $status) {
@@ -2801,7 +2911,7 @@ class phemex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order(string $id, string $symbol, ?string $type = null, ?string $side = null, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          *

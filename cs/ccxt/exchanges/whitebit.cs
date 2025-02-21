@@ -152,6 +152,8 @@ public partial class whitebit : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fiatCurrencies", new List<object>() {"EUR", "USD", "RUB", "UAH"} },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "account", "spot" },
@@ -168,6 +170,78 @@ public partial class whitebit : Exchange
                 } },
                 { "defaultType", "spot" },
                 { "brokerId", "ccxt" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -190,6 +264,7 @@ public partial class whitebit : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "This action is unauthorized", typeof(PermissionDenied) },
                     { "Given amount is less than min amount", typeof(InvalidOrder) },
+                    { "Min amount step", typeof(InvalidOrder) },
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },
@@ -210,6 +285,10 @@ public partial class whitebit : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object markets = await this.v4PublicGetMarkets();
         //
         //    [
@@ -744,9 +823,22 @@ public partial class whitebit : Exchange
         //         "last": "55913.88",
         //         "period": 86400
         //     }
-        market = this.safeMarket(null, market);
+        // v2
+        //   {
+        //       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        //       tradingPairs: 'ARB_USDC',
+        //       lastPrice: '0.7727',
+        //       lowestAsk: '0.7735',
+        //       highestBid: '0.7732',
+        //       baseVolume24h: '1555793.74',
+        //       quoteVolume24h: '1157602.622406',
+        //       tradesEnabled: true
+        //   }
+        //
+        object marketId = this.safeString(ticker, "tradingPairs");
+        market = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
-        object last = this.safeString2(ticker, "last", "last_price");
+        object last = this.safeStringN(ticker, new List<object>() {"last", "last_price", "lastPrice"});
         // if "close" is provided, use it, otherwise use <last>
         object close = this.safeString(ticker, "close", last);
         return this.safeTicker(new Dictionary<string, object>() {
@@ -755,9 +847,9 @@ public partial class whitebit : Exchange
             { "datetime", null },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
-            { "bid", this.safeString(ticker, "bid") },
+            { "bid", this.safeString2(ticker, "bid", "highestBid") },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "ask") },
+            { "ask", this.safeString2(ticker, "ask", "lowestAsk") },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
@@ -767,8 +859,8 @@ public partial class whitebit : Exchange
             { "change", null },
             { "percentage", this.safeString(ticker, "change") },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "base_volume", "volume") },
-            { "quoteVolume", this.safeString2(ticker, "quote_volume", "deal") },
+            { "baseVolume", this.safeStringN(ticker, new List<object>() {"base_volume", "volume", "baseVolume24h"}) },
+            { "quoteVolume", this.safeStringN(ticker, new List<object>() {"quote_volume", "deal", "quoteVolume24h"}) },
             { "info", ticker },
         }, market);
     }
@@ -778,8 +870,9 @@ public partial class whitebit : Exchange
      * @name whitebit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -787,7 +880,18 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await this.v4PublicGetTicker(parameters);
+        object method = "v4PublicGetTicker";
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(method, "v4PublicGetTicker")))
+        {
+            response = await this.v4PublicGetTicker(parameters);
+        } else
+        {
+            response = await this.v2PublicGetTicker(parameters);
+        }
         //
         //      "BCH_RUB": {
         //          "base_id":1831,
@@ -799,6 +903,11 @@ public partial class whitebit : Exchange
         //          "change":"2.12"
         //      },
         //
+        object resultList = this.safeList(response, "result");
+        if (isTrue(!isEqual(resultList, null)))
+        {
+            return this.parseTickers(resultList, symbols);
+        }
         object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
@@ -1167,7 +1276,7 @@ public partial class whitebit : Exchange
         object response = await this.v4PublicGetTime(parameters);
         //
         //     {
-        //         "time":1635467280514
+        //         "time":1737380046
         //     }
         //
         return this.safeInteger(response, "time");
@@ -2537,8 +2646,7 @@ public partial class whitebit : Exchange
         //    ]
         //
         object data = this.safeList(response, "result", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2688,7 +2796,7 @@ public partial class whitebit : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2711,12 +2819,14 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            object nonce = this.nonce();
+            object timestamp = this.parseToInt(divide(nonce, 1000));
+            object timestampString = ((object)timestamp).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
-                { "nonce", nonce },
+                { "nonce", timestampString },
             }, parameters));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);
@@ -2750,12 +2860,13 @@ public partial class whitebit : Exchange
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             object status = this.safeString(response, "status");
+            object errors = this.safeValue(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
             object message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             object codeNew = this.safeInteger(response, "code");
-            object hasErrorStatus = isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"));
+            object hasErrorStatus = isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))) && isTrue(!isEqual(errors, null));
             if (isTrue(isTrue(hasErrorStatus) || isTrue(!isEqual(codeNew, null))))
             {
                 object feedback = add(add(this.id, " "), body);

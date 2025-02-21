@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -272,6 +272,8 @@ class whitebit(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
                 'fetchBalance': {
                     'account': 'spot',
@@ -288,6 +290,78 @@ class whitebit(Exchange, ImplicitAPI):
                 },
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,  # todo
+                            'FOK': False,
+                            'PO': True,  # todo
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -310,6 +384,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'broad': {
                     'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Min amount step': InvalidOrder,  # {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
                     'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
@@ -327,6 +402,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         markets = await self.v4PublicGetMarkets()
         #
         #    [
@@ -820,9 +897,22 @@ class whitebit(Exchange, ImplicitAPI):
         #         "last": "55913.88",
         #         "period": 86400
         #     }
-        market = self.safe_market(None, market)
+        # v2
+        #   {
+        #       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        #       tradingPairs: 'ARB_USDC',
+        #       lastPrice: '0.7727',
+        #       lowestAsk: '0.7735',
+        #       highestBid: '0.7732',
+        #       baseVolume24h: '1555793.74',
+        #       quoteVolume24h: '1157602.622406',
+        #       tradesEnabled: True
+        #   }
+        #
+        marketId = self.safe_string(ticker, 'tradingPairs')
+        market = self.safe_market(marketId, market)
         # last price is provided as "last" or "last_price"
-        last = self.safe_string_2(ticker, 'last', 'last_price')
+        last = self.safe_string_n(ticker, ['last', 'last_price', 'lastPrice'])
         # if "close" is provided, use it, otherwise use <last>
         close = self.safe_string(ticker, 'close', last)
         return self.safe_ticker({
@@ -831,9 +921,9 @@ class whitebit(Exchange, ImplicitAPI):
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'bid'),
+            'bid': self.safe_string_2(ticker, 'bid', 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'ask'),
+            'ask': self.safe_string_2(ticker, 'ask', 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
@@ -843,8 +933,8 @@ class whitebit(Exchange, ImplicitAPI):
             'change': None,
             'percentage': self.safe_string(ticker, 'change'),
             'average': None,
-            'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
-            'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
+            'baseVolume': self.safe_string_n(ticker, ['base_volume', 'volume', 'baseVolume24h']),
+            'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
             'info': ticker,
         }, market)
 
@@ -854,13 +944,20 @@ class whitebit(Exchange, ImplicitAPI):
 
         https://docs.whitebit.com/public/http-v4/#market-activity
 
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.v4PublicGetTicker(params)
+        method = 'v4PublicGetTicker'
+        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
+        response = None
+        if method == 'v4PublicGetTicker':
+            response = await self.v4PublicGetTicker(params)
+        else:
+            response = await self.v2PublicGetTicker(params)
         #
         #      "BCH_RUB": {
         #          "base_id":1831,
@@ -872,6 +969,9 @@ class whitebit(Exchange, ImplicitAPI):
         #          "change":"2.12"
         #      },
         #
+        resultList = self.safe_list(response, 'result')
+        if resultList is not None:
+            return self.parse_tickers(resultList, symbols)
         marketIds = list(response.keys())
         result: dict = {}
         for i in range(0, len(marketIds)):
@@ -1191,7 +1291,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1203,7 +1303,7 @@ class whitebit(Exchange, ImplicitAPI):
         response = await self.v4PublicGetTime(params)
         #
         #     {
-        #         "time":1635467280514
+        #         "time":1737380046
         #     }
         #
         return self.safe_integer(response, 'time')
@@ -2351,8 +2451,7 @@ class whitebit(Exchange, ImplicitAPI):
         #    ]
         #
         data = self.safe_list(response, 'result', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2489,7 +2588,7 @@ class whitebit(Exchange, ImplicitAPI):
         return self.in_array(currency, fiatCurrencies)
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
@@ -2502,10 +2601,12 @@ class whitebit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.nonce()
+            timestamp = self.parse_to_int(nonce / 1000)
+            timestampString = str(timestamp)
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
+            body = self.json(self.extend({'request': request, 'nonce': timestampString}, params))
             payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
@@ -2525,12 +2626,13 @@ class whitebit(Exchange, ImplicitAPI):
             # For cases where we have a meaningful status
             # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             status = self.safe_string(response, 'status')
+            errors = self.safe_value(response, 'errors')
             # {"code":10,"message":"Unauthorized request."}
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             codeNew = self.safe_integer(response, 'code')
-            hasErrorStatus = status is not None and status != '200'
+            hasErrorStatus = status is not None and status != '200' and errors is not None
             if hasErrorStatus or codeNew is not None:
                 feedback = self.id + ' ' + body
                 errorInfo = message

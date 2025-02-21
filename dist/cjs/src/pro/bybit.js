@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bybit extends bybit$1 {
     describe() {
@@ -827,7 +827,7 @@ class bybit extends bybit$1 {
     }
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols
@@ -847,12 +847,25 @@ class bybit extends bybit$1 {
         const market = this.market(symbols[0]);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 500;
+            if (market['option']) {
+                limit = 100;
+            }
         }
         else {
             if (!market['spot']) {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.');
+                if (market['option']) {
+                    if ((limit !== 25) && (limit !== 100)) {
+                        throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
+                    }
+                }
+                else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    // bybit only support limit 1, 50, 200, 500 for contract
+                    throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
+                }
+            }
+            else {
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
+                    throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
                 }
             }
         }

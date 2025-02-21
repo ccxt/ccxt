@@ -81,7 +81,7 @@ export default class poloniexfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name poloniexfutures#fetchOHLCV
@@ -260,7 +260,7 @@ export default class poloniexfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method

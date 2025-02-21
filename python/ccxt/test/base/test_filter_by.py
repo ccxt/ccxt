@@ -39,18 +39,11 @@ def test_filter_by():
 }, {
     'foo': 'c',
 }]
-    try:
-        current_value = exchange.filter_by(sample_array, 'foo', 'a')
-        stored_value = [{
+    current_value = exchange.filter_by(sample_array, 'foo', 'a')
+    stored_value = [{
     'foo': 'a',
 }, {
     'foo': 'a',
     'bar': 'b',
 }]
-        test_shared_methods.assert_deep_equal(exchange, None, 'testFilterBy', current_value, stored_value)
-    except Exception as e:
-        # skip c# , todo
-        if 'BaseTest.assert' in (str(e)) or 'at System.' in (str(e)) or 'at ccxt.Exchange.' in (str(e)):
-            return
-        else:
-            raise e
+    test_shared_methods.assert_deep_equal(exchange, None, 'testFilterBy', current_value, stored_value)

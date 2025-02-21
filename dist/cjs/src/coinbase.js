@@ -20,7 +20,7 @@ class coinbase extends coinbase$1 {
             'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': true,
-            'certified': true,
+            'certified': false,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -367,6 +367,8 @@ class coinbase extends coinbase$1 {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
@@ -405,17 +407,20 @@ class coinbase extends coinbase$1 {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -424,18 +429,20 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
@@ -747,7 +754,7 @@ class coinbase extends coinbase$1 {
             }
         }
         if (accountId === undefined) {
-            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param');
+            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet');
         }
         const request = {
             'account_id': accountId,
@@ -1275,6 +1282,9 @@ class coinbase extends coinbase$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3(params);
@@ -1300,7 +1310,7 @@ class coinbase extends coinbase$1 {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1347,7 +1357,7 @@ class coinbase extends coinbase$1 {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }
@@ -2447,7 +2457,7 @@ class coinbase extends coinbase$1 {
         [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
         const ledger = this.parseLedger(response['data'], currency, since, limit);
         const length = ledger.length;
@@ -4103,7 +4113,7 @@ class coinbase extends coinbase$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         let request = undefined;
-        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code']);
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code'], undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, params));
         //
         //    {
@@ -4213,12 +4223,15 @@ class coinbase extends coinbase$1 {
         const networkId = this.safeString(depositAddress, 'network');
         const code = this.safeCurrencyCode(undefined, currency);
         const addressLabel = this.safeString(depositAddress, 'address_label');
-        const splitAddressLabel = addressLabel.split(' ');
-        const marketId = this.safeString(splitAddressLabel, 0);
+        let currencyId = undefined;
+        if (addressLabel !== undefined) {
+            const splitAddressLabel = addressLabel.split(' ');
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         const addressInfo = this.safeDict(depositAddress, 'address_info');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(marketId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
@@ -4881,6 +4894,9 @@ class coinbase extends coinbase$1 {
         const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         return token;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4953,7 +4969,9 @@ class coinbase extends coinbase$1 {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const timestampString = this.seconds().toString();
+                    const nonce = this.nonce();
+                    const timestamp = this.parseToInt(nonce / 1000);
+                    const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                     headers = {
@@ -4996,10 +5014,17 @@ class coinbase extends coinbase$1 {
         //        }
         //      ]
         //    }
+        // or
+        //   {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
+        //   }
         //
         let errorCode = this.safeString(response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString(response, 'error_description');
+            const errorMessage = this.safeString2(response, 'error_description', 'preview_failure_reason');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
             throw new errors.ExchangeError(feedback);

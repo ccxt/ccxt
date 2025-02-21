@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.43'
+__version__ = '4.4.61'
 
 # ----------------------------------------------------------------------------
 
@@ -163,7 +163,6 @@ from ccxt.kuna import kuna                                            # noqa: F4
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
-from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
@@ -187,7 +186,6 @@ from ccxt.tradeogre import tradeogre                                  # noqa: F4
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.vertex import vertex                                        # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
-from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
@@ -277,7 +275,6 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
-    'lykke',
     'mercado',
     'mexc',
     'myokx',
@@ -301,7 +298,6 @@ exchanges = [
     'upbit',
     'vertex',
     'wavesexchange',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',

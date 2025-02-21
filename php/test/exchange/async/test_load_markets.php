@@ -27,5 +27,6 @@ function test_load_markets($exchange, $skipped_properties) {
         for ($i = 0; $i < count($market_values); $i++) {
             test_market($exchange, $skipped_properties, $method, $market_values[$i]);
         }
+        return true;
     }) ();
 }

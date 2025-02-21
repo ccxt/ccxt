@@ -894,7 +894,7 @@ public partial class bybit : ccxt.bybit
 
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols
@@ -918,14 +918,29 @@ public partial class bybit : ccxt.bybit
         if (isTrue(isEqual(limit, null)))
         {
             limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 500;
+            if (isTrue(getValue(market, "option")))
+            {
+                limit = 100;
+            }
         } else
         {
             if (!isTrue(getValue(market, "spot")))
             {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
+                if (isTrue(getValue(market, "option")))
                 {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.")) ;
+                    if (isTrue(isTrue((!isEqual(limit, 25))) && isTrue((!isEqual(limit, 100)))))
+                    {
+                        throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.")) ;
+                    }
+                } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
+                {
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
+                }
+            } else
+            {
+                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
+                {
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
                 }
             }
         }

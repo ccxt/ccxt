@@ -18,26 +18,26 @@ def test_features(exchange, skipped_properties):
     market_types = ['spot', 'swap', 'future', 'option']
     sub_types = ['linear', 'inverse']
     features = exchange.features
-    if features is not None:
-        keys = list(features.keys())
-        for i in range(0, len(keys)):
-            test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', keys, i, market_types)
-            market_type = keys[i]
-            value = features[market_type]
-            # assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-            if value is None:
-                continue
-            if market_type == 'spot':
-                test_features_inner(exchange, skipped_properties, value)
-            else:
-                sub_keys = list(value.keys())
-                for j in range(0, len(sub_keys)):
-                    sub_key = sub_keys[j]
-                    test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', sub_keys, j, sub_types)
-                    sub_value = value[sub_key]
-                    # sometimes it might not be available for exchange, eg. future>inverse)
-                    if sub_value is not None:
-                        test_features_inner(exchange, skipped_properties, sub_value)
+    keys = list(features.keys())
+    for i in range(0, len(keys)):
+        test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', keys, i, market_types)
+        market_type = keys[i]
+        value = features[market_type]
+        # assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
+        if value is None:
+            continue
+        if market_type == 'spot':
+            test_features_inner(exchange, skipped_properties, value)
+        else:
+            sub_keys = list(value.keys())
+            for j in range(0, len(sub_keys)):
+                sub_key = sub_keys[j]
+                test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', sub_keys, j, sub_types)
+                sub_value = value[sub_key]
+                # sometimes it might not be available for exchange, eg. future>inverse)
+                if sub_value is not None:
+                    test_features_inner(exchange, skipped_properties, sub_value)
+    return True
 
 
 def test_features_inner(exchange, skipped_properties, feature_obj):
@@ -59,9 +59,10 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                     'mark': False,
                     'index': False,
                 },
-                'limitPrice': False,
+                'price': False,
             },
             'timeInForce': {
+                'GTC': False,
                 'IOC': False,
                 'FOK': False,
                 'PO': False,
@@ -78,17 +79,20 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
+            'symbolRequired': False,
         },
         'fetchOrder': {
             'marginMode': False,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOpenOrders': {
             'marginMode': False,
             'limit': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOrders': {
             'marginMode': False,
@@ -97,15 +101,17 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'untilDays': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchClosedOrders': {
             'marginMode': False,
             'limit': 0,
-            'daysBackClosed': 0,
+            'daysBack': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
             'trigger': False,
             'trailing': False,
+            'symbolRequired': False,
         },
         'fetchOHLCV': {
             'limit': 0,

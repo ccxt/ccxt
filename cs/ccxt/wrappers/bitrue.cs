@@ -157,9 +157,8 @@ public partial class bitrue
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api-docs#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -292,9 +291,8 @@ public partial class bitrue
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -369,9 +367,8 @@ public partial class bitrue
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -391,7 +388,7 @@ public partial class bitrue
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -425,9 +422,8 @@ public partial class bitrue
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -510,9 +506,8 @@ public partial class bitrue
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256"/>  <br/>
-    /// See <see href="https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

@@ -734,9 +734,21 @@ public partial class deribit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.currency</term>
+    /// <description>
+    /// string : currency code filter for positions
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.kind</term>
     /// <description>
     /// string : market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subaccount_id</term>
+    /// <description>
+    /// int : the user id for the subaccount
     /// </description>
     /// </item>
     /// </list>
@@ -919,7 +931,7 @@ public partial class deribit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.end_timestamp</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : fetch funding rate ending at this timestamp
     /// </description>

@@ -15,13 +15,13 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\BadResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class gate extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',
@@ -656,6 +656,8 @@ class gate extends Exchange {
                 'X-Gate-Channel-Id' => 'ccxt',
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'unifiedAccount' => null,
                 'createOrder' => array(
@@ -663,23 +665,67 @@ class gate extends Exchange {
                 ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'LINEA' => 'LINEAETH',
-                    'KON' => 'KONET',
-                    'AVAXC' => 'AVAX_C',
-                    'BEP20' => 'BSC',
-                    'EOS' => 'EOS',
+                    'BTC' => 'BTC',
+                    'BRC20' => 'BTCBRC', // for eg => ORDI, RATS, ...
+                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'GATECHAIN' => 'GTEVM',
-                    'HRC20' => 'HT',
-                    'KUSAMA' => 'KSMSM',
-                    'NEAR' => 'NEAR',
-                    'OKC' => 'OKT',
-                    'OPTIMISM' => 'OPETH',
-                    'POLKADOT' => 'DOTSM',
+                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
-                    'LUNA' => 'LUNC',
+                    'HECO' => 'HT',
+                    'HRC20' => 'HT',
+                    'BSC' => 'BSC',
+                    'BEP20' => 'BSC',
+                    'SOL' => 'SOL',
+                    'POLYGON' => 'POL',
+                    'MATIC' => 'POL',
+                    'OP' => 'OPETH',
+                    'OPTIMISM' => 'OPETH',
+                    'ADA' => 'ADA', // CARDANO
+                    'AVAXC' => 'AVAX_C',
+                    'NEAR' => 'NEAR',
+                    'ARBONE' => 'ARBEVM',
                     'BASE' => 'BASEEVM',
-                    'BRC20' => 'BTCBRC',
+                    'SUI' => 'SUI',
+                    'CRONOS' => 'CRO',
+                    'CRO' => 'CRO',
+                    'APT' => 'APT',
+                    'SCROLL' => 'SCROLLETH',
+                    'TAIKO' => 'TAIKOETH',
+                    'HYPE' => 'HYPE',
+                    'ALGO' => 'ALGO',
+                    // KAVA => ['KAVA', 'KAVAEVM']
+                    // SEI => ['SEI', 'SEIEVM']
+                    'LINEA' => 'LINEAETH',
+                    'BLAST' => 'BLASTETH',
+                    'XLM' => 'XLM',
+                    'RSK' => 'RBTC',
+                    'TON' => 'TON',
+                    'MNT' => 'MNT',
+                    // 'RUNE' => 'BTCRUNES', probably, cant verify atm
+                    'CELO' => 'CELO',
+                    'HBAR' => 'HBAR',
+                    // 'FTM' => SONIC REBRAND, todo
+                    'ZKSERA' => 'ZKSERA',
+                    'KLAY' => 'KLAY',
+                    'EOS' => 'EOS',
+                    'ACA' => 'ACA',
+                    // TLOS => ['TLOS', 'TLOSEVM']
+                    // ASTR => ['ASTR', 'ASTREVM']
+                    // CFX => ['CFX', 'CFXEVM']
+                    'XTZ' => 'XTZ',
+                    'EGLD' => 'EGLD',
+                    'GLMR' => 'GLMR',
+                    'AURORA' => 'AURORAEVM',
+                    // others
+                    'KON' => 'KONET',
+                    'GATECHAIN' => 'GTEVM',
+                    'KUSAMA' => 'KSMSM',
+                    'OKC' => 'OKT',
+                    'POLKADOT' => 'DOTSM', // todo => DOT for main DOT
+                    'LUNA' => 'LUNC',
+                ),
+                'networksById' => array(
+                    'OPETH' => 'OP',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -725,7 +771,6 @@ class gate extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -747,17 +792,20 @@ class gate extends Exchange {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 100,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -766,8 +814,9 @@ class gate extends Exchange {
                         'trailing' => false,
                         'limit' => 100,
                         'untilDays' => 30,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -1074,7 +1123,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1182,6 +1231,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $rawPromises = array(
                 $this->fetch_contract_markets($params),
@@ -1845,7 +1897,7 @@ class gate extends Exchange {
                 $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
                 if ($this->safe_value($result, $code) === null) {
                     $result[$code] = array(
-                        'id' => strtolower($code),
+                        'id' => $currency,
                         'code' => $code,
                         'info' => null,
                         'name' => null,
@@ -2029,8 +2081,7 @@ class gate extends Exchange {
             //        }
             //    )
             //
-            $result = $this->parse_funding_rates($response);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 
@@ -2482,7 +2533,8 @@ class gate extends Exchange {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
                 $chainKey = $chainKeys[$i];
-                $result['networks'][$chainKey] = array(
+                $networkCode = $this->network_id_to_code($chainKey, $this->safe_string($fee, 'currency'));
+                $result['networks'][$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                         'percentage' => false,
@@ -3720,6 +3772,7 @@ class gate extends Exchange {
         //
         // public
         //
+        //  spot:
         //     {
         //         "id" => "1334253759",
         //         "create_time" => "1626342738",
@@ -3729,6 +3782,18 @@ class gate extends Exchange {
         //         "amount" => "0.0022",
         //         "price" => "32452.16"
         //     }
+        //
+        //  swap:
+        //
+        //    {
+        //        "id" => "442288327",
+        //        "contract" => "BTC_USDT",
+        //        "create_time" => "1739814676.707",
+        //        "create_time_ms" => "1739814676.707",
+        //        "size" => "-105",
+        //        "price" => "95594.8"
+        //    }
+        //
         //
         // public ws
         //
@@ -3806,8 +3871,15 @@ class gate extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'trade_id');
-        $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
-        $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
+        $timestamp = null;
+        $msString = $this->safe_string($trade, 'create_time_ms');
+        if ($msString !== null) {
+            $msString = Precise::string_mul($msString, '1000');
+            $msString = mb_substr($msString, 0, 13 - 0);
+            $timestamp = $this->parse_to_int($msString);
+        } else {
+            $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
+        }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $marketType = (is_array($trade) && array_key_exists('contract', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, '_', $marketType);
@@ -6740,6 +6812,10 @@ class gate extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
@@ -6809,7 +6885,8 @@ class gate extends Exchange {
             }
             $bodyPayload = ($body === null) ? '' : $body;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
-            $timestamp = $this->seconds();
+            $nonce = $this->nonce();
+            $timestamp = $this->parse_to_int($nonce / 1000);
             $timestampString = (string) $timestamp;
             $signaturePath = '/api/' . $this->version . $entirePath;
             $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestampString );

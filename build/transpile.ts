@@ -30,6 +30,8 @@ const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
+let shouldTranspileTests = true
+
 // let buildPython = true;
 // let buildPHP = true;
 
@@ -103,6 +105,7 @@ class Transpiler {
             [ /\.safeDict2/g, '.safe_dict_2'],
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
+            [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
@@ -126,6 +129,7 @@ class Transpiler {
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
@@ -779,7 +783,7 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: (?:List\[)?Any/,
+            'Any': /(?:->|:) (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
@@ -809,7 +813,7 @@ class Transpiler {
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
-            'MarketInterface': /-> MarketInterface:/,
+            // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
@@ -828,11 +832,15 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
+            'OpenInterest': /-> OpenInterest:/,
             'FundingRates': /-> FundingRates:/,
+            'OrderBooks': /-> OrderBooks:/,
+            'OpenInterests': /-> OpenInterests:/,
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []
@@ -853,10 +861,6 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
-        }
-
-        if (bodyAsString.match (/-> Any/)) {
-            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -983,13 +987,13 @@ class Transpiler {
                 precisionImports.push ('use ccxt\\Precise;')
             }
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use React\\Async;')
+                libraryImports.push ('use \\React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use React\\Promise;')
+                libraryImports.push ('use \\React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -1553,6 +1557,10 @@ class Transpiler {
             // method name
             let method = matches[2]
 
+            if (process.argv.includes ('--check-parsers')) {
+                this.checkIfMethodLacksParser (className, method, part)
+            }
+
             methodNames.push (method)
 
             method = unCamelCase (method)
@@ -1736,6 +1744,11 @@ class Transpiler {
                 phpAsync.push (phpAsyncBody);
                 phpAsync.push ('    ' + '}')
             }
+        }
+
+        if (process.argv.includes ('--check-parsers') && this.missingParsers.length) {
+            log.magenta (this.missingParsers.join ('\n'));
+            process.exit (1);
         }
 
         return {
@@ -2421,7 +2434,8 @@ class Transpiler {
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
             if (sync) {
-                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+                str = str.replace (/asyncio\.gather\(\*/g, '(');
             }
             return exchangeCamelCaseProps(str);
         }
@@ -2628,6 +2642,11 @@ class Transpiler {
     // ============================================================================
 
     transpileTests () {
+
+        if (!shouldTranspileTests) {
+            log.bright.yellow ('Skipping tests transpilation');
+            return;
+        }
 
         this.baseFunctionalitiesTests ();
 
@@ -2841,6 +2860,128 @@ class Transpiler {
 
     // ============================================================================
 
+    defineMethodParsersMap () {
+        // test if developer has implemented all parse required parse methods
+        this.parserMethodsMap = {
+            // basic
+            'fetchCurrencies': ['parseCurrency'],
+            // parseOrder
+            'cancelOrder': ['parseOrder'],
+            'createOrder': ['parseOrder'],
+            'editOrder': ['parseOrder'],
+            'fetchClosedOrder': ['parseOrder'],
+            'fetchOpenOrder': ['parseOrder'],
+            'fetchOrder': ['parseOrder'],
+            // parseOrders  (we also allow parser methods like 'fetchOrders', 'fetchOrdersByState/Status', etc..)
+            'cancelAllOrders': ['parseOrders', 'fetchOrders'],
+            'cancelOrders': ['parseOrders', 'fetchOrders'],
+            'fetchCanceledOrders': ['parseOrders', 'fetchOrders'],
+            'fetchClosedOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOpenOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOrders': ['parseOrders', 'fetchOrdersBy'],
+            // parseDepositAddress/es
+            'createDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddresses': ['parseDepositAddresses'],
+            'fetchDepositAddressesByNetwork': ['parseDepositAddresses'],
+            // ticker/s
+            'fetchTicker': ['parseTicker', 'fetchTickers'],
+            //     'fetchBidsAsks': ['parseTickers'], // temporarily disabled
+            'fetchTickers': ['parseTicker'], // singular also allowed, because some exchanges have iteratation inside implementation
+            // transaction/s  (also allow i.e. 'fetchTransactionsByType')
+            'fetchDeposit': ['parseTransaction'],
+            'fetchWithdrawal': ['parseTransaction'],
+            'fetchDeposits': ['parseTransactions', 'fetchTransactions'],
+            'fetchWithdrawals': ['parseTransactions', 'fetchTransactions'],
+            'withdraw': ['parseTransaction'],
+            'fetchTransactions': ['parseTransactions'],
+            // rate/s
+            'fetchBorrowInterest': ['parseBorrowInterest'],
+            'fetchBorrowInterests': ['parseBorrowInterests'],
+            'fetchBorrowRate': ['parseBorrowRate'],
+            'fetchBorrowRates': ['parseBorrowRates'],
+            'fetchBorrowRatesPerSymbol': ['parseBorrowRates'],
+            'fetchFundingRate': ['parseFundingRate'],
+            'fetchFundingRates': ['parseFundingRates'],
+            // borrow & funding historyies
+            'fetchBorrowRateHistory': ['parseBorrowRateHistory'],
+            'fetchBorrowRateHistories': ['parseBorrowRateHistories'],
+            'fetchFundingHistory': ['parseFundingHistory'],
+            'fetchFundingRateHistory': ['parseFundingRateHistory'],
+            'fetchFundingRateHistories': ['parseFundingRateHistories'],
+            // OHLCV
+            'fetchOHLCV': ['parseOHLCV'],
+            'fetchIndexOHLCV': ['parseOHLCV'],
+            'fetchMarkOHLCV': ['parseOHLCV'],
+            'fetchPremiumIndexOHLCV': ['parseOHLCV'],
+            // orderBook
+            'fetchOrderBook': ['parseOrderBook'],
+            'fetchOrderBooks': ['parseOrderBook'],
+            //    'fetchL1OrderBooks': ['parseOrderBook'], // temporarily disabled
+            'fetchL2OrderBook': ['parseOrderBook'],
+            // fee/s
+            'fetchTransactionFee': ['parseTransactionFee'],
+            'fetchTransactionFees': ['parseTransactionFees'],
+            'fetchTradingFees': ['parseTradingFee'],
+            'fetchTradingFee': ['parseTradingFee'],
+            // position/s
+            'fetchPositionsRisk': ['parsePositionRisk'],
+            'fetchPositions': ['parsePositions'],
+            'fetchPosition': ['parsePosition', 'fetchPositions'],
+            // trade/s
+            'fetchTrades': ['parseTrades'],
+            'fetchMyTrades': ['parseTrades'],
+            'fetchOrderTrades': ['parseTrades'],
+            // transfer/s
+            'fetchTransfers': ['parseTransfers'],
+            'transfer': ['parseTransfer'],
+            // ledger/s
+            'fetchLedger': ['parseLedgerEntries'],
+            'fetchLedgerEntry': ['parseLedgerEntry'],
+            // margin
+            'addMargin': ['parseMarginModification'],
+            'reduceMargin': ['parseMarginModification'],
+            'setMargin': ['parseMarginModification'],
+            // misc
+            'fetchAccounts': ['parseAccount'],
+            'fetchBalance': ['parseBalance'],
+            'fetchLeverageTiers': ['parseLeverageTiers'],
+            'fetchMarketLeverageTiers': ['parseMarketLeverageTiers'],
+            'setMarginMode': ['parseMarginMode'],
+            'setPositionMode': ['parsePositionMode'],
+            'setLeverage': ['parseLeverageEntry'],
+            'fetchTradingLimits': ['parseTradingLimits'],
+            // skipped: fetchMarkets, fetchPermissions, fetchStatus, fetchTime, signIn, fetchCurrencies
+        };
+        this.missingParsers = [];
+    }
+
+    checkIfMethodLacksParser (className: string, methodName: string, methodContent: string) {
+        if (className === 'Exchange') {
+            return;
+        }
+        // before base class, the check is not needed
+        if (!this.parserMethodsMap) {
+            this.defineMethodParsersMap ();
+        }
+        // only check those method names, that are in the list
+        if (methodName in this.parserMethodsMap) {
+            // get the list of which parsers might be used for current method
+            const assignedParserMethods = this.parserMethodsMap[methodName];
+            // iterate and ...
+            for (const parserMethod of assignedParserMethods) {
+                // check if the parser method is found in the body ...
+                if (methodContent.includes ('this.' + parserMethod)) {
+                    // ... if found, then current method's implementation is ok, and jumpt to next method check
+                    return;
+                }
+            }
+            // if code reached here, then it means parser method was not used, so, throw error
+            this.missingParsers.push (' * Missing parser method: ' + className.toUpperCase () + ' > ' + methodName + ' (): ' + assignedParserMethods.join ('/'));
+        }
+    }
+
+    // ============================================================================
 
     async transpileEverything (force = false, child = false) {
 
@@ -2893,7 +3034,7 @@ class Transpiler {
 
             this.transpileExamples ()
 
-            this.addGeneratedHeaderToJs ('./js/')
+            // this.addGeneratedHeaderToJs ('./js/')
         }
 
         log.bright.green ('Transpiled successfully.')
@@ -2946,7 +3087,10 @@ if (isMainEntry(import.meta.url)) {
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
+    const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+
+    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
     const phpOnly = process.argv.includes ('--php');
     if (phpOnly) {
@@ -2966,6 +3110,8 @@ if (isMainEntry(import.meta.url)) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+    } else if (addJsHeaders) {
+        transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class gate(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gate, self).describe(), {
             'id': 'gate',
             'name': 'Gate.io',
@@ -666,6 +666,8 @@ class gate(Exchange, ImplicitAPI):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'unifiedAccount': None,
                 'createOrder': {
@@ -673,23 +675,67 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
-                    'LINEA': 'LINEAETH',
-                    'KON': 'KONET',
-                    'AVAXC': 'AVAX_C',
-                    'BEP20': 'BSC',
-                    'EOS': 'EOS',
+                    'BTC': 'BTC',
+                    'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'GATECHAIN': 'GTEVM',
-                    'HRC20': 'HT',
-                    'KUSAMA': 'KSMSM',
-                    'NEAR': 'NEAR',
-                    'OKC': 'OKT',
-                    'OPTIMISM': 'OPETH',
-                    'POLKADOT': 'DOTSM',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'LUNA': 'LUNC',
+                    'HECO': 'HT',
+                    'HRC20': 'HT',
+                    'BSC': 'BSC',
+                    'BEP20': 'BSC',
+                    'SOL': 'SOL',
+                    'POLYGON': 'POL',
+                    'MATIC': 'POL',
+                    'OP': 'OPETH',
+                    'OPTIMISM': 'OPETH',
+                    'ADA': 'ADA',  # CARDANO
+                    'AVAXC': 'AVAX_C',
+                    'NEAR': 'NEAR',
+                    'ARBONE': 'ARBEVM',
                     'BASE': 'BASEEVM',
-                    'BRC20': 'BTCBRC',
+                    'SUI': 'SUI',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLLETH',
+                    'TAIKO': 'TAIKOETH',
+                    'HYPE': 'HYPE',
+                    'ALGO': 'ALGO',
+                    # KAVA: ['KAVA', 'KAVAEVM']
+                    # SEI: ['SEI', 'SEIEVM']
+                    'LINEA': 'LINEAETH',
+                    'BLAST': 'BLASTETH',
+                    'XLM': 'XLM',
+                    'RSK': 'RBTC',
+                    'TON': 'TON',
+                    'MNT': 'MNT',
+                    # 'RUNE': 'BTCRUNES', probably, cant verify atm
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    # 'FTM': SONIC REBRAND, todo
+                    'ZKSERA': 'ZKSERA',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'ACA': 'ACA',
+                    # TLOS: ['TLOS', 'TLOSEVM']
+                    # ASTR: ['ASTR', 'ASTREVM']
+                    # CFX: ['CFX', 'CFXEVM']
+                    'XTZ': 'XTZ',
+                    'EGLD': 'EGLD',
+                    'GLMR': 'GLMR',
+                    'AURORA': 'AURORAEVM',
+                    # others
+                    'KON': 'KONET',
+                    'GATECHAIN': 'GTEVM',
+                    'KUSAMA': 'KSMSM',
+                    'OKC': 'OKT',
+                    'POLKADOT': 'DOTSM',  # todo: DOT for main DOT
+                    'LUNA': 'LUNC',
+                },
+                'networksById': {
+                    'OPETH': 'OP',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -735,7 +781,6 @@ class gate(Exchange, ImplicitAPI):
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -757,17 +802,20 @@ class gate(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'trigger': True,
                         'trailing': False,
                         'limit': 100,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -776,8 +824,9 @@ class gate(Exchange, ImplicitAPI):
                         'trailing': False,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1074,7 +1123,7 @@ class gate(Exchange, ImplicitAPI):
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privateUnifiedPutUnifiedMode(params)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1174,6 +1223,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         rawPromises = [
             self.fetch_contract_markets(params),
@@ -1789,7 +1840,7 @@ class gate(Exchange, ImplicitAPI):
             active = listed and tradeEnabled and withdrawEnabled and depositEnabled
             if self.safe_value(result, code) is None:
                 result[code] = {
-                    'id': code.lower(),
+                    'id': currency,
                     'code': code,
                     'info': None,
                     'name': None,
@@ -1963,8 +2014,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2378,7 +2428,8 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                result['networks'][chainKey] = {
+                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                         'percentage': False,
@@ -3519,6 +3570,7 @@ class gate(Exchange, ImplicitAPI):
         #
         # public
         #
+        #  spot:
         #     {
         #         "id": "1334253759",
         #         "create_time": "1626342738",
@@ -3528,6 +3580,18 @@ class gate(Exchange, ImplicitAPI):
         #         "amount": "0.0022",
         #         "price": "32452.16"
         #     }
+        #
+        #  swap:
+        #
+        #    {
+        #        "id": "442288327",
+        #        "contract": "BTC_USDT",
+        #        "create_time": "1739814676.707",
+        #        "create_time_ms": "1739814676.707",
+        #        "size": "-105",
+        #        "price": "95594.8"
+        #    }
+        #
         #
         # public ws
         #
@@ -3605,8 +3669,14 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'trade_id')
-        timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
-        timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
+        timestamp: Int = None
+        msString = self.safe_string(trade, 'create_time_ms')
+        if msString is not None:
+            msString = Precise.string_mul(msString, '1000')
+            msString = msString[0:13]
+            timestamp = self.parse_to_int(msString)
+        else:
+            timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         marketType = 'contract' if ('contract' in trade) else 'spot'
         market = self.safe_market(marketId, market, '_', marketType)
@@ -6279,6 +6349,9 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
@@ -6338,7 +6411,8 @@ class gate(Exchange, ImplicitAPI):
                 body = self.json(query)
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
-            timestamp = self.seconds()
+            nonce = self.nonce()
+            timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]

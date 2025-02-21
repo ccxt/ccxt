@@ -1288,13 +1288,13 @@
         ],
         "fetchPositionsHistory": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "positionHistory no symbol",
                 "method": "fetchPositionsHistory",
                 "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear",
                 "input": []
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "positionHistory with symbol",
                 "method": "fetchPositionsHistory",
                 "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT&startTime=1709589714736&limit=1&endTime=1709590068602",
                 "input": [
@@ -1401,6 +1401,24 @@
                 "input": [
                   "USDT",
                   1726652765781
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSD&intervalTime=1h&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ]

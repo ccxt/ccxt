@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class hollaex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -172,6 +172,84 @@ class hollaex(Exchange, ImplicitAPI):
                         'order/all': 1,
                         'order': 1,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo: no limit in request
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'fees': {
@@ -353,7 +431,7 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "verified":true,
         #                 "allow_deposit":true,
         #                 "allow_withdrawal":true,
-        #                 "withdrawal_fee":0.0001,
+        #                 "withdrawal_fee":0.0002,
         #                 "min":0.001,
         #                 "max":100000,
         #                 "increment_unit":0.001,
@@ -418,7 +496,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -756,7 +834,7 @@ class hollaex(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        hollaex has large gaps between candles, so it's recommended to specify since
 
         https://apidocs.hollaex.com/#chart
 
@@ -765,6 +843,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -773,22 +852,17 @@ class hollaex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        duration = self.parse_timeframe(timeframe)
-        if since is None:
-            if limit is None:
-                limit = 1000  # they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            end = self.seconds()
-            start = end - duration * limit
-            request['to'] = end
-            request['from'] = start
+        until = self.safe_integer(params, 'until')
+        end = self.seconds()
+        if until is not None:
+            end = self.parse_to_int(until / 1000)
+        defaultSpan = 2592000  # 30 days
+        if since is not None:
+            request['from'] = self.parse_to_int(since / 1000)
         else:
-            if limit is None:
-                request['from'] = self.parse_to_int(since / 1000)
-                request['to'] = self.seconds()
-            else:
-                start = self.parse_to_int(since / 1000)
-                request['from'] = start
-                request['to'] = self.sum(start, duration * limit)
+            request['from'] = end - defaultSpan
+        request['to'] = end
+        params = self.omit(params, 'until')
         response = self.publicGetChart(self.extend(request, params))
         #
         #     [
@@ -1808,7 +1882,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "network":"https://api.hollaex.network"
         #     }
         #
-        coins = self.safe_list(response, 'coins')
+        coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
     def normalize_number_if_needed(self, number):
@@ -1843,13 +1917,14 @@ class hollaex(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        # {"message": "Invalid token"}
         if response is None:
             return None
         if (code >= 400) and (code <= 503):
             #
             #  {"message": "Invalid token"}
             #
-            # different errors return the same code eg:
+            # different errors return the same code eg
             #
             #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
             #

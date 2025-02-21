@@ -5,19 +5,18 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
-from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bingx, self).describe(), {
             'has': {
                 'ws': True,
@@ -1386,11 +1385,10 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account = self.account()
+            account['info'] = balance
+            account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
-            balanceChange = self.safe_string(balance, 'bc')
-            if account['used'] is not None:
-                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

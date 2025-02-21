@@ -11,12 +11,12 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class binance extends \ccxt\async\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }
@@ -257,7 +257,7 @@ class binance extends \ccxt\async\binance {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);
             if ($type === 'spot') {
-                throw new BadRequest($this->id . 'watchLiquidationsForSymbols is not supported for spot symbols');
+                throw new BadRequest($this->id . ' watchLiquidationsForSymbols is not supported for spot symbols');
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);
@@ -2439,6 +2439,7 @@ class binance extends \ccxt\async\binance {
                 $response = null;
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey ($params));
+                    $params = $this->extend($params, array( 'portfolioMargin' => true ));
                 } elseif ($type === 'future') {
                     $response = Async\await($this->fapiPrivatePostListenKey ($params));
                 } elseif ($type === 'delivery') {
@@ -2491,6 +2492,7 @@ class binance extends \ccxt\async\binance {
             try {
                 if ($isPortfolioMargin) {
                     Async\await($this->papiPutListenKey ($this->extend($request, $params)));
+                    $params = $this->extend($params, array( 'portfolioMargin' => true ));
                 } elseif ($type === 'future') {
                     Async\await($this->fapiPrivatePutListenKey ($this->extend($request, $params)));
                 } elseif ($type === 'delivery') {
@@ -4082,7 +4084,7 @@ class binance extends \ccxt\async\binance {
             }
             $fromId = $this->safe_integer($params, 'fromId');
             if ($fromId !== null && $since !== null) {
-                throw new BadRequest($this->id . 'fetchMyTradesWs does not support fetching by both $fromId and $since parameters at the same time');
+                throw new BadRequest($this->id . ' fetchMyTradesWs does not support fetching by both $fromId and $since parameters at the same time');
             }
             $message = array(
                 'id' => $messageHash,
@@ -4396,7 +4398,8 @@ class binance extends \ccxt\async\binance {
             $client->reject ($message, $id);
         }
         // reset connection if 5xx $error
-        if ($this->safe_string($code, 0) === '5') {
+        $codeString = $this->safe_string($error, 'code');
+        if (($codeString !== null) && ($codeString[0] === '5')) {
             $client->reset ($message);
         }
     }

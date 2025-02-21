@@ -7,10 +7,9 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -19,7 +18,7 @@ from ccxt.base.errors import BadRequest
 
 class bybit(ccxt.async_support.bybit):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bybit, self).describe(), {
             'has': {
                 'ws': True,
@@ -833,11 +832,19 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbols[0])
         if limit is None:
             limit = 50 if (market['spot']) else 500
+            if market['option']:
+                limit = 100
         else:
             if not market['spot']:
-                # bybit only support limit 1, 50, 200, 500 for contract
-                if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.')
+                if market['option']:
+                    if (limit != 25) and (limit != 100):
+                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
+                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                    # bybit only support limit 1, 50, 200, 500 for contract
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
+            else:
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):

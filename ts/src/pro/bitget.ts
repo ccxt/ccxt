@@ -17,7 +17,7 @@ import Client from '../base/ws/Client.js';
  */
 
 export default class bitget extends bitgetRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -1037,15 +1037,12 @@ export default class bitget extends bitgetRest {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (!(instType in this.positions)) {
+        const action = this.safeString (message, 'action');
+        if (!(instType in this.positions) || (action === 'snapshot')) {
             this.positions[instType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[instType];
         const rawPositions = this.safeValue (message, 'data', []);
-        const dataLength = rawPositions.length;
-        if (dataLength === 0) {
-            return;
-        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -2048,7 +2045,7 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'orderbook ' + symbol);
+        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
@@ -2074,7 +2071,7 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'trades ' + symbol);
+        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
@@ -2100,7 +2097,7 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + 'ticker ' + symbol);
+        const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
         client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }

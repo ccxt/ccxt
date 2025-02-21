@@ -62,6 +62,178 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1737067504",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1734475507&to=1737067507",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1705212000&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1737067512",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  null,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1705212000&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  4,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.sandbox.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&from=1704067200&to=1707804000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  4,
+                  {
+                    "until": 1707804000000
+                  }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits",
+                "input": []
+            },
+            {
+                "description": "fetch deposits with a currency",
+                "method": "fetchDeposits",
+                "url": "https://api.sandbox.hollaex.com/v2/user/deposits?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals",
+                "input": []
+            },
+            {
+                "description": "fetch Withdrawals with a currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.sandbox.hollaex.com/v2/user/withdrawals?currency=usdt",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": []
+            },
+            {
+                "description": "fetch deposit addresses with codes argument",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.sandbox.hollaex.com/v2/user",
+                "input": [
+                    [
+                        "ETH"
+                    ]
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades",
+                "input": []
+            },
+            {
+                "description": "fetch my trades with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://api.sandbox.hollaex.com/v2/user/trades?symbol=btc-usdt",
+                "input": [
+                  "BTC/USDT"
+                ]
+              }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch Deposit Withdraw Fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.sandbox.hollaex.com/v2/constants",
+                "input": []
+            },
+            {
+                "description": "fetch Deposit Withdraw Fees with codes argument",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.sandbox.hollaex.com/v2/constants",
+                "input": [
+                  [
+                    "ETH"
+                  ]
+                ]
             }
         ]
     }

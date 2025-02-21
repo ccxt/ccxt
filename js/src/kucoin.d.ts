@@ -15,7 +15,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name kucoin#fetchStatus
@@ -47,8 +47,9 @@ export default class kucoin extends Exchange {
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
-    loadMigrationStatus(force?: boolean): Promise<void>;
+    loadMigrationStatus(force?: boolean): Promise<boolean>;
     handleHfAndParams(params?: {}): {}[];
     /**
      * @method

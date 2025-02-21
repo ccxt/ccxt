@@ -417,27 +417,31 @@ public partial class kraken : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 720 },
@@ -665,7 +669,7 @@ public partial class kraken : Exchange
             {
                 if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
                 {
-                    if (!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))))
+                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
                     {
                         currencyId = slice(currencyId, 1, null);
                     }
@@ -985,9 +989,9 @@ public partial class kraken : Exchange
             { "high", this.safeString(high, 1) },
             { "low", this.safeString(low, 1) },
             { "bid", this.safeString(bid, 0) },
-            { "bidVolume", null },
+            { "bidVolume", this.safeString(bid, 2) },
             { "ask", this.safeString(ask, 0) },
-            { "askVolume", null },
+            { "askVolume", this.safeString(ask, 2) },
             { "vwap", vwap },
             { "open", this.safeString(ticker, "o") },
             { "close", last },
@@ -2658,7 +2662,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {

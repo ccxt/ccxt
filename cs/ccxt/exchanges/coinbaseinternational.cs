@@ -11,7 +11,7 @@ public partial class coinbaseinternational : Exchange
             { "id", "coinbaseinternational" },
             { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v1" },
@@ -222,17 +222,20 @@ public partial class coinbaseinternational : Exchange
                         { "limit", 100 },
                         { "daysBack", null },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -826,14 +829,14 @@ public partial class coinbaseinternational : Exchange
         return getValue(networksArray, 0);
     }
 
-    public async virtual Task loadCurrencyNetworks(object code, object parameters = null)
+    public async virtual Task<object> loadCurrencyNetworks(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.currency(code);
         object networks = this.safeDict(currency, "networks");
         if (isTrue(!isEqual(networks, null)))
         {
-            return;
+            return false;
         }
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -858,6 +861,7 @@ public partial class coinbaseinternational : Exchange
         //    ]
         //
         ((IDictionary<string,object>)currency)["networks"] = this.parseNetworks(rawNetworks);
+        return true;
     }
 
     public virtual object parseNetworks(object networks, object parameters = null)
@@ -1827,7 +1831,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isEqual(price, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() requires a price parameter for a limit order types")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -1846,7 +1850,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isTrue(!isEqual(tif, null)) && isTrue(!isEqual(tif, "IOC"))))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() market orders must have tif set to \"IOC\"")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
             tif = "IOC";
         } else

@@ -57,8 +57,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -154,6 +154,9 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+}
+
+export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
 export interface Ticker {

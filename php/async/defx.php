@@ -10,13 +10,13 @@ use ccxt\async\abstract\defx as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class defx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'defx',
             'name' => 'Defx X',
@@ -253,6 +253,92 @@ class defx extends Exchange {
             'options' => array(
                 'sandboxMode' => false,
             ),
+            'features' => array(
+                'spot' => null,
+                'forDerivatives' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -313,7 +399,7 @@ class defx extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -963,10 +1049,10 @@ class defx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $oid = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
-        $buyerMaker = $this->safe_string($trade, 'buyerMaker');
+        $buyerMaker = $this->safe_bool($trade, 'buyerMaker');
         $side = $this->safe_string_lower($trade, 'side');
         if ($buyerMaker !== null) {
-            if ($buyerMaker === 'true') {
+            if ($buyerMaker) {
                 $side = 'sell';
             } else {
                 $side = 'buy';
@@ -1722,8 +1808,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'OPEN';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'OPEN',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 
@@ -1741,8 +1829,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'FILLED';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'FILLED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 
@@ -1760,8 +1850,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'CANCELED';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'CANCELED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 

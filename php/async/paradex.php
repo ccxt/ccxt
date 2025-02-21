@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class paradex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paradex',
             'name' => 'Paradex',
@@ -266,6 +266,7 @@ class paradex extends Exchange {
                     '40112' => '\\ccxt\\PermissionDenied', // Geo IP blocked
                 ),
                 'broad' => array(
+                    'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -275,10 +276,82 @@ class paradex extends Exchange {
                 'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
                 'broker' => 'CCXT',
             ),
+            'features' => array(
+                'spot' => null,
+                'forSwap' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true, // todo
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => null, // todo
+                    'fetchOHLCV' => array(
+                        'limit' => null, // todo by from/to
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forSwap',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -914,7 +987,7 @@ class paradex extends Exchange {
         //
         //     {
         //         "symbol" => "BTC-USD-PERP",
-        //         "oracle_price" => "68465.17449906",
+        //         "oracle_price" => "68465.17449904",
         //         "mark_price" => "68465.17449906",
         //         "last_traded_price" => "68495.1",
         //         "bid" => "68477.6",
@@ -1002,17 +1075,19 @@ class paradex extends Exchange {
         return Async\async(function () use ($l1) {
             $systemConfig = Async\await($this->get_system_config());
             if ($l1 === true) {
-                return array(
+                $l1D = array(
                     'name' => 'Paradex',
                     'chainId' => $systemConfig['l1_chain_id'],
                     'version' => '1',
                 );
+                return $l1D;
             }
-            return array(
+            $domain = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['starknet_chain_id'],
                 'version' => 1,
             );
+            return $domain;
         }) ();
     }
 
@@ -1078,7 +1153,8 @@ class paradex extends Exchange {
                 }
             }
             $account = Async\await($this->retrieve_account());
-            $expires = $now + 86400 * 7;
+            // https://docs.paradex.trade/api-reference/general-information/authentication
+            $expires = $now + 180;
             $req = array(
                 'method' => 'POST',
                 'path' => '/v1/auth',

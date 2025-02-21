@@ -17,7 +17,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class kraken extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
             'name': 'Kraken',
@@ -460,27 +460,31 @@ export default class kraken extends Exchange {
                         'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 720,
@@ -697,7 +701,7 @@ export default class kraken extends Exchange {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                    if (!(currencyId.indexOf ('.') > 0)) {
+                    if (!(currencyId.indexOf ('.') > 0) && (currencyId !== 'ZEUS')) {
                         currencyId = currencyId.slice (1);
                     }
                 }
@@ -985,9 +989,9 @@ export default class kraken extends Exchange {
             'high': this.safeString (high, 1),
             'low': this.safeString (low, 1),
             'bid': this.safeString (bid, 0),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (bid, 2),
             'ask': this.safeString (ask, 0),
-            'askVolume': undefined,
+            'askVolume': this.safeString (ask, 2),
             'vwap': vwap,
             'open': this.safeString (ticker, 'o'),
             'close': last,
@@ -2536,7 +2540,7 @@ export default class kraken extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (timeout > 86400000) {
-            throw new BadRequest (this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         await this.loadMarkets ();
         const request: Dict = {
@@ -2920,7 +2924,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         // https://www.kraken.com/en-us/features/api#get-server-time
         const response = await this.publicGetTime (params);
         //

@@ -270,6 +270,77 @@ export default class timex extends Exchange {
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     /**
@@ -655,6 +726,7 @@ export default class timex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -666,18 +738,30 @@ export default class timex extends Exchange {
         };
         // if since and limit are not specified
         const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
         if (limit === undefined) {
             limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
         }
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
-            request['till'] = this.iso8601(this.sum(since, this.sum(limit, 1) * duration * 1000));
+            if (until === undefined) {
+                request['till'] = this.iso8601(this.sum(since, this.sum(limit, 1) * duration * 1000));
+            }
+            else {
+                request['till'] = this.iso8601(until);
+            }
+        }
+        else if (until !== undefined) {
+            request['till'] = this.iso8601(until);
+            const fromTimestamp = until - this.sum(limit, 1) * duration * 1000;
+            request['from'] = this.iso8601(fromTimestamp);
         }
         else {
             const now = this.milliseconds();
             request['till'] = this.iso8601(now);
-            request['from'] = this.iso8601(now - limit * duration * 1000 - 1);
+            request['from'] = this.iso8601(now - this.sum(limit, 1) * duration * 1000 - 1);
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetCandles(this.extend(request, params));
         //
         //     [

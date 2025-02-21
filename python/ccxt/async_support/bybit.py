@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bybit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bybit, self).describe(), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -255,6 +255,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/reference': 5,
                         # spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -356,6 +357,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
+                        'v5/account/withdrawal': 5,
                         # asset
                         'v5/asset/exchange/query-coin-list': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query': 0.5,  # 100/s => cost = 50 / 100 = 0.5
@@ -1073,8 +1075,78 @@ class bybit(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
+                    'SOL': 'SOL',
+                    'ACA': 'ACA',
+                    'ADA': 'ADA',
+                    'ALGO': 'ALGO',
+                    'APT': 'APTOS',
+                    'AR': 'AR',
+                    'ARBONE': 'ARBI',
+                    'AVAXC': 'CAVAX',
+                    'AVAXX': 'XAVAX',
+                    'ATOM': 'ATOM',
+                    'BCH': 'BCH',
+                    'BEP2': 'BNB',
+                    'CHZ': 'CHZ',
+                    'DCR': 'DCR',
+                    'DGB': 'DGB',
+                    'DOGE': 'DOGE',
+                    'DOT': 'DOT',
+                    'EGLD': 'EGLD',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'ETHF': 'ETHF',
+                    'ETHW': 'ETHW',
+                    'FIL': 'FIL',
+                    'STEP': 'FITFI',
+                    'FLOW': 'FLOW',
+                    'FTM': 'FTM',
+                    'GLMR': 'GLMR',
+                    'HBAR': 'HBAR',
+                    'HNT': 'HNT',
+                    'ICP': 'ICP',
+                    'ICX': 'ICX',
+                    'KDA': 'KDA',
+                    'KLAY': 'KLAY',
+                    'KMA': 'KMA',
+                    'KSM': 'KSM',
+                    'LTC': 'LTC',
+                    # 'TERRA': 'LUNANEW',
+                    # 'TERRACLASSIC': 'LUNA',
+                    'MATIC': 'MATIC',
+                    'MINA': 'MINA',
+                    'MOVR': 'MOVR',
+                    'NEAR': 'NEAR',
+                    'NEM': 'NEM',
+                    'OASYS': 'OAS',
+                    'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'ONE': 'ONE',
+                    'OPTIMISM': 'OP',
+                    'POKT': 'POKT',
+                    'QTUM': 'QTUM',
+                    'RVN': 'RVN',
+                    'SC': 'SC',
+                    'SCRT': 'SCRT',
+                    'STX': 'STX',
+                    'THETA': 'THETA',
+                    'TON': 'TON',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAXP',
+                    'XDC': 'XDC',
+                    'XEC': 'XEC',
+                    'XLM': 'XLM',
+                    'XRP': 'XRP',
+                    'XTZ': 'XTZ',
+                    'XYM': 'XYM',
+                    'ZEN': 'ZEN',
+                    'ZIL': 'ZIL',
+                    'ZKSYNC': 'ZKSYNC',
+                    # todo: uncomment after consensus
+                    # 'CADUCEUS': 'CMP',
+                    # 'KON': 'KON',  # konpay, "konchain"
+                    # 'AURORA': 'AURORA',
+                    # 'BITCOINGOLD': 'BTG',
                 },
                 'networksById': {
                     'ETH': 'ERC20',
@@ -1116,7 +1188,7 @@ class bybit(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1140,27 +1212,31 @@ class bybit(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 365 * 2,  # 2 years
                         'untilDays': 7,  # days between start-end
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 50,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2,  # 2 years
+                        'daysBack': 365 * 2,  # 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1173,7 +1249,7 @@ class bybit(Exchange, ImplicitAPI):
                         'triggerDirection': False,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'marketBuyRequiresPrice': True,
                     },
@@ -1254,7 +1330,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
-        # The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        # The API key of user id must own one of permissions will be allowed to call following API endpoints:
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
@@ -1346,8 +1422,8 @@ class bybit(Exchange, ImplicitAPI):
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
-        quote = 'USD'
-        settle = 'USDC'
+        quote = None
+        settle = None
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         base = None
@@ -1355,9 +1431,20 @@ class bybit(Exchange, ImplicitAPI):
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
+            symbolQuoteAndSettle = self.safe_string(symbolBase, 1)
+            splitQuote = symbolQuoteAndSettle.split(':')
+            quoteAndSettle = self.safe_string(splitQuote, 0)
+            quote = quoteAndSettle
+            settle = quoteAndSettle
         else:
             base = self.safe_string(optionParts, 0)
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+            if symbol.endswith('-USDT'):
+                quote = 'USDT'
+                settle = 'USDT'
+            else:
+                quote = 'USDC'
+                settle = 'USDC'
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
         datetime = self.convert_expire_date(expiry)
@@ -1446,6 +1533,8 @@ class bybit(Exchange, ImplicitAPI):
         return amountString
 
     def get_price(self, symbol: str, price: str):
+        if price is None:
+            return price
         market = self.market(symbol)
         emptyPrecisionPrice = (market['precision']['price'] is None)
         if not emptyPrecisionPrice:
@@ -1459,7 +1548,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.cost_to_precision(symbol, cost)
         return cost
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1650,7 +1739,7 @@ class bybit(Exchange, ImplicitAPI):
         derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
         return self.array_concat(spotMarkets, derivativeMarkets)
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'spot',
         }
@@ -1765,7 +1854,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_future_markets(self, params):
+    async def fetch_future_markets(self, params) -> List[Market]:
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
@@ -1947,7 +2036,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_option_markets(self, params):
+    async def fetch_option_markets(self, params) -> List[Market]:
         request: dict = {
             'category': 'option',
         }
@@ -2630,8 +2719,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         for i in range(0, len(tickerList)):
             tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
-        result = self.parse_funding_rates(tickerList)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(tickerList, symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3140,7 +3228,16 @@ class bybit(Exchange, ImplicitAPI):
                         if (loan is not None) and (interest is not None):
                             account['debt'] = Precise.string_add(loan, interest)
                         account['total'] = self.safe_string(coinEntry, 'walletBalance')
-                        account['free'] = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        free = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        if free is not None:
+                            account['free'] = free
+                        else:
+                            locked = self.safe_string(coinEntry, 'locked', '0')
+                            totalPositionIm = self.safe_string(coinEntry, 'totalPositionIM', '0')
+                            totalOrderIm = self.safe_string(coinEntry, 'totalOrderIM', '0')
+                            totalUsed = Precise.string_add(locked, totalPositionIm)
+                            totalUsed = Precise.string_add(totalUsed, totalOrderIm)
+                            account['used'] = totalUsed
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
@@ -3623,7 +3720,7 @@ class bybit(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param str [params.positionIdx]: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
         :param bool [params.hedged]: *contracts only* True for hedged mode, False for one way mode, default is False
-        :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
+        :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
         :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'
@@ -3811,7 +3908,7 @@ class bybit(Exchange, ImplicitAPI):
                 elif price is not None:
                     request['qty'] = self.get_cost(symbol, Precise.string_mul(amountString, priceString))
                 else:
-                    request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
+                    request['qty'] = amountString
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
                 request['qty'] = amountString
@@ -5059,12 +5156,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         address = self.safe_string(depositAddress, 'addressDeposit')
         tag = self.safe_string(depositAddress, 'tagDeposit')
         code = self.safe_string(currency, 'code')
-        chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
         return {
             'info': depositAddress,
             'currency': code,
-            'network': chain,
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain'), code),
             'address': address,
             'tag': tag,
         }
@@ -5084,6 +5180,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request: dict = {
             'coin': currency['id'],
         }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chainType'] = self.network_code_to_id(networkCode, code)
         response = await self.privateGetV5AssetDepositQueryAddress(self.extend(request, params))
         #
         #     {
@@ -5124,40 +5224,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
         currency = self.currency(code)
-        request: dict = {
-            'coin': currency['id'],
-        }
-        if networkId is not None:
-            request['chainType'] = networkId
-        response = await self.privateGetV5AssetDepositQueryAddress(self.extend(request, query))
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "success",
-        #         "result": {
-        #             "coin": "USDT",
-        #             "chains": [
-        #                 {
-        #                     "chainType": "ERC20",
-        #                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        #                     "tagDeposit": "",
-        #                     "chain": "ETH"
-        #                 }
-        #             ]
-        #         },
-        #         "retExtInfo": {},
-        #         "time": 1672192792860
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        chains = self.safe_list(result, 'chains', [])
-        chainsIndexedById = self.index_by(chains, 'chain')
-        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
-        addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
-        return self.parse_deposit_address(addressObject, currency)
+        networkCode, paramsOmited = self.handle_network_code_and_params(params)
+        indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
+        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        return indexedAddresses[selectedNetworkCode]
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -6430,7 +6501,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
         await self.load_markets()
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
@@ -6455,10 +6526,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #    }
         #
         timestamp = self.safe_integer(interest, 'timestamp')
-        value = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        openInterest = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        # the openInterest is in the base asset for linear and quote asset for inverse
+        amount = openInterest if market['linear'] else None
+        value = openInterest if market['inverse'] else None
         return self.safe_open_interest({
             'symbol': market['symbol'],
-            'openInterestAmount': None,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -8646,6 +8720,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
             else:
                 feedback = self.id + ' ' + body
+            if body.find('Withdraw address chain or destination tag are not equal'):
+                feedback = feedback + '; You might also need to ensure the address is whitelisted'
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message

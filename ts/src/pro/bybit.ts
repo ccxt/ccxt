@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bybit extends bybitRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -845,7 +845,7 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols
@@ -865,11 +865,22 @@ export default class bybit extends bybitRest {
         const market = this.market (symbols[0]);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 500;
+            if (market['option']) {
+                limit = 100;
+            }
         } else {
             if (!market['spot']) {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.');
+                if (market['option']) {
+                    if ((limit !== 25) && (limit !== 100)) {
+                        throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
+                    }
+                } else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    // bybit only support limit 1, 50, 200, 500 for contract
+                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
+                }
+            } else {
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
+                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
                 }
             }
         }
