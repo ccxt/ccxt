@@ -119,6 +119,38 @@ public partial class bybit
         return new Tickers(res);
     }
     /// <summary>
+    /// fetches the bid and ask price and volume for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/tickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : *contract only* 'linear', 'inverse'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.baseCoin</term>
+    /// <description>
+    /// string : *option only* base coin, default is 'BTC'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
