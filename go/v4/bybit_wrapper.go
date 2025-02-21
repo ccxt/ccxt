@@ -568,6 +568,33 @@ func (this *Bybit) EditOrder(id string, symbol string, typeVar string, side stri
 }
 /**
  * @method
+ * @name bybit#editOrders
+ * @description edit a list of trade orders
+ * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Bybit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
+}
+/**
+ * @method
  * @name bybit#cancelOrder
  * @description cancels an open order
  * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
