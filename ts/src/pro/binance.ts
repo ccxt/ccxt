@@ -3295,6 +3295,7 @@ export default class binance extends binanceRest {
      * @description fetches information on an order made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3307,7 +3308,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchOrderWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
