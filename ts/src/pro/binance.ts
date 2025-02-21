@@ -3074,7 +3074,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const isSwap = (marketType === 'future' ||  marketType === 'delivery');
+        const isSwap = (marketType === 'future' || marketType === 'delivery');
         let payload = undefined;
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
