@@ -9146,7 +9146,7 @@ func  (this *Exchange) ParseConversions(conversions interface{}, optionalArgs ..
         if IsTrue(!IsEqual(toId, nil)) {
             toCurrency = this.SafeCurrency(toId)
         }
-        var conversion interface{} = this.Extend(this.ParseConversion(entry, fromCurrency, toCurrency), params)
+        var conversion interface{} = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
         AppendToArray(&result,conversion)
     }
     var sorted interface{} = this.SortBy(result, "timestamp")
