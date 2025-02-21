@@ -3212,6 +3212,7 @@ export default class binance extends binanceRest {
      * @description cancel multiple orders
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
