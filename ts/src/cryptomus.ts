@@ -870,6 +870,54 @@ export default class cryptomus extends Exchange {
         }
     }
 
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name cryptomus#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.direction] order direction 'buy' or 'sell'
+         * @param {string} [params.order_id] order id
+         * @param {string} [params.client_order_id] client order id
+         * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+         * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+
+        };
+        const response = await this.privateGetV1UserApiExchangeOrders (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //                 "direction": "sell",
+        //                 "symbol": "BTC_USDT",
+        //                 "price": "102.0130000000000000",
+        //                 "quantity": "0.0005000000000000",
+        //                 "value": "0.0510065000000000",
+        //                 "filledQuantity": "0.0000000000000000",
+        //                 "filledValue": "0.0000000000000000",
+        //                 "createdAt": "2024-12-19 09:02:51",
+        //                 "clientOrderId": "987654321",
+        //                 "stopLossPrice": "101.12"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        const data = this.safeDict (response, 'data', {});
+        const result = this.safeList (data, 'result', []);
+        return this.parseOrders (result, market, undefined, undefined);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
@@ -917,19 +965,46 @@ export default class cryptomus extends Exchange {
         //     },
         //     ...
         //
+        // fetchOpenOrders
+        //     {
+        //         "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //         "direction": "sell",
+        //         "symbol": "BTC_USDT",
+        //         "price": "102.0130000000000000",
+        //         "quantity": "0.0005000000000000",
+        //         "value": "0.0510065000000000",
+        //         "filledQuantity": "0.0000000000000000",
+        //         "filledValue": "0.0000000000000000",
+        //         "createdAt": "2024-12-19 09:02:51",
+        //         "clientOrderId": "987654321",
+        //         "stopLossPrice": "101.12"
+        //     }
+        //
         const id = this.safeString2 (order, 'order_id', 'id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const dateTime = this.safeString (order, 'created_at');
         const timestamp = this.parse8601 (dateTime);
+        const deal = this.safeDict (order, 'deal', {});
+        const averageFilledPrice = this.safeNumber (deal, 'averageFilledPrice');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'direction');
-        const price = this.safeNumber (order, 'filledValue');
+        let price = this.safeNumber (order, 'price');
+        const transaction = this.safeList (deal, 'transactions', []);
+        let fee = undefined;
+        const feeCurrency = this.safeString (transaction[0], 'feeCurrency');
+        if (feeCurrency !== undefined) {
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrency),
+                'cost': this.safeNumber (transaction[0], 'fee'),
+            };
+        }
+        if (price === undefined) {
+            price = this.safeNumber (transaction[0], 'filledPrice');
+        }
         const amount = this.safeNumber (order, 'filledQuantity');
         const cost = this.safeNumber (order, 'filledValue');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const deal = this.safeDict (order, 'deal', {});
-        const averageFilledPrice = this.safeNumber (deal, 'averageFilledPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -950,7 +1025,7 @@ export default class cryptomus extends Exchange {
             'filled': undefined,
             'remaining': undefined,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
             'info': order,
         }, market);
