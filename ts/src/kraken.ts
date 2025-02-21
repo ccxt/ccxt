@@ -845,7 +845,7 @@ export default class kraken extends Exchange {
             // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
             //
             const altName = this.safeString (currency, 'altname');
-            let unifiedCode: string = '';
+            let unifiedCode = '';
             // handle cases like XBT.M
             if (id.indexOf ('.') > 0) {
                 // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
