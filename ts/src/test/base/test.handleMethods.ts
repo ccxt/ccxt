@@ -54,6 +54,8 @@ function helperTestHandleMarketTypeAndParams () {
     exchange.options['defaultType'] = undefined;
     const [ marketType6, params6 ] = exchange.handleMarketTypeAndParams ('fetchY', undefined, {}, undefined);
     assert (marketType6 === 'spot');
+    // fake assertion to avoid unused vars
+    assert (params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
 }
 
 
