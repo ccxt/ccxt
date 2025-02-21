@@ -74,6 +74,7 @@ class bybit(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -2462,6 +2463,20 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
+
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return self.fetch_tickers(symbols, params)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
