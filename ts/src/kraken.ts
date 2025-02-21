@@ -859,6 +859,8 @@ export default class kraken extends Exchange {
                 // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
                 if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
                     unifiedCode = this.safeCurrencyCode (altName);
+                    // also, add map in commonCurrencies:
+                    this.commonCurrencies[id] = unifiedCode;
                 }
             }
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
@@ -1544,40 +1546,39 @@ export default class kraken extends Exchange {
             'datetime': undefined,
         };
         const currencyIds = Object.keys (balances);
-        // response currencies might be different, see comment in `fetchBalance`
+        // see all details in fetchBalance comments
         const earningSuffix = '.F';
-        const rewardCurrenciesDict = {};
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const isRewardsActivatedCoin = currencyId.endsWith (earningSuffix);
-            if (isRewardsActivatedCoin) {
-                // map e.g. XBT.F to XXBT
-                const originalCurrencyId = currencyId.replace (earningSuffix, '');
-                const commonCode = this.commonCurrencyCode (originalCurrencyId);
-                if (commonCode in this.currencies) {
-                    const currency = this.currency (commonCode);
-                    rewardCurrenciesDict[currency['id']] = originalCurrencyId;
-                } else {
-                    rewardCurrenciesDict[currencyId] = originalCurrencyId;
-                }
-            }
-        }
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            let adjustedCurrencyId = currencyId;
-            if (currencyId in rewardCurrenciesDict) {
-                adjustedCurrencyId = currencyId + '_EARNING';
-            } else if (currencyId.endsWith (earningSuffix)) {
-                adjustedCurrencyId = currencyId.replace (earningSuffix, '');
-            }
-            balance['originalBalanceId'] = currencyId;
             account['info'] = balance;
-            const code = this.safeCurrencyCode (adjustedCurrencyId);
-            result[code] = account;
+            account['info']['originalId'] = currencyId;
+            // now handle the key
+            let unifiedCode = undefined;
+            const endsWithF = currencyId.endsWith (earningSuffix);
+            if (endsWithF) {
+                // map e.g. XBT.F to XXBT
+                const sourceCurrencyId = currencyId.replace (earningSuffix, '');
+                unifiedCode = this.commonCurrencyCode (sourceCurrencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = result[unifiedCode];
+                }
+                result[unifiedCode] = account;
+            } else {
+                unifiedCode = this.commonCurrencyCode (currencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = account;
+                } else {
+                    result[unifiedCode] = account;
+                }
+            }
         }
         return this.safeBalance (result);
     }
@@ -1597,18 +1598,14 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "ZUSD": {
-        //                 "balance": 25435.21,
-        //                 "hold_trade": 8249.76
+        //             "SOL": {
+        //                 "balance": "1.2340000000",
+        //                 "hold_trade": "0.0000000000"
         //             },
-        //             "XXBT": {
-        //                 "balance": 1.2435,
-        //                 "hold_trade": 0.8423
-        //             }
         //         }
         //     }
         //
-        // if "earning(rewards)" activated (see https://github.com/ccxt/ccxt/issues/24663)
+        // if "earning(rewards)" activated (see https://github.com/ccxt/ccxt/issues/24663), then some coins get .F suffix (such suffixed coins are not provided in fetchCurrencies response, unlike .M suffixed coins)
         //
         //     {
         //         "error": [],
@@ -1618,19 +1615,13 @@ export default class kraken extends Exchange {
         //                 "hold_trade": "0.0000000000"
         //             },
         //             "SOL.F": {
-        //                 "balance": "0.0200000000",
+        //                 "balance": "1.2340000000",
         //                 "hold_trade": "0.0000000000"
         //             },
-        //             "USDT": {
-        //                 "balance": "0.00000000",
-        //                 "hold_trade": "0.00000000"
-        //             },
-        //             "USDT.F": {
-        //                 "balance": "0.75053200",
-        //                 "hold_trade": "0.00000000"
-        //             }
         //         }
         //     }
+        //
+        // for more info, about prefix and suffix parts, see comments in "fetchCurrencies"
         //
         return this.parseBalance (response);
     }
