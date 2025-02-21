@@ -3054,6 +3054,7 @@ export default class binance extends binanceRest {
      * @description edit a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -3067,16 +3068,17 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('editOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
+        const isSwap = (marketType === 'future' ||  marketType === 'delivery');
         let payload = undefined;
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
-        } else if (marketType === 'future') {
+        } else if (isSwap) {
             payload = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         }
         let returnRateLimits = false;
@@ -3084,7 +3086,7 @@ export default class binance extends binanceRest {
         payload['returnRateLimits'] = returnRateLimits;
         const message: Dict = {
             'id': messageHash,
-            'method': (marketType === 'future') ? 'order.modify' : 'order.cancelReplace',
+            'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {
