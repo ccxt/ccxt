@@ -2786,7 +2786,6 @@ func  (this *phemex) CreateOrder(symbol interface{}, typeVar interface{}, side i
             var market interface{} = this.Market(symbol)
             var requestSide interface{} = this.Capitalize(side)
             typeVar = this.Capitalize(typeVar)
-            var reduceOnly interface{} = this.SafeBool(params, "reduceOnly")
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
                 "side": requestSide,
@@ -2857,8 +2856,10 @@ func  (this *phemex) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 var posSide interface{} = this.SafeStringLower(params, "posSide")
                 if IsTrue(IsEqual(posSide, nil)) {
                     if IsTrue(hedged) {
+                        var reduceOnly interface{} = this.SafeBool(params, "reduceOnly")
                         if IsTrue(reduceOnly) {
                             side = Ternary(IsTrue((IsEqual(side, "buy"))), "sell", "buy")
+                            params = this.Omit(params, "reduceOnly")
                         }
                         posSide = Ternary(IsTrue((IsEqual(side, "buy"))), "Long", "Short")
                     } else {
@@ -2965,7 +2966,6 @@ func  (this *phemex) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 }
                 params = this.Omit(params, "stopLossPrice")
             }
-            params = this.Omit(params, "reduceOnly")
             var response interface{} = nil
             if IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) {
                 
