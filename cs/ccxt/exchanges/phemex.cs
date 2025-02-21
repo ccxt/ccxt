@@ -2742,7 +2742,6 @@ public partial class phemex : Exchange
         object market = this.market(symbol);
         object requestSide = this.capitalize(side);
         type = this.capitalize(type);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", requestSide },
@@ -2833,9 +2832,11 @@ public partial class phemex : Exchange
             {
                 if (isTrue(hedged))
                 {
+                    object reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if (isTrue(reduceOnly))
                     {
                         side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                        parameters = this.omit(parameters, "reduceOnly");
                     }
                     posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "Long" : "Short";
                 } else
@@ -2975,7 +2976,6 @@ public partial class phemex : Exchange
             }
             parameters = this.omit(parameters, "stopLossPrice");
         }
-        parameters = this.omit(parameters, "reduceOnly");
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
         {
