@@ -402,6 +402,10 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
+func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
+	return ParseInt(data)
+}
+
 // error related functions
 
 type ErrorType string
