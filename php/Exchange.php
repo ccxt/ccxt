@@ -1692,9 +1692,7 @@ class Exchange {
     }
 
     public function __destruct() {
-        if ($this->curl !== null) {
-            curl_close($this->curl);
-        }
+        $this->close();
     }
 
     public function has($feature = null) {
@@ -2207,6 +2205,14 @@ class Exchange {
             $number .= mt_rand(0, 9);
         }
         return (int)$number;
+    }
+
+    public function close() {
+        // Here happens the language-specific cleanup of WS & REST resources
+        // [REST]
+        if ($this->curl !== null) {
+            curl_close($this->curl);
+        }
     }
 
     // ########################################################################
