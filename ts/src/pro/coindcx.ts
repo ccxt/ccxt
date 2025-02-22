@@ -439,15 +439,8 @@ export default class coindcx extends coindcxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await this.authenticate (params);
-        const messageHash = 'balance';
-        const url = this.urls['api']['ws'];
-        const subscribe: Dict = {
-            'type': 'subscribe',
-            'channelName': 'coindcx',
-        };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        const subscribeHash = 'balance';
+        return await this.watchPrivate (subscribeHash);
     }
 
     handleBalance (client: Client, message) {
@@ -499,16 +492,9 @@ export default class coindcx extends coindcxRest {
         let messageHash = 'order-update';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            messageHash += '::' + symbol;
         }
-        await this.authenticate (params);
-        const url = this.urls['api']['ws'];
-        const message: Dict = {
-            'type': 'subscribe',
-            'channelName': 'coindcx',
-        };
-        const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        const orders = await this.watchPrivate (messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -555,12 +541,12 @@ export default class coindcx extends coindcxRest {
         const ordersLength = orders.length;
         const newOrders = [];
         const symbols: Dict = {};
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
         if (ordersLength > 0) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const stored = this.orders;
             for (let i = 0; i < orders.length; i++) {
                 const order = this.parseOrder (orders[i]);
                 stored.append (order);
@@ -574,9 +560,9 @@ export default class coindcx extends coindcxRest {
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
             const symbolSpecificMessageHash = messageHash + '::' + symbol;
-            client.resolve (newOrders, symbolSpecificMessageHash);
+            client.resolve (stored, symbolSpecificMessageHash);
         }
-        client.resolve (newOrders, messageHash);
+        client.resolve (stored, messageHash);
     }
 
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -591,21 +577,14 @@ export default class coindcx extends coindcxRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
         const name = 'trade-update';
-        let messageHash = name;
+        let subscribeHash = name;
         symbol = this.symbol (symbol);
-        messageHash += ':' + symbol;
-        const url = this.urls['api']['ws'];
-        const message: Dict = {
-            'type': 'subscribe',
-            'channelName': 'coindcx',
-        };
-        const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        subscribeHash += '::' + symbol;
+        const trades = await this.watchPrivate (subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -652,31 +631,24 @@ export default class coindcx extends coindcxRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            client.resolve (stored, messageHash + ':' + keys[i]);
+            client.resolve (stored, messageHash + '::' + keys[i]);
         }
     }
 
-    async authenticate (params = {}) {
+    async watchPrivate (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        const messageHash = 'authenticated';
-        const future = client.future (messageHash);
-        const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
-        if (isAuthenticated === undefined) {
-            const body = {
-                'channel': 'coindcx',
-            };
-            const payload = this.json (body).toString ();
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-            const request: Dict = {
-                'type': 'subscribe',
-                'channelName': 'coindcx',
-                'apiKey': this.apiKey,
-                'authSignature': signature,
-            };
-            return this.watch (url, messageHash, this.extend (request, params), messageHash);
-        }
-        return await future;
+        const body = {
+            'channel': 'coindcx',
+        };
+        const payload = this.json (body);
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+        const request: Dict = {
+            'type': 'subscribe',
+            'channelName': 'coindcx',
+            'apiKey': this.apiKey,
+            'authSignature': signature,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), 'privateChannels');
     }
 
     handleMessage (client: Client, message) {
