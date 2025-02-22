@@ -485,9 +485,6 @@ export default class coindcx extends coindcxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         let messageHash = 'order-update';
         if (symbol !== undefined) {
@@ -577,13 +574,12 @@ export default class coindcx extends coindcxRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
-        }
         const name = 'trade-update';
         let subscribeHash = name;
-        symbol = this.symbol (symbol);
-        subscribeHash += '::' + symbol;
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            subscribeHash += '::' + symbol;
+        }
         const trades = await this.watchPrivate (subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
