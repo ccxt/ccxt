@@ -1188,8 +1188,8 @@ export default class bitmart extends Exchange {
         //
         //     {
         //         "message": "OK",
-        //         "code":1000,
-        //         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "code": 1000,
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
         //         "data": {
         //             "currencies": [
         //                 {
@@ -1200,7 +1200,9 @@ export default class bitmart extends Exchange {
         //                     "withdraw_enabled": true,
         //                     "deposit_enabled": true,
         //                     "withdraw_minsize": "0.0003",
-        //                     "withdraw_minfee": "9.74"
+        //                     "withdraw_minfee": "9.61",
+        //                     "withdraw_fee_estimate": "9.61",
+        //                     "withdraw_fee": "0.0001"
         //                 }
         //             ]
         //         }
@@ -1247,7 +1249,7 @@ export default class bitmart extends Exchange {
                 'withdraw': withdraw,
                 'deposit': deposit,
                 'active': withdraw && deposit,
-                'fee': this.safeNumber (currency, 'withdraw_minfee'), // todo check
+                'fee': this.safeNumber (currency, 'withdraw_fee'),
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw_minsize'),
