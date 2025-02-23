@@ -12,7 +12,7 @@ import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class valr extends valrRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'cancelAllOrdersWs': false,

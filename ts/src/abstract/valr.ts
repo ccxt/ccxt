@@ -38,11 +38,13 @@ interface Exchange {
     privateGetMarketdataPairTradehistory (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoCurrencyDepositAddress (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoCurrencyDepositHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetWalletCryptoDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoAddressBook (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoAddressBookCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoCurrencyWithdraw (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoCurrencyWithdrawId (params?: {}): Promise<implicitReturnType>;
     privateGetWalletCryptoCurrencyWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetWalletCryptoWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     privateGetWalletFiatCurrencyAccountsId (params?: {}): Promise<implicitReturnType>;
     privateGetWalletFiatCurrencyAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetWalletFiatCurrencyBanks (params?: {}): Promise<implicitReturnType>;

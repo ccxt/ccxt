@@ -56,7 +56,7 @@ import { DECIMAL_PLACES } from './base/functions/number.js';
  * @augments Exchange
  */
 export default class valr extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'valr',
             'name': 'VALR',
