@@ -72,6 +72,7 @@ class binance extends binance$1 {
                         'ws-api': {
                             'spot': 'wss://testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -84,6 +85,7 @@ class binance extends binance$1 {
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -2504,6 +2506,7 @@ class binance extends binance$1 {
      * @description fetch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2514,7 +2517,7 @@ class binance extends binance$1 {
     async fetchBalanceWs(params = {}) {
         await this.loadMarkets();
         const type = this.getMarketType('fetchBalanceWs', undefined, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new errors.BadRequest(this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
@@ -2623,6 +2626,7 @@ class binance extends binance$1 {
      * @name binance#fetchPositionsWs
      * @description fetch all open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2631,17 +2635,23 @@ class binance extends binance$1 {
      */
     async fetchPositionsWs(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, 'swap', true, true, true);
-        const url = this.urls['api']['ws']['ws-api']['future'];
-        const requestId = this.requestId(url);
-        const messageHash = requestId.toString();
         const payload = {};
+        let market = undefined;
+        symbols = this.marketSymbols(symbols, 'swap', true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
-                payload['symbol'] = this.marketId(symbols[0]);
+                market = this.market(symbols[0]);
+                payload['symbol'] = market['id'];
             }
         }
+        const type = this.getMarketType('fetchPositionsWs', market, params);
+        if (type !== 'future' && type !== 'delivery') {
+            throw new errors.BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][type];
+        const requestId = this.requestId(url);
+        const messageHash = requestId.toString();
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
@@ -2867,6 +2877,7 @@ class binance extends binance$1 {
      * @description create a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2881,7 +2892,7 @@ class binance extends binance$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.getMarketType('createOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new errors.BadRequest(this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
@@ -3015,6 +3026,7 @@ class binance extends binance$1 {
      * @description edit a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -3028,17 +3040,18 @@ class binance extends binance$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.getMarketType('editOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new errors.BadRequest(this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
+        const isSwap = (marketType === 'future' || marketType === 'delivery');
         let payload = undefined;
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
         }
-        else if (marketType === 'future') {
+        else if (isSwap) {
             payload = this.editContractOrderRequest(id, symbol, type, side, amount, price, params);
         }
         let returnRateLimits = false;
@@ -3046,7 +3059,7 @@ class binance extends binance$1 {
         payload['returnRateLimits'] = returnRateLimits;
         const message = {
             'id': messageHash,
-            'method': (marketType === 'future') ? 'order.modify' : 'order.cancelReplace',
+            'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
             'params': this.signParams(this.extend(payload, params)),
         };
         const subscription = {
@@ -3171,6 +3184,7 @@ class binance extends binance$1 {
      * @description cancel multiple orders
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3252,6 +3266,7 @@ class binance extends binance$1 {
      * @description fetches information on an order made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3264,7 +3279,7 @@ class binance extends binance$1 {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOrderWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new errors.BadRequest(this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
