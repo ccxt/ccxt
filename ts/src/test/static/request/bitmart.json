@@ -765,6 +765,16 @@
                 ]
             }
         ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetch mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/markprice-kline?symbol=ETHUSDT&step=1&start_time=1740288630&end_time=1740318630",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
