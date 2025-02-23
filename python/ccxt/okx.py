@@ -514,6 +514,7 @@ class okx(Exchange):
                     '51278': InvalidOrder,  # SL trigger price can not be lower than the last price
                     '51279': InvalidOrder,  # TP trigger price can not be lower than the last price
                     '51280': InvalidOrder,  # SL trigger price can not be higher than the last price
+                    '51290': ExchangeNotAvailable, # The Bot engine is being upgraded. Please try again later
                     '51400': OrderNotFound,  # Cancellation failed as the order does not exist
                     '51401': OrderNotFound,  # Cancellation failed as the order is already canceled
                     '51402': OrderNotFound,  # Cancellation failed as the order is already completed
