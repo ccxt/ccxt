@@ -622,15 +622,28 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000",
                 "input": []
             },
             {
                 "description": "Fetch deposits for USDT",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50&currency=USDT",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000&currency=USDT",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "Fetch deposits for USDT with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000&currency=USDT&startTime=1662552257155&endTime=1670328257154",
+                "input": [
+                    "USDT",
+                    1662552257155,
+                    null,
+                    {
+                        "until": 1670328257154
+                    }
                 ]
             }
         ],
@@ -638,7 +651,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&N=1000",
                 "input": []
             }
         ],
