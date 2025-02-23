@@ -122,7 +122,7 @@ export default class bitmart extends bitmartRest {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        let rawSubscriptions = [];
+        const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
@@ -131,9 +131,10 @@ export default class bitmart extends bitmartRest {
             messageHashes.push (channel + ':' + market['symbol']);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
-        if ((type !== 'spot') && (channel === 'ticker')) {
-            rawSubscriptions = [ channelType + '/' + channel ];
-        }
+        // if ((type !== 'spot') && (channel === 'ticker')) {
+        //     rawSubscriptions = [ channelType + '/' + channel ];
+        // }
+        // Exchange update from 2025-02-11 supports subscription by trading pair for swap
         const request: Dict = {
             'args': rawSubscriptions,
         };
@@ -1024,20 +1025,22 @@ export default class bitmart extends bitmartRest {
         //        ],
         //        "table": "spot/ticker"
         //    }
-        //    {
-        //        "group":"futures/ticker",
-        //        "data":{
-        //              "symbol":"BTCUSDT",
-        //              "volume_24":"117387.58",
-        //              "fair_price":"146.24",
-        //              "last_price":"146.24",
-        //              "range":"147.17",
-        //              "ask_price": "147.11",
-        //              "ask_vol": "1",
-        //              "bid_price": "142.11",
-        //              "bid_vol": "1"
-        //            }
-        //    }
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "ETHUSDT",
+        //             "last_price": "2807.73",
+        //             "volume_24": "2227011952",
+        //             "range": "0.0273398194664491",
+        //             "mark_price": "2807.5",
+        //             "index_price": "2808.71047619",
+        //             "ask_price": "2808.04",
+        //             "ask_vol": "7371",
+        //             "bid_price": "2807.28",
+        //             "bid_vol": "3561"
+        //         },
+        //         "group": "futures/ticker:ETHUSDT@100ms"
+        //     }
         //
         this.handleBidAsk (client, message);
         const table = this.safeString (message, 'table');
@@ -1062,17 +1065,19 @@ export default class bitmart extends bitmartRest {
 
     parseWsSwapTicker (ticker, market: Market = undefined) {
         //
-        //    {
-        //        "symbol":"BTCUSDT",
-        //        "volume_24":"117387.58",
-        //        "fair_price":"146.24",
-        //        "last_price":"146.24",
-        //        "range":"147.17",
-        //        "ask_price": "147.11",
-        //        "ask_vol": "1",
-        //        "bid_price": "142.11",
-        //        "bid_vol": "1"
-        //    }
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "last_price": "2807.73",
+        //         "volume_24": "2227011952",
+        //         "range": "0.0273398194664491",
+        //         "mark_price": "2807.5",
+        //         "index_price": "2808.71047619",
+        //         "ask_price": "2808.04",
+        //         "ask_vol": "7371",
+        //         "bid_price": "2807.28",
+        //         "bid_vol": "3561"
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, '', 'swap'),
@@ -1091,10 +1096,12 @@ export default class bitmart extends bitmartRest {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeString (ticker, 'fair_price'),
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume_24'),
             'info': ticker,
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': this.safeString (ticker, 'index_price'),
         }, market);
     }
 
