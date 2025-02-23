@@ -73,6 +73,7 @@ export default class bitmart extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -159,6 +160,7 @@ export default class bitmart extends Exchange {
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
+                        'contract/public/markprice-kline': 0.5, // 6 times per 1 second
                     },
                 },
                 'private': {
@@ -179,7 +181,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
-                        '/account/v1/withdraw/address/list': 3, // 2 times per 2 seconds
+                        'account/v1/withdraw/address/list': 3, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -2131,7 +2133,13 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.publicGetContractPublicKline (this.extend (request, params));
+            const price = this.safeString (params, 'price');
+            if (price === 'mark') {
+                params = this.omit (params, 'price');
+                response = await this.publicGetContractPublicMarkpriceKline (this.extend (request, params));
+            } else {
+                response = await this.publicGetContractPublicKline (this.extend (request, params));
+            }
         } else {
             response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
