@@ -179,6 +179,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
+                        '/account/v1/withdraw/address/list': 3, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -240,7 +241,7 @@ export default class bitmart extends Exchange {
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         // margin
-                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/submit_order': 1.5, // 20 times per second
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
