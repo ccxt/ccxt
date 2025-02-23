@@ -73,6 +73,7 @@ export default class bitmart extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -159,6 +160,7 @@ export default class bitmart extends Exchange {
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
+                        'contract/public/markprice-kline': 0.5, // 6 times per 1 second
                     },
                 },
                 'private': {
@@ -179,6 +181,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
+                        'account/v1/withdraw/address/list': 3, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -240,7 +243,7 @@ export default class bitmart extends Exchange {
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         // margin
-                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/submit_order': 1.5, // 20 times per second
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
@@ -1187,8 +1190,8 @@ export default class bitmart extends Exchange {
         //
         //     {
         //         "message": "OK",
-        //         "code":1000,
-        //         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "code": 1000,
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
         //         "data": {
         //             "currencies": [
         //                 {
@@ -1199,7 +1202,9 @@ export default class bitmart extends Exchange {
         //                     "withdraw_enabled": true,
         //                     "deposit_enabled": true,
         //                     "withdraw_minsize": "0.0003",
-        //                     "withdraw_minfee": "9.74"
+        //                     "withdraw_minfee": "9.61",
+        //                     "withdraw_fee_estimate": "9.61",
+        //                     "withdraw_fee": "0.0001"
         //                 }
         //             ]
         //         }
@@ -1246,7 +1251,7 @@ export default class bitmart extends Exchange {
                 'withdraw': withdraw,
                 'deposit': deposit,
                 'active': withdraw && deposit,
-                'fee': this.safeNumber (currency, 'withdraw_minfee'), // todo check
+                'fee': this.safeNumber (currency, 'withdraw_fee'),
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw_minsize'),
@@ -2128,7 +2133,13 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.publicGetContractPublicKline (this.extend (request, params));
+            const price = this.safeString (params, 'price');
+            if (price === 'mark') {
+                params = this.omit (params, 'price');
+                response = await this.publicGetContractPublicMarkpriceKline (this.extend (request, params));
+            } else {
+                response = await this.publicGetContractPublicKline (this.extend (request, params));
+            }
         } else {
             response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
@@ -2417,8 +2428,8 @@ export default class bitmart extends Exchange {
         //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
         //         "data":{
         //             "wallet":[
-        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
-        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000","available_usd_valuation":null},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000","available_usd_valuation":null}
         //             ]
         //         }
         //     }
@@ -3784,17 +3795,24 @@ export default class bitmart extends Exchange {
     async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 50; // max 50
+            limit = 1000; // max 1000
         }
         const request: Dict = {
             'operation_type': type, // deposit or withdraw
-            'offset': 1,
             'N': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //

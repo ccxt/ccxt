@@ -226,6 +226,58 @@
                 }
               }
             ]
+          },
+          {
+            "description": "Fetch deposits for USDT with since and until",
+            "method": "fetchDeposits",
+            "input": [
+              "USDT",
+              1662552257155,
+              null,
+              {
+                "until": 1670328257154
+              }
+            ],
+            "httpResponse": {"message":"OK","code":1000,"trace":"6a4ee3034edf4a6db5002cbf5cddf961.73.17403125405173083","data":{"records":[{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"}]}},
+            "parsedResponse": [
+              {
+                "info": {
+                  "withdraw_id": "",
+                  "deposit_id": "14233682",
+                  "operation_type": "deposit",
+                  "currency": "USDT-TRC20",
+                  "apply_time": "1664789416000",
+                  "arrival_amount": "30",
+                  "fee": "0",
+                  "status": 3,
+                  "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                  "address_memo": "",
+                  "tx_id": "ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"
+                },
+                "id": "14233682",
+                "currency": "USDT",
+                "amount": 30,
+                "network": "TRC20",
+                "address": "TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN",
+                "addressFrom": null,
+                "addressTo": null,
+                "tag": null,
+                "tagFrom": null,
+                "tagTo": null,
+                "status": "ok",
+                "type": "deposit",
+                "updated": null,
+                "txid": "ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53",
+                "internal": null,
+                "comment": null,
+                "timestamp": 1664789416000,
+                "datetime": "2022-10-03T09:30:16.000Z",
+                "fee": {
+                  "cost": 0,
+                  "currency": "USDT"
+                }
+              }
+            ]
           }
         ],
         "fetchClosedOrders": [
