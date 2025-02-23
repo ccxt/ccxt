@@ -10,7 +10,7 @@ use ccxt\abstract\vertex as Exchange;
 
 class vertex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'vertex',
             'name' => 'Vertex',
@@ -623,7 +623,7 @@ class vertex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -631,7 +631,7 @@ class vertex extends Exchange {
          */
         $response = $this->v1GatewayGetTime ($params);
         // 1717481623452
-        return $this->parse_number($response);
+        return $this->parse_to_int($response);
     }
 
     public function fetch_status($params = array ()) {
@@ -1564,7 +1564,7 @@ class vertex extends Exchange {
         if (mb_strpos($base, 'PERP') > 0) {
             $marketId = str_replace('-PERP', '', $marketId) . ':USDC';
         }
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],

@@ -5,8 +5,10 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestSafeMethods()  {
-    exchange := ccxt.NewExchange()
-    var inputDict interface{} = map[string]interface{} {
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.DerivedExchange = exchange; exchange.InitParent(map[string]interface{} {
+        "id": "regirock",
+    }, map[string]interface{}{}, exchange)
+    var inputDict map[string]interface{} = map[string]interface{} {
         "i": 1,
         "f": 0.123,
         "bool": true,
@@ -24,7 +26,7 @@ func TestSafeMethods()  {
         "floatString": "0.123",
     }
     var inputList interface{} = []interface{}{"Hi", 2}
-    var compareDict interface{} = map[string]interface{} {
+    var compareDict map[string]interface{} = map[string]interface{} {
         "a": 1,
     }
     var compareList interface{} = []interface{}{1, 2, 3}
@@ -228,6 +230,10 @@ func TestSafeMethods()  {
     Assert(IsEqual(exchange.SafeNumber(inputDict, "f"), exchange.ParseNumber(0.123)))
     Assert(IsEqual(exchange.SafeNumber(inputDict, "strNumber"), exchange.ParseNumber(3)))
     Assert(IsEqual(exchange.SafeNumber(inputList, 1), exchange.ParseNumber(2)))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "bool"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "list"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "dict"), nil))
+    Assert(IsEqual(exchange.SafeNumber(inputList, "str"), nil))
     // safeNumber2
     Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "i"), exchange.ParseNumber(1)))
     Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "f"), exchange.ParseNumber(0.123)))

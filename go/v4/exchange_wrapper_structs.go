@@ -959,6 +959,19 @@ func WithEditContractOrderParams(params map[string]interface{}) EditContractOrde
 }
 
 
+type EditOrdersOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type EditOrdersOptions func(opts *EditOrdersOptionsStruct)
+
+func WithEditOrdersParams(params map[string]interface{}) EditOrdersOptions {
+    return func(opts *EditOrdersOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchOpenOrderOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}

@@ -5,7 +5,9 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestNumber()  {
-    exchange := ccxt.NewExchange()
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.DerivedExchange = exchange; exchange.InitParent(map[string]interface{} {
+        "id": "regirock",
+    }, map[string]interface{}{}, exchange)
     // ----------------------------------------------------------------------------
     // numberToString
     Assert(IsEqual(exchange.NumberToString(OpNeg(7.8e-7)), "-0.00000078"))

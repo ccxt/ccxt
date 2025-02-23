@@ -132,6 +132,40 @@ func (this *Bybit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 }
 /**
  * @method
+ * @name bybit#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+ * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Bybit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+
+    opts := FetchBidsAsksOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchBidsAsks(symbols, params)
+    if IsError(res) {
+        return Tickers{}, CreateReturnError(res)
+    }
+    return NewTickers(res), nil
+}
+/**
+ * @method
  * @name bybit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://bybit-exchange.github.io/docs/v5/market/kline
@@ -531,6 +565,33 @@ func (this *Bybit) EditOrder(id string, symbol string, typeVar string, side stri
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name bybit#editOrders
+ * @description edit a list of trade orders
+ * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Bybit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
 }
 /**
  * @method

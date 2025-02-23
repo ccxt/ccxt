@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class vertex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'vertex',
             'name' => 'Vertex',
@@ -634,7 +634,7 @@ class vertex extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -643,7 +643,7 @@ class vertex extends Exchange {
              */
             $response = Async\await($this->v1GatewayGetTime ($params));
             // 1717481623452
-            return $this->parse_number($response);
+            return $this->parse_to_int($response);
         }) ();
     }
 
@@ -1597,7 +1597,7 @@ class vertex extends Exchange {
         if (mb_strpos($base, 'PERP') > 0) {
             $marketId = str_replace('-PERP', '', $marketId) . ':USDC';
         }
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],

@@ -10,7 +10,7 @@ use ccxt\abstract\bybit as Exchange;
 
 class bybit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -52,7 +52,9 @@ class bybit extends Exchange {
                 'createTrailingAmountOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'editOrders' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => 'emulated',
                 'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -233,6 +235,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/reference' => 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data' => 5,
+                        'v5/spot-margin-trade/collateral' => 5,
                         'v5/spot-cross-margin-trade/data' => 5,
                         'v5/spot-cross-margin-trade/pledge-token' => 5,
                         'v5/spot-cross-margin-trade/borrow-token' => 5,
@@ -1218,6 +1221,9 @@ class bybit extends Exchange {
                     'fetchOHLCV' => array(
                         'limit' => 1000,
                     ),
+                    'editOrders' => array(
+                        'max' => 10,
+                    ),
                 ),
                 'spot' => array(
                     'extends' => 'default',
@@ -1410,8 +1416,8 @@ class bybit extends Exchange {
 
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
-        $quote = 'USD';
-        $settle = 'USDC';
+        $quote = null;
+        $settle = null;
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $base = null;
@@ -1419,9 +1425,21 @@ class bybit extends Exchange {
         if (mb_strpos($symbol, '/') > -1) {
             $base = $this->safe_string($symbolBase, 0);
             $expiry = $this->safe_string($optionParts, 1);
+            $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
+            $splitQuote = explode(':', $symbolQuoteAndSettle);
+            $quoteAndSettle = $this->safe_string($splitQuote, 0);
+            $quote = $quoteAndSettle;
+            $settle = $quoteAndSettle;
         } else {
             $base = $this->safe_string($optionParts, 0);
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
+            if (str_ends_with($symbol, '-USDT')) {
+                $quote = 'USDT';
+                $settle = 'USDT';
+            } else {
+                $quote = 'USDC';
+                $settle = 'USDC';
+            }
         }
         $strike = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
@@ -1539,7 +1557,7 @@ class bybit extends Exchange {
         return $cost;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2502,6 +2520,21 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $tickerList = $this->safe_list($result, 'list', array());
         return $this->parse_tickers($tickerList, $parsedSymbols);
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
+         * @param {string} [$params->baseCoin] *option only* base coin, default is 'BTC'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        return $this->fetch_tickers($symbols, $params);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -4054,7 +4087,7 @@ class bybit extends Exchange {
                 } elseif ($price !== null) {
                     $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
                 } else {
-                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                    $request['qty'] = $amountString;
                 }
             }
         } else {
@@ -4150,14 +4183,16 @@ class bybit extends Exchange {
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams, $isUta);
+            unset($orderRequest['category']);
             $ordersRequests[] = $orderRequest;
         }
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($symbols[0]);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
         $category = null;
         list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
-        if ($category === 'inverse') {
-            throw new NotSupported($this->id . ' createOrders does not allow inverse orders');
+        if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
+            throw new NotSupported($this->id . ' createOrders does not allow inverse $orders for non UTA2.0 account');
         }
         $request = array(
             'category' => $category,
@@ -4338,6 +4373,96 @@ class bybit extends Exchange {
             'info' => $response,
             'id' => $this->safe_string($result, 'orderId'),
         ));
+    }
+
+    public function edit_orders(array $orders, $params = array ()) {
+        /**
+         * edit a list of trade $orders
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $symbol = $this->safe_string($rawOrder, 'symbol');
+            $orderSymbols[] = $symbol;
+            $id = $this->safe_string($rawOrder, 'id');
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $orderParams);
+            unset($orderRequest['category']);
+            $ordersRequests[] = $orderRequest;
+        }
+        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($orderSymbols[0]);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('editOrders', $market, $params);
+        if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
+            throw new NotSupported($this->id . ' editOrders does not allow inverse $orders for non UTA2.0 account');
+        }
+        $request = array(
+            'category' => $category,
+            'request' => $ordersRequests,
+        );
+        $response = $this->privatePostV5OrderAmendBatch ($this->extend($request, $params));
+        $result = $this->safe_dict($response, 'result', array());
+        $data = $this->safe_list($result, 'list', array());
+        $retInfo = $this->safe_dict($response, 'retExtInfo', array());
+        $codes = $this->safe_list($retInfo, 'list', array());
+        // extend the error with the unsuccessful $orders
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $retCode = $this->safe_integer($code, 'code');
+            if ($retCode !== 0) {
+                $data[$i] = $this->extend($data[$i], $code);
+            }
+        }
+        //
+        // {
+        //     "retCode" => 0,
+        //     "retMsg" => "OK",
+        //     "result" => {
+        //         "list" => array(
+        //             array(
+        //                 "category" => "option",
+        //                 "symbol" => "ETH-30DEC22-500-C",
+        //                 "orderId" => "b551f227-7059-4fb5-a6a6-699c04dbd2f2",
+        //                 "orderLinkId" => ""
+        //             ),
+        //             array(
+        //                 "category" => "option",
+        //                 "symbol" => "ETH-30DEC22-700-C",
+        //                 "orderId" => "fa6a595f-1a57-483f-b9d3-30e9c8235a52",
+        //                 "orderLinkId" => ""
+        //             }
+        //         )
+        //     ),
+        //     "retExtInfo" => {
+        //         "list" => array(
+        //             array(
+        //                 "code" => 0,
+        //                 "msg" => "OK"
+        //             ),
+        //             array(
+        //                 "code" => 0,
+        //                 "msg" => "OK"
+        //             }
+        //         )
+        //     ),
+        //     "time" => 1672222808060
+        // }
+        //
+        return $this->parse_orders($data);
     }
 
     public function cancel_order_request(string $id, ?string $symbol = null, $params = array ()) {
@@ -6842,7 +6967,7 @@ class bybit extends Exchange {
          * @return An array of open interest structures
          */
         if ($timeframe === '1m') {
-            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         $this->load_markets();
         $paginate = $this->safe_bool($params, 'paginate');
@@ -6872,10 +6997,13 @@ class bybit extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
-        $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        $openInterest = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        // the $openInterest is in the base asset for linear and quote asset for inverse
+        $amount = $market['linear'] ? $openInterest : null;
+        $value = $market['inverse'] ? $openInterest : null;
         return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
-            'openInterestAmount' => null,
+            'openInterestAmount' => $amount,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

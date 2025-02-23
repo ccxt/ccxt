@@ -10,7 +10,7 @@ use ccxt\abstract\exmo as Exchange;
 
 class exmo extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'exmo',
             'name' => 'EXMO',
@@ -1408,7 +1408,7 @@ class exmo extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
         if ($marginMode === 'cross') {
-            throw new BadRequest($this->id . 'only isolated margin is supported');
+            throw new BadRequest($this->id . ' only isolated margin is supported');
         }
         $this->load_markets();
         $market = $this->market($symbol);

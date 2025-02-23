@@ -1103,11 +1103,11 @@ public partial class alpaca : Exchange
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["endTime"] = until;
+            ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["after"] = since;
+            ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1377,6 +1377,7 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1391,9 +1392,15 @@ public partial class alpaca : Exchange
         {
             market = this.market(symbol);
         }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
+        }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["after"] = since;
+            ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
         }
         if (isTrue(!isEqual(limit, null)))
         {

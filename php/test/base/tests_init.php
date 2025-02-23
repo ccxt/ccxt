@@ -19,9 +19,11 @@ include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
 include_once __DIR__ . '/test_group_by.php';
 include_once __DIR__ . '/test_filter_by.php';
+include_once __DIR__ . '/test_after_constructor.php';
 
 function base_tests_init() {
     test_language_specific();
+    test_after_constructor();
     test_extend();
     test_deep_extend();
     test_cryptography();

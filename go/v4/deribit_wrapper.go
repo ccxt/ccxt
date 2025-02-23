@@ -831,7 +831,9 @@ func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOption
  * @see https://docs.deribit.com/#private-get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.currency] currency code filter for positions
  * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+ * @param {int} [params.subaccount_id] the user id for the subaccount
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

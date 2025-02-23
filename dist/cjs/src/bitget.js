@@ -4851,7 +4851,7 @@ class bitget extends bitget$1 {
         let response = undefined;
         if (market['spot']) {
             if (triggerPrice === undefined) {
-                throw new errors.NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+                throw new errors.NotSupported(this.id + ' editOrder() only supports plan/trigger spot orders');
             }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
@@ -9371,6 +9371,14 @@ class bitget extends bitget$1 {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
+        }
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode && (path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

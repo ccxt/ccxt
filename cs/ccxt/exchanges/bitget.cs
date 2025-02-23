@@ -5109,7 +5109,7 @@ public partial class bitget : Exchange
         {
             if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+                throw new NotSupported ((string)add(this.id, " editOrder() only supports plan/trigger spot orders")) ;
             }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
@@ -10068,6 +10068,16 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
+        }
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(path, "v2/public/time")))))
+        {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
+            if (isTrue(isEqual(headers, null)))
+            {
+                headers = new Dictionary<string, object>() {};
+            }
+            ((IDictionary<string,object>)headers)["PAPTRADING"] = "1";
         }
         return new Dictionary<string, object>() {
             { "url", url },
