@@ -4454,13 +4454,12 @@ class bingx(Exchange, ImplicitAPI):
         :param boolean [params.twap]: if fetching twap orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-        }
+        market = None
+        request: dict = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         type = None
         subType = None
         standard = None
