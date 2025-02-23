@@ -966,39 +966,43 @@ export default class bitmart extends bitmartRest {
 
     parseWsTrade (trade: Dict, market: Market = undefined) {
         // spot
-        //    {
-        //        "price": "52700.50",
-        //        "s_t": 1630982050,
-        //        "side": "buy",
-        //        "size": "0.00112",
-        //        "symbol": "BTC_USDT"
-        //    }
-        // swap
-        //    {
-        //       "trade_id":6798697637,
-        //       "contract_id":1,
-        //       "symbol":"BTCUSDT",
-        //       "deal_price":"39735.8",
-        //       "deal_vol":"2",
-        //       "type":0,
-        //       "way":1,
-        //       "create_time":1701618503,
-        //       "create_time_mill":1701618503517,
-        //       "created_at":"2023-12-03T15:48:23.517518538Z"
-        //    }
+        //     {
+        //         "ms_t": 1740320841473,
+        //         "price": "2806.54",
+        //         "s_t": 1740320841,
+        //         "side": "sell",
+        //         "size": "0.77598",
+        //         "symbol": "ETH_USDT"
+        //     }
         //
-        const contractId = this.safeString (trade, 'contract_id');
-        const marketType = (contractId === undefined) ? 'spot' : 'swap';
-        const marketDelimiter = (marketType === 'spot') ? '_' : '';
-        const timestamp = this.safeInteger (trade, 'create_time_mill', this.safeTimestamp (trade, 's_t'));
+        // swap
+        //     {
+        //         "trade_id": "3000000245258661",
+        //         "symbol": "ETHUSDT",
+        //         "deal_price": "2811.1",
+        //         "deal_vol": "1858",
+        //         "way": 2,
+        //         "m": true,
+        //         "created_at": "2025-02-23T13:59:59.646490751Z"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let timestamp = this.safeInteger (trade, 'ms_t');
+        let datetime: Str = undefined;
+        if (timestamp === undefined) {
+            datetime = this.safeString (trade, 'created_at');
+            timestamp = this.parse8601 (datetime);
+        } else {
+            datetime = this.iso8601 (timestamp);
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (marketId, market, marketDelimiter, marketType),
+            'datetime': datetime,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': this.safeString (trade, 'side'),
             'price': this.safeString2 (trade, 'price', 'deal_price'),
