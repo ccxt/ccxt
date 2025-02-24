@@ -868,6 +868,7 @@ export default class cryptomus extends Exchange {
             const order = result[i];
             orders.push (this.parseOrder (order, market));
         }
+        return orders;
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
