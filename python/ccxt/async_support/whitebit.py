@@ -1150,6 +1150,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "clientOrderId": "customId11",
         #         "role": 2,  # 1 = maker, 2 = taker
         #         "deal": "0.00419198"  # amount in money
+        #         "feeAsset": "USDT"
         #     }
         #
         # fetchMyTrades
@@ -1165,6 +1166,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "deal": "9.981007",
         #          "fee": "0.009981007",
         #          "orderId": 58166729555,
+        #          "feeAsset": "USDT"
         #      }
         #
         market = self.safe_market(None, market)
@@ -1185,7 +1187,7 @@ class whitebit(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(self.safe_string(trade, 'feeAsset')),
             }
         return self.safe_trade({
             'info': trade,
