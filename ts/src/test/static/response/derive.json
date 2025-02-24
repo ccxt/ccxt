@@ -10,7 +10,7 @@
         "info"
     ],
     "options": {
-        "contractWalletAddress": "0x0000000000000000000000000000000000000000"
+        "deriveWalletAddress": "0x0000000000000000000000000000000000000000"
     },
     "methods": {
         "fetchTime": [
