@@ -19,6 +19,7 @@ import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
+import testHandleMethods from './test.handleMethods.js';
 function baseTestsInit() {
     testLanguageSpecific();
     testAfterConstructor();
@@ -34,5 +35,6 @@ function baseTestsInit() {
     testOmit();
     testGroupBy();
     testFilterBy();
+    testHandleMethods();
 }
 export default baseTestsInit;
