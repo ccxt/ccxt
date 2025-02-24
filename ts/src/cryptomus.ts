@@ -820,7 +820,6 @@ export default class cryptomus extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
-
         };
         const response = await this.privateGetV1UserApiExchangeOrdersHistory (this.extend (request, params));
         //
@@ -892,7 +891,6 @@ export default class cryptomus extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
-
         };
         const response = await this.privateGetV1UserApiExchangeOrders (this.extend (request, params));
         //
