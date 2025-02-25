@@ -4471,7 +4471,7 @@ class bingx(Exchange, ImplicitAPI):
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
             if limit is not None:
-                request['limit'] = limit
+                request['pageSize'] = limit
             response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))
             #
             #    {
