@@ -913,7 +913,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"USDT\"}"
             }
         ],
         "fetchFundingHistory": [
@@ -1836,7 +1836,7 @@
             {
                 "description": "fetch the isolated borrow interest",
                 "method": "fetchBorrowInterest",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=usdt&currency_pair=BTC_USDT",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=USDT&currency_pair=BTC_USDT",
                 "input": [
                   "USDT",
                   "BTC/USDT",
@@ -1850,7 +1850,7 @@
             {
                 "description": "fetch the borrow interest of the unified account",
                 "method": "fetchBorrowInterest",
-                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=usdt",
+                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=USDT",
                 "input": [
                   "USDT",
                   null,
