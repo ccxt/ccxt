@@ -101,10 +101,4 @@ setup(
         ],
     },
     project_urls=project_urls,
-    entry_points={
-        'console_scripts': [
-            'ccxt-py=cli.cli:main_async',
-            'ccxt=cli.cli:main_async'
-        ]
-    }
 )
