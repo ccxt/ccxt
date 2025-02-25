@@ -2555,7 +2555,7 @@ export default class derive extends Exchange {
         if (optionsWallet !== undefined) {
             return [ optionsWallet, params ];
         }
-        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\', tha address can find in HOME => Developers tab.');
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
