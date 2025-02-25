@@ -47,8 +47,8 @@ function helperTestNetworkCodeToId () {
                 'BRC20': 'Brc', // with exclusive protocol key
             },
         },
-        'currencies': {}, // c# fix
     });
+    exchange.currencies = {}; // c# fix
     //
     //
     // CASE #1 : with mainnet key
@@ -107,8 +107,8 @@ function helperTestNetworkIdToCode () {
                 'BRC20': 'Brc', // with exclusive protocol key
             },
         },
-        'currencies': {}, // c# fix
     });
+    exchange.currencies = {}; // c# fix
     //
     //
     // CASE #1 : with mainnet key
