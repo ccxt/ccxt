@@ -2874,13 +2874,7 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-                'CRO': { 'CRC20': 'CRONOS' },
-                'BRC20': { 'BRC20': 'BTC' },
-            },
-            'networkCodesAndProtocols': [
+            'chainDescriptors': [
                 { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
                 { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
                 { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
@@ -4202,7 +4196,7 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
@@ -4218,22 +4212,18 @@ export default class Exchange {
                     }
                 }
             } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys (replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const value = replacementObject[key];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString (networkIdsByCodes, key);
-                            break;
-                        }
+                // check if user incorrectly passed mainnet-vs-protocol networkCode, eg:
+                // - for ETH coin passed `ERC20` networkCode 
+                // - for USDT coin passed `ETH` networkCode
+                const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
+                for (let i = 0; i < chainDescriptors.length; i++) {
+                    const entry = chainDescriptors[i];
+                    if (networkCode === entry['secondary'] || networkCode === entry['primary']) {
+                        networkId = this.safeString2 (networkIdsByCodes, entry['primary'], entry['secondary']);
                     }
-                } else {
+                }
+                // if still was not found
+                if (networkId === undefined) {
                     // serach for network inside currency
                     const currency = this.safeDict (this.currencies, currencyCode);
                     const networks = this.safeDict (currency, 'networks');
@@ -4281,13 +4271,13 @@ export default class Exchange {
         // | USDT & ETH     | ERC20  |
         // | USDT & ERC20   | ERC20  |
         // ---------------------------
-        const replacements = this.safeList (this.options, 'networkCodesAndProtocols', []);
-        for (let i = 0; i < replacements.length; i++) {
-            const value = replacements[i];
+        const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
+        for (let i = 0; i < chainDescriptors.length; i++) {
+            const entry = chainDescriptors[i];
             // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
-            if (networkCode === value['primary'] || networkCode === value['secondary']) {
+            if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
                 // return primary or secondary network, depending if primaryCoin was passed
-                return (currencyCode === value['baseCoin']) ? value['primary'] : value['secondary'];
+                return (currencyCode === entry['baseCoin']) ? entry['primary'] : entry['secondary'];
             }
         }
         return networkCode;
