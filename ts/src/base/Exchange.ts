@@ -4202,7 +4202,7 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
@@ -4266,25 +4266,21 @@ export default class Exchange {
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
-                networkCode = this.safeString (replacementObject, networkCode, networkCode);
-            }
+            networkCode = this.networkCodeProtocolCorrector (currencyCode, networkCode);
         }
         return networkCode;
     }
 
     networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
-        // this method turns networkCodes into correct mainnet-vs-protocol code
-        // --------------------------
-        // | input         | output |
-        // --------------------------
-        // | USDT & ERC20  | ERC20  |
-        // | USDT & ETH    | ERC20  |
-        // | ETH & ERC20   | ETH    |
-        // | ETH & ETH     | ETH    |
-        // --------------------------
+        // this method ensures networkCode is in correct format - either Mainnet or Protocol code, for example:
+        // ---------------------------
+        // | code & network | output |
+        // ---------------------------
+        // | ETH & ETH      | ETH    |
+        // | ETH & ERC20    | ETH    |
+        // | USDT & ETH     | ERC20  |
+        // | USDT & ERC20   | ERC20  |
+        // ---------------------------
         const replacements = this.safeList (this.options, 'networkCodesAndProtocols', []);
         for (let i = 0; i < replacements.length; i++) {
             const value = replacements[i];

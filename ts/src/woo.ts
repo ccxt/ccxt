@@ -2174,9 +2174,7 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        networkCode = this.networkCodeProtocolCorrector (currency['code'], networkCode);
-        const selectedDict = this.safeDict (currency['networks'], networkCode);
-        request['token'] = this.safeString (selectedDict, 'id');
+        request['token'] = this.networkCodeToId (networkCode, currency['code']);
         const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     "success": true,
@@ -2617,9 +2615,7 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        networkCode = this.networkCodeProtocolCorrector (currency['code'], networkCode);
-        const selectedDict = this.safeDict (currency['networks'], networkCode);
-        request['token'] = this.safeString (selectedDict, 'id');
+        request['token'] = this.networkCodeToId (networkCode, currency['code']);
         const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
