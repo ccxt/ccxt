@@ -10,15 +10,15 @@ function testNetworkMethods () {
         'id': 'sampleexchange',
     });
 
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'ERC20') === 'ERC20');
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'ETH') === 'ERC20');
-    assert (exchange.networkCodeAdjusterForCurrency ('ETH', 'ERC20') === 'ETH');
-    assert (exchange.networkCodeAdjusterForCurrency ('ETH', 'ETH') === 'ETH');
+    assert (exchange.networkCodeProtocolCorrector ('USDT', 'ERC20') === 'ERC20');
+    assert (exchange.networkCodeProtocolCorrector ('USDT', 'ETH') === 'ERC20');
+    assert (exchange.networkCodeProtocolCorrector ('ETH', 'ERC20') === 'ETH');
+    assert (exchange.networkCodeProtocolCorrector ('ETH', 'ETH') === 'ETH');
 
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRC20') === 'CRC20');
-    assert (exchange.networkCodeAdjusterForCurrency ('USDT', 'CRONOS') === 'CRC20');
-    assert (exchange.networkCodeAdjusterForCurrency ('CRO', 'CRC20') === 'CRONOS');
-    assert (exchange.networkCodeAdjusterForCurrency ('CRO', 'CRONOS') === 'CRONOS');
+    assert (exchange.networkCodeProtocolCorrector ('USDT', 'CRC20') === 'CRC20');
+    assert (exchange.networkCodeProtocolCorrector ('USDT', 'CRONOS') === 'CRC20');
+    assert (exchange.networkCodeProtocolCorrector ('CRO', 'CRC20') === 'CRONOS');
+    assert (exchange.networkCodeProtocolCorrector ('CRO', 'CRONOS') === 'CRONOS');
 }
 
 export default testNetworkMethods;
