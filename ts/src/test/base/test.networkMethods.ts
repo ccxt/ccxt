@@ -46,7 +46,8 @@ function helperTestNetworkCodeToId () {
                 'BTC': 'Bitcoin', // with exclusive mainnet key
                 'BRC20': 'Brc', // with exclusive protocol key
             },
-        }
+        },
+        'currencies': {}, // c# fix
     });
     //
     //
@@ -93,7 +94,6 @@ function helperTestNetworkCodeToId () {
     assert (exchange.networkCodeToId ('Xyz', 'SAMPLECOIN'), 'Xyz');
 }
 
-
 function helperTestNetworkIdToCode () {
     // we should conduct tests with such example configuration
     const exchange = new ccxt.Exchange ({
@@ -106,7 +106,8 @@ function helperTestNetworkIdToCode () {
                 'BTC': 'Bitcoin', // with exclusive mainnet key
                 'BRC20': 'Brc', // with exclusive protocol key
             },
-        }
+        },
+        'currencies': {}, // c# fix
     });
     //
     //
