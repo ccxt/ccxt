@@ -2546,7 +2546,7 @@ export default class derive extends Exchange {
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             return [ deriveWalletAddress, params ];
         }
-        [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
+        [ deriveWalletAddress, params ] = this.handleOptionAndParams2 (params, methodName, 'deriveWalletAddress', 'wallet');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             return [ deriveWalletAddress, params ];
         }
