@@ -4261,7 +4261,7 @@ export default class Exchange {
                     networkId = this.safeString (network, 'id');
                 }
             }
-            // if networkId wasn't found yet, we just set the provided value to network-id
+            // if it wasn't found, we just set the provided value to network-id
             if (networkId === undefined) {
                 networkId = networkCode;
             }
