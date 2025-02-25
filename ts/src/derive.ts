@@ -2546,8 +2546,9 @@ export default class derive extends Exchange {
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             return [ deriveWalletAddress, params ];
         }
-        [ deriveWalletAddress, params ] = this.handleOptionAndParams2 (params, methodName, 'deriveWalletAddress', 'wallet');
+        [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
+            this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
             return [ deriveWalletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\', tha address can find in HOME => Developers tab.');
@@ -2578,9 +2579,7 @@ export default class derive extends Exchange {
                 this.checkRequiredCredentials ();
                 const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
-                let deriveWalletAddress = undefined;
-                [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('', params);
-                headers['X-LyraWallet'] = deriveWalletAddress;
+                headers['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
                 headers['X-LyraTimestamp'] = now;
                 headers['X-LyraSignature'] = signature;
             }
