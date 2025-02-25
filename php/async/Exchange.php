@@ -1688,6 +1688,9 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_currency_structure(array $currency) {
         // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        $currencyDeposit = $this->safe_bool($currency, 'deposit');
+        $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
+        $currencyActive = $this->safe_bool($currency, 'active');
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1695,15 +1698,15 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < $length; $i++) {
                 $network = $networks[$keys[$i]];
                 $deposit = $this->safe_bool($network, 'deposit');
-                if ($currency['deposit'] === null || $deposit) {
+                if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
                 }
                 $withdraw = $this->safe_bool($network, 'withdraw');
-                if ($currency['withdraw'] === null || $withdraw) {
+                if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
                 }
                 $active = $this->safe_bool($network, 'active');
-                if ($currency['active'] === null || $active) {
+                if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
@@ -3080,7 +3083,10 @@ class Exchange extends \ccxt\Exchange {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 $defaultNetworkCode = $this->default_network_code($currencyCode);
                 $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->network_code_to_id($defaultNetworkCode, $currencyCode);
-                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
+                if (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) {
+                    return $defaultNetworkId;
+                }
+                throw new NotSupported($this->id . ' - can not determine the default network, please pass param["network"] one from : ' . implode(', ', $availableNetworkIds));
             }
         }
         return $chosenNetworkId;
