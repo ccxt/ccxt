@@ -160,7 +160,7 @@ export default class bitmart extends Exchange {
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
-                        'contract/public/markprice-kline': 0.5, // 6 times per 1 second
+                        'contract/public/markprice-kline': 5, // 6 times per 1 second
                     },
                 },
                 'private': {
@@ -181,7 +181,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
-                        'account/v1/withdraw/address/list': 3, // 2 times per 2 seconds
+                        'account/v1/withdraw/address/list': 30, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -260,6 +260,8 @@ export default class bitmart extends Exchange {
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
+                        'contract/private/submit-trail-order': 2.5, // weight is not provided by the exchange, is set as ordinary order
+                        'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
                     },
                 },
             },
@@ -2750,6 +2752,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -2793,7 +2796,11 @@ export default class bitmart extends Exchange {
             }
         } else {
             const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
-            if (isTriggerOrder) {
+            const activationPrice = this.safeString (swapRequest, 'activation_price');
+            if (activationPrice !== undefined) {
+                // if type is trailing
+                response = await this.privatePostContractPrivateSubmitTrailOrder (swapRequest);
+            } else if (isTriggerOrder) {
                 response = await this.privatePostContractPrivateSubmitPlanOrder (swapRequest);
             } else if (isStopLoss || isTakeProfit) {
                 response = await this.privatePostContractPrivateSubmitTpSlOrder (swapRequest);
@@ -2904,6 +2911,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} side 'buy' or 'sell'
@@ -3119,11 +3127,13 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
      * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
+     * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -3147,11 +3157,14 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         } else {
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
+            const trailing = this.safeBool (params, 'trailing');
             params = this.omit (params, [ 'stop', 'trigger' ]);
-            if (!trigger) {
-                response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
-            } else {
+            if (trigger) {
                 response = await this.privatePostContractPrivateCancelPlanOrder (this.extend (request, params));
+            } else if (trailing) {
+                response = await this.privatePostContractPrivateCancelTrailOrder (this.extend (request, params));
+            } else {
+                response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
             }
         }
         // swap
