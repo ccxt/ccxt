@@ -2603,12 +2603,10 @@ class whitebit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
-            timestamp = self.parse_to_int(nonce / 1000)
-            timestampString = str(timestamp)
+            nonce = str(self.nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            body = self.json(self.extend({'request': request, 'nonce': timestampString}, params))
+            body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
