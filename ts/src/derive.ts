@@ -2551,6 +2551,10 @@ export default class derive extends Exchange {
             this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
             return [ deriveWalletAddress, params ];
         }
+        const optionsWallet = this.safeString (this.options, 'deriveWalletAddress');
+        if (optionsWallet !== undefined) {
+            return [ optionsWallet, params ];
+        }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\', tha address can find in HOME => Developers tab.');
     }
 
