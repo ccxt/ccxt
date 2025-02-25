@@ -2883,25 +2883,33 @@ export default class Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name Exchange#networkCodeProtocolCorrector
+     * @description this method ensures that returned networkCode is in sutiable for given coin, e.g:
+     *   ----------------------------
+     *   | input          | returns |
+     *   ----------------------------
+     *   | USDC & ETH     | ERC20   |
+     *   | USDC & ERC20   | ERC20   |
+     *   | ETH & ETH      | ETH     |
+     *   | ETH & ERC20    | ETH     |
+     *   ----------------------------
+     * @param {string} currencyCode unified currency-code
+     * @param {string} networkCode unified network-code
+     * @returns {string} networkCode
+     */
     networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
-        // this method ensures networkCode is in correct format - either Mainnet or Protocol code, for example:
-        // ---------------------------
-        // | code & network | output |
-        // ---------------------------
-        // | ETH & ETH      | ETH    |
-        // | ETH & ERC20    | ETH    |
-        // | USDT & ETH     | ERC20  |
-        // | USDT & ERC20   | ERC20  |
-        // ---------------------------
         const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
         for (let i = 0; i < chainDescriptors.length; i++) {
             const entry = chainDescriptors[i];
-            // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
+            // if passed networkCode matches either primary (eg. ETH) or secondary (eg. ERC20) networkcode
             if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
-                // return primary or secondary network, depending if primaryCoin was passed
+                // return the primary networkCode only if mainnet baseCoin was provided
                 return (currencyCode === entry['baseCoin']) ? entry['primary'] : entry['secondary'];
             }
         }
+        // otherwise, return input as is
         return networkCode;
     }
 
