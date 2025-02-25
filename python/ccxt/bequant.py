@@ -5,21 +5,22 @@
 
 from ccxt.hitbtc import hitbtc
 from ccxt.abstract.bequant import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class bequant(hitbtc, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': ['MT'],  # Malta
             'pro': True,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api': {
-                    'public': 'https://api.bequant.io',
-                    'private': 'https://api.bequant.io',
+                    'public': 'https://api.bequant.io/api/3',
+                    'private': 'https://api.bequant.io/api/3',
                 },
                 'www': 'https://bequant.io',
                 'doc': [
@@ -28,6 +29,6 @@ class bequant(hitbtc, ImplicitAPI):
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
-                'referral': 'https://bequant.io',
+                'referral': 'https://bequant.io/referral/dd104e3bee7634ec',
             },
         })

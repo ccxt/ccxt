@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowInterest (exchange, skippedProperties, method, entry, requestedCode, requestedSymbol) {
+function testBorrowInterest (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, requestedSymbol: string) {
     const format = {
         'info': {},
         'account': 'BTC/USDT',
@@ -14,7 +14,7 @@ function testBorrowInterest (exchange, skippedProperties, method, entry, request
     };
     const emptyAllowedFor = [ 'account' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, entry['account'], requestedSymbol);
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'interest', '0');

@@ -33,7 +33,7 @@ async function example () {
             console.log ('hmm, I have only ', balance_margin[symbol][collateral_coin]['free'], ' in balance, but ', needed_collateral_amount, ' collateral is needed. I should transfer ', needed_collateral_amount, ' from spot');
             // let's check if we have spot balance at all
             const balance_spot = await exchange.fetchBalance ({ 'type': 'spot' });
-            if (balance_spot[collateral_coin]['free'] < needed_collateral_amount) {
+            if (exchange.parseNumber (balance_spot[collateral_coin]['free']) < needed_collateral_amount) {
                 console.log ('hmm, I neither do have enough balance on spot - only ', balance_spot[collateral_coin]['free'], '. Script can not continue...');
                 return;
             } else {

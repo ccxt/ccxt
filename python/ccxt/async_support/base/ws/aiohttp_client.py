@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 
+orjson = None
+try:
+    import orjson as orjson
+except ImportError:
+    pass
+
 import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.functions import gunzip, inflate
-from ccxt import NetworkError, RequestTimeout
+from ccxt import NetworkError, RequestTimeout, ExchangeClosedByUser
 
 
 class AiohttpClient(Client):
+
+    proxy = None
 
     def closed(self):
         return (self.connection is None) or self.connection.closed
@@ -23,8 +31,16 @@ class AiohttpClient(Client):
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
             data = data.decode()
-        decoded = json.loads(data) if is_json_encoded_object(data) else data
-        self.on_message_callback(self, decoded)
+        # decoded = json.loads(data) if is_json_encoded_object(data) else data
+        decode = None
+        if is_json_encoded_object(data):
+            if orjson is None:
+                decode = json.loads(data)
+            else:
+                decode = orjson.loads(data)
+        else:
+            decode = data
+        self.on_message_callback(self, decode)
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
@@ -44,7 +60,7 @@ class AiohttpClient(Client):
         elif message.type == WSMsgType.PING:
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'ping', message)
-            ensure_future(self.connection.pong(), loop=self.asyncio_loop)
+            ensure_future(self.connection.pong(message.data), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
             self.lastPong = milliseconds()
             if self.verbose:
@@ -71,12 +87,22 @@ class AiohttpClient(Client):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers')).__aenter__()
+        if (self.proxy):
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'sending', message)
-        return await self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
+        send_msg = None
+        if isinstance(message, str):
+            send_msg = message
+        else:
+            if orjson is None:
+                send_msg = json.dumps(message, separators=(',', ':'))
+            else:
+                send_msg = orjson.dumps(message).decode('utf-8')
+        return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):
         if self.verbose:
@@ -88,7 +114,15 @@ class AiohttpClient(Client):
         if self.ping_looper:
             self.ping_looper.cancel()
         if self.receive_looper:
-            self.receive_looper.cancel()
+            self.receive_looper.cancel()  # cancel all pending futures stored in self.futures
+        for key in self.futures:
+            future = self.futures[key]
+            if not future.done():
+                if future.is_race_future:
+                    future.cancel()  # this is an "internal" future so we want to cancel it silently
+                else:
+                    future.reject(ExchangeClosedByUser('Connection closed by the user'))
+
 
     async def ping_loop(self):
         if self.verbose:
@@ -104,7 +138,10 @@ class AiohttpClient(Client):
             # therefore we need this clause anyway
             else:
                 if self.ping:
-                    await self.send(self.ping(self))
+                    try:
+                        await self.send(self.ping(self))
+                    except Exception as e:
+                        self.on_error(e)
                 else:
                     await self.connection.ping()
             await sleep(self.keepAlive / 1000)

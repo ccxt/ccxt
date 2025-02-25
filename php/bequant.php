@@ -10,17 +10,17 @@ use ccxt\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',
             'countries' => array( 'MT' ), // Malta
             'pro' => true,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api' => array(
-                    'public' => 'https://api.bequant.io',
-                    'private' => 'https://api.bequant.io',
+                    'public' => 'https://api.bequant.io/api/3',
+                    'private' => 'https://api.bequant.io/api/3',
                 ),
                 'www' => 'https://bequant.io',
                 'doc' => array(
@@ -29,7 +29,7 @@ class bequant extends hitbtc {
                 'fees' => array(
                     'https://bequant.io/fees-and-limits',
                 ),
-                'referral' => 'https://bequant.io',
+                'referral' => 'https://bequant.io/referral/dd104e3bee7634ec',
             ),
         ));
     }

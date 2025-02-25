@@ -1,0 +1,480 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "PERP_BTC_USDC",
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 300
+            },
+            "price": {
+                "min": 0,
+                "max": 200000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_BTC_USDC",
+            "quote_min": "0",
+            "quote_max": "200000",
+            "quote_tick": "0.1",
+            "base_min": "0.0001",
+            "base_max": "300",
+            "base_tick": "0.0001",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838759.000",
+            "updated_time": "1698771234.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                500,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.012",
+            "base_imr": "0.02"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838759000
+    },
+    "ETH/USDC:USDC": {
+        "id": "PERP_ETH_USDC",
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 4000
+            },
+            "price": {
+                "min": 0,
+                "max": 10000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_ETH_USDC",
+            "quote_min": "0",
+            "quote_max": "10000",
+            "quote_tick": "0.01",
+            "base_min": "0.001",
+            "base_max": "4000",
+            "base_tick": "0.001",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838759.000",
+            "updated_time": "1698771151.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                50,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.012",
+            "base_imr": "0.02"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838759000
+    },
+    "LTC/USDC:USDC": {
+        "id": "PERP_LTC_USDC",
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "baseId": "LTC",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01,
+                "max": 75854
+            },
+            "price": {
+                "min": 0,
+                "max": 10000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_LTC_USDC",
+            "quote_min": "0",
+            "quote_max": "10000",
+            "quote_tick": "0.01",
+            "base_min": "0.01",
+            "base_max": "75854",
+            "base_tick": "0.01",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838758.000",
+            "updated_time": "1698769604.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.03",
+            "base_imr": "0.05"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838758000
+    },
+    "ADA/USDC:USDC": {
+        "id": "PERP_ADA_USDC",
+        "symbol": "ADA/USDC:USDC",
+        "base": "ADA",
+        "quote": "USDC",
+        "baseId": "ADA",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 15042536
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_ADA_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.0001",
+            "base_min": "1",
+            "base_max": "15042536",
+            "base_tick": "1",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838758.000",
+            "updated_time": "1698771336.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.03",
+            "base_imr": "0.05"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838758000
+    },
+    "XRP/USDC:USDC": {
+        "id": "PERP_XRP_USDC",
+        "symbol": "XRP/USDC:USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 18661785
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_XRP_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.0001",
+            "base_min": "1",
+            "base_max": "18661785",
+            "base_tick": "1",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838758.000",
+            "updated_time": "1698771314.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.03",
+            "base_imr": "0.05"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838758000
+    },
+    "DOGE/USDC:USDC": {
+        "id": "PERP_DOGE_USDC",
+        "symbol": "DOGE/USDC:USDC",
+        "base": "DOGE",
+        "quote": "USDC",
+        "baseId": "DOGE",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 73870409
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_DOGE_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.00001",
+            "base_min": "1",
+            "base_max": "73870409",
+            "base_tick": "1",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1647838758.000",
+            "updated_time": "1698771260.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.03",
+            "base_imr": "0.05"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1647838758000
+    },
+    "TRX/USDC:USDC": {
+        "id": "PERP_TRX_USDC",
+        "symbol": "TRX/USDC:USDC",
+        "base": "TRX",
+        "quote": "USDC",
+        "baseId": "TRX",
+        "quoteId": "USDC",
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDC",
+        "settleId": "USDC",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 50033379
+            },
+            "price": {
+                "min": 0,
+                "max": 10000
+            },
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PERP_TRX_USDC",
+            "quote_min": "0",
+            "quote_max": "10000",
+            "quote_tick": "0.00001",
+            "base_min": "1",
+            "base_max": "50033379",
+            "base_tick": "1",
+            "min_notional": "0",
+            "price_range": "0.03",
+            "price_scope": "0.4",
+            "created_time": "1650621272.000",
+            "updated_time": "1698771225.000",
+            "is_stable": "0",
+            "is_trading": "1",
+            "precisions": [
+                1,
+                10,
+                100,
+                1000,
+                10000
+            ],
+            "is_prediction": "0",
+            "base_mmr": "0.03",
+            "base_imr": "0.05"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1650621272000
+    }
+}

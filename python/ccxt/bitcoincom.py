@@ -5,12 +5,14 @@
 
 from ccxt.fmfwio import fmfwio
 from ccxt.abstract.bitcoincom import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class bitcoincom(fmfwio, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitcoincom, self).describe(), {
             'id': 'bitcoincom',
+            'name': 'Bitcoin.com',
             'alias': True,
         })

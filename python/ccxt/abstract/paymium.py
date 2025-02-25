@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     public_get_countries = publicGetCountries = Entry('countries', 'public', 'GET', {})
+    public_get_currencies = publicGetCurrencies = Entry('currencies', 'public', 'GET', {})
     public_get_data_currency_ticker = publicGetDataCurrencyTicker = Entry('data/{currency}/ticker', 'public', 'GET', {})
     public_get_data_currency_trades = publicGetDataCurrencyTrades = Entry('data/{currency}/trades', 'public', 'GET', {})
     public_get_data_currency_depth = publicGetDataCurrencyDepth = Entry('data/{currency}/depth', 'public', 'GET', {})
