@@ -2880,7 +2880,7 @@ export default class Exchange {
                 'CRO': { 'CRC20': 'CRONOS' },
                 'BRC20': { 'BRC20': 'BTC' },
             },
-            'defaultNetworksByPrimaryCoin': [
+            'networkCodesAndProtocols': [
                 { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
                 { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
                 { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
@@ -4285,7 +4285,7 @@ export default class Exchange {
         // | ETH & ERC20   | ETH    |
         // | ETH & ETH     | ETH    |
         // --------------------------
-        const replacements = this.safeList (this.options, 'defaultNetworksByPrimaryCoin', []);
+        const replacements = this.safeList (this.options, 'networkCodesAndProtocols', []);
         for (let i = 0; i < replacements.length; i++) {
             const value = replacements[i];
             // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
