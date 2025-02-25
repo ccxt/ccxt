@@ -859,6 +859,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -882,6 +883,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchStatus
      * @description the latest known information on the availability of the exchange API
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -1166,8 +1168,9 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchMarkets
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @description retrieves data on all markets for bitmart
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1184,6 +1187,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1379,6 +1383,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network code of the currency
@@ -1785,7 +1790,6 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -2186,7 +2190,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyTrades
      * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2376,11 +2380,10 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -2527,6 +2530,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTradingFee
      * @description fetch the trading fees for a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -2747,11 +2751,10 @@ export default class bitmart extends Exchange {
      * @name bitmart#createOrder
      * @description create a trade order
      * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
@@ -2910,7 +2913,7 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
@@ -3050,8 +3053,8 @@ export default class bitmart extends Exchange {
          * @name bitmart#createSpotOrderRequest
          * @ignore
          * @description create a spot order request
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -3124,12 +3127,10 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelOrder
      * @description cancels an open order
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -3282,9 +3283,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3392,8 +3391,8 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchOpenOrders
      * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -3522,7 +3521,6 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchClosedOrders
      * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @description fetches information on multiple closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -3593,7 +3591,6 @@ export default class bitmart extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
@@ -3764,6 +3761,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#withdraw
      * @description make a withdrawal
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-signed
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3864,6 +3862,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposit
      * @description fetch information on a deposit
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id deposit id
      * @param {string} code not used by bitmart fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3906,6 +3905,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3920,6 +3920,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id withdrawal id
      * @param {string} code not used by bitmart.fetchWithdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3962,6 +3963,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -4069,7 +4071,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#repayIsolatedMargin
      * @description repay borrowed margin and interest
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
@@ -4108,7 +4110,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#borrowIsolatedMargin
      * @description create a loan to borrow margin
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
@@ -4318,7 +4320,6 @@ export default class bitmart extends Exchange {
      * @name bitmart#transfer
      * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
      * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -4459,7 +4460,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTransfers
      * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfer structures to retrieve
@@ -4523,7 +4524,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed
      * @param {string} code unified currency code
      * @param {string} symbol unified market symbol when fetch interest in isolated markets
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -4664,7 +4665,6 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
@@ -4825,8 +4825,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4876,8 +4875,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5004,7 +5002,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
