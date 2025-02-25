@@ -4669,7 +4669,7 @@ export default class bingx extends Exchange {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['pageSize'] = limit;
             }
             response = await this.spotV1PrivateGetTradeHistoryOrders (this.extend (request, params));
             //
