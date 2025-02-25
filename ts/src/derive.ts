@@ -1137,6 +1137,7 @@ export default class derive extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -1147,8 +1148,11 @@ export default class derive extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (price === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument');
+        }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params)
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
@@ -1157,7 +1161,7 @@ export default class derive extends Exchange {
         const orderSide = side.toLowerCase ();
         const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
-        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
+        const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
         const priceString = price.toString ();
@@ -1325,13 +1329,14 @@ export default class derive extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'editOrder', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params)
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
@@ -1488,6 +1493,7 @@ export default class derive extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1498,7 +1504,7 @@ export default class derive extends Exchange {
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params)
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'instrument_name': market['id'],
@@ -1579,6 +1585,7 @@ export default class derive extends Exchange {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1588,7 +1595,7 @@ export default class derive extends Exchange {
             market = this.market (symbol);
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params)
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1626,6 +1633,7 @@ export default class derive extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1638,7 +1646,7 @@ export default class derive extends Exchange {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params)
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1927,12 +1935,13 @@ export default class derive extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchOrderTrades', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params)
         const request: Dict = {
             'order_id': id,
             'subaccount_id': subaccountId,
@@ -2000,6 +2009,7 @@ export default class derive extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2010,7 +2020,7 @@ export default class derive extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params)
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2078,7 +2088,7 @@ export default class derive extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchPositions', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2224,7 +2234,7 @@ export default class derive extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchFundingHistory', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2408,12 +2418,13 @@ export default class derive extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchDeposits', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2454,12 +2465,13 @@ export default class derive extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'subaccount_id');
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchWithdrawals', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2541,11 +2553,22 @@ export default class derive extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    handleDeriveWalletAddress (methodName: string, params: Dict) {
-        let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
-        if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
-            return [ deriveWalletAddress, params ];
+    handleDeriveSubaccountId(methodName: string, params: Dict) {
+        let derivesubAccountId = undefined;
+        [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
+        if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
+            this.options['subaccount_id'] = derivesubAccountId; // saving in options
+            return [ derivesubAccountId, params ];
         }
+        const optionsWallet = this.safeString (this.options, 'subaccount_id');
+        if (optionsWallet !== undefined) {
+            return [ optionsWallet, params ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
+    }
+
+    handleDeriveWalletAddress (methodName: string, params: Dict) {
+        let deriveWalletAddress = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
