@@ -2878,7 +2878,7 @@ export default class Exchange {
                 { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
                 { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
                 { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-                { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BTC20' },
+                { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
             ],
         };
     }
