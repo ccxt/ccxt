@@ -98,6 +98,7 @@ export default class bitmart extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawAddresses': true,
                 'fetchWithdrawAddressesByNetwork': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -3728,6 +3729,7 @@ export default class bitmart extends Exchange {
 
     parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
         //
+        // fetchDepositAddress
         //    {
         //        currency: 'ETH',
         //        chain: 'Ethereum',
@@ -3735,8 +3737,19 @@ export default class bitmart extends Exchange {
         //        address_memo: ''
         //    }
         //
+        // fetchWithdrawAddress
+        //     {
+        //         "currency": "ETH",
+        //         "network": "ETH",
+        //         "address": "0x1121",
+        //         "memo": "12",
+        //         "remark": "12",
+        //         "addressType": 0,
+        //         "verifyStatus": 0
+        //     }
+        //
         let currencyId = this.safeString (depositAddress, 'currency');
-        let network = this.safeString (depositAddress, 'chain');
+        let network = this.safeString2 (depositAddress, 'chain', 'network');
         if (currencyId.indexOf ('NFT') < 0) {
             const parts = currencyId.split ('-');
             currencyId = this.safeString (parts, 0);
@@ -3753,7 +3766,7 @@ export default class bitmart extends Exchange {
             'currency': this.safeString (currency, 'code'),
             'network': this.networkIdToCode (network),
             'address': address,
-            'tag': this.safeString (depositAddress, 'address_memo'),
+            'tag': this.safeString2 (depositAddress, 'address_memo', 'memo'),
         } as DepositAddress;
     }
 
@@ -5418,6 +5431,50 @@ export default class bitmart extends Exchange {
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
+        await this.loadMarkets ();
+        let codes = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            code = currency['code'];
+            codes = [ code ];
+        }
+        const response = await this.privateGetAccountV1WithdrawAddressList (params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "currency": "ETH",
+        //                     "network": "ETH",
+        //                     "address": "0x1121",
+        //                     "memo": "12",
+        //                     "remark": "12",
+        //                     "addressType": 0,
+        //                     "verifyStatus": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const list = this.safeList (data, 'list', []);
+        const allAddresses = this.parseDepositAddresses (list, codes, false);
+        const addresses = [];
+        for (let i = 0; i < allAddresses.length; i++) {
+            const address = allAddresses[i];
+            const noteMatch = (note === undefined) || (address['note'] === note);
+            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            if (noteMatch && networkMatch) {
+                addresses.push (address);
+            }
+        }
+        return addresses;
     }
 
     nonce () {
