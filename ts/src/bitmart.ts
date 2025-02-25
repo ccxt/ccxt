@@ -2945,7 +2945,6 @@ export default class bitmart extends Exchange {
         }
         const request: Dict = {
             'symbol': market['id'],
-            'type': type,
             'size': parseInt (this.amountToPrecision (symbol, amount)),
         };
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2975,6 +2974,7 @@ export default class bitmart extends Exchange {
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'trailing' || isTrailingPercentOrder) {
+            type = 'trailing';
             request['callback_rate'] = trailingPercent;
             request['activation_price'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
@@ -3037,6 +3037,9 @@ export default class bitmart extends Exchange {
             request['leverage'] = this.numberToString (leverage);
         } else if (isTriggerOrder) {
             request['leverage'] = '1'; // for plan orders leverage is required, if not available default to 1
+        }
+        if (type !== 'trailing') {
+            request['type'] = type;
         }
         return this.extend (request, params);
     }
