@@ -2174,7 +2174,13 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        request['token'] = this.networkCodeToId (networkCode, currency['code']);
+        networkCode = this.networkCodeProtocolCorrector (currency['code'], networkCode);
+        const selectedDict = this.safeDict (currency['networks'], networkCode);
+        const networkId = this.safeString (selectedDict, 'id');
+        if (networkId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() can not find network id for ' + networkCode);
+        }
+        request['token'] = networkId;
         const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     "success": true,
@@ -2615,7 +2621,13 @@ export default class woo extends Exchange {
             const currencNetworks = Object.keys (currency['networks']);
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter, permitted networks:' + this.json (currencNetworks));
         }
-        request['token'] = this.networkCodeToId (networkCode, currency['code']);
+        networkCode = this.networkCodeProtocolCorrector (currency['code'], networkCode);
+        const selectedDict = this.safeDict (currency['networks'], networkCode);
+        const networkId = this.safeString (selectedDict, 'id');
+        if (networkId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() can not find network id for ' + networkCode);
+        }
+        request['token'] = networkId;
         const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
