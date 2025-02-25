@@ -4243,7 +4243,7 @@ export default class Exchange {
                 }
             } else {
                 // check if user incorrectly passed mainnet-vs-protocol networkCode, eg:
-                // - for ETH coin passed `ERC20` networkCode 
+                // - for ETH coin passed `ERC20` networkCode
                 // - for USDT coin passed `ETH` networkCode
                 const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
                 for (let i = 0; i < chainDescriptors.length; i++) {
