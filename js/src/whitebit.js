@@ -2703,12 +2703,10 @@ export default class whitebit extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
-            const timestamp = this.parseToInt(nonce / 1000);
-            const timestampString = timestamp.toString();
+            const nonce = this.nonce().toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json(this.extend({ 'request': request, 'nonce': timestampString }, params));
+            body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
             const signature = this.hmac(this.encode(payload), secret, sha512);
             headers = {
