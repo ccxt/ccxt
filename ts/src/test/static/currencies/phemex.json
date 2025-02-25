@@ -19,13 +19,19 @@
         "code": "BTC",
         "name": "Bitcoin",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "precision": 1e-8,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
         "valueScale": 8,
         "networks": {}

@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { getCliArgValue, argvExchange, argvSymbol, argvMethod, } from './tests.helpers.js';
+import { getCliArgValue, argvExchange, argvSymbol, argvMethod } from './tests.helpers.js';
 import testMainClass from './tests.js';
 import baseTestsInitRest from './base/tests.init.js';
 import baseTestsInitWs from '../pro/test/base/tests.init.js';
@@ -16,11 +16,12 @@ const runAll = getCliArgValue('--all');
 if (isBaseTests) {
     if (isWs) {
         baseTestsInitWs();
+        console.log('base WS tests passed!');
     }
     else {
         baseTestsInitRest();
+        console.log('base REST tests passed!');
     }
-    console.log('base tests passed!');
     if (!runAll) {
         process.exit(0);
     }

@@ -457,7 +457,7 @@ class lbank extends \ccxt\async\lbank {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         ),
         //         "type":"trade",
@@ -498,7 +498,7 @@ class lbank extends \ccxt\async\lbank {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -507,8 +507,15 @@ class lbank extends \ccxt\async\lbank {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($datetime);
         }
-        $side = $this->safe_string_2($trade, 'direction', 3);
-        $side = str_replace('_market', '', $side);
+        $rawSide = $this->safe_string_2($trade, 'direction', 3);
+        $parts = explode('_', $rawSide);
+        $firstPart = $this->safe_string($parts, 0);
+        $secondPart = $this->safe_string($parts, 1);
+        $side = $firstPart;
+        // reverse if it was 'maker'
+        if ($secondPart !== null && $secondPart === 'maker') {
+            $side = ($side === 'buy') ? 'sell' : 'buy';
+        }
         return $this->safe_trade(array(
             'timestamp' => $timestamp,
             'datetime' => $datetime,

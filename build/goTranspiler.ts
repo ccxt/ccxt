@@ -139,6 +139,7 @@ const VIRTUAL_BASE_METHODS = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "parseConversion": false,
     "sign": false
 }
 

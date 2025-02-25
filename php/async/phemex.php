@@ -40,6 +40,7 @@ class phemex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closePosition' => false,
+                'createConvertTrade' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -50,6 +51,9 @@ class phemex extends Exchange {
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => false,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -1076,7 +1080,7 @@ class phemex extends Exchange {
             for ($i = 0; $i < count($products); $i++) {
                 $market = $products[$i];
                 $type = $this->safe_string_lower($market, 'type');
-                if (($type === 'perpetual') || ($type === 'perpetualv2') || ($type === 'PerpetualPilot')) {
+                if (($type === 'perpetual') || ($type === 'perpetualv2') || ($type === 'perpetualpilot')) {
                     $id = $this->safe_string($market, 'symbol');
                     $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
                     $market = $this->extend($market, $riskLimitValues);
@@ -1272,7 +1276,7 @@ class phemex extends Exchange {
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
         $preciseString = (string) $precise;
-        return $this->parse_to_int($preciseString);
+        return $this->parse_to_numeric($preciseString);
     }
 
     public function to_ev($amount, ?array $market = null) {
@@ -2648,7 +2652,6 @@ class phemex extends Exchange {
             $market = $this->market($symbol);
             $requestSide = $this->capitalize($side);
             $type = $this->capitalize($type);
-            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             $request = array(
                 // common
                 'symbol' => $market['id'],
@@ -2742,8 +2745,10 @@ class phemex extends Exchange {
                 $posSide = $this->safe_string_lower($params, 'posSide');
                 if ($posSide === null) {
                     if ($hedged) {
+                        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
                         if ($reduceOnly) {
                             $side = ($side === 'buy') ? 'sell' : 'buy';
+                            $params = $this->omit($params, 'reduceOnly');
                         }
                         $posSide = ($side === 'buy') ? 'Long' : 'Short';
                     } else {
@@ -2848,7 +2853,6 @@ class phemex extends Exchange {
                 }
                 $params = $this->omit($params, 'stopLossPrice');
             }
-            $params = $this->omit($params, 'reduceOnly');
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privatePostGOrders ($this->extend($request, $params)));
@@ -5096,6 +5100,234 @@ class phemex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ), $market);
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             *
+             * @see https://phemex-docs.github.io/#rfq-quote
+             *
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} $amount how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            $valueScale = $this->safe_integer($fromCurrency, 'valueScale');
+            $request = array(
+                'fromCurrency' => $fromCode,
+                'toCurrency' => $toCode,
+                'fromAmountEv' => $this->to_en($amount, $valueScale),
+            );
+            $response = Async\await($this->privateGetAssetsQuote ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "OK",
+            //         "data" => {
+            //             "code" => "GIF...AAA",
+            //             "quoteArgs" => {
+            //                 "origin" => 10,
+            //                 "price" => "0.00000939",
+            //                 "proceeds" => "0.00000000",
+            //                 "ttlMs" => 7000,
+            //                 "expireAt" => 1739875826009,
+            //                 "requestAt" => 1739875818009,
+            //                 "quoteAt" => 1739875816594
+            //             }
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency $to another
+             *
+             * @see https://phemex-docs.github.io/#convert
+             *
+             * @param {string} $id the $id of the trade that you want $to make
+             * @param {string} $fromCode the currency that you want $to sell and convert from
+             * @param {string} $toCode the currency that you want $to buy and convert into
+             * @param {float} [$amount] how much you want $to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            $valueScale = $this->safe_integer($fromCurrency, 'valueScale');
+            $request = array(
+                'code' => $id,
+                'fromCurrency' => $fromCode,
+                'toCurrency' => $toCode,
+            );
+            if ($amount !== null) {
+                $request['fromAmountEv'] = $this->to_en($amount, $valueScale);
+            }
+            $response = Async\await($this->privatePostAssetsConvert ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "OK",
+            //         "data" => {
+            //             "moveOp" => 0,
+            //             "fromCurrency" => "USDT",
+            //             "toCurrency" => "BTC",
+            //             "fromAmountEv" => 4000000000,
+            //             "toAmountEv" => 41511,
+            //             "linkKey" => "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+            //             "status" => 10
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $fromCurrencyId = $this->safe_string($data, 'fromCurrency');
+            $fromResult = $this->safe_currency($fromCurrencyId, $fromCurrency);
+            $toCurrencyId = $this->safe_string($data, 'toCurrency');
+            $to = $this->safe_currency($toCurrencyId, $toCurrency);
+            return $this->parse_conversion($data, $fromResult, $to);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             *
+             * @see https://phemex-docs.github.io/#query-convert-history
+             *
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve, default 20, max 200
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] the end time in ms
+             * @param {string} [$params->fromCurrency] the currency that you sold and converted from
+             * @param {string} [$params->toCurrency] the currency that you bought and converted into
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($code !== null) {
+                $request['fromCurrency'] = $code;
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $response = Async\await($this->privateGetAssetsConvert ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "OK",
+            //         "data" => {
+            //             "total" => 2,
+            //             "rows" => array(
+            //                 array(
+            //                     "linkKey" => "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+            //                     "createTime" => 1739882294000,
+            //                     "fromCurrency" => "USDT",
+            //                     "toCurrency" => "BTC",
+            //                     "fromAmountEv" => 4000000000,
+            //                     "toAmountEv" => 41511,
+            //                     "status" => 10,
+            //                     "conversionRate" => 1037,
+            //                     "errorCode" => 0
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $rows = $this->safe_list($data, 'rows', array());
+            return $this->parse_conversions($rows, $code, 'fromCurrency', 'toCurrency', $since, $limit);
+        }) ();
+    }
+
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "code" => "GIF...AAA",
+        //         "quoteArgs" => {
+        //             "origin" => 10,
+        //             "price" => "0.00000939",
+        //             "proceeds" => "0.00000000",
+        //             "ttlMs" => 7000,
+        //             "expireAt" => 1739875826009,
+        //             "requestAt" => 1739875818009,
+        //             "quoteAt" => 1739875816594
+        //         }
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "moveOp" => 0,
+        //         "fromCurrency" => "USDT",
+        //         "toCurrency" => "BTC",
+        //         "fromAmountEv" => 4000000000,
+        //         "toAmountEv" => 41511,
+        //         "linkKey" => "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "status" => 10
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "linkKey" => "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "createTime" => 1739882294000,
+        //         "fromCurrency" => "USDT",
+        //         "toCurrency" => "BTC",
+        //         "fromAmountEv" => 4000000000,
+        //         "toAmountEv" => 41511,
+        //         "status" => 10,
+        //         "conversionRate" => 1037,
+        //         "errorCode" => 0
+        //     }
+        //
+        $quoteArgs = $this->safe_dict($conversion, 'quoteArgs', array());
+        $requestTime = $this->safe_integer($quoteArgs, 'requestAt');
+        $timestamp = $this->safe_integer($conversion, 'createTime', $requestTime);
+        $fromCoin = $this->safe_string($conversion, 'fromCurrency', $this->safe_string($fromCurrency, 'code'));
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $toCoin = $this->safe_string($conversion, 'toCurrency', $this->safe_string($toCurrency, 'code'));
+        $toCode = $this->safe_currency_code($toCoin, $toCurrency);
+        $fromValueScale = $this->safe_integer($fromCurrency, 'valueScale');
+        $toValueScale = $this->safe_integer($toCurrency, 'valueScale');
+        $fromAmount = $this->from_en($this->safe_string($conversion, 'fromAmountEv'), $fromValueScale);
+        if ($fromAmount === null && $quoteArgs !== null) {
+            $fromAmount = $this->from_en($this->safe_string($quoteArgs, 'origin'), $fromValueScale);
+        }
+        $toAmount = $this->from_en($this->safe_string($conversion, 'toAmountEv'), $toValueScale);
+        if ($toAmount === null && $quoteArgs !== null) {
+            $toAmount = $this->from_en($this->safe_string($quoteArgs, 'proceeds'), $toValueScale);
+        }
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($conversion, 'code'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->parse_number($fromAmount),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->parse_number($toAmount),
+            'price' => $this->safe_number($quoteArgs, 'price'),
+            'fee' => null,
+        );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
