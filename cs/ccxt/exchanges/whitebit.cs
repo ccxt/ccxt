@@ -1108,6 +1108,7 @@ public partial class whitebit : Exchange
         //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1123,6 +1124,7 @@ public partial class whitebit : Exchange
         //          "deal": "9.981007",
         //          "fee": "0.009981007",
         //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         market = this.safeMarket(null, market);
@@ -1146,7 +1148,7 @@ public partial class whitebit : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset")) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {

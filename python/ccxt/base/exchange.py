@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.61'
+__version__ = '4.4.62'
 
 # -----------------------------------------------------------------------------
 
@@ -4685,20 +4685,27 @@ class Exchange(object):
         :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
         :returns [str, dict]: the market type and params with type and defaultType omitted
         """
-        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
-        if defaultValue is None:  # defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType
+        # type from param
+        type = self.safe_string_2(params, 'defaultType', 'type')
+        if type is not None:
+            params = self.omit(params, ['defaultType', 'type'])
+            return [type, params]
+        # type from market
+        if market is not None:
+            return [market['type'], params]
+        # type from default-argument
+        if defaultValue is not None:
+            return [defaultValue, params]
         methodOptions = self.safe_dict(self.options, methodName)
-        methodType = defaultValue
-        if methodOptions is not None:  # user defined methodType takes precedence over defaultValue
+        if methodOptions is not None:
             if isinstance(methodOptions, str):
-                methodType = methodOptions
+                return [methodOptions, params]
             else:
-                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
-        marketType = methodType if (market is None) else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
-        params = self.omit(params, ['defaultType', 'type'])
-        return [type, params]
+                typeFromMethod = self.safe_string_2(methodOptions, 'defaultType', 'type')
+                if typeFromMethod is not None:
+                    return [typeFromMethod, params]
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        return [defaultType, params]
 
     def handle_sub_type_and_params(self, methodName: str, market=None, params={}, defaultValue=None):
         subType = None

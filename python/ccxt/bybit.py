@@ -73,7 +73,9 @@ class bybit(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -1239,6 +1241,9 @@ class bybit(Exchange, ImplicitAPI):
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
+                    },
+                    'editOrders': {
+                        'max': 10,
                     },
                 },
                 'spot': {
@@ -2462,6 +2467,20 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
+
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return self.fetch_tickers(symbols, params)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -3985,13 +4004,15 @@ class bybit(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
+            del orderRequest['category']
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
-        if category == 'inverse':
-            raise NotSupported(self.id + ' createOrders does not allow inverse orders')
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' createOrders does not allow inverse orders for non UTA2.0 account')
         request: dict = {
             'category': category,
             'request': ordersRequests,
@@ -4157,6 +4178,91 @@ class bybit(Exchange, ImplicitAPI):
             'info': response,
             'id': self.safe_string(result, 'orderId'),
         })
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-amend
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(symbol)
+            id = self.safe_string(rawOrder, 'id')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, orderParams)
+            del orderRequest['category']
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        category = None
+        category, params = self.get_bybit_type('editOrders', market, params)
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' editOrders does not allow inverse orders for non UTA2.0 account')
+        request: dict = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = self.privatePostV5OrderAmendBatch(self.extend(request, params))
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        retInfo = self.safe_dict(response, 'retExtInfo', {})
+        codes = self.safe_list(retInfo, 'list', [])
+        # self.extend the error with the unsuccessful orders
+        for i in range(0, len(codes)):
+            code = codes[i]
+            retCode = self.safe_integer(code, 'code')
+            if retCode != 0:
+                data[i] = self.extend(data[i], code)
+        #
+        # {
+        #     "retCode": 0,
+        #     "retMsg": "OK",
+        #     "result": {
+        #         "list": [
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-500-C",
+        #                 "orderId": "b551f227-7059-4fb5-a6a6-699c04dbd2f2",
+        #                 "orderLinkId": ""
+        #             },
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-700-C",
+        #                 "orderId": "fa6a595f-1a57-483f-b9d3-30e9c8235a52",
+        #                 "orderLinkId": ""
+        #             }
+        #         ]
+        #     },
+        #     "retExtInfo": {
+        #         "list": [
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             },
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             }
+        #         ]
+        #     },
+        #     "time": 1672222808060
+        # }
+        #
+        return self.parse_orders(data)
 
     def cancel_order_request(self, id: str, symbol: Str = None, params={}):
         market = self.market(symbol)

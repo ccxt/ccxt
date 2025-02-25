@@ -1170,6 +1170,7 @@ export default class whitebit extends Exchange {
         //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1185,6 +1186,7 @@ export default class whitebit extends Exchange {
         //          "deal": "9.981007",
         //          "fee": "0.009981007",
         //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         market = this.safeMarket (undefined, market);
@@ -1206,7 +1208,7 @@ export default class whitebit extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeAsset')),
             };
         }
         return this.safeTrade ({
