@@ -2883,6 +2883,28 @@ export default class Exchange {
         };
     }
 
+    networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
+        // this method ensures networkCode is in correct format - either Mainnet or Protocol code, for example:
+        // ---------------------------
+        // | code & network | output |
+        // ---------------------------
+        // | ETH & ETH      | ETH    |
+        // | ETH & ERC20    | ETH    |
+        // | USDT & ETH     | ERC20  |
+        // | USDT & ERC20   | ERC20  |
+        // ---------------------------
+        const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
+        for (let i = 0; i < chainDescriptors.length; i++) {
+            const entry = chainDescriptors[i];
+            // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
+            if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
+                // return primary or secondary network, depending if primaryCoin was passed
+                return (currencyCode === entry['baseCoin']) ? entry['primary'] : entry['secondary'];
+            }
+        }
+        return networkCode;
+    }
+
     safeLedgerEntry (entry: object, currency: Currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -4222,7 +4244,7 @@ export default class Exchange {
                         networkId = this.safeString2 (networkIdsByCodes, entry['primary'], entry['secondary']);
                     }
                 }
-                // if still was not found
+                // if networkId wasn't found yet, then check inside currency.networks
                 if (networkId === undefined) {
                     // serach for network inside currency
                     const currency = this.safeDict (this.currencies, currencyCode);
@@ -4231,7 +4253,7 @@ export default class Exchange {
                     networkId = this.safeString (network, 'id');
                 }
             }
-            // if it wasn't found, we just set the provided value to network-id
+            // if networkId wasn't found yet, we just set the provided value to network-id
             if (networkId === undefined) {
                 networkId = networkCode;
             }
@@ -4257,28 +4279,6 @@ export default class Exchange {
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
             networkCode = this.networkCodeProtocolCorrector (currencyCode, networkCode);
-        }
-        return networkCode;
-    }
-
-    networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
-        // this method ensures networkCode is in correct format - either Mainnet or Protocol code, for example:
-        // ---------------------------
-        // | code & network | output |
-        // ---------------------------
-        // | ETH & ETH      | ETH    |
-        // | ETH & ERC20    | ETH    |
-        // | USDT & ETH     | ERC20  |
-        // | USDT & ERC20   | ERC20  |
-        // ---------------------------
-        const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
-        for (let i = 0; i < chainDescriptors.length; i++) {
-            const entry = chainDescriptors[i];
-            // if passed networkCode (eg. ETH or ERC20) matches either primary or secondary networkcode in dict
-            if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
-                // return primary or secondary network, depending if primaryCoin was passed
-                return (currencyCode === entry['baseCoin']) ? entry['primary'] : entry['secondary'];
-            }
         }
         return networkCode;
     }
