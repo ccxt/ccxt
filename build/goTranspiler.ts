@@ -1140,7 +1140,7 @@ ${caseStatements.join('\n')}
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+           // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
@@ -1568,6 +1568,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
+                [ / assert\(/g, ' Assert('], // buggy transpilation, can't find reason atm
 
             ]).trim ()
 
