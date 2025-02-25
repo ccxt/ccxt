@@ -1140,7 +1140,7 @@ ${caseStatements.join('\n')}
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-           // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
