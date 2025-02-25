@@ -10,12 +10,12 @@ use ccxt\abstract\coinbaseinternational as Exchange;
 
 class coinbaseinternational extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseinternational',
             'name' => 'Coinbase International',
             'countries' => array( 'US' ),
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'rateLimit' => 100, // 10 requests per second
             'version' => 'v1',

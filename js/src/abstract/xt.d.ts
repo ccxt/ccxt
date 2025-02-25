@@ -108,6 +108,7 @@ interface Exchange {
     privateLinearPostFutureUserV1PositionMargin(params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1UserCollectionAdd(params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1UserCollectionCancel(params?: {}): Promise<implicitReturnType>;
+    privateLinearPostFutureUserV1PositionChangeType(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanDetail(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanListHistory(params?: {}): Promise<implicitReturnType>;

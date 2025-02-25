@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class mexc extends \ccxt\async\mexc {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

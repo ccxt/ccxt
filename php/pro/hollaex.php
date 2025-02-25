@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class hollaex extends \ccxt\async\hollaex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

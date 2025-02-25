@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bybit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bybit, self).describe(), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -74,7 +74,9 @@ class bybit(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -255,6 +257,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/reference': 5,
                         # spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -1240,6 +1243,9 @@ class bybit(Exchange, ImplicitAPI):
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'editOrders': {
+                        'max': 10,
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -1547,7 +1553,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.cost_to_precision(symbol, cost)
         return cost
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -2462,6 +2468,20 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
+
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return await self.fetch_tickers(symbols, params)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -3907,7 +3927,7 @@ class bybit(Exchange, ImplicitAPI):
                 elif price is not None:
                     request['qty'] = self.get_cost(symbol, Precise.string_mul(amountString, priceString))
                 else:
-                    request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
+                    request['qty'] = amountString
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
                 request['qty'] = amountString
@@ -3985,13 +4005,15 @@ class bybit(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
+            del orderRequest['category']
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
-        if category == 'inverse':
-            raise NotSupported(self.id + ' createOrders does not allow inverse orders')
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' createOrders does not allow inverse orders for non UTA2.0 account')
         request: dict = {
             'category': category,
             'request': ordersRequests,
@@ -4157,6 +4179,91 @@ class bybit(Exchange, ImplicitAPI):
             'info': response,
             'id': self.safe_string(result, 'orderId'),
         })
+
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-amend
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(symbol)
+            id = self.safe_string(rawOrder, 'id')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, orderParams)
+            del orderRequest['category']
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        category = None
+        category, params = self.get_bybit_type('editOrders', market, params)
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' editOrders does not allow inverse orders for non UTA2.0 account')
+        request: dict = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = await self.privatePostV5OrderAmendBatch(self.extend(request, params))
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        retInfo = self.safe_dict(response, 'retExtInfo', {})
+        codes = self.safe_list(retInfo, 'list', [])
+        # self.extend the error with the unsuccessful orders
+        for i in range(0, len(codes)):
+            code = codes[i]
+            retCode = self.safe_integer(code, 'code')
+            if retCode != 0:
+                data[i] = self.extend(data[i], code)
+        #
+        # {
+        #     "retCode": 0,
+        #     "retMsg": "OK",
+        #     "result": {
+        #         "list": [
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-500-C",
+        #                 "orderId": "b551f227-7059-4fb5-a6a6-699c04dbd2f2",
+        #                 "orderLinkId": ""
+        #             },
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-700-C",
+        #                 "orderId": "fa6a595f-1a57-483f-b9d3-30e9c8235a52",
+        #                 "orderLinkId": ""
+        #             }
+        #         ]
+        #     },
+        #     "retExtInfo": {
+        #         "list": [
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             },
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             }
+        #         ]
+        #     },
+        #     "time": 1672222808060
+        # }
+        #
+        return self.parse_orders(data)
 
     def cancel_order_request(self, id: str, symbol: Str = None, params={}):
         market = self.market(symbol)
@@ -6525,10 +6632,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #    }
         #
         timestamp = self.safe_integer(interest, 'timestamp')
-        value = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        openInterest = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        # the openInterest is in the base asset for linear and quote asset for inverse
+        amount = openInterest if market['linear'] else None
+        value = openInterest if market['inverse'] else None
         return self.safe_open_interest({
             'symbol': market['symbol'],
-            'openInterestAmount': None,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

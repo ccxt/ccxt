@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bingx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bingx',
             'name' => 'BingX',
@@ -673,7 +673,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the bingx server
@@ -4719,14 +4719,13 @@ class bingx extends Exchange {
              * @param {boolean} [$params->twap] if fetching twap $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             $type = null;
             $subType = null;
             $standard = null;

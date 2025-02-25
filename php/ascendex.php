@@ -10,7 +10,7 @@ use ccxt\abstract\ascendex as Exchange;
 
 class ascendex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ascendex',
             'name' => 'AscendEX',
@@ -777,7 +777,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the ascendex server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

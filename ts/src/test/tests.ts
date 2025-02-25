@@ -867,11 +867,25 @@ class testMainClass {
         return true;
     }
 
+    checkConstructor (exchange) {
+        // todo: this might be moved in base tests later
+        if (exchange.id === 'binance') {
+            assert (exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert (exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
+            assert (('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
+        } else if (exchange.id === 'binanceus') {
+            assert (exchange.hostname === 'binance.us', 'binance.us hostname does not match ' + exchange.hostname);
+            assert (exchange.urls['api']['public'] === 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' + exchange.urls['api']['public']);
+            // todo: assert (!('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should NOT contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
+        }
+    }
+
     async startTest (exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
         }
+        this.checkConstructor (exchange);
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }

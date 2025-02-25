@@ -14,12 +14,12 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class whitebit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
@@ -1193,6 +1193,7 @@ class whitebit extends Exchange {
         //         "clientOrderId" => "customId11",
         //         "role" => 2, // 1 = maker, 2 = taker
         //         "deal" => "0.00419198" // $amount in money
+        //         "feeAsset" => "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1208,6 +1209,7 @@ class whitebit extends Exchange {
         //          "deal" => "9.981007",
         //          "fee" => "0.009981007",
         //          "orderId" => 58166729555,
+        //          "feeAsset" => "USDT"
         //      }
         //
         $market = $this->safe_market(null, $market);
@@ -1229,7 +1231,7 @@ class whitebit extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeAsset')),
             );
         }
         return $this->safe_trade(array(
@@ -1347,7 +1349,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server

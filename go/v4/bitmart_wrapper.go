@@ -82,6 +82,7 @@ func (this *Bitmart) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @description please use fetchDepositWithdrawFee instead
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the network code of the currency
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
  */
 func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
@@ -108,6 +109,7 @@ func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactio
  * @description fetch the fee for deposits and withdrawals
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the network code of the currency
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
  */
 func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
@@ -920,6 +922,7 @@ func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the network name for this withdrawal
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Bitmart) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {

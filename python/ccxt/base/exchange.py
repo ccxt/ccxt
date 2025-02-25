@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.62'
 
 # -----------------------------------------------------------------------------
 
@@ -160,6 +160,7 @@ class Exchange(object):
     symbols = None
     codes = None
     timeframes = {}
+    tokenBucket = None
 
     fees = {
         'trading': {
@@ -188,6 +189,7 @@ class Exchange(object):
     urls = None
     api = None
     parseJsonResponse = True
+    throttler = None
 
     # PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy = None  # for backwards compatibility
@@ -223,6 +225,7 @@ class Exchange(object):
     }
     headers = None
     origin = '*'  # CORS origin
+    MAX_VALUE = float('inf')
     #
     proxies = None
 
@@ -404,14 +407,7 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        if self.markets:
-            self.set_markets(self.markets)
-
         self.after_construct()
-
-        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if is_sandbox:
-            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -431,13 +427,6 @@ class Exchange(object):
                     else:
                         setattr(self, camelcase, attr)
 
-        self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
-            'delay': 0.001,
-            'capacity': 1.0,
-            'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket', {}))
-
         if not self.session and self.synchronous:
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
@@ -455,6 +444,10 @@ class Exchange(object):
 
     def __str__(self):
         return self.name
+
+    def init_throttler(self, cost=None):
+        # stub in sync
+        pass
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -1791,7 +1784,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,
@@ -1871,6 +1864,7 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
+                'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -2744,8 +2738,35 @@ class Exchange(object):
         return timestamp
 
     def after_construct(self):
+        # networks
         self.create_networks_by_id_object()
         self.features_generator()
+        # init predefined markets if any
+        if self.markets:
+            self.set_markets(self.markets)
+        # init the request rate limiter
+        self.init_rest_rate_limiter()
+        # sanbox mode
+        isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if isSandbox:
+            self.set_sandbox_mode(isSandbox)
+
+    def init_rest_rate_limiter(self):
+        if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
+            raise ExchangeError(self.id + '.rateLimit property is not configured')
+        refillRate = self.MAX_VALUE
+        if self.rateLimit > 0:
+            refillRate = 1 / self.rateLimit
+        defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }
+        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
+        self.tokenBucket = self.extend(defaultBucket, existingBucket)
+        self.init_throttler()
 
     def features_generator(self):
         #
@@ -3657,7 +3678,7 @@ class Exchange(object):
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
-        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
+        vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
@@ -4664,20 +4685,27 @@ class Exchange(object):
         :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
         :returns [str, dict]: the market type and params with type and defaultType omitted
         """
-        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
-        if defaultValue is None:  # defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType
+        # type from param
+        type = self.safe_string_2(params, 'defaultType', 'type')
+        if type is not None:
+            params = self.omit(params, ['defaultType', 'type'])
+            return [type, params]
+        # type from market
+        if market is not None:
+            return [market['type'], params]
+        # type from default-argument
+        if defaultValue is not None:
+            return [defaultValue, params]
         methodOptions = self.safe_dict(self.options, methodName)
-        methodType = defaultValue
-        if methodOptions is not None:  # user defined methodType takes precedence over defaultValue
+        if methodOptions is not None:
             if isinstance(methodOptions, str):
-                methodType = methodOptions
+                return [methodOptions, params]
             else:
-                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
-        marketType = methodType if (market is None) else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
-        params = self.omit(params, ['defaultType', 'type'])
-        return [type, params]
+                typeFromMethod = self.safe_string_2(methodOptions, 'defaultType', 'type')
+                if typeFromMethod is not None:
+                    return [typeFromMethod, params]
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        return [defaultType, params]
 
     def handle_sub_type_and_params(self, methodName: str, market=None, params={}, defaultValue=None):
         subType = None
@@ -5177,6 +5205,9 @@ class Exchange(object):
 
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
 
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
@@ -6118,7 +6149,8 @@ class Exchange(object):
             parsed = self.parse_income(entry, market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def get_market_from_symbols(self, symbols: Strings = None):
         if symbols is None:

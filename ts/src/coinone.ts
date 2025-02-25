@@ -15,7 +15,7 @@ import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, Or
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',

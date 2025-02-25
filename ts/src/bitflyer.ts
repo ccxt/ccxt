@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bitflyer extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
             'name': 'bitFlyer',

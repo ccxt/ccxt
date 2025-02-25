@@ -550,6 +550,27 @@ export default class hyperliquid extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
+    parseIncome(income: any, market?: Market): {
+        info: any;
+        symbol: string;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
+        rate: number;
+    };
     extractTypeFromDelta(data?: any[]): any[];
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];

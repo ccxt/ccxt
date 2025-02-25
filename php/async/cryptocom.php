@@ -14,12 +14,12 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class cryptocom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptocom',
             'name' => 'Crypto.com',

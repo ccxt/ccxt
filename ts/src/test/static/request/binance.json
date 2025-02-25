@@ -672,6 +672,34 @@
                 "output": "timestamp=1706094442270&symbol=LTCUSDT&side=BUY&orderId=661753725&quantity=0.25&price=51&recvWindow=10000&signature=8a0439270bdbfc88a86853ea64972b5e54e90d506645a5b5efef8121b101f302"
             }
         ],
+        "editOrders": [
+            {
+                "description": "Swap editOrders",
+                "method": "editOrders",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders",
+                "input": [
+                    [
+                        {
+                            "id": "556886677",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "id": "556886678",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": "timestamp=1699382693405&batchOrders=[{\"orderId\":\"556886677\",\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"quantity\":\"0.1\",\"price\":\"60\"},{\"orderId\":\"556886678\",\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"quantity\":\"0.11\",\"price\":\"61\"}]&recvWindow=10000&signature=ce06633e6e16101cf7b4c3fd0f6a1afa3901206050382fafae81deddc1867f92"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "Swap cancelOrder",

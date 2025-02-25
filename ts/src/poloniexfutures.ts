@@ -14,7 +14,7 @@ import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, Or
  * @augments Exchange
  */
 export default class poloniexfutures extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'poloniexfutures',
             'name': 'Poloniex Futures',
@@ -793,7 +793,7 @@ export default class poloniexfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetTimestamp (params);
         //
         // {

@@ -10,7 +10,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinbaseinternational extends coinbaseinternationalRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

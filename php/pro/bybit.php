@@ -10,13 +10,13 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends \ccxt\async\bybit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

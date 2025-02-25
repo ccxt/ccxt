@@ -129,6 +129,7 @@ class Transpiler {
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
@@ -782,7 +783,7 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: (?:List\[)?Any/,
+            'Any': /(?:->|:) (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
@@ -860,10 +861,6 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
-        }
-
-        if (bodyAsString.match (/-> Any/)) {
-            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -990,13 +987,13 @@ class Transpiler {
                 precisionImports.push ('use ccxt\\Precise;')
             }
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use React\\Async;')
+                libraryImports.push ('use \\React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use React\\Promise;')
+                libraryImports.push ('use \\React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
             }
         }
 

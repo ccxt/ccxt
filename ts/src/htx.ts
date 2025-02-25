@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Fun
  * @augments Exchange
  */
 export default class htx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'htx',
             'name': 'HTX',
@@ -1606,7 +1606,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const options = this.safeValue (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);

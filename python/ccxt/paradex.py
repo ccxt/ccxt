@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class paradex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(paradex, self).describe(), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -354,7 +354,7 @@ class paradex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 

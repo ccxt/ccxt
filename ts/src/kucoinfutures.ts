@@ -14,7 +14,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, Ord
  * @augments Exchange
  */
 export default class kucoinfutures extends kucoin {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -654,7 +654,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {

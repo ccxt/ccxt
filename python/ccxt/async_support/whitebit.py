@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -1150,6 +1150,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "clientOrderId": "customId11",
         #         "role": 2,  # 1 = maker, 2 = taker
         #         "deal": "0.00419198"  # amount in money
+        #         "feeAsset": "USDT"
         #     }
         #
         # fetchMyTrades
@@ -1165,6 +1166,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "deal": "9.981007",
         #          "fee": "0.009981007",
         #          "orderId": 58166729555,
+        #          "feeAsset": "USDT"
         #      }
         #
         market = self.safe_market(None, market)
@@ -1185,7 +1187,7 @@ class whitebit(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(self.safe_string(trade, 'feeAsset')),
             }
         return self.safe_trade({
             'info': trade,
@@ -1291,7 +1293,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
