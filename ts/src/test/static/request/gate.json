@@ -6,6 +6,36 @@
         "unifiedAccount": false
     },
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw SOL",
+                "method": "withdraw",
+                "url": "https://api.gateio.ws/api/v4/withdrawals",
+                "input": [
+                    "USDT",
+                    5,
+                    "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"address\":\"Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC\",\"amount\":\"5\",\"chain\":\"SOL\"}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",
