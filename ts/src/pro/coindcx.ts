@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
