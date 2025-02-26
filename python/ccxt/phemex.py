@@ -685,7 +685,8 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string_2(market, 'baseCurrency', 'contractUnderlyingAssets')
+        contractUnderlyingAssets = self.safe_string(market, 'contractUnderlyingAssets')
+        baseId = self.safe_string(market, 'baseCurrency', contractUnderlyingAssets)
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
@@ -695,6 +696,9 @@ class phemex(Exchange, ImplicitAPI):
         inverse = False
         if settleId != quoteId:
             inverse = True
+            # some unhandled cases
+            if not ('baseCurrency' in market) and base == quote:
+                base = settle
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
         valueScale = self.safe_integer(market, 'valueScale')
