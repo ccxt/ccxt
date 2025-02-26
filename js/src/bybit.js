@@ -1017,7 +1017,6 @@ export default class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': false,
-                'enableDemoTrading': false,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1278,29 +1277,6 @@ export default class bybit extends Exchange {
             },
         });
     }
-    enableDemoTrading(enable) {
-        /**
-         * @method
-         * @name bybit#enableDemoTrading
-         * @description enables or disables demo trading mode
-         * @see https://bybit-exchange.github.io/docs/v5/demo
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
-        if (this.isSandboxModeEnabled) {
-            throw new NotSupported(this.id + ' demo trading does not support in sandbox environment');
-        }
-        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
-        if (enable) {
-            this.urls['apiBackupDemoTrading'] = this.urls['api'];
-            this.urls['api'] = this.urls['demotrading'];
-        }
-        else if ('apiBackupDemoTrading' in this.urls) {
-            this.urls['api'] = this.urls['apiBackupDemoTrading'];
-            const newUrls = this.omit(this.urls, 'apiBackupDemoTrading');
-            this.urls = newUrls;
-        }
-        this.options['enableDemoTrading'] = enable;
-    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
@@ -1332,14 +1308,6 @@ export default class bybit extends Exchange {
         const enableUnifiedMargin = this.safeBool(this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeBool(this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
-            if (this.options['enableDemoTrading']) {
-                // info endpoint is not available in demo trading
-                // so we're assuming UTA is enabled
-                this.options['enableUnifiedMargin'] = false;
-                this.options['enableUnifiedAccount'] = true;
-                this.options['unifiedMarginStatus'] = 3;
-                return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
-            }
             const rawPromises = [this.privateGetV5UserQueryApi(params), this.privateGetV5AccountInfo(params)];
             const promises = await Promise.all(rawPromises);
             const response = promises[0];
@@ -1593,9 +1561,6 @@ export default class bybit extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
-        }
-        if (this.options['enableDemoTrading']) {
             return undefined;
         }
         const response = await this.privateGetV5AssetCoinQueryInfo(params);
