@@ -1143,6 +1143,7 @@ export default class derive extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [parmas.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1164,9 +1165,15 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        const priceString = price.toString ();
-        const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = amount.toString ();
+        const priceString = this.numberToString(price);
+        // const maxFeeString = this.safeString (params, 'max_fee', '0');
+        let maxFee = undefined;
+        [maxFee, params] = this.handleOptionAndParams(params, 'createOrder', 'max_fee');
+        if (maxFee === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a max_fee argument in params');
+        }
+        const maxFeeString = this.numberToString(maxFee);
+        const amountString = this.numberToString(amount);
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
