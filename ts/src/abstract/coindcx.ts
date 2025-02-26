@@ -20,8 +20,11 @@ interface Exchange {
     public2GetMarketDataCandles (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataV3OrderbookPairFuturesLimit (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataCandlesticks (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataV3CurrentPricesFuturesRt (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersBalances (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1WalletsSubAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1WalletsTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1OrdersCreate (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1OrdersCreateMultiple (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1OrdersStatus (params?: {}): Promise<implicitReturnType>;
@@ -51,6 +54,7 @@ interface Exchange {
     privatePostExchangeV1DerivativesFuturesOrdersCreate (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesOrdersCancel (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositions (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsUpdateLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsRemoveMargin (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrders (params?: {}): Promise<implicitReturnType>;
@@ -59,6 +63,12 @@ interface Exchange {
     privatePostExchangeV1DerivativesFuturesPositionsCreateTpsl (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsTransactions (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesTrades (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsCrossMarginDetails (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesWalletsTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesWallets (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesWalletsTransactions (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesOrdersEdit (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsMarginType (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
