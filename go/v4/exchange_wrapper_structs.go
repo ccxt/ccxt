@@ -2376,6 +2376,35 @@ func WithFetchWithdrawalParams(params map[string]interface{}) FetchWithdrawalOpt
 }
 
 
+type FetchWithdrawAddressesOptionsStruct struct {
+    Note *interface{}
+    NetworkCode *interface{}
+    Params *map[string]interface{}
+}
+
+type FetchWithdrawAddressesOptions func(opts *FetchWithdrawAddressesOptionsStruct)
+
+func WithFetchWithdrawAddressesNote(note interface{}) FetchWithdrawAddressesOptions {
+    return func(opts *FetchWithdrawAddressesOptionsStruct) {
+        opts.Note = &note
+    }
+}
+
+
+func WithFetchWithdrawAddressesNetworkCode(networkCode interface{}) FetchWithdrawAddressesOptions {
+    return func(opts *FetchWithdrawAddressesOptionsStruct) {
+        opts.NetworkCode = &networkCode
+    }
+}
+
+
+func WithFetchWithdrawAddressesParams(params map[string]interface{}) FetchWithdrawAddressesOptions {
+    return func(opts *FetchWithdrawAddressesOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchOrderStatusOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}
@@ -3619,35 +3648,6 @@ func WithCreateSpotOrderRequestPrice(price float64) CreateSpotOrderRequestOption
 
 func WithCreateSpotOrderRequestParams(params map[string]interface{}) CreateSpotOrderRequestOptions {
     return func(opts *CreateSpotOrderRequestOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchWithdrawAddressesOptionsStruct struct {
-    Note *interface{}
-    NetworkCode *interface{}
-    Params *map[string]interface{}
-}
-
-type FetchWithdrawAddressesOptions func(opts *FetchWithdrawAddressesOptionsStruct)
-
-func WithFetchWithdrawAddressesNote(note interface{}) FetchWithdrawAddressesOptions {
-    return func(opts *FetchWithdrawAddressesOptionsStruct) {
-        opts.Note = &note
-    }
-}
-
-
-func WithFetchWithdrawAddressesNetworkCode(networkCode interface{}) FetchWithdrawAddressesOptions {
-    return func(opts *FetchWithdrawAddressesOptionsStruct) {
-        opts.NetworkCode = &networkCode
-    }
-}
-
-
-func WithFetchWithdrawAddressesParams(params map[string]interface{}) FetchWithdrawAddressesOptions {
-    return func(opts *FetchWithdrawAddressesOptionsStruct) {
         opts.Params = &params
     }
 }
