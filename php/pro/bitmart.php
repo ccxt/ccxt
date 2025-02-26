@@ -136,9 +136,10 @@ class bitmart extends \ccxt\async\bitmart {
                 $messageHashes[] = $channel . ':' . $market['symbol'];
             }
             // exclusion, futures "tickers" need one generic $request for all $symbols
-            if (($type !== 'spot') && ($channel === 'ticker')) {
-                $rawSubscriptions = array( $channelType . '/' . $channel );
-            }
+            // if (($type !== 'spot') && ($channel === 'ticker')) {
+            //     $rawSubscriptions = array( $channelType . '/' . $channel );
+            // }
+            // Exchange update from 2025-02-11 supports subscription by trading pair for swap
             $request = array(
                 'args' => $rawSubscriptions,
             );
@@ -989,39 +990,43 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function parse_ws_trade(array $trade, ?array $market = null) {
         // spot
-        //    {
-        //        "price" => "52700.50",
-        //        "s_t" => 1630982050,
-        //        "side" => "buy",
-        //        "size" => "0.00112",
-        //        "symbol" => "BTC_USDT"
-        //    }
-        // swap
-        //    {
-        //       "trade_id":6798697637,
-        //       "contract_id":1,
-        //       "symbol":"BTCUSDT",
-        //       "deal_price":"39735.8",
-        //       "deal_vol":"2",
-        //       "type":0,
-        //       "way":1,
-        //       "create_time":1701618503,
-        //       "create_time_mill":1701618503517,
-        //       "created_at":"2023-12-03T15:48:23.517518538Z"
-        //    }
+        //     {
+        //         "ms_t" => 1740320841473,
+        //         "price" => "2806.54",
+        //         "s_t" => 1740320841,
+        //         "side" => "sell",
+        //         "size" => "0.77598",
+        //         "symbol" => "ETH_USDT"
+        //     }
         //
-        $contractId = $this->safe_string($trade, 'contract_id');
-        $marketType = ($contractId === null) ? 'spot' : 'swap';
-        $marketDelimiter = ($marketType === 'spot') ? '_' : '';
-        $timestamp = $this->safe_integer($trade, 'create_time_mill', $this->safe_timestamp($trade, 's_t'));
+        // swap
+        //     {
+        //         "trade_id" => "3000000245258661",
+        //         "symbol" => "ETHUSDT",
+        //         "deal_price" => "2811.1",
+        //         "deal_vol" => "1858",
+        //         "way" => 2,
+        //         "m" => true,
+        //         "created_at" => "2025-02-23T13:59:59.646490751Z"
+        //     }
+        //
         $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($trade, 'ms_t');
+        $datetime = null;
+        if ($timestamp === null) {
+            $datetime = $this->safe_string($trade, 'created_at');
+            $timestamp = $this->parse8601($datetime);
+        } else {
+            $datetime = $this->iso8601($timestamp);
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'trade_id'),
             'order' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_symbol($marketId, $market, $marketDelimiter, $marketType),
+            'datetime' => $datetime,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
             'price' => $this->safe_string_2($trade, 'price', 'deal_price'),
@@ -1048,20 +1053,22 @@ class bitmart extends \ccxt\async\bitmart {
         //        ),
         //        "table" => "spot/ticker"
         //    }
-        //    {
-        //        "group":"futures/ticker",
-        //        "data":{
-        //              "symbol":"BTCUSDT",
-        //              "volume_24":"117387.58",
-        //              "fair_price":"146.24",
-        //              "last_price":"146.24",
-        //              "range":"147.17",
-        //              "ask_price" => "147.11",
-        //              "ask_vol" => "1",
-        //              "bid_price" => "142.11",
-        //              "bid_vol" => "1"
-        //            }
-        //    }
+        //
+        //     {
+        //         "data" => array(
+        //             "symbol" => "ETHUSDT",
+        //             "last_price" => "2807.73",
+        //             "volume_24" => "2227011952",
+        //             "range" => "0.0273398194664491",
+        //             "mark_price" => "2807.5",
+        //             "index_price" => "2808.71047619",
+        //             "ask_price" => "2808.04",
+        //             "ask_vol" => "7371",
+        //             "bid_price" => "2807.28",
+        //             "bid_vol" => "3561"
+        //         ),
+        //         "group" => "futures/ticker:ETHUSDT@100ms"
+        //     }
         //
         $this->handle_bid_ask($client, $message);
         $table = $this->safe_string($message, 'table');
@@ -1086,17 +1093,19 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function parse_ws_swap_ticker($ticker, ?array $market = null) {
         //
-        //    {
-        //        "symbol":"BTCUSDT",
-        //        "volume_24":"117387.58",
-        //        "fair_price":"146.24",
-        //        "last_price":"146.24",
-        //        "range":"147.17",
-        //        "ask_price" => "147.11",
-        //        "ask_vol" => "1",
-        //        "bid_price" => "142.11",
-        //        "bid_vol" => "1"
-        //    }
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "last_price" => "2807.73",
+        //         "volume_24" => "2227011952",
+        //         "range" => "0.0273398194664491",
+        //         "mark_price" => "2807.5",
+        //         "index_price" => "2808.71047619",
+        //         "ask_price" => "2808.04",
+        //         "ask_vol" => "7371",
+        //         "bid_price" => "2807.28",
+        //         "bid_vol" => "3561"
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, '', 'swap'),
@@ -1115,10 +1124,12 @@ class bitmart extends \ccxt\async\bitmart {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_string($ticker, 'fair_price'),
+            'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'volume_24'),
             'info' => $ticker,
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
         ), $market);
     }
 
