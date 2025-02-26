@@ -56,8 +56,8 @@ export default class coindcx extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCanceledOrders': true,
                 'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -183,12 +183,15 @@ export default class coindcx extends Exchange {
                         'market_data/candles': 1, // done
                         'market_data/v3/orderbook/{pair}-futures/{limit}': 1, // done
                         'market_data/candlesticks': 1, // done
+                        'market_data/v3/current_prices/futures/rt': 1, // new
                     },
                 },
                 'private': {
                     'post': {
                         'exchange/v1/users/balances': 1, // done
                         'exchange/v1/users/info': 1, // not unified
+                        'exchange/v1/wallets/sub_account_transfer': 1, // new
+                        'exchange/v1/wallets/transfer': 1, // new
                         'exchange/v1/orders/create': 1, // done
                         'exchange/v1/orders/create_multiple': 1, // done
                         'exchange/v1/orders/status': 1, // done
@@ -218,6 +221,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/orders/create': 1, // done
                         'exchange/v1/derivatives/futures/orders/cancel': 1, // done
                         'exchange/v1/derivatives/futures/positions': 1, // done
+                        'exchange/v1/derivatives/futures/positions/update_leverage': 1, // new
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/remove_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/cancel_all_open_orders': 1, // done
@@ -226,6 +230,12 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/positions/create_tpsl': 1, // todo check
                         'exchange/v1/derivatives/futures/positions/transactions': 1, // not unified
                         'exchange/v1/derivatives/futures/trades': 1, // done
+                        'exchange/v1/derivatives/futures/positions/cross_margin_details': 1, // new
+                        'exchange/v1/derivatives/futures/wallets/transfer': 1, // new
+                        'exchange/v1/derivatives/futures/wallets': 1, // new
+                        'exchange/v1/derivatives/futures/wallets/transactions': 1, // new
+                        'exchange/v1/derivatives/futures/orders/edit': 1, // new
+                        '/exchange/v1/derivatives/futures/positions/margin_type': 1, // new
                     },
                 },
             },
