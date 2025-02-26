@@ -678,7 +678,8 @@ class phemex extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
-        $baseId = $this->safe_string_2($market, 'baseCurrency', 'contractUnderlyingAssets');
+        $contractUnderlyingAssets = $this->safe_string($market, 'contractUnderlyingAssets');
+        $baseId = $this->safe_string($market, 'baseCurrency', $contractUnderlyingAssets);
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settleCurrency');
         $base = $this->safe_currency_code($baseId);
@@ -688,6 +689,10 @@ class phemex extends Exchange {
         $inverse = false;
         if ($settleId !== $quoteId) {
             $inverse = true;
+            // some unhandled cases
+            if (!(is_array($market) && array_key_exists('baseCurrency', $market)) && $base === $quote) {
+                $base = $settle;
+            }
         }
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
