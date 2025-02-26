@@ -15,7 +15,7 @@ class Future implements PromiseInterface {
         $this->deferred = new Deferred();
     }
 
-    public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface {
+    public function then(?callable $onFulfilled = null, ?callable $onRejected = null, ?callable $onProgress = null): PromiseInterface {
         return $this->deferred->promise()->then($onFulfilled, $onRejected);
     }
 
