@@ -640,7 +640,8 @@ public partial class phemex : Exchange
         //     }
         //
         object id = this.safeString(market, "symbol");
-        object baseId = this.safeString2(market, "baseCurrency", "contractUnderlyingAssets");
+        object contractUnderlyingAssets = this.safeString(market, "contractUnderlyingAssets");
+        object baseId = this.safeString(market, "baseCurrency", contractUnderlyingAssets);
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
@@ -651,6 +652,11 @@ public partial class phemex : Exchange
         if (isTrue(!isEqual(settleId, quoteId)))
         {
             inverse = true;
+            // some unhandled cases
+            if (isTrue(!isTrue((inOp(market, "baseCurrency"))) && isTrue(isEqual(bs, quote))))
+            {
+                bs = settle;
+            }
         }
         object priceScale = this.safeInteger(market, "priceScale");
         object ratioScale = this.safeInteger(market, "ratioScale");
