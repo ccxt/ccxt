@@ -175,18 +175,39 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			}
 			return nil
 		case []interface{}:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []float64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []bool:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return string(v[keyNum])
 		}
 	}
