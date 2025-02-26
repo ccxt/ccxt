@@ -674,7 +674,8 @@ export default class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const contractUnderlyingAssets = this.safeString (market, 'contractUnderlyingAssets');
+        const baseId = this.safeString (market, 'baseCurrency', contractUnderlyingAssets);
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
         let base = this.safeCurrencyCode (baseId);
@@ -684,6 +685,10 @@ export default class phemex extends Exchange {
         let inverse = false;
         if (settleId !== quoteId) {
             inverse = true;
+            // some unhandled cases
+            if (!('baseCurrency' in market) && base === quote) {
+                base = settle;
+            }
         }
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
