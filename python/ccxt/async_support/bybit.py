@@ -1032,7 +1032,6 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': False,
-                'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
@@ -1293,24 +1292,6 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
-    def enable_demo_trading(self, enable: bool):
-        """
-        enables or disables demo trading mode
-        https://bybit-exchange.github.io/docs/v5/demo
-        :param boolean [enable]: True if demo trading should be enabled, False otherwise
-        """
-        if self.isSandboxModeEnabled:
-            raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
-        # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
-        if enable:
-            self.urls['apiBackupDemoTrading'] = self.urls['api']
-            self.urls['api'] = self.urls['demotrading']
-        elif 'apiBackupDemoTrading' in self.urls:
-            self.urls['api'] = self.urls['apiBackupDemoTrading']
-            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
-            self.urls = newUrls
-        self.options['enableDemoTrading'] = enable
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -1341,13 +1322,6 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_bool(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
-            if self.options['enableDemoTrading']:
-                # info endpoint is not available in demo trading
-                # so we're assuming UTA is enabled
-                self.options['enableUnifiedMargin'] = False
-                self.options['enableUnifiedAccount'] = True
-                self.options['unifiedMarginStatus'] = 3
-                return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = await asyncio.gather(*rawPromises)
             response = promises[0]
@@ -1587,8 +1561,6 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
-        if self.options['enableDemoTrading']:
             return None
         response = await self.privateGetV5AssetCoinQueryInfo(params)
         #
