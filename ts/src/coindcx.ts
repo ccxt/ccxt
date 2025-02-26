@@ -3058,22 +3058,27 @@ export default class coindcx extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginCurrencyShortName] *mandatory* Futures margin mode. Default value - "USDT". Possible values INR & USDT.
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        let market = undefined;
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (!market['swap']) {
+                throw new NotSupported (this.id + ' setLeverage() supports swap markets only');
+            }
+            request['symbol'] = market['id'];
         }
-        if (leverage < 1) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be more than 1 for ' + symbol);
+        let marginCurrencyShortName = 'USDT';
+        if (params['marginCurrencyShortName'] !== undefined) {
+            marginCurrencyShortName = params['marginCurrencyShortName'];
+            params = this.omit (params, 'marginCurrencyShortName');
         }
-        const request: Dict = {
-            'symbol': market['id'],
+        request = {
             'leverage': leverage.toString (),
+            'margin_currency_short_name': marginCurrencyShortName,
         };
         return await this.privatePostExchangeV1DerivativesFuturesPositionsUpdateLeverage (this.extend (request, params));
     }
