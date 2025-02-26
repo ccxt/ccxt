@@ -1149,10 +1149,10 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (price === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
@@ -1336,7 +1336,7 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
@@ -1504,7 +1504,7 @@ export default class derive extends Exchange {
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'instrument_name': market['id'],
@@ -1595,7 +1595,7 @@ export default class derive extends Exchange {
             market = this.market (symbol);
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1646,7 +1646,7 @@ export default class derive extends Exchange {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -1941,7 +1941,7 @@ export default class derive extends Exchange {
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params);
         const request: Dict = {
             'order_id': id,
             'subaccount_id': subaccountId,
@@ -2020,7 +2020,7 @@ export default class derive extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
         let subaccountId = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params)
+        [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
@@ -2553,7 +2553,7 @@ export default class derive extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    handleDeriveSubaccountId(methodName: string, params: Dict) {
+    handleDeriveSubaccountId (methodName: string, params: Dict) {
         let derivesubAccountId = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
