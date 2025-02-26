@@ -873,7 +873,7 @@ export default class phemex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const v2Products = await this.v2GetPublicProducts (params);
+        const v2ProductsPromise = this.v2GetPublicProducts (params);
         //
         //     {
         //         "code":0,
@@ -1023,7 +1023,8 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await this.v1GetExchangePublicProducts (params);
+        const v1ProductsPromise = this.v1GetExchangePublicProducts (params);
+        const [ v2Products, v1Products ] = await Promise.all ([ v2ProductsPromise, v1ProductsPromise ]);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
