@@ -3049,6 +3049,35 @@ export default class coindcx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.coindcx.com/#update-position-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if (leverage < 1) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be more than 1 for ' + symbol);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+        };
+        return await this.privatePostExchangeV1DerivativesFuturesPositionsUpdateLeverage (this.extend (request, params));
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
