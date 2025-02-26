@@ -1095,7 +1095,8 @@ export default class derive extends Exchange {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
-        const DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const DOMAIN_SEPARATOR = (sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary ('1901');
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
@@ -1143,7 +1144,7 @@ export default class derive extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [parmas.max_fee] *required* the maximum fee you are willing to pay for the order
+     * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1164,16 +1165,17 @@ export default class derive extends Exchange {
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
-        const priceString = this.numberToString(price);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const priceString = this.numberToString (price);
         // const maxFeeString = this.safeString (params, 'max_fee', '0');
         let maxFee = undefined;
-        [maxFee, params] = this.handleOptionAndParams(params, 'createOrder', 'max_fee');
+        [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a max_fee argument in params');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString(maxFee);
-        const amountString = this.numberToString(amount);
+        const maxFeeString = this.numberToString (maxFee);
+        const amountString = this.numberToString (amount);
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1353,7 +1355,8 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
-        const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = price.toString ();
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = amount.toString ();
