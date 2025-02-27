@@ -2061,13 +2061,21 @@ export default class gate extends gateRest {
         const signatureString = [ event, channel, this.json (reqParams), time.toString () ].join ("\n"); // eslint-disable-line quotes
         const signature = this.hmac (this.encode (signatureString), this.encode (this.secret), sha512, 'hex');
         const payload: Dict = {
-            'X-Gate-Channel-Id': 'ccxt',
             'req_id': requestId,
             'timestamp': time.toString (),
             'api_key': this.apiKey,
             'signature': signature,
             'req_param': reqParams,
         };
+        if (channel === 'spot.order_place') {
+            payload['req_header'] = {
+                'x-gate-channel-id': 'ccxt',
+            };
+        } else if (channel === 'futures.order_place') {
+            payload['headers'] = {
+                'x-gate-channel-id': 'ccxt',
+            };
+        }
         const request: Dict = {
             'id': requestId,
             'time': time,
