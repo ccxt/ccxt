@@ -16,7 +16,7 @@ class Future implements PromiseInterface {
     }
 
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null, ?callable $onProgress = null): PromiseInterface {
-        return $this->deferred->promise()->then($onFulfilled, $onRejected);
+        return $this->deferred->promise()->then($onFulfilled, $onRejected, $onProgress);
     }
 
     public function resolve($value = null) {
