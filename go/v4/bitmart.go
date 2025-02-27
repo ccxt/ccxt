@@ -2118,7 +2118,7 @@ func  (this *bitmart) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
                 if IsTrue(IsEqual(price, "mark")) {
                     params = this.Omit(params, "price")
                     
-        response = (<-this.callDynamically("publicGetContractPublicMarkpriceKline", this.Extend(request, params)))
+        response = (<-this.PublicGetContractPublicMarkpriceKline(this.Extend(request, params)))
                     PanicOnError(response)
                 } else {
                     
@@ -2898,7 +2898,7 @@ func  (this *bitmart) CreateOrder(symbol interface{}, typeVar interface{}, side 
                 if IsTrue(!IsEqual(activationPrice, nil)) {
                     // if type is trailing
                     
-        response = (<-this.callDynamically("privatePostContractPrivateSubmitTrailOrder", swapRequest))
+        response = (<-this.PrivatePostContractPrivateSubmitTrailOrder(swapRequest))
                     PanicOnError(response)
                 } else if IsTrue(isTriggerOrder) {
                     
@@ -3318,7 +3318,7 @@ func  (this *bitmart) CancelOrder(id interface{}, optionalArgs ...interface{}) <
                     PanicOnError(response)
                 } else if IsTrue(trailing) {
                     
-        response = (<-this.callDynamically("privatePostContractPrivateCancelTrailOrder", this.Extend(request, params)))
+        response = (<-this.PrivatePostContractPrivateCancelTrailOrder(this.Extend(request, params)))
                     PanicOnError(response)
                 } else {
                     
@@ -6193,7 +6193,7 @@ func  (this *bitmart) FetchWithdrawAddresses(code interface{}, optionalArgs ...i
                 codes = []interface{}{code}
             }
         
-            response:= (<-this.callDynamically("privateGetAccountV1WithdrawAddressList", params))
+            response:= (<-this.PrivateGetAccountV1WithdrawAddressList(params))
             PanicOnError(response)
             //
             //     {

@@ -2011,7 +2011,7 @@ public partial class bitmart : Exchange
             if (isTrue(isEqual(price, "mark")))
             {
                 parameters = this.omit(parameters, "price");
-                response = await ((Task<object>)callDynamically(this, "publicGetContractPublicMarkpriceKline", new object[] { this.extend(request, parameters) }));
+                response = await this.publicGetContractPublicMarkpriceKline(this.extend(request, parameters));
             } else
             {
                 response = await this.publicGetContractPublicKline(this.extend(request, parameters));
@@ -2734,7 +2734,7 @@ public partial class bitmart : Exchange
             if (isTrue(!isEqual(activationPrice, null)))
             {
                 // if type is trailing
-                response = await ((Task<object>)callDynamically(this, "privatePostContractPrivateSubmitTrailOrder", new object[] { swapRequest }));
+                response = await this.privatePostContractPrivateSubmitTrailOrder(swapRequest);
             } else if (isTrue(isTriggerOrder))
             {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
@@ -3174,7 +3174,7 @@ public partial class bitmart : Exchange
                 response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, parameters));
             } else if (isTrue(trailing))
             {
-                response = await ((Task<object>)callDynamically(this, "privatePostContractPrivateCancelTrailOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privatePostContractPrivateCancelTrailOrder(this.extend(request, parameters));
             } else
             {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, parameters));
@@ -5661,7 +5661,7 @@ public partial class bitmart : Exchange
             code = getValue(currency, "code");
             codes = new List<object>() {code};
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountV1WithdrawAddressList", new object[] { parameters }));
+        object response = await this.privateGetAccountV1WithdrawAddressList(parameters);
         //
         //     {
         //         "message": "OK",
