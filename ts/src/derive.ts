@@ -1362,9 +1362,9 @@ export default class derive extends Exchange {
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = price.toString ();
+        const priceString = this.numberToString (price);
         const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
