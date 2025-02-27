@@ -896,6 +896,9 @@
             {
                 "description": "fetch inverse balance",
                 "method": "fetchBalance",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "url": "https://api.bybit.com/v5/account/wallet-balance?accountType=CONTRACT",
                 "input": [
                   {
