@@ -1339,7 +1339,9 @@ class Exchange {
     }
 
     public function convert_to_big_int($strVal) {
-        return floatval($strVal);
+        // floatval is not big number, we should return either phpseclib\Math\BigInteger or BN\BN in the future
+        // for now return string (only used in derive)
+        return $strVal;
     }
 
     public function starknet_encode_structured_data($domain, $messageTypes, $messageData, $address) {

@@ -1108,20 +1108,25 @@ export default class derive extends Exchange {
     }
 
     signOrder (order, privateKey) {
-        return this.signHash (this.hashOrderMessage (order).slice (-64), privateKey.slice (-64));
+        const hashOrder = this.hashOrderMessage (order);
+        return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
 
     hashMessage (message) {
-        // takes a utf8 encoded message
         const binaryMessage = this.encode (message);
         const binaryMessageLength = binaryMessage.length;
-        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + this.numberToString (binaryMessageLength));
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0A');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + this.intToBase16 (this.sum (27, signature['v']));
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
     signMessage (message, privateKey) {
