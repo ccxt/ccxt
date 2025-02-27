@@ -2067,12 +2067,8 @@ export default class gate extends gateRest {
             'signature': signature,
             'req_param': reqParams,
         };
-        if (channel === 'spot.order_place') {
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
             payload['req_header'] = {
-                'x-gate-channel-id': 'ccxt',
-            };
-        } else if (channel === 'futures.order_place') {
-            payload['headers'] = {
                 'x-gate-channel-id': 'ccxt',
             };
         }
