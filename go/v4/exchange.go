@@ -856,6 +856,24 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	return ch
 }
 
+func (this *Exchange) BinaryLength(binary interface{}) int {
+	return this.binaryLength(binary)
+}
+
+func (this *Exchange) binaryLength(binary interface{}) int {
+	var length int
+
+	// Handle different types for the length parameter
+	switch v := binary.(type) {
+	case []byte:
+		length = len(v)
+	default:
+		panic(fmt.Sprintf("unsupported binary: %v", reflect.TypeOf(binary)))
+	}
+
+	return length
+}
+
 func (this *Exchange) RandomBytes(length interface{}) string {
 	var byteLength int
 

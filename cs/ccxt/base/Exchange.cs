@@ -397,7 +397,7 @@ public partial class Exchange
         }
         return int.Parse(number);
     }
-    public int binaryLength(bytes binary)
+    public int binaryLength(object binary)
     {
         return getArrayLength(binary);
     }
