@@ -422,6 +422,11 @@ export default class derive extends Exchange {
         });
     }
 
+    setSandboxMode (enable: boolean) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
     /**
      * @method
      * @name derive#fetchTime
