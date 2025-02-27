@@ -16,7 +16,7 @@ import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, M
  * @augments Exchange
  */
 export default class derive extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'derive',
             'name': 'derive',
