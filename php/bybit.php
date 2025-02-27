@@ -1010,6 +1010,7 @@ class bybit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
+                'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'createOrder' => array(
                     'method' => 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1271,6 +1272,27 @@ class bybit extends Exchange {
         ));
     }
 
+    public function enable_demo_trading(bool $enable) {
+        /**
+         * enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        if ($this->isSandboxModeEnabled) {
+            throw new NotSupported($this->id . ' demo trading does not support in sandbox environment');
+        }
+        // $enable demo trading in bybit, see => https://bybit-exchange.github.io/docs/v5/demo
+        if ($enable) {
+            $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
+            $this->urls['api'] = $this->urls['demotrading'];
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+            $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
+            $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
+            $this->urls = $newUrls;
+        }
+        $this->options['enableDemoTrading'] = $enable;
+    }
+
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
@@ -1304,6 +1326,14 @@ class bybit extends Exchange {
         $enableUnifiedMargin = $this->safe_bool($this->options, 'enableUnifiedMargin');
         $enableUnifiedAccount = $this->safe_bool($this->options, 'enableUnifiedAccount');
         if ($enableUnifiedMargin === null || $enableUnifiedAccount === null) {
+            if ($this->options['enableDemoTrading']) {
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled
+                $this->options['enableUnifiedMargin'] = false;
+                $this->options['enableUnifiedAccount'] = true;
+                $this->options['unifiedMarginStatus'] = 6;
+                return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
+            }
             $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
             $promises = $rawPromises;
             $response = $promises[0];
@@ -1367,7 +1397,7 @@ class bybit extends Exchange {
             $accountResult = $this->safe_dict($accountInfo, 'result', array());
             $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
             $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
-            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
     }
@@ -1562,6 +1592,9 @@ class bybit extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        if ($this->options['enableDemoTrading']) {
             return null;
         }
         $response = $this->privateGetV5AssetCoinQueryInfo ($params);
@@ -3383,7 +3416,7 @@ class bybit extends Exchange {
         $isInverse = ($type === 'inverse');
         $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
         if ($isUnifiedAccount) {
-            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
             if ($unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if ($isInverse) {
@@ -4155,7 +4188,7 @@ class bybit extends Exchange {
         }
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($symbols[0]);
-        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         $category = null;
         list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
@@ -4371,7 +4404,7 @@ class bybit extends Exchange {
         }
         $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($orderSymbols[0]);
-        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         $category = null;
         list($category, $params) = $this->get_bybit_type('editOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
