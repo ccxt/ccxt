@@ -1014,6 +1014,7 @@ class bybit extends bybit$1 {
             'precisionMode': number.TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': false,
+                'enableDemoTrading': false,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1274,6 +1275,29 @@ class bybit extends bybit$1 {
             },
         });
     }
+    enableDemoTrading(enable) {
+        /**
+         * @method
+         * @name bybit#enableDemoTrading
+         * @description enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        if (this.isSandboxModeEnabled) {
+            throw new errors.NotSupported(this.id + ' demo trading does not support in sandbox environment');
+        }
+        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demotrading'];
+        }
+        else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'];
+            const newUrls = this.omit(this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
+    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
@@ -1305,6 +1329,14 @@ class bybit extends bybit$1 {
         const enableUnifiedMargin = this.safeBool(this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeBool(this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
+            if (this.options['enableDemoTrading']) {
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled
+                this.options['enableUnifiedMargin'] = false;
+                this.options['enableUnifiedAccount'] = true;
+                this.options['unifiedMarginStatus'] = 6;
+                return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
+            }
             const rawPromises = [this.privateGetV5UserQueryApi(params), this.privateGetV5AccountInfo(params)];
             const promises = await Promise.all(rawPromises);
             const response = promises[0];
@@ -1368,7 +1400,7 @@ class bybit extends bybit$1 {
             const accountResult = this.safeDict(accountInfo, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
-            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
     }
@@ -1558,6 +1590,9 @@ class bybit extends bybit$1 {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
+            return undefined;
+        }
+        if (this.options['enableDemoTrading']) {
             return undefined;
         }
         const response = await this.privateGetV5AssetCoinQueryInfo(params);
@@ -3399,7 +3434,7 @@ class bybit extends bybit$1 {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
             if (unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if (isInverse) {
@@ -4197,7 +4232,7 @@ class bybit extends bybit$1 {
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
-        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
         let category = undefined;
         [category, params] = this.getBybitType('createOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
@@ -4413,7 +4448,7 @@ class bybit extends bybit$1 {
         }
         orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbols[0]);
-        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
         let category = undefined;
         [category, params] = this.getBybitType('editOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
