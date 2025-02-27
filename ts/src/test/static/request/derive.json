@@ -6,7 +6,8 @@
         "nonce",
         "signer",
         "signature_expiry_sec",
-        "signature"
+        "signature",
+        "referral_code"
     ],
     "options": {
         "deriveWalletAddress": "0x0000000000000000000000000000000000000000"
@@ -100,7 +101,7 @@
                         "max_fee":219
                     }
                 ],
-                "output": "{\"instrument_name\":\"LBTC-USDC\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914910057,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":219,\"subaccount_id\":130837,\"signature_expiry_sec\":1746690910,\"signer\":\"0x0000000000000000000000000000000000000000\",\"signature\":\"0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b\"}"
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914910057,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":\"219\",\"subaccount_id\":130837,\"signature_expiry_sec\":1746690910,\"signer\":\"0x0000000000000000000000000000000000000000\",\"signature\":\"0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b\",\"referral_code\":\"\"}"
             },
             {
                 "description": "createOrder",
@@ -123,7 +124,7 @@
                         }
                     }
                 ],
-                "output": "{\"instrument_name\":\"BTC-PERP\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914735356,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":219,\"subaccount_id\":130837,\"signature_expiry_sec\":1746690735,\"signer\":\"0x0000000000000000000000000000000000000000\",\"reduce_only\":false,\"time_in_force\":\"post_only\",\"trigger_price\":\"102800\",\"trigger_type\":\"stoploss\",\"trigger_price_type\":\"mark\",\"label\":\"test1234\",\"signature\":\"0x4d621920bb2d11e1a910b88c5cbe0d9ea73b114ee6197409eab18170381e257962245bf86149962cae510863cf587662548d383bb1b3408d9c26a6627ffad3df1b\"}"
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914735356,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":\"219\",\"subaccount_id\":130837,\"signature_expiry_sec\":1746690735,\"signer\":\"0x0000000000000000000000000000000000000000\",\"reduce_only\":false,\"time_in_force\":\"post_only\",\"trigger_price\":\"102800\",\"trigger_type\":\"stoploss\",\"trigger_price_type\":\"mark\",\"label\":\"test1234\",\"signature\":\"0x4d621920bb2d11e1a910b88c5cbe0d9ea73b114ee6197409eab18170381e257962245bf86149962cae510863cf587662548d383bb1b3408d9c26a6627ffad3df1b\",\"referral_code\":\"\"}"
             }
         ],
         "editOrder": [
