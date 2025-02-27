@@ -1745,6 +1745,9 @@ class Exchange(object):
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
+    def binary_length(self, binary):
+        return len(binary)
+
     # ########################################################################
     # ########################################################################
     # ########################################################################

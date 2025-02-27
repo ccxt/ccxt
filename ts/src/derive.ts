@@ -1114,9 +1114,9 @@ export default class derive extends Exchange {
 
     hashMessage (message) {
         const binaryMessage = this.encode (message);
-        const binaryMessageLength = binaryMessage.length;
+        const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
-        const newline = this.base16ToBinary ('0A');
+        const newline = this.base16ToBinary ('0a');
         const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
