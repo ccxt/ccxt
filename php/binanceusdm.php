@@ -10,7 +10,7 @@ use ccxt\abstract\binanceusdm as binance;
 
 class binanceusdm extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',

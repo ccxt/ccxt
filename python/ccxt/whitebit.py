@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -1150,6 +1150,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "clientOrderId": "customId11",
         #         "role": 2,  # 1 = maker, 2 = taker
         #         "deal": "0.00419198"  # amount in money
+        #         "feeAsset": "USDT"
         #     }
         #
         # fetchMyTrades
@@ -1165,6 +1166,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "deal": "9.981007",
         #          "fee": "0.009981007",
         #          "orderId": 58166729555,
+        #          "feeAsset": "USDT"
         #      }
         #
         market = self.safe_market(None, market)
@@ -1185,7 +1187,7 @@ class whitebit(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(self.safe_string(trade, 'feeAsset')),
             }
         return self.safe_trade({
             'info': trade,
@@ -1291,7 +1293,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -2601,12 +2603,10 @@ class whitebit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
-            timestamp = self.parse_to_int(nonce / 1000)
-            timestampString = str(timestamp)
+            nonce = str(self.nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            body = self.json(self.extend({'request': request, 'nonce': timestampString}, params))
+            body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
@@ -2626,12 +2626,13 @@ class whitebit(Exchange, ImplicitAPI):
             # For cases where we have a meaningful status
             # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             status = self.safe_string(response, 'status')
+            errors = self.safe_value(response, 'errors')
             # {"code":10,"message":"Unauthorized request."}
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             codeNew = self.safe_integer(response, 'code')
-            hasErrorStatus = status is not None and status != '200'
+            hasErrorStatus = status is not None and status != '200' and errors is not None
             if hasErrorStatus or codeNew is not None:
                 feedback = self.id + ' ' + body
                 errorInfo = message

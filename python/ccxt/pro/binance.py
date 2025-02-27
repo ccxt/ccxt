@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -19,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class binance(ccxt.async_support.binance):
 
-    def describe(self):
+    def describe(self) -> Any:
         superDescribe = super(binance, self).describe()
         return self.deep_extend(superDescribe, self.describe_data())
 
@@ -79,6 +78,7 @@ class binance(ccxt.async_support.binance):
                         'ws-api': {
                             'spot': 'wss://testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -91,6 +91,7 @@ class binance(ccxt.async_support.binance):
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -2335,6 +2336,7 @@ class binance(ccxt.async_support.binance):
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -2345,7 +2347,7 @@ class binance(ccxt.async_support.binance):
         """
         await self.load_markets()
         type = self.get_market_type('fetchBalanceWs', None, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
@@ -2451,6 +2453,7 @@ class binance(ccxt.async_support.binance):
         fetch all open positions
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2459,15 +2462,20 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols, 'swap', True, True, True)
-        url = self.urls['api']['ws']['ws-api']['future']
-        requestId = self.request_id(url)
-        messageHash = str(requestId)
         payload: dict = {}
+        market = None
+        symbols = self.market_symbols(symbols, 'swap', True, True, True)
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength == 1:
-                payload['symbol'] = self.market_id(symbols[0])
+                market = self.market(symbols[0])
+                payload['symbol'] = market['id']
+        type = self.get_market_type('fetchPositionsWs', market, params)
+        if type != 'future' and type != 'delivery':
+            raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
+        url = self.urls['api']['ws']['ws-api'][type]
+        requestId = self.request_id(url)
+        messageHash = str(requestId)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
@@ -2676,6 +2684,7 @@ class binance(ccxt.async_support.binance):
 
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2690,7 +2699,7 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('createOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future':
+        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
@@ -2820,6 +2829,7 @@ class binance(ccxt.async_support.binance):
 
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -2833,22 +2843,23 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('editOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future':
+        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
+        isSwap = (marketType == 'future' or marketType == 'delivery')
         payload = None
         if marketType == 'spot':
             payload = self.editSpotOrderRequest(id, symbol, type, side, amount, price, params)
-        elif marketType == 'future':
+        elif isSwap:
             payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'editOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         message: dict = {
             'id': messageHash,
-            'method': 'order.modify' if (marketType == 'future') else 'order.cancelReplace',
+            'method': 'order.modify' if (isSwap) else 'order.cancelReplace',
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
@@ -2971,6 +2982,7 @@ class binance(ccxt.async_support.binance):
 
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
 
         :param str id: order id
         :param str [symbol]: unified market symbol, default is None
@@ -3048,6 +3060,7 @@ class binance(ccxt.async_support.binance):
 
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
@@ -3059,7 +3072,7 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('fetchOrderWs', market, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)

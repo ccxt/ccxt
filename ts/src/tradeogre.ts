@@ -14,7 +14,7 @@ import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dic
  * @augments Exchange
  */
 export default class tradeogre extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'tradeogre',
             'name': 'tradeogre',

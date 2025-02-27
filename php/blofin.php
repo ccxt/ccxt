@@ -10,7 +10,7 @@ use ccxt\abstract\blofin as Exchange;
 
 class blofin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
@@ -316,8 +316,7 @@ class blofin extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limit' => true,
-                            'price' => null,
+                            'price' => true,
                         ),
                         'hedged' => true,
                     ),

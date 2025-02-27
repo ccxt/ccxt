@@ -139,6 +139,7 @@ const VIRTUAL_BASE_METHODS = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "parseConversion": false,
     "sign": false
 }
 
@@ -1551,10 +1552,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            if (tsFile.indexOf('json') > -1 || tsFile.indexOf('filterBy') > -1 || tsFile.indexOf('sortBy') > -1) {
-                continue; // skip json tests for now, exception handling outside classes is not supported
-            }
-
             // const goFileName = this.capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
@@ -1563,13 +1560,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.NewExchange()' ],
+                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
+                [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /TestSortBy\(\)/gm, '' ], // remove equals
-                [ /TestFilterBy\(\)/gm, '' ], // remove equals
+                [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
 
             ]).trim ()
 
@@ -1649,8 +1647,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         let exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
-        baseTests = baseTests.filter (filename => filename !== 'test.throttle' && filename !== 'test.filterBy');
-        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.filterBy' && filename !== 'test.createOrder');
+        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
+        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.createOrder');
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {

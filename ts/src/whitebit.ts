@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, 
  * @augments Exchange
  */
 export default class whitebit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -1170,6 +1170,7 @@ export default class whitebit extends Exchange {
         //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1185,6 +1186,7 @@ export default class whitebit extends Exchange {
         //          "deal": "9.981007",
         //          "fee": "0.009981007",
         //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         market = this.safeMarket (undefined, market);
@@ -1206,7 +1208,7 @@ export default class whitebit extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeAsset')),
             };
         }
         return this.safeTrade ({
@@ -1328,7 +1330,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v4PublicGetTime (params);
         //
         //     {
@@ -2726,12 +2728,10 @@ export default class whitebit extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const timestamp = this.parseToInt (nonce / 1000);
-            const timestampString = timestamp.toString ();
+            const nonce = this.nonce ().toString ();
             const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json (this.extend ({ 'request': request, 'nonce': timestampString }, params));
+            body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
             const signature = this.hmac (this.encode (payload), secret, sha512);
             headers = {
@@ -2755,12 +2755,13 @@ export default class whitebit extends Exchange {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeString (response, 'status');
+            const errors = this.safeValue (response, 'errors');
             // {"code":10,"message":"Unauthorized request."}
             const message = this.safeString (response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             const codeNew = this.safeInteger (response, 'code');
-            const hasErrorStatus = status !== undefined && status !== '200';
+            const hasErrorStatus = status !== undefined && status !== '200' && errors !== undefined;
             if (hasErrorStatus || codeNew !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;

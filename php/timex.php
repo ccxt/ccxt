@@ -10,7 +10,7 @@ use ccxt\abstract\timex as Exchange;
 
 class timex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'timex',
             'name' => 'TimeX',
@@ -341,7 +341,7 @@ class timex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

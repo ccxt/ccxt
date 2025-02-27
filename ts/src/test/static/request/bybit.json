@@ -537,7 +537,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
             },
             {
                 "description": "Swap create orders",
@@ -561,7 +561,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
             }
         ],
         "cancelOrder": [
@@ -693,6 +693,60 @@
                   ]
                 ],
                 "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"da3d893d-8668-4482-a2ec-c3d1414695c3\"},{\"symbol\":\"ADAUSDT\",\"orderId\":\"da03221b-f231-49c2-9b93-e1d10ed470c2\"}]}"
+            }
+        ],
+        "editOrders": [
+            {
+                "description": "Spot edit orders",
+                "method": "editOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/amend-batch",
+                "input": [
+                    [
+                        {
+                            "id":"2e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 50
+                        },
+                        {
+                            "id":"3e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "sell",
+                            "type": "limit",
+                            "price": 70
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"spot\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"50\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+            },
+            {
+                "description": "Swap edit orders",
+                "method": "editOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/amend-batch",
+                "input": [
+                    [
+                        {
+                            "id":"2e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "id":"3e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"linear\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"60\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
             }
         ],
         "fetchOpenOrders": [
@@ -1401,6 +1455,24 @@
                 "input": [
                   "USDT",
                   1726652765781
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSD&intervalTime=1h&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ]

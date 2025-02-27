@@ -17,7 +17,7 @@ import Client from '../base/ws/Client.js';
  */
 
 export default class bitget extends bitgetRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

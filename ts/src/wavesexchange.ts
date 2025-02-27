@@ -15,7 +15,7 @@ import { TICK_SIZE } from './base/functions/number.js';
  * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',

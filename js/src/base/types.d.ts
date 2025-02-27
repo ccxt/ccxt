@@ -45,8 +45,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;

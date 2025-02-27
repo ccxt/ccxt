@@ -62,6 +62,7 @@ class binance extends binance$1 {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -1561,6 +1562,7 @@ class binance extends binance$1 {
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
+                'defaultWithdrawPrecision': 0.00000001,
             },
             'features': {
                 'spot': {
@@ -3106,6 +3108,7 @@ class binance extends binance$1 {
             const id = this.safeString(entry, 'coin');
             const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
+            const isFiat = this.safeBool(entry, 'isLegalMoney');
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
@@ -3117,6 +3120,7 @@ class binance extends binance$1 {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
                 const networkCode = this.networkIdToCode(network);
+                const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool(networkItem, 'depositEnable');
@@ -3128,11 +3132,25 @@ class binance extends binance$1 {
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
+                // todo: default networks in "setMarkets" overload
+                // if (isDefault) {
+                //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                // }
                 const precisionTick = this.safeString(networkItem, 'withdrawIntegerMultiple');
-                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                let withdrawPrecision = precisionTick;
+                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (!Precise["default"].stringEq(precisionTick, '0')) {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
+                }
+                else {
+                    if (!isFiat && !isETF) {
+                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                        withdrawPrecision = this.omitZero(this.safeString(networkItem, 'withdrawInternalMin'));
+                        if (withdrawPrecision === undefined) {
+                            withdrawPrecision = this.safeString(this.options, 'defaultWithdrawPrecision');
+                        }
+                    }
                 }
                 networks[networkCode] = {
                     'info': networkItem,
@@ -3142,7 +3160,7 @@ class binance extends binance$1 {
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': withdrawFee,
-                    'precision': this.parseNumber(precisionTick),
+                    'precision': this.parseNumber(withdrawPrecision),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(networkItem, 'withdrawMin'),
@@ -3172,6 +3190,7 @@ class binance extends binance$1 {
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'precision': this.parseNumber(minPrecision),
                 'info': entry,
                 'active': active,
@@ -5586,6 +5605,90 @@ class binance extends binance$1 {
         else {
             return await this.editContractOrder(id, symbol, type, side, amount, price, params);
         }
+    }
+    /**
+     * @method
+     * @name binance#editOrders
+     * @description edit a list of trade orders
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
+            const id = this.safeString(rawOrder, 'id');
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            let orderParams = this.safeDict(rawOrder, 'params', {});
+            let isPortfolioMargin = undefined;
+            [isPortfolioMargin, orderParams] = this.handleOptionAndParams2(orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
+            if (isPortfolioMargin) {
+                throw new errors.NotSupported(this.id + ' editOrders() does not support portfolio margin orders');
+            }
+            const orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(orderSymbols[0]);
+        if (market['spot'] || market['option']) {
+            throw new errors.NotSupported(this.id + ' editOrders() does not support ' + market['type'] + ' orders');
+        }
+        let response = undefined;
+        let request = {
+            'batchOrders': ordersRequests,
+        };
+        request = this.extend(request, params);
+        if (market['linear']) {
+            response = await this.fapiPrivatePutBatchOrders(request);
+        }
+        else if (market['inverse']) {
+            response = await this.dapiPrivatePutBatchOrders(request);
+        }
+        //
+        //   [
+        //       {
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
+        //       {
+        //          "orderId": 650640530,
+        //          "symbol": "LTCUSDT",
+        //          "status": "NEW",
+        //          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        //          "price": "54.00",
+        //          "avgPrice": "0.00",
+        //          "origQty": "0.100",
+        //          "executedQty": "0.000",
+        //          "cumQty": "0.000",
+        //          "cumQuote": "0.00000",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "reduceOnly": false,
+        //          "closePosition": false,
+        //          "side": "BUY",
+        //          "positionSide": "BOTH",
+        //          "stopPrice": "0.00",
+        //          "workingType": "CONTRACT_PRICE",
+        //          "priceProtect": false,
+        //          "origType": "LIMIT",
+        //          "priceMatch": "NONE",
+        //          "selfTradePreventionMode": "NONE",
+        //          "goodTillDate": 0,
+        //          "updateTime": 1698073926929
+        //       }
+        //   ]
+        //
+        return this.parseOrders(response);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -12011,7 +12114,7 @@ class binance extends binance$1 {
             }
             let query = undefined;
             // handle batchOrders
-            if ((path === 'batchOrders') && (method === 'POST')) {
+            if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders = this.safeValue(params, 'batchOrders');
                 const queryBatch = (this.json(batchOrders));
                 params['batchOrders'] = queryBatch;

@@ -62,7 +62,7 @@ import "github.com/ccxt/ccxt/go/v4"
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")
         var logText interface{} = LogTemplate(exchange, method, market)
         //
-        var validTypes interface{} = []interface{}{"spot", "margin", "swap", "future", "option", "index"}
+        var validTypes interface{} = []interface{}{"spot", "margin", "swap", "future", "option", "index", "other"}
         AssertInArray(exchange, skippedProperties, method, market, "type", validTypes)
         var hasIndex interface{} =     (InOp(market, "index")) // todo: add in all
         // check if string is consistent with 'type'
