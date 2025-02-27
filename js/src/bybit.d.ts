@@ -6,6 +6,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  */
 export default class bybit extends Exchange {
     describe(): any;
+    enableDemoTrading(enable: boolean): void;
     nonce(): number;
     addPaginationCursorToResult(response: any): any[];
     /**
