@@ -1031,6 +1031,7 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': False,
+                'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
@@ -1291,6 +1292,24 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+        https://bybit-exchange.github.io/docs/v5/demo
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.isSandboxModeEnabled:
+            raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
+        # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demotrading']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -1321,6 +1340,13 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_bool(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
+            if self.options['enableDemoTrading']:
+                # info endpoint is not available in demo trading
+                # so we're assuming UTA is enabled
+                self.options['enableUnifiedMargin'] = False
+                self.options['enableUnifiedAccount'] = True
+                self.options['unifiedMarginStatus'] = 6
+                return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = rawPromises
             response = promises[0]
@@ -1384,7 +1410,7 @@ class bybit(Exchange, ImplicitAPI):
             accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
-            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 6)  # default to uta 2.0 pro if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     def upgrade_unified_trade_account(self, params={}):
@@ -1560,6 +1586,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
+            return None
+        if self.options['enableDemoTrading']:
             return None
         response = self.privateGetV5AssetCoinQueryInfo(params)
         #
@@ -3275,7 +3303,7 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
             if unifiedMarginStatus < 5:
                 # it's not uta.20 where inverse are unified
                 if isInverse:
@@ -3980,7 +4008,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
@@ -4179,7 +4207,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('editOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
