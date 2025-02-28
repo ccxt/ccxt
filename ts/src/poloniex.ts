@@ -2582,6 +2582,9 @@ export default class poloniex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['spot'];
+        if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
+            url = this.urls['api']['swap'];
+        }
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         if (api === 'public') {
