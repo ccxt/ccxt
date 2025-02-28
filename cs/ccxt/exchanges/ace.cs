@@ -96,7 +96,7 @@ public partial class ace : Exchange
                 { "1M", 31 },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/115f1e4a-0fd0-4b76-85d5-a49ebf64d1c8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://ace.io/polarisex" },
                     { "private", "https://ace.io/polarisex/open" },
@@ -127,6 +127,67 @@ public partial class ace : Exchange
             { "options", new Dictionary<string, object>() {
                 { "brokerId", "ccxt" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 2000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -150,16 +211,16 @@ public partial class ace : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name ace#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchMarkets
-        * @description retrieves data on all markets for ace
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOapiV2ListMarketPair();
         //
@@ -181,10 +242,23 @@ public partial class ace : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseId = this.safeString(market, "base");
-        object bs = this.safeCurrencyCode(baseId);
-        object quoteId = this.safeString(market, "quote");
-        object quote = this.safeCurrencyCode(quoteId);
+        //
+        //     {
+        //         "symbol": "ADA/TWD",
+        //         "base": "ADA",
+        //         "baseCurrencyId": "122",
+        //         "quote": "TWD",
+        //         "quoteCurrencyId": "1",
+        //         "basePrecision": "2",
+        //         "quotePrecision": "3",
+        //         "minLimitBaseAmount": "1.0",
+        //         "maxLimitBaseAmount": "150000.0"
+        //     }
+        //
+        object baseId = this.safeString(market, "baseCurrencyId");
+        object bs = this.safeCurrencyCode(this.safeString(market, "base"));
+        object quoteId = this.safeString(market, "quoteCurrencyId");
+        object quote = this.safeCurrencyCode(this.safeString(market, "quote"));
         object symbol = add(add(bs, "/"), quote);
         return new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
@@ -273,23 +347,23 @@ public partial class ace : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ace#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object response = await this.publicGetOapiV2ListTradePrice(parameters);
-        object marketId = getValue(market, "id");
-        object ticker = this.safeValue(response, marketId, new Dictionary<string, object>() {});
+        object marketId = ((string)getValue(market, "id"));
+        object ticker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
         //
         //     {
         //         "BTC/USDT":{
@@ -302,17 +376,17 @@ public partial class ace : Exchange
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name ace#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetOapiV2ListTradePrice();
@@ -331,25 +405,25 @@ public partial class ace : Exchange
         {
             object marketId = getValue(pairs, i);
             object market = this.safeMarket(marketId);
-            object rawTicker = this.safeValue(response, marketId);
+            object rawTicker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object ticker = this.parseTicker(rawTicker, market);
             ((IList<object>)tickers).Add(ticker);
         }
         return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name ace#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -400,7 +474,7 @@ public partial class ace : Exchange
         //     }
         //
         object orderBook = this.safeDict(response, "attachment");
-        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks");
+        return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks", 1, 0);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -428,20 +502,20 @@ public partial class ace : Exchange
         return new List<object>() {timestamp, this.safeNumber(ohlcv, "openPrice"), this.safeNumber(ohlcv, "highPrice"), this.safeNumber(ohlcv, "lowPrice"), this.safeNumber(ohlcv, "closePrice"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name ace#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -460,7 +534,7 @@ public partial class ace : Exchange
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         object response = await this.privatePostV2KlineGetKline(this.extend(request, parameters));
-        object data = this.safeValue(response, "attachment", new List<object>() {});
+        object data = this.safeList(response, "attachment", new List<object>() {});
         //
         //     {
         //         "attachment":[
@@ -549,10 +623,10 @@ public partial class ace : Exchange
                     timestamp = subtract(timestamp, 28800000); // 8 hours
                 }
             }
-            object orderSide = this.safeNumber(order, "buyOrSell");
+            object orderSide = this.safeString(order, "buyOrSell");
             if (isTrue(!isEqual(orderSide, null)))
             {
-                side = ((bool) isTrue((isEqual(orderSide, 1)))) ? "buy" : "sell";
+                side = ((bool) isTrue((isEqual(orderSide, "1")))) ? "buy" : "sell";
             }
             amount = this.safeString(order, "num");
             price = this.safeString(order, "price");
@@ -562,10 +636,10 @@ public partial class ace : Exchange
             {
                 symbol = add(add(baseId, "/"), quoteId);
             }
-            object orderType = this.safeNumber(order, "type");
+            object orderType = this.safeString(order, "type");
             if (isTrue(!isEqual(orderType, null)))
             {
-                type = ((bool) isTrue((isEqual(orderType, 1)))) ? "limit" : "market";
+                type = ((bool) isTrue((isEqual(orderType, "1")))) ? "limit" : "market";
             }
             filled = this.safeString(order, "tradeNum");
             remaining = this.safeString(order, "remainNum");
@@ -584,7 +658,7 @@ public partial class ace : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
             { "average", average },
@@ -597,21 +671,21 @@ public partial class ace : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ace#createOrder
+     * @description create a trade order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#createOrder
-        * @description create a trade order
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -641,18 +715,18 @@ public partial class ace : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name ace#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#cancelOrder
-        * @description cancels an open order
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -670,17 +744,18 @@ public partial class ace : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name ace#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -713,19 +788,19 @@ public partial class ace : Exchange
         return this.parseOrder(data, null);
     }
 
+    /**
+     * @method
+     * @name ace#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -742,7 +817,7 @@ public partial class ace : Exchange
             ((IDictionary<string,object>)request)["size"] = limit;
         }
         object response = await this.privatePostV2OrderGetOrderList(this.extend(request, parameters));
-        object orders = this.safeValue(response, "attachment");
+        object orders = this.safeList(response, "attachment");
         //
         //     {
         //         "attachment": [
@@ -860,20 +935,20 @@ public partial class ace : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ace#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
@@ -914,24 +989,24 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object data = this.safeValue(response, "attachment");
+        object data = this.safeDict(response, "attachment");
         object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ace#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
@@ -1012,20 +1087,20 @@ public partial class ace : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name ace#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name ace#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostV2CoinCustomerAccount(parameters);
-        object balances = this.safeValue(response, "attachment", new List<object>() {});
+        object balances = this.safeList(response, "attachment", new List<object>() {});
         //
         //     {
         //         "attachment":[
@@ -1067,7 +1142,14 @@ public partial class ace : Exchange
             }, parameters);
             object sortedData = this.keysort(data);
             object values = new List<object>(((IDictionary<string,object>)sortedData).Values);
-            auth = add(auth, String.Join("", ((IList<object>)values).ToArray()));
+            object stringifiedValues = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+            {
+                object value = getValue(values, i);
+                object strValue = ((object)value).ToString();
+                ((IList<object>)stringifiedValues).Add(strValue);
+            }
+            auth = add(auth, String.Join("", ((IList<object>)stringifiedValues).ToArray()));
             object signature = this.hash(this.encode(auth), sha256, "hex");
             ((IDictionary<string,object>)data)["signKey"] = signature;
             headers = new Dictionary<string, object>() {

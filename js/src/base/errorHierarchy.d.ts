@@ -16,6 +16,7 @@ declare const errorHierarchy: {
                     MarginModeAlreadySet: {};
                 };
                 MarketClosed: {};
+                ManualInteractionNeeded: {};
             };
             InsufficientFunds: {};
             InvalidAddress: {
@@ -40,7 +41,9 @@ declare const errorHierarchy: {
                 ExchangeNotAvailable: {
                     OnMaintenance: {};
                 };
-                InvalidNonce: {};
+                InvalidNonce: {
+                    ChecksumError: {};
+                };
                 RequestTimeout: {};
             };
             BadResponse: {
@@ -48,6 +51,7 @@ declare const errorHierarchy: {
             };
             CancelPending: {};
         };
+        UnsubscribeError: {};
     };
 };
 export default errorHierarchy;

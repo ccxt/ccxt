@@ -23,12 +23,16 @@ public partial class poloniexfutures : Exchange
                 { "future", false },
                 { "option", null },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchL3OrderBook", true },
@@ -65,7 +69,7 @@ public partial class poloniexfutures : Exchange
                     { "private", "https://futures-api.poloniex.com" },
                 } },
                 { "www", "https://www.poloniex.com" },
-                { "doc", "https://futures-docs.poloniex.com" },
+                { "doc", "https://api-docs.poloniex.com/futures/" },
                 { "fees", "https://poloniex.com/fee-schedule" },
                 { "referral", "https://poloniex.com/signup?c=UBFZJRPJ" },
             } },
@@ -166,6 +170,83 @@ public partial class poloniexfutures : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", 7 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 200 },
+                    } },
+                } },
+                { "spot", null },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "400", typeof(BadRequest) },
@@ -196,16 +277,16 @@ public partial class poloniexfutures : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchMarkets
+     * @description retrieves data on all markets for poloniexfutures
+     * @see https://api-docs.poloniex.com/futures/api/symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchMarkets
-        * @description retrieves data on all markets for poloniexfutures
-        * @see https://futures-docs.poloniex.com/#symbol-2
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetContractsActive(parameters);
         //
@@ -416,17 +497,17 @@ public partial class poloniexfutures : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-20
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -455,17 +536,17 @@ public partial class poloniexfutures : Exchange
         return this.parseTicker(this.safeValue(response, "data", new Dictionary<string, object>() {}), market);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-of-all-symbols
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTickers(parameters);
@@ -473,19 +554,19 @@ public partial class poloniexfutures : Exchange
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name poloniexfuturesfutures#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book---level-2
+     * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfuturesfutures#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object level = this.safeNumber(parameters, "level");
@@ -566,18 +647,18 @@ public partial class poloniexfutures : Exchange
         return orderbook;
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchL3OrderBook
+     * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
     public async override Task<object> fetchL3OrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchL3OrderBook
-        * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
-        * @param {string} symbol unified market symbol
-        * @param {int} [limit] max number of orders to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -685,19 +766,19 @@ public partial class poloniexfutures : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/futures/api/historical#transaction-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://futures-docs.poloniex.com/#historical-data
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -725,16 +806,16 @@ public partial class poloniexfutures : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
+     * @see https://api-docs.poloniex.com/futures/api/time#server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
-        * @see https://futures-docs.poloniex.com/#time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTimestamp(parameters);
         //
@@ -747,20 +828,20 @@ public partial class poloniexfutures : Exchange
         return this.safeInteger(response, "data");
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/futures/api/kline#get-k-line-data-of-contract
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://futures-docs.poloniex.com/#k-chart
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -825,16 +906,16 @@ public partial class poloniexfutures : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/futures/api/account#get-account-overview
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://futures-docs.poloniex.com/#get-account-overview
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currencyId = this.safeString(parameters, "currency");
@@ -865,32 +946,32 @@ public partial class poloniexfutures : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#createOrder
+     * @description Create an order on the exchange
+     * @see https://api-docs.poloniex.com/futures/api/orders#place-an-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] Leverage size of the order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+     * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
+     * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
+     * @param {string} [params.stop] 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+     * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to TP
+     * @param {bool} [params.closeOrder] set to true to close position
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#createOrder
-        * @description Create an order on the exchange
-        * @see https://futures-docs.poloniex.com/#place-an-order
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} type 'limit' or 'market'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount the amount of currency to trade
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params]  extra parameters specific to the exchange API endpoint
-        * @param {float} [params.leverage] Leverage size of the order
-        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
-        * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-        * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
-        * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
-        * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
-        * @param {string} [params.stop] 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to TP
-        * @param {bool} [params.closeOrder] set to true to close position
-        * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -910,13 +991,13 @@ public partial class poloniexfutures : Exchange
             { "size", preciseAmount },
             { "leverage", 1 },
         };
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(stopPrice))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             object stopPriceType = this.safeString(parameters, "stopPriceType", "TP");
             ((IDictionary<string,object>)request)["stopPriceType"] = stopPriceType;
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(type, "limit")))
@@ -979,23 +1060,23 @@ public partial class poloniexfutures : Exchange
             { "trades", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "info", response },
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#cancelOrder
+     * @description cancels an open order
+     * @see https://api-docs.poloniex.com/futures/api/orders#cancel-an-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#cancelOrder
-        * @description cancels an open order
-        * @see https://futures-docs.poloniex.com/#cancel-an-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1028,17 +1109,17 @@ public partial class poloniexfutures : Exchange
         return this.parseOrder(data);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/futures/api/positions#get-position-list
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchPositions
-        * @description fetch all open positions
-        * @see https://futures-docs.poloniex.com/#get-position-list
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetPositions(parameters);
@@ -1188,19 +1269,19 @@ public partial class poloniexfutures : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://api-docs.poloniex.com/futures/api/funding-fees#get-funding-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://futures-docs.poloniex.com/#get-funding-history
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1268,17 +1349,17 @@ public partial class poloniexfutures : Exchange
         return fees;
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#cancelAllOrders
-        * @description cancel all open orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.stop] When true, all the trigger orders will be cancelled
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1286,10 +1367,10 @@ public partial class poloniexfutures : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrders(this.extend(request, parameters));
         } else
@@ -1333,35 +1414,35 @@ public partial class poloniexfutures : Exchange
                 { "trades", null },
                 { "timeInForce", null },
                 { "postOnly", null },
-                { "stopPrice", null },
+                { "triggerPrice", null },
                 { "info", response },
             }));
         }
         return result;
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchOrdersByStatus
+     * @description fetches a list of orders placed on the exchange
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
+     * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+     * @param {string} symbol unified symbol for the market to retrieve orders from
+     * @param {int} [since] timestamp in ms of the earliest order to retrieve
+     * @param {int} [limit] The maximum number of orders to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+     * @param {int} [params.until] End time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit or market
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchOrdersByStatus
-        * @description fetches a list of orders placed on the exchange
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
-        * @param {string} symbol unified symbol for the market to retrieve orders from
-        * @param {int} [since] timestamp in ms of the earliest order to retrieve
-        * @param {int} [limit] The maximum number of orders to retrieve
-        * @param {object} [params] exchange specific parameters
-        * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
-        * @param {int} [params.until] End time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit or market
-        * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
@@ -1369,7 +1450,7 @@ public partial class poloniexfutures : Exchange
             status = "done";
         }
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["status"] = ((bool) isTrue((isEqual(status, "open")))) ? "active" : "done";
         } else if (isTrue(!isEqual(status, "open")))
@@ -1391,7 +1472,7 @@ public partial class poloniexfutures : Exchange
             ((IDictionary<string,object>)request)["endAt"] = until;
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrders(this.extend(request, parameters));
         } else
@@ -1461,60 +1542,61 @@ public partial class poloniexfutures : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit, or market
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit, or market
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit, or market
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit, or market
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("closed", symbol, since, limit, parameters);
     }
 
-    public async override Task<object> fetchOrder(object id = null, object symbol = null, object parameters = null)
+    /**
+     * @method
+     * @name poloniexfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
+     * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
-        * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1696,7 +1778,7 @@ public partial class poloniexfutures : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stopPrice") },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "cost", this.safeString(order, "dealValue") },
             { "filled", filled },
             { "remaining", null },
@@ -1713,17 +1795,17 @@ public partial class poloniexfutures : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://futures-docs.poloniex.com/#get-premium-index
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1740,47 +1822,89 @@ public partial class poloniexfutures : Exchange
         //        "predictedValue": 0.00375
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseFundingRate(data, market);
+    }
+
+    /**
+     * @method
+     * @name poloniexfutures#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
         object fundingTimestamp = this.safeInteger(data, "timePoint");
-        // the website displayes the previous funding rate as "funding rate"
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", null },
             { "datetime", null },
-            { "fundingRate", this.safeNumber(data, "predictedValue") },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
-            { "nextFundingRate", null },
+            { "fundingRate", this.safeNumber(data, "value") },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", this.safeNumber(data, "predictedValue") },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
-            { "previousFundingRate", this.safeNumber(data, "value") },
-            { "previousFundingTimestamp", fundingTimestamp },
-            { "previousFundingDatetime", this.iso8601(fundingTimestamp) },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
         };
     }
 
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+
+    /**
+     * @method
+     * @name poloniexfutures#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.poloniex.com/futures/api/fills#get-fillsdeprecated
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderIdFills] filles for a specific order (other parameters can be ignored if specified)
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type]  limit, market, limit_stop or market_stop
+     * @param {int} [params.endAt] end time (milisecond)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://futures-docs.poloniex.com/#get-fills
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-        * @param {string} side buy or sell
-        * @param {string} type  limit, market, limit_stop or market_stop
-        * @param {int} endAt end time (milisecond)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1833,18 +1957,18 @@ public partial class poloniexfutures : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniexfutures#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://api-docs.poloniex.com/futures/api/margin-mode#change-margin-mode
+     * @param {string} marginMode "0" (isolated) or "1" (cross)
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniexfutures#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @see https://futures-docs.poloniex.com/#change-margin-mode
-        * @param {string} marginMode "0" (isolated) or "1" (cross)
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {

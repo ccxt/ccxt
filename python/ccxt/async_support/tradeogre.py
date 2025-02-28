@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tradeogre import ImplicitAPI
-from ccxt.base.types import IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
+from ccxt.base.types import Any, IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -17,7 +17,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class tradeogre(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(tradeogre, self).describe(), {
             'id': 'tradeogre',
             'name': 'tradeogre',
@@ -83,7 +83,6 @@ class tradeogre(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
-                'fetchPermissions': False,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
@@ -165,12 +164,67 @@ class tradeogre(Exchange, ImplicitAPI):
             },
             'options': {
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': None,  # todo
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -441,6 +495,9 @@ class tradeogre(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -454,11 +511,11 @@ class tradeogre(Exchange, ImplicitAPI):
         if type == 'market':
             raise BadRequest(self.id + ' createOrder does not support market orders')
         if price is None:
-            raise ArgumentsRequired(self.id + ' createOrder requires a limit parameter')
+            raise ArgumentsRequired(self.id + ' createOrder requires a price parameter')
         request: dict = {
             'market': market['id'],
-            'quantity': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-            'price': self.parse_to_numeric(self.price_to_precision(symbol, price)),
+            'quantity': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = None
         if side == 'buy':
@@ -498,6 +555,9 @@ class tradeogre(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all unfilled currently open orders
+
+        https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -517,7 +577,10 @@ class tradeogre(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+
+        https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -557,7 +620,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'quantity'),
             'cost': None,
             'average': None,

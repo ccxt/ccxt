@@ -6,10 +6,16 @@ namespace ccxt.pro;
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
 public partial class bitvavo
 {
+    public async Task<Dictionary<string, object>> WatchPublicMultiple(object methodName, string channelName, object symbols, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPublicMultiple(methodName, channelName, symbols, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -24,6 +30,46 @@ public partial class bitvavo
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -175,7 +221,7 @@ public partial class bitvavo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

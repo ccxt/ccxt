@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(ccxt.async_support.woofipro):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woofipro, self).describe(), {
             'has': {
                 'ws': True,
@@ -26,7 +26,9 @@ class woofipro(ccxt.async_support.woofipro):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {
@@ -92,7 +94,9 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
@@ -148,7 +152,9 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -233,7 +239,9 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -283,10 +291,76 @@ class woofipro(ccxt.async_support.woofipro):
             result.append(ticker)
         client.resolve(result, topic)
 
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        name = 'bbos'
+        topic = name
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        tickers = await self.watch_public(topic, message)
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #       "topic": "bbos",
+        #       "ts": 1726212495000,
+        #       "data": [
+        #         {
+        #           "symbol": "PERP_WOO_USDC",
+        #           "ask": 0.16570,
+        #           "askSize": 4224,
+        #           "bid": 0.16553,
+        #           "bidSize": 6645
+        #         }
+        #       ]
+        #     }
+        #
+        topic = self.safe_string(message, 'topic')
+        data = self.safe_list(message, 'data', [])
+        timestamp = self.safe_integer(message, 'ts')
+        result = []
+        for i in range(0, len(data)):
+            ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
+            self.tickers[ticker['symbol']] = ticker
+            result.append(ticker)
+        client.resolve(result, topic)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ts')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -358,12 +432,14 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -552,8 +628,10 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -583,8 +661,10 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -686,9 +766,10 @@ class woofipro(ccxt.async_support.woofipro):
             'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
+        priceString = self.safe_string(order, 'price')
         price = self.safe_number(order, 'price')
         avgPrice = self.safe_number(order, 'avgPrice')
-        if (price == 0) and (avgPrice is not None):
+        if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
         amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')
@@ -846,9 +927,13 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
+ @param since timestamp in ms of the earliest position to fetch
+ @param limit the maximum number of positions to fetch
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -865,7 +950,7 @@ class woofipro(ccxt.async_support.woofipro):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -1026,7 +1111,9 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+
+        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1131,6 +1218,7 @@ class woofipro(ccxt.async_support.woofipro):
             'algoexecutionreport': self.handle_order_update,
             'position': self.handle_positions,
             'balance': self.handle_balance,
+            'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

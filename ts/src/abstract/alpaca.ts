@@ -27,10 +27,14 @@ interface Exchange {
     traderPrivateGetV2AssetsSymbolOrAssetId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2CorporateActionsAnnouncementsId (params?: {}): Promise<implicitReturnType>;
     traderPrivateGetV2CorporateActionsAnnouncements (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2Wallets (params?: {}): Promise<implicitReturnType>;
+    traderPrivateGetV2WalletsTransfers (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2Orders (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2Watchlists (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
+    traderPrivatePostV2WalletsTransfers (params?: {}): Promise<implicitReturnType>;
+    traderPrivatePutV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsWatchlistId (params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsByName (params?: {}): Promise<implicitReturnType>;
     traderPrivatePatchV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;

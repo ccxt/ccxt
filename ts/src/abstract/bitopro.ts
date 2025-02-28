@@ -27,6 +27,7 @@ interface Exchange {
     privateGetWalletWithdrawCurrencyIdId (params?: {}): Promise<implicitReturnType>;
     privateGetWalletDepositHistoryCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetWalletWithdrawHistoryCurrency (params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOpen (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersPair (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
     privatePostWalletWithdrawCurrency (params?: {}): Promise<implicitReturnType>;

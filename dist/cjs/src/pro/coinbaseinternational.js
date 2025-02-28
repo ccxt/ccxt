@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbaseinternational extends coinbaseinternational$1 {
     describe() {
@@ -19,12 +19,12 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'watchTicker': true,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': false,
                 'watchOrdersForSymbols': false,
                 'watchPositions': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'createOrderWs': false,
                 'editOrderWs': false,
                 'cancelOrderWs': false,
@@ -50,6 +50,14 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
+                'timeframes': {
+                    '1m': 'CANDLES_ONE_MINUTE',
+                    '5m': 'CANDLES_FIVE_MINUTES',
+                    '30m': 'CANDLES_THIRTY_MINUTES',
+                    '1h': 'CANDLES_ONE_HOUR',
+                    '2h': 'CANDLES_TWO_HOURS',
+                    '1d': 'CANDLES_ONE_DAY',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -58,31 +66,35 @@ class coinbaseinternational extends coinbaseinternational$1 {
             },
         });
     }
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     async subscribe(name, symbols = undefined, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @description subscribes to a websocket channel
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-         * @param {string} name the name of the channel
-         * @param {string[]} [symbols] unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} subscription to a websocket channel
-         */
         await this.loadMarkets();
         this.checkRequiredCredentials();
         let market = undefined;
         let messageHash = name;
-        let productIds = [];
+        let productIds = undefined;
         if (symbols === undefined) {
-            symbols = this.symbols;
+            symbols = this.getActiveSymbols();
         }
         const symbolsLength = symbols.length;
+        const messageHashes = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols(symbols);
             const marketIds = this.marketIds(parsedSymbols);
             productIds = marketIds;
-            messageHash = messageHash + '::' + parsedSymbols.join(',');
+            for (let i = 0; i < parsedSymbols.length; i++) {
+                messageHashes.push(name + '::' + parsedSymbols[i]);
+            }
+            // messageHash = messageHash + '::' + parsedSymbols.join (',');
         }
         else if (symbolsLength === 1) {
             market = this.market(symbols[0]);
@@ -98,26 +110,32 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
-            'product_ids': productIds,
+            // 'product_ids': productIds,
             'channels': [name],
             'time': timestamp,
             'key': this.apiKey,
             'passphrase': this.password,
             'signature': signature,
         };
+        if (productIds !== undefined) {
+            subscribe['product_ids'] = productIds;
+        }
+        if (symbolsLength > 1) {
+            return await this.watchMultiple(url, messageHashes, this.extend(subscribe, params), messageHashes);
+        }
         return await this.watch(url, messageHash, this.extend(subscribe, params), messageHash);
     }
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel using watchMultiple
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {string|string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     async subscribeMultiple(name, symbols = undefined, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @description subscribes to a websocket channel using watchMultiple
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-         * @param {string} name the name of the channel
-         * @param {string|string[]} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} subscription to a websocket channel
-         */
         await this.loadMarkets();
         this.checkRequiredCredentials();
         if (this.isEmpty(symbols)) {
@@ -152,29 +170,29 @@ class coinbaseinternational extends coinbaseinternational$1 {
         };
         return await this.watchMultiple(url, messageHashes, this.extend(subscribe, params), messageHashes);
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async watchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchFundingRate
-         * @description watch the current funding rate
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         return await this.subscribe('RISK', [symbol], params);
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     */
     async watchFundingRates(symbols, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchFundingRates
-         * @description watch the funding rate for multiple markets
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-         */
         await this.loadMarkets();
         const fundingRate = await this.subscribeMultiple('RISK', symbols, params);
         const symbol = this.safeString(fundingRate, 'symbol');
@@ -185,20 +203,55 @@ class coinbaseinternational extends coinbaseinternational$1 {
         }
         return this.filterByArray(this.fundingRates, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
-         * @param {string} [symbol] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe(channel, [symbol], params);
+    }
+    getActiveSymbols() {
+        const symbols = this.symbols;
+        const output = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.markets[symbol];
+            if (market['active']) {
+                output.push(symbol);
+            }
+        }
+        return output;
+    }
+    /**
+     * @method
+     * @name coinbaseinternational#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'LEVEL1');
+        const ticker = await this.subscribe(channel, symbols, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleInstrument(client, message) {
         //
@@ -257,6 +310,33 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
+        // instruments
+        //   {
+        //       sequence: 0,
+        //       instrument_type: 'PERP',
+        //       instrument_mode: 'standard',
+        //       base_asset_name: 'BTC',
+        //       quote_asset_name: 'USDC',
+        //       base_increment: '0.0001',
+        //       quote_increment: '0.1',
+        //       avg_daily_quantity: '502.8845',
+        //       avg_daily_volume: '3.1495242961566668E7',
+        //       total30_day_quantity: '15086.535',
+        //       total30_day_volume: '9.44857288847E8',
+        //       total24_hour_quantity: '5.0',
+        //       total24_hour_volume: '337016.5',
+        //       base_imf: '0.1',
+        //       min_quantity: '0.0001',
+        //       position_size_limit: '800',
+        //       funding_interval: '3600000000000',
+        //       trading_state: 'trading',
+        //       last_updated_time: '2024-07-30T15:00:00Z',
+        //       default_initial_margin: '0.2',
+        //       base_asset_multiplier: '1.0',
+        //       channel: 'INSTRUMENTS',
+        //       type: 'SNAPSHOT',
+        //       time: '2024-07-30T15:26:56.766Z',
+        //   }
         //
         const marketId = this.safeString(ticker, 'product_id');
         const datetime = this.safeString(ticker, 'time');
@@ -279,8 +359,8 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'total_24_hour_quantity'),
-            'quoteVolume': this.safeString(ticker, 'total_24_hour_volume'),
+            'baseVolume': this.safeString2(ticker, 'total_24_hour_quantity', 'total24_hour_quantity'),
+            'quoteVolume': this.safeString2(ticker, 'total_24_hour_volume', 'total24_hour_volume'),
         });
     }
     handleTicker(client, message) {
@@ -352,31 +432,93 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'previousClose': undefined,
         });
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+     * @see https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const options = this.safeDict(this.options, 'timeframes', {});
+        const interval = this.safeString(options, timeframe, timeframe);
+        const ohlcv = await this.subscribe(interval, [symbol], params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+    handleOHLCV(client, message) {
+        //
+        // {
+        //     "sequence": 0,
+        //     "product_id": "BTC-PERP",
+        //     "channel": "CANDLES_ONE_MINUTE",
+        //     "type": "SNAPSHOT",
+        //     "candles": [
+        //       {
+        //           "time": "2023-05-10T14:58:47.000Z",
+        //           "low": "28787.8",
+        //           "high": "28788.8",
+        //           "open": "28788.8",
+        //           "close": "28787.8",
+        //           "volume": "0.466"
+        //        },
+        //     ]
+        //  }
+        //
+        const messageHash = this.safeString(message, 'channel');
+        const marketId = this.safeString(message, 'product_id');
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
+        const timeframe = this.findTimeframe(messageHash);
+        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        if (this.safeValue(this.ohlcvs[symbol], timeframe) === undefined) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new Cache.ArrayCacheByTimestamp(limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const data = this.safeList(message, 'candles', []);
+        for (let i = 0; i < data.length; i++) {
+            const tick = data[i];
+            const parsed = this.parseOHLCV(tick, market);
+            stored.append(parsed);
+        }
+        client.resolve(stored, messageHash + '::' + symbol);
+    }
+    /**
+     * @method
+     * @name coinbaseinternational#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchTradesForSymbols
-         * @description get the list of most recent trades for a list of symbols
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple('MATCH', symbols, params);
@@ -447,30 +589,30 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'fee': undefined,
         });
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @param {string[]} symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbaseinternational#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         return await this.subscribeMultiple('LEVEL2', symbols, params);
     }
@@ -633,7 +775,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         if (this.handleErrorMessage(client, message)) {
             return;
         }
-        const channel = this.safeString(message, 'channel');
+        const channel = this.safeString(message, 'channel', '');
         const methods = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
             'INSTRUMENTS': this.handleInstrument,
@@ -647,6 +789,9 @@ class coinbaseinternational extends coinbaseinternational$1 {
         if (type === 'error') {
             const errorMessage = this.safeString(message, 'message');
             throw new errors.ExchangeError(errorMessage);
+        }
+        if (channel.indexOf('CANDLES') > -1) {
+            this.handleOHLCV(client, message);
         }
         const method = this.safeValue(methods, channel);
         if (method !== undefined) {

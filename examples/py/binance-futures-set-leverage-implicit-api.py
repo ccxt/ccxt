@@ -23,7 +23,7 @@ symbol = 'ADA/USDT'
 market = exchange.market(symbol)
 leverage =  10
 
-response = exchange.fapiPrivate_post_leverage({
+response = exchange.fapiprivate_post_leverage({
     'symbol': market['id'],
     'leverage': leverage,
 })

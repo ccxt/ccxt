@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,13 +14,13 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
 class gate(ccxt.async_support.gate):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gate, self).describe(), {
             'has': {
                 'ws': True,
@@ -105,6 +105,7 @@ class gate(ccxt.async_support.gate):
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -131,8 +132,10 @@ class gate(ccxt.async_support.gate):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-place
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-place
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-place
+        https://www.gate.io/docs/developers/futures/ws/en/#order-place
+
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market' *"market" is contract only*
@@ -173,8 +176,11 @@ class gate(ccxt.async_support.gate):
     async def create_orders_ws(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -193,8 +199,10 @@ class gate(ccxt.async_support.gate):
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
+
+        https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
@@ -202,14 +210,14 @@ class gate(ccxt.async_support.gate):
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel_cp'
         channel, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'channel', channel)
         url = self.get_url_by_market(market)
         params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        request, requestParams = self.multiOrderSpotPrepareRequest(market, stop, query) if (type == 'spot') else self.prepareRequest(market, type, query)
+        request, requestParams = self.multiOrderSpotPrepareRequest(market, trigger, query) if (type == 'spot') else self.prepareRequest(market, type, query)
         await self.authenticate(url, messageType)
         rawOrders = await self.request_private(url, self.extend(request, requestParams), channel)
         return self.parse_orders(rawOrders, market)
@@ -217,20 +225,22 @@ class gate(ccxt.async_support.gate):
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         Cancels an open order
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-cancel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel
+        https://www.gate.io/docs/developers/futures/ws/en/#order-cancel
+
         :param str id: Order id
         :param str symbol: Unified market symbol
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order to be cancelled is a trigger order
+        :param bool [params.trigger]: True if the order to be cancelled is a trigger order
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        trigger = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        request, requestParams = self.spotOrderPrepareRequest(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
+        request, requestParams = self.spotOrderPrepareRequest(market, trigger, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel'
         url = self.get_url_by_market(market)
@@ -242,8 +252,10 @@ class gate(ccxt.async_support.gate):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-amend
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-amend
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-amend
+        https://www.gate.io/docs/developers/futures/ws/en/#order-amend
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -266,12 +278,14 @@ class gate(ccxt.async_support.gate):
     async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         Retrieves information on an order
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-status
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-status
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-status
+        https://www.gate.io/docs/developers/futures/ws/en/#order-status
+
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order being fetched is a trigger order
+        :param bool [params.trigger]: True if the order being fetched is a trigger order
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.type]: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
@@ -290,7 +304,9 @@ class gate(ccxt.async_support.gate):
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -302,7 +318,9 @@ class gate(ccxt.async_support.gate):
     async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -313,8 +331,11 @@ class gate(ccxt.async_support.gate):
 
     async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         fetches information on multiple orders made by the user by status
+        :param str status: requested order status
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None [since]: the earliest time in ms to fetch orders for
         :param int|None [limit]: the maximum number of order structures to retrieve
@@ -330,7 +351,7 @@ class gate(ccxt.async_support.gate):
             symbol = market['symbol']
             if market['swap'] is not True:
                 raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
-        request, requestParams = self.fetchOrdersByStatusRequest(status, symbol, since, limit, params)
+        request, requestParams = self.prepareOrdersByStatusRequest(status, symbol, since, limit, params)
         newRequest = self.omit(request, ['settle'])
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_list'
@@ -369,6 +390,31 @@ class gate(ccxt.async_support.gate):
         }
         orderbook = await self.subscribe_public(url, messageHash, payload, channel, query, subscription)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        marketId = market['id']
+        interval = '100ms'
+        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_book_update'
+        subMessageHash = 'orderbook' + ':' + symbol
+        messageHash = 'unsubscribe:orderbook' + ':' + symbol
+        url = self.get_url_by_market(market)
+        payload = [marketId, interval]
+        limit = self.safe_integer(params, 'limit', 100)
+        if market['contract']:
+            stringLimit = str(limit)
+            payload.append(stringLimit)
+        return await self.un_subscribe_public_multiple(url, 'orderbook', [symbol], [messageHash], [subMessageHash], payload, channel, params)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -460,10 +506,12 @@ class gate(ccxt.async_support.gate):
         elif nonce >= deltaStart - 1:
             self.handle_delta(storedOrderBook, delta)
         else:
-            error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
-            client.reject(error, messageHash)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -504,7 +552,9 @@ class gate(ccxt.async_support.gate):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -519,7 +569,9 @@ class gate(ccxt.async_support.gate):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -550,8 +602,10 @@ class gate(ccxt.async_support.gate):
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -644,7 +698,7 @@ class gate(ccxt.async_support.gate):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -667,6 +721,37 @@ class gate(ccxt.async_support.gate):
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        get the list of most recent trades for a particular symbol
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        market = self.market(symbols[0])
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.trades'
+        subMessageHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            subMessageHashes.append('trades:' + symbol)
+            messageHashes.append('unsubscribe:trades:' + symbol)
+        url = self.get_url_by_market(market)
+        return await self.un_subscribe_public_multiple(url, 'trades', symbols, messageHashes, subMessageHashes, marketIds, channel, params)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message):
         #
@@ -975,11 +1060,15 @@ class gate(ccxt.async_support.gate):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
-        :see: https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+
+        https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+        https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+        https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols to watch positions for
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -1010,7 +1099,7 @@ class gate(ccxt.async_support.gate):
         client = self.client(url)
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             return await client.future(type + ':fetchPositionsSnapshot')
@@ -1192,7 +1281,7 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_number(info, 'left')
+                    left = self.safe_integer(info, 'left')
                     parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
@@ -1207,9 +1296,11 @@ class gate(ccxt.async_support.gate):
     async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
+        https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -1221,10 +1312,12 @@ class gate(ccxt.async_support.gate):
     async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the private liquidations of a trading pair
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
-        :param str symbol: unified CCXT market symbol
+
+        https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
+        :param str[] symbols: unified CCXT market symbols
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the gate api endpoint
@@ -1400,12 +1493,33 @@ class gate(ccxt.async_support.gate):
         #       data: {errs: {label: 'AUTHENTICATION_FAILED', message: 'Not login'}},
         #       request_id: '10406147'
         #     }
+        #     {
+        #         "time": 1739853211,
+        #         "time_ms": 1739853211201,
+        #         "id": 1,
+        #         "conn_id": "62f2c1dabbe186d7",
+        #         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        #         "channel": "spot.trades",
+        #         "event": "subscribe",
+        #         "payload": [
+        #             "LUNARLENS_USDT",
+        #             "ETH_USDT"
+        #         ],
+        #         "error": {
+        #             "code": 2,
+        #             "message": "unknown currency pair: LUNARLENS_USDT"
+        #         },
+        #         "result": {
+        #             "status": "fail"
+        #         },
+        #         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        #     }
         #
         data = self.safe_dict(message, 'data')
         errs = self.safe_dict(data, 'errs')
         error = self.safe_dict(message, 'error', errs)
         code = self.safe_string_2(error, 'code', 'label')
-        id = self.safe_string_2(message, 'id', 'requestId')
+        id = self.safe_string_n(message, ['id', 'requestId', 'request_id'])
         if error is not None:
             messageHash = self.safe_string(client.subscriptions, id)
             try:
@@ -1418,7 +1532,18 @@ class gate(ccxt.async_support.gate):
                 client.reject(e, messageHash)
                 if (messageHash is not None) and (messageHash in client.subscriptions):
                     del client.subscriptions[messageHash]
-            if id is not None:
+                # remove subscriptions for watchSymbols
+                channel = self.safe_string(message, 'channel')
+                if (channel is not None) and (channel.find('.') > 0):
+                    parsedChannel = channel.split('.')
+                    payload = self.safe_list(message, 'payload', [])
+                    for i in range(0, len(payload)):
+                        marketType = parsedChannel[0] == 'swap' if 'futures' else parsedChannel[0]
+                        symbol = self.safe_symbol(payload[i], None, '_', marketType)
+                        messageHashSymbol = parsedChannel[1] + ':' + symbol
+                        if (messageHashSymbol is not None) and (messageHashSymbol in client.subscriptions):
+                            del client.subscriptions[messageHashSymbol]
+            if (id is not None) and (id in client.subscriptions):
                 del client.subscriptions[id]
             return True
         return False
@@ -1441,6 +1566,73 @@ class gate(ccxt.async_support.gate):
             method(client, message, subscription)
         if id in client.subscriptions:
             del client.subscriptions[id]
+
+    def handle_un_subscribe(self, client: Client, message):
+        #
+        # {
+        #     "time":1725534679,
+        #     "time_ms":1725534679786,
+        #     "id":2,
+        #     "conn_id":"fac539b443fd7002",
+        #     "trace_id":"efe1d282b630b4aa266b84bee177791a",
+        #     "channel":"spot.trades",
+        #     "event":"unsubscribe",
+        #     "payload":[
+        #        "LTC_USDT"
+        #     ],
+        #     "result":{
+        #        "status":"success"
+        #     },
+        #     "requestId":"efe1d282b630b4aa266b84bee177791a"
+        # }
+        #
+        id = self.safe_string(message, 'id')
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            messageHash = keys[i]
+            if not (messageHash in client.subscriptions):
+                continue
+                # the previous iteration can have deleted the messageHash from the subscriptions
+            if messageHash.startswith('unsubscribe'):
+                subscription = client.subscriptions[messageHash]
+                subId = self.safe_string(subscription, 'id')
+                if id != subId:
+                    continue
+                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+                for j in range(0, len(messageHashes)):
+                    unsubHash = messageHashes[j]
+                    subHash = subMessageHashes[j]
+                    self.clean_unsubscription(client, subHash, unsubHash)
+                self.clean_cache(subscription)
+
+    def clean_cache(self, subscription: dict):
+        topic = self.safe_string(subscription, 'topic', '')
+        symbols = self.safe_list(subscription, 'symbols', [])
+        symbolsLength = len(symbols)
+        if topic == 'ohlcv':
+            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeFrames)):
+                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+                symbol = self.safe_string(symbolAndTimeFrame, 0)
+                timeframe = self.safe_string(symbolAndTimeFrame, 1)
+                del self.ohlcvs[symbol][timeframe]
+        elif symbolsLength > 0:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                if topic.endswith('trades'):
+                    del self.trades[symbol]
+                elif topic == 'orderbook':
+                    del self.orderbooks[symbol]
+                elif topic == 'ticker':
+                    del self.tickers[symbol]
+        else:
+            if topic.endswith('trades'):
+                # don't reset self.myTrades directly here
+                # because in c# we need to use a different object
+                keys = list(self.trades.keys())
+                for i in range(0, len(keys)):
+                    del self.trades[keys[i]]
 
     def handle_message(self, client: Client, message):
         #
@@ -1537,6 +1729,9 @@ class gate(ccxt.async_support.gate):
         event = self.safe_string(message, 'event')
         if event == 'subscribe':
             self.handle_subscription_status(client, message)
+            return
+        if event == 'unsubscribe':
+            self.handle_un_subscribe(client, message)
             return
         channel = self.safe_string(message, 'channel', '')
         channelParts = channel.split('.')
@@ -1642,6 +1837,27 @@ class gate(ccxt.async_support.gate):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
+    async def un_subscribe_public_multiple(self, url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params={}):
+        requestId = self.request_id()
+        time = self.seconds()
+        request: dict = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': payload,
+        }
+        sub = {
+            'id': str(requestId),
+            'topic': topic,
+            'unsubscribe': True,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes, sub)
+
     async def authenticate(self, url, messageType):
         channel = messageType + '.login'
         client = self.client(url)
@@ -1676,6 +1892,10 @@ class gate(ccxt.async_support.gate):
             'signature': signature,
             'req_param': reqParams,
         }
+        if (channel == 'spot.order_place') or (channel == 'futures.order_place'):
+            payload['req_header'] = {
+                'x-gate-channel-id': 'ccxt',
+            }
         request: dict = {
             'id': requestId,
             'time': time,
@@ -1683,7 +1903,7 @@ class gate(ccxt.async_support.gate):
             'event': event,
             'payload': payload,
         }
-        return await self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash, requestId)
 
     async def subscribe_private(self, url, messageHash, payload, channel, params, requiresUid=False):
         self.check_required_credentials()
@@ -1721,4 +1941,4 @@ class gate(ccxt.async_support.gate):
             # in case of authenticationError we will throw
             client.subscriptions[tempSubscriptionHash] = messageHash
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, messageHash, messageHash)

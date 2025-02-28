@@ -5,16 +5,17 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binancecoinm import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class binancecoinm(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binancecoinm, self).describe(), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c',
                 'doc': [
                     'https://binance-docs.github.io/apidocs/delivery/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',

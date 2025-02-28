@@ -7,7 +7,7 @@ var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
 var msgpack = require('../../static_dependencies/messagepack/msgpack.js');
 var index$1 = require('../../static_dependencies/qs/index.cjs.js');
 
-/* eslint-disable */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = (object) => ((typeof object === 'string') &&
     (object.length >= 2) &&

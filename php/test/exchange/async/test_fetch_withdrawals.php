@@ -22,5 +22,6 @@ function test_fetch_withdrawals($exchange, $skipped_properties, $code) {
             test_deposit_withdrawal($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);
         }
         assert_timestamp_order($exchange, $method, $code, $transactions);
+        return true;
     }) ();
 }

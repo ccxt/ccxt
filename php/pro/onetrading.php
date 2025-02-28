@@ -8,12 +8,13 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\Precise;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class onetrading extends \ccxt\async\onetrading {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -21,6 +22,7 @@ class onetrading extends \ccxt\async\onetrading {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => false,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -82,7 +84,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
+             *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -143,7 +147,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -170,7 +176,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+             *
              * watches price $tickers, a statistical calculation with the information for all markets or those specified.
              * @param {string} $symbols unified $symbols of the markets to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -269,7 +277,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
+             *
              * get the list of $trades associated with the user
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for. Use 'any' to watch all $trades
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -314,7 +324,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -431,7 +443,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
+             *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -983,9 +997,9 @@ class onetrading extends \ccxt\async\onetrading {
             $previousOrderArray = $this->filter_by_array($this->orders, 'id', $orderId, false);
             $previousOrder = $this->safe_value($previousOrderArray, 0, array());
             $symbol = $previousOrder['symbol'];
-            $filled = $this->safe_number($update, 'filled_amount');
+            $filled = $this->safe_string($update, 'filled_amount');
             $status = $this->parse_ws_order_status($updateType);
-            if ($updateType === 'ORDER_CLOSED' && $filled === 0) {
+            if ($updateType === 'ORDER_CLOSED' && Precise::string_eq($filled, '0')) {
                 $status = 'canceled';
             }
             $orderObject = array(
@@ -1016,7 +1030,8 @@ class onetrading extends \ccxt\async\onetrading {
         if ($updateType === 'TRADE_SETTLED') {
             $parsed = $this->parse_trade($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $this->myTrades.append ($parsed);
+            $myTrades = $this->myTrades;
+            $myTrades->append ($parsed);
             $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
             $client->resolve ($this->myTrades, 'myTrades');
         }
@@ -1052,7 +1067,9 @@ class onetrading extends \ccxt\async\onetrading {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents

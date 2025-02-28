@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitvavo extends \ccxt\async\bitvavo {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -23,6 +23,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
@@ -87,15 +89,62 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
+    public function watch_public_multiple($methodName, string $channelName, $symbols, $params = array ()) {
+        return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $messageHashes = array( $methodName );
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $args[] = $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $channelName,
+                        'markets' => $args,
+                    ),
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public('ticker24h', $symbol, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $channel = 'ticker24h';
+            $tickers = Async\await($this->watch_public_multiple($channel, $channel, $symbols, $params));
+            return $this->filter_by_array($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -121,8 +170,10 @@ class bitvavo extends \ccxt\async\bitvavo {
         //         )
         //     }
         //
+        $this->handle_bid_ask($client, $message);
         $event = $this->safe_string($message, 'event');
         $tickers = $this->safe_value($message, 'data', array());
+        $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
             $marketId = $this->safe_string($data, 'market');
@@ -131,9 +182,62 @@ class bitvavo extends \ccxt\async\bitvavo {
             $ticker = $this->parse_ticker($data, $market);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
+            $result[] = $ticker;
             $client->resolve ($ticker, $messageHash);
         }
-        return $message;
+        $client->resolve ($result, $event);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             *
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $channel = 'ticker24h';
+            $tickers = Async\await($this->watch_public_multiple('bidask', $channel, $symbols, $params));
+            return $this->filter_by_array($tickers, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $event = 'bidask';
+        $tickers = $this->safe_value($message, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $data = $tickers[$i];
+            $ticker = $this->parse_ws_bid_ask($data);
+            $symbol = $ticker['symbol'];
+            $this->bidsasks[$symbol] = $ticker;
+            $result[] = $ticker;
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve ($ticker, $messageHash);
+        }
+        $client->resolve ($result, $event);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'market');
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askSize'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -225,17 +329,16 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_ohlcv(Client $client, $message) {
         //
         //    {
-        //        $action => 'getCandles',
+        //        action => 'getCandles',
         //        $response => [
         //            [1690325820000, '26453', '26453', '26436', '26447', '0.01626246'],
         //            [1690325760000, '26454', '26454', '26453', '26453', '0.00037707']
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
         $response = $this->safe_value($message, 'response');
         $ohlcv = $this->parse_ohlcvs($response, null, null, null);
-        $messageHash = $this->build_message_hash($action);
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($ohlcv, $messageHash);
     }
 
@@ -527,7 +630,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
@@ -561,7 +664,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+             *
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -592,7 +697,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -612,7 +719,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+             *
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
@@ -629,7 +738,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+             *
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
@@ -656,22 +767,26 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        )]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $response = $this->safe_value($message, 'response');
-        $firstRawOrder = $this->safe_value($response, 0, array());
-        $marketId = $this->safe_string($firstRawOrder, 'market');
+        // $action = $this->safe_string($message, 'action');
+        $response = $this->safe_list($message, 'response');
+        // $firstRawOrder = $this->safe_value($response, 0, array());
+        // $marketId = $this->safe_string($firstRawOrder, 'market');
         $orders = $this->parse_orders($response);
-        $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
-        $client->resolve ($orders, $messageHash);
-        $messageHash = $this->build_message_hash($action, $message);
+        // $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
+        // $client->resolve ($orders, $messageHash);
+        // $messageHash = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($orders, $messageHash);
     }
 
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+             *
              * fetches information on an order made by the user
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -693,7 +808,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+             *
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -712,13 +829,21 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
+    public function request_id() {
+        $ts = (string) $this->milliseconds();
+        $randomNumber = $this->rand_number(4);
+        $randomPart = (string) $randomNumber;
+        return intval($ts . $randomPart);
+    }
+
     public function watch_request($action, $request) {
         return Async\async(function () use ($action, $request) {
+            $messageHash = $this->request_id();
+            $messageHashStr = (string) $messageHash;
             $request['action'] = $action;
-            $messageHash = $this->build_message_hash($action, $request);
-            $this->check_message_hash_does_not_exist($messageHash);
+            $request['requestId'] = $messageHash;
             $url = $this->urls['api']['ws'];
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return Async\await($this->watch($url, $messageHashStr, $request, $messageHashStr));
         }) ();
     }
 
@@ -750,7 +875,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Trades
+             *
              * fetch all trades made by the user
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -791,12 +918,12 @@ class bitvavo extends \ccxt\async\bitvavo {
         //    }
         //
         //
-        $action = $this->safe_string($message, 'action');
-        $response = $this->safe_value($message, 'response');
-        $firstRawTrade = $this->safe_value($response, 0, array());
-        $marketId = $this->safe_string($firstRawTrade, 'market');
+        // $action = $this->safe_string($message, 'action');
+        $response = $this->safe_list($message, 'response');
+        // $marketId = $this->safe_string(firstRawTrade, 'market');
         $trades = $this->parse_trades($response, null, null, null);
-        $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
+        // $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($trades, $messageHash);
     }
 
@@ -831,8 +958,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        }
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
+        // $action = $this->safe_string($message, 'action');
+        // $messageHash = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_value($message, 'response');
         $withdraw = $this->parse_transaction($response);
         $client->resolve ($withdraw, $messageHash);
@@ -841,7 +969,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_withdrawals_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+             *
              * fetch all withdrawals made from an account
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -873,9 +1003,10 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
-        $response = $this->safe_value($message, 'response');
+        // $action = $this->safe_string($message, 'action');
+        // $messageHash = $this->build_message_hash($action, $message);
+        $response = $this->safe_list($message, 'response');
+        $messageHash = $this->safe_string($message, 'requestId');
         $withdrawals = $this->parse_transactions($response, null, null, null, array( 'type' => 'withdrawal' ));
         $client->resolve ($withdrawals, $messageHash);
     }
@@ -883,7 +1014,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}market~~1candles/get
+             *
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -903,7 +1036,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_deposits_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+             *
              * fetch all $deposits made to an account
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
@@ -922,7 +1057,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_deposits(Client $client, $message) {
         //
         //    {
-        //        $action => 'privateGetDepositHistory',
+        //        action => 'privateGetDepositHistory',
         //        $response => [array(
         //                timestamp => 1689792085000,
         //                symbol => 'BTC',
@@ -935,17 +1070,18 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
         $response = $this->safe_value($message, 'response');
         $deposits = $this->parse_transactions($response, null, null, null, array( 'type' => 'deposit' ));
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($deposits, $messageHash);
     }
 
     public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+             *
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
@@ -959,7 +1095,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_markets_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+             *
              * retrieves data on all markets for bitvavo
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
@@ -971,7 +1109,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_currencies_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+             *
              * fetches all available currencies on an exchange
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} an associative dictionary of currencies
@@ -984,7 +1124,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_currencies(Client $client, $message) {
         //
         //    {
-        //        $action => 'getAssets',
+        //        action => 'getAssets',
         //        $response => [array(
         //                symbol => '1INCH',
         //                name => '1inch',
@@ -1002,17 +1142,16 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_value($message, 'response');
-        $currencies = $this->parseCurrencies ($response);
+        $currencies = $this->parse_currencies($response);
         $client->resolve ($currencies, $messageHash);
     }
 
     public function handle_trading_fees($client, $message) {
         //
         //    {
-        //        $action => 'privateGetAccount',
+        //        action => 'privateGetAccount',
         //        $response => {
         //            $fees => {
         //                taker => '0.0025',
@@ -1022,8 +1161,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        }
         //    }
         //
-        $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_value($message, 'response');
         $fees = $this->parse_trading_fees($response);
         $client->resolve ($fees, $messageHash);
@@ -1032,7 +1170,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_balance_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+             *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -1046,7 +1186,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_balance(Client $client, $message) {
         //
         //    {
-        //        $action => 'privateGetBalance',
+        //        action => 'privateGetBalance',
         //        $response => [array(
         //                symbol => 'ADA',
         //                available => '0',
@@ -1056,8 +1196,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action', 'privateGetBalance');
-        $messageHash = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_value($message, 'response', array());
         $balance = $this->parse_balance($response);
         $client->resolve ($balance, $messageHash);
@@ -1066,7 +1205,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_single_order(Client $client, $message) {
         //
         //    {
-        //        $action => 'privateCreateOrder',
+        //        action => 'privateCreateOrder',
         //        $response => {
         //            orderId => 'd71df826-1130-478a-8741-d219128675b0',
         //            market => 'BTC-EUR',
@@ -1092,17 +1231,16 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        }
         //    }
         //
-        $action = $this->safe_string($message, 'action');
         $response = $this->safe_value($message, 'response', array());
         $order = $this->parse_order($response);
-        $messageHash = $this->build_message_hash($action, $response);
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($order, $messageHash);
     }
 
     public function handle_markets(Client $client, $message) {
         //
         //    {
-        //        $action => 'getMarkets',
+        //        action => 'getMarkets',
         //        $response => [array(
         //                market => '1INCH-EUR',
         //                status => 'trading',
@@ -1119,10 +1257,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        ]
         //    }
         //
-        $action = $this->safe_string($message, 'action');
         $response = $this->safe_value($message, 'response', array());
         $markets = $this->parse_markets($response);
-        $messageHash = $this->build_message_hash($action, $response);
+        $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve ($markets, $messageHash);
     }
 
@@ -1140,19 +1277,6 @@ class bitvavo extends \ccxt\async\bitvavo {
             $messageHash = $method($action, $params);
         }
         return $messageHash;
-    }
-
-    public function check_message_hash_does_not_exist($messageHash) {
-        $supressMultipleWsRequestsError = $this->safe_bool($this->options, 'supressMultipleWsRequestsError', false);
-        if (!$supressMultipleWsRequestsError) {
-            $client = $this->safe_value($this->clients, $this->urls['api']['ws']);
-            if ($client !== null) {
-                $future = $this->safe_value($client->futures, $messageHash);
-                if ($future !== null) {
-                    throw new ExchangeError($this->id . ' a similar request with $messageHash ' . $messageHash . ' is already pending, you must wait for a response, or turn off this error by setting $supressMultipleWsRequestsError in the options to true');
-                }
-            }
-        }
     }
 
     public function action_and_market_message_hash($action, $params = array ()) {
@@ -1315,11 +1439,19 @@ class bitvavo extends \ccxt\async\bitvavo {
         //        errorCode => 217,
         //        $error => 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
         //    }
+        //    {
+        //        $action => 'privateCreateOrder',
+        //        requestId => '17317539426571916',
+        //        market => 'USDT-EUR',
+        //        errorCode => 216,
+        //        $error => 'You do not have sufficient balance to complete this operation.'
+        //    }
         //
         $error = $this->safe_string($message, 'error');
         $code = $this->safe_integer($error, 'errorCode');
         $action = $this->safe_string($message, 'action');
-        $messageHash = $this->build_message_hash($action, $message);
+        $buildMessage = $this->build_message_hash($action, $message);
+        $messageHash = $this->safe_string($message, 'requestId', $buildMessage);
         $rejected = false;
         try {
             $this->handle_errors($code, $error, $client->url, null, null, $error, $message, null, null);

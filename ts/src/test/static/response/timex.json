@@ -90,6 +90,8 @@
                         "volume": "22.3857",
                         "volumeQuote": "1543992.8584"
                     },
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "timestamp": 1710328246615,
                     "datetime": "2024-03-13T11:10:46.615Z",
                     "high": null,
@@ -105,7 +107,7 @@
                     "previousClose": null,
                     "change": 6657,
                     "percentage": 9.985749643741093,
-                    "average": 69993.5,
+                    "average": 69993,
                     "baseVolume": 22.3857,
                     "quoteVolume": 1543992.8584
                 }

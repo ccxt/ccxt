@@ -5,16 +5,17 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class onetrading(ccxt.async_support.onetrading):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(onetrading, self).describe(), {
             'has': {
                 'ws': True,
@@ -22,6 +23,7 @@ class onetrading(ccxt.async_support.onetrading):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': False,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -81,7 +83,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -138,7 +142,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -162,7 +168,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches price tickers, a statistical calculation with the information for all markets or those specified.
         :param str symbols: unified symbols of the markets to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -254,7 +262,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -293,7 +303,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -399,7 +411,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -934,9 +948,9 @@ class onetrading(ccxt.async_support.onetrading):
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
             previousOrder = self.safe_value(previousOrderArray, 0, {})
             symbol = previousOrder['symbol']
-            filled = self.safe_number(update, 'filled_amount')
+            filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
-            if updateType == 'ORDER_CLOSED' and filled == 0:
+            if updateType == 'ORDER_CLOSED' and Precise.string_eq(filled, '0'):
                 status = 'canceled'
             orderObject: dict = {
                 'id': orderId,
@@ -963,7 +977,8 @@ class onetrading(ccxt.async_support.onetrading):
         if updateType == 'TRADE_SETTLED':
             parsed = self.parse_trade(update)
             symbol = self.safe_string(parsed, 'symbol', '')
-            self.myTrades.append(parsed)
+            myTrades = self.myTrades
+            myTrades.append(parsed)
             client.resolve(self.myTrades, 'myTrades:' + symbol)
             client.resolve(self.myTrades, 'myTrades')
 
@@ -994,7 +1009,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://developers.bitpanda.com/exchange/#candlesticks-channel
+
+        https://developers.bitpanda.com/exchange/#candlesticks-channel
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents

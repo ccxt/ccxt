@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class p2b(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(p2b, self).describe(), {
             'id': 'p2b',
             'name': 'p2b',
@@ -81,9 +81,8 @@ class p2b(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPermissions': False,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
@@ -189,6 +188,71 @@ class p2b(Exchange, ImplicitAPI):
                     ],
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 1,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': None,  # todo
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1 / 12,  # todo
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
             },
             'precisionMode': TICK_SIZE,
@@ -242,7 +306,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -341,7 +407,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+
+        https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -379,7 +447,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -479,12 +549,14 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.interval]: 0(default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -528,7 +600,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: 1-100, default=50
@@ -639,7 +713,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 1h, or 1d
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -707,7 +783,9 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -766,7 +844,9 @@ class p2b(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -814,7 +894,9 @@ class p2b(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -857,13 +939,15 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all unfilled currently open orders
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -908,14 +992,16 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
@@ -957,14 +1043,16 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -1024,14 +1112,16 @@ class p2b(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
-        :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+
+        https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1149,7 +1239,7 @@ class p2b(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'amount'),
             'cost': None,
             'average': None,

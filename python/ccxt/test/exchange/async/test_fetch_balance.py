@@ -18,3 +18,4 @@ async def test_fetch_balance(exchange, skipped_properties):
     method = 'fetchBalance'
     response = await exchange.fetch_balance()
     test_balance(exchange, skipped_properties, method, response)
+    return True

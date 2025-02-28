@@ -10,6 +10,7 @@ public partial class idex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v4.idex.io/#tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class idex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v4.idex.io/#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -62,6 +64,7 @@ public partial class idex
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v4.idex.io/#candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -95,6 +98,7 @@ public partial class idex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v4.idex.io/#l2-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -121,6 +125,7 @@ public partial class idex
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v4.idex.io/#orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

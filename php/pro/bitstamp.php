@@ -7,18 +7,19 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,

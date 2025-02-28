@@ -16,7 +16,7 @@ public partial class binanceus : binance
             { "certified", false },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c" },
                 { "api", new Dictionary<string, object>() {
                     { "web", "https://www.binance.us" },
                     { "public", "https://api.binance.us/api/v3" },
@@ -41,6 +41,7 @@ public partial class binanceus : binance
             { "options", new Dictionary<string, object>() {
                 { "fetchMarkets", new List<object>() {"spot"} },
                 { "defaultType", "spot" },
+                { "fetchMargins", false },
                 { "quoteOrderQty", false },
             } },
             { "has", new Dictionary<string, object>() {
@@ -221,6 +222,16 @@ public partial class binanceus : binance
                     { "post", new Dictionary<string, object>() {
                         { "sub-account/transfer", 1 },
                     } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });

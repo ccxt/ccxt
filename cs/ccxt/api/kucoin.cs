@@ -91,9 +91,19 @@ public partial class kucoin : Exchange
         return await this.callAsync ("publicGetMarkPriceSymbolCurrent",parameters);
     }
 
+    public async Task<object> publicGetMarkPriceAllSymbols (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarkPriceAllSymbols",parameters);
+    }
+
     public async Task<object> publicGetMarginConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetMarginConfig",parameters);
+    }
+
+    public async Task<object> publicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAnnouncements",parameters);
     }
 
     public async Task<object> publicPostBulletPublic (object parameters = null)
@@ -234,6 +244,11 @@ public partial class kucoin : Exchange
     public async Task<object> privateGetMarketOrderbookLevel3 (object parameters = null)
     {
         return await this.callAsync ("privateGetMarketOrderbookLevel3",parameters);
+    }
+
+    public async Task<object> privateGetHfAccountsOpened (object parameters = null)
+    {
+        return await this.callAsync ("privateGetHfAccountsOpened",parameters);
     }
 
     public async Task<object> privateGetHfOrdersActive (object parameters = null)
@@ -436,6 +451,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
     }
 
+    public async Task<object> privateGetMigrateUserAccountStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMigrateUserAccountStatus",parameters);
+    }
+
     public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
     {
         return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
@@ -604,6 +624,11 @@ public partial class kucoin : Exchange
     public async Task<object> privatePostPositionUpdateUserLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePostPositionUpdateUserLeverage",parameters);
+    }
+
+    public async Task<object> privatePostDepositAddressCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddressCreate",parameters);
     }
 
     public async Task<object> privateDeleteSubApiKey (object parameters = null)
@@ -984,6 +1009,11 @@ public partial class kucoin : Exchange
     public async Task<object> brokerGetBrokerNdRebaseDownload (object parameters = null)
     {
         return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
+    }
+
+    public async Task<object> brokerGetAssetNdbrokerDepositList (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetAssetNdbrokerDepositList",parameters);
     }
 
     public async Task<object> brokerGetBrokerNdTransferDetail (object parameters = null)

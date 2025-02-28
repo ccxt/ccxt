@@ -101,6 +101,26 @@ public partial class woofipro
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
@@ -115,13 +135,13 @@ public partial class woofipro
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
-    /// fetch the current funding rates
+    /// fetch the current funding rate for multiple markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets"/>  <br/>
@@ -135,10 +155,10 @@ public partial class woofipro
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -363,6 +383,12 @@ public partial class woofipro
     /// <remarks>
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -814,11 +840,17 @@ public partial class woofipro
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -828,7 +860,7 @@ public partial class woofipro
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -839,13 +871,13 @@ public partial class woofipro
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -1002,6 +1034,18 @@ public partial class woofipro
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>leverage</term>
+    /// <description>
+    /// int : the rate of leverage
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -1030,7 +1074,7 @@ public partial class woofipro
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
-    public async Task<Position> FetchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
@@ -1045,12 +1089,6 @@ public partial class woofipro
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>method</term>
-    /// <description>
-    /// string : method name to call, "positionRisk", "account" or "option", default is "positionRisk"
     /// </description>
     /// </item>
     /// </list>

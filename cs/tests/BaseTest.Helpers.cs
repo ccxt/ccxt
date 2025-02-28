@@ -12,43 +12,22 @@ using dict = Dictionary<string, object>;
 public partial class testMainClass : BaseTest
 {
     public static SharedMethods testSharedMethods = new SharedMethods();
-    public Exchange exchange = new Exchange();
-    public string rootDir = Tests.ccxtBaseDir + "/";
-    public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skippedSettingsForExchange = null;
-    public object skippedMethods = null;
-    public object publicTests = null;
-    public object checkedPublicTests = null;
-    public bool sandbox = false;
-    public object envVars = null;
-    public dict testFiles = new dict();
-    public bool privateTestOnly = Tests.privateOnly;
-    public bool privateTest = Tests.privateTests;
-    public bool info = Tests.info;
-    public bool verbose = Tests.verbose;
-    public bool debug = Tests.debug;
+    // public Exchange exchange = new Exchange();
+    // public dict testFiles = new dict();
+    // consts to be accessed from transpiled tests
+    public static string EXT = "cs";
+    public static string LANG = "C#";
+    public static bool IS_SYNCHRONOUS = false;
+    public static string PROXY_TEST_FILE_NAME = "proxies";
+    public static string ROOT_DIR = Tests.ccxtBaseDir + "/";
+    public static dict ENV_VARS = null;
+    public static string NEW_LINE = "\n";
+
+    //public bool info = Tests.info;
+    //public bool verbose = Tests.verbose;
+    //public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public string ext = "cs";
-    public bool loadKeys = false;
-
-    public bool staticTestsFailed = false;
-    public bool responseTests = false;
-    public bool responseTestsFailed = false;
-    public bool requestTests = false;
-    public bool requestTestsFailed = false;
-    public bool staticTests = false;
-    public bool wsTests = false;
-    public bool idTests = false;
-
-    public bool isSynchronous = false;
-
-    public List<object> onlySpecificTests = new List<object>();
-    public string proxyTestFileName = "proxies";
-
-    public string lang = "C#";
-
-    public object newLine = "\n";
-
+    //public bool loadKeys = false;
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
@@ -77,23 +56,29 @@ public partial class testMainClass : BaseTest
 
     }
 
+    dict getTestFilesSync(object properties, bool ws = false)
+    {
+        return null; // empty in c#
+    }
+
     async Task<dict> getTestFiles(object properties, bool ws = false)
     {
         // var hasDict = properties as dict;
         // var hasKeys = hasDict.Keys;
         var testFiles = new dict();
         var hasKeys = properties as List<object>;
+        hasKeys.Add("features");
         foreach (var key2 in hasKeys)
         {
             var key = key2 as string;
             var testFilePath = "";
             if (!ws)
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/test." + key + ".cs";
             }
             else
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
             }
             if (ioFileExists(testFilePath))
             {
@@ -130,7 +115,7 @@ public partial class testMainClass : BaseTest
             var value = vars[key];
             parsedObject[key] = value;
         }
-        envVars = parsedObject;
+        ENV_VARS = parsedObject;
     }
 
     async static Task close(object exchange)
@@ -180,11 +165,17 @@ public partial class testMainClass : BaseTest
         return fileNameOnly;
     }
 
+    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args)
+    {
+        return null; // empty in c#
+    }
+
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
     {
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+            if (arg == null) continue; // skip if no arguments passed into method
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -293,6 +284,19 @@ public partial class testMainClass : BaseTest
         return e.Message;
     }
 
+    public System.Exception getRootException(Exception exc)
+    {
+        if (exc is System.AggregateException)
+        {
+            var inner = exc.InnerException;
+            if (inner != null)
+            {
+                return inner;
+            }
+        }
+        return exc;
+    }
+
     public Exchange setFetchResponse(object exchange2, object response)
     {
         var exchange = exchange2 as Exchange;
@@ -305,6 +309,31 @@ public partial class testMainClass : BaseTest
     public bool isNullValue(object value)
     {
         return value == null;
+    }
+
+    public bool isSync()
+    {
+        return false;
+    }
+
+    public string getExt()
+    {
+        return EXT;
+    }
+
+    public string getLang()
+    {
+        return LANG;
+    }
+
+    public object getEnvVars()
+    {
+        return ENV_VARS;
+    }
+
+    public string getRootDir()
+    {
+        return ROOT_DIR;
     }
 
     public object convertAscii(object input)
@@ -331,6 +360,11 @@ public partial class testMainClass : BaseTest
 
     public partial class SharedMethods
     {
-        // stub, the actual content is generated inside Generated/Exchange
+        // ast-transpiler uses "json()" method in transpiled C# content,
+        // which should pre-exist in the language-specific helpers for project
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }
     }
 }

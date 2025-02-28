@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class currencycom extends \ccxt\async\currencycom {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -55,7 +55,7 @@ class currencycom extends \ccxt\async\currencycom {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // custom ping-pong
         $requestId = (string) $this->request_id();
         return array(

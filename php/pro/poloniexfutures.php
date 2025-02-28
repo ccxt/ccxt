@@ -8,13 +8,13 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\BadRequest;
-use ccxt\InvalidNonce;
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\ChecksumError;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class poloniexfutures extends \ccxt\async\poloniexfutures {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -32,6 +32,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => false,
@@ -56,6 +57,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                     'method' => '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay' => 5,
                     'snapshotMaxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'streamLimit' => 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash' => array(),
@@ -258,7 +260,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://futures-docs.poloniex.com/#get-real-time-$symbol-ticker
+             *
+             * @see https://api-docs.poloniex.com/futures/websocket/public#get-real-time-$symbol-ticker
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -274,7 +278,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
+             *
+             * @see https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -298,7 +304,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://futures-docs.poloniex.com/#level-2-market-data
+             *
+             * @see https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniexfutures watchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -329,7 +337,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @see https://futures-docs.poloniex.com/#private-messages
+             *
+             * @see https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages
+             *
              * @param {string} $symbol filter by unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -357,7 +367,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://futures-docs.poloniex.com/#account-balance-events
+             *
+             * @see https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -894,7 +906,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             return;
         }
         if ($nonce !== $lastSequence) {
-            throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message(''));
+            }
         }
         $changes = $this->safe_list($delta, 'changes');
         for ($i = 0; $i < count($changes); $i++) {

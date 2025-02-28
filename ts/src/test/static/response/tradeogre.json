@@ -103,6 +103,8 @@
                   "average": null,
                   "baseVolume": 434035.6696803,
                   "quoteVolume": null,
+                  "markPrice":  null,
+                  "indexPrice": null,
                   "info": {
                     "success": true,
                     "initialprice": "68244.43002928",
@@ -152,16 +154,8 @@
                     "price": 86.6,
                     "amount": 0.15001808,
                     "cost": 12.991565728,
-                    "fee": {
-                      "currency": null,
-                      "cost": null
-                    },
-                    "fees": [
-                      {
-                        "currency": null,
-                        "cost": null
-                      }
-                    ]
+                    "fee": {"cost": null, "currency": null },
+                    "fees": []
                   }
                 ]
               }

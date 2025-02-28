@@ -7,6 +7,39 @@ public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(ar
 public partial class bitfinex
 {
     /// <summary>
+    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
@@ -37,6 +70,39 @@ public partial class bitfinex
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// watches information on multiple trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trade structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
@@ -84,10 +150,30 @@ public partial class bitfinex
         var res = await this.watchOrderBook(symbol, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
-    public async Task<Dictionary<string, object>> WatchOrder(object id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// watch balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// str : spot or contract if not provided this.options['defaultType'] is used
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        var res = await this.watchBalance(parameters);
+        return new Balances(res);
     }
     /// <summary>
     /// watches information on multiple orders made by the user

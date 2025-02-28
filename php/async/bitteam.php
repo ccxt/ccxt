@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadSymbol;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitteam extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
             'name' => 'BIT.TEAM',
@@ -133,7 +133,7 @@ class bitteam extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
+                'logo' => 'https://github.com/user-attachments/assets/b41b5e0d-98e5-4bd3-8a6e-aeb230a4a135',
                 'api' => array(
                     'history' => 'https://history.bit.team',
                     'public' => 'https://bit.team',
@@ -223,6 +223,84 @@ class bitteam extends Exchange {
                     'BUSD' => true,
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '400002' => '\\ccxt\\BadSymbol', // array("ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair")
@@ -252,7 +330,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitteam
+             *
              * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+             *
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -423,7 +503,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             *
              * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+             *
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -710,7 +792,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
@@ -759,7 +843,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 10)
@@ -873,7 +959,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+             *
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by bitteam fetchOrder ()
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
@@ -934,7 +1022,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve (default 10)
@@ -953,7 +1043,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 10)
@@ -972,7 +1064,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 10)
@@ -991,7 +1085,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1048,7 +1144,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by bitteam cancelOrder ()
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
@@ -1076,7 +1174,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel open $orders of $market
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -1209,7 +1309,6 @@ class bitteam extends Exchange {
         $side = $this->safe_string($order, 'side');
         $feeRaw = $this->safe_value($order, 'fee');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stopPrice');
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed');
         $fee = null;
@@ -1235,8 +1334,7 @@ class bitteam extends Exchange {
             'timeInForce' => 'GTC',
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'average' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1285,7 +1383,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             *
              * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
@@ -1340,7 +1440,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
@@ -1672,7 +1774,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1714,7 +1818,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve (default 10)
@@ -1959,7 +2065,6 @@ class bitteam extends Exchange {
         $fee = array(
             'currency' => $this->safe_currency_code($feeCurrencyId),
             'cost' => $feeCost,
-            'rate' => null,
         );
         $intTs = $this->parse_to_int($timestamp);
         return $this->safe_trade(array(
@@ -1983,7 +2088,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+             *
              * @param {array} [$params] extra parameters specific to the betteam api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
@@ -2064,7 +2171,9 @@ class bitteam extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+             *
              * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
              * @param {int} [$limit] max number of deposit/withdrawals to return (default 10)

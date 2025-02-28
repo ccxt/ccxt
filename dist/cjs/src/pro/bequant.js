@@ -4,7 +4,7 @@ var hitbtc = require('./hitbtc.js');
 var hitbtc$1 = require('../hitbtc.js');
 var bequant$1 = require('../bequant.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bequant extends hitbtc {
     describe() {
@@ -20,6 +20,10 @@ class bequant extends hitbtc {
                 'api': {
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
+                    'ws': {
+                        'public': 'wss://api.bequant.io/api/3/ws/public',
+                        'private': 'wss://api.bequant.io/api/3/ws/trading',
+                    },
                 },
                 'www': 'https://bequant.io',
                 'doc': [

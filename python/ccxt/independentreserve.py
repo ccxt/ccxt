@@ -6,15 +6,16 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
+from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class independentreserve(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
@@ -79,6 +80,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -105,7 +107,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
+                        'GetCryptoWithdrawalFees',  # deprecated - replaced by GetCryptoWithdrawalFees2(docs removed)
+                        'GetCryptoWithdrawalFees2',
+                        'GetNetworks',
+                        'GetPrimaryCurrencyConfig2',
                     ],
                 },
                 'private': {
@@ -117,8 +122,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetAccounts',
                         'GetTransactions',
                         'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
-                        'GetDigitalCurrencyDepositAddresses',
+                        'GetDigitalCurrencyDepositAddress',  # deprecated - replaced by GetDigitalCurrencyDepositAddress2(docs removed)
+                        'GetDigitalCurrencyDepositAddress2',
+                        'GetDigitalCurrencyDepositAddresses',  # deprecated - replaced by GetDigitalCurrencyDepositAddresses2(docs removed)
+                        'GetDigitalCurrencyDepositAddresses2',
                         'GetTrades',
                         'GetBrokerageFees',
                         'GetDigitalCurrencyWithdrawal',
@@ -128,7 +135,8 @@ class independentreserve(Exchange, ImplicitAPI):
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
+                        'WithdrawDigitalCurrency',  # deprecated - replaced by WithdrawCrypto(docs removed)
+                        'WithdrawCrypto',
                     ],
                 },
             },
@@ -140,10 +148,132 @@ class independentreserve(Exchange, ImplicitAPI):
                     'tierBased': False,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'defaultNetworks': {
+                    'USDT': 'Ethereum',
+                    'USDC': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'BitcoinCash',
+                    'ETH': 'Ethereum',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'ZRX': 'Ethereum',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'BAT': 'Ethereum',
+                    'ETC': 'EthereumClassic',
+                    'LINK': 'Ethereum',
+                    'MKR': 'Ethereum',
+                    'DAI': 'Ethereum',
+                    'COMP': 'Ethereum',
+                    'SNX': 'Ethereum',
+                    'YFI': 'Ethereum',
+                    'AAVE': 'Ethereum',
+                    'GRT': 'Ethereum',
+                    'DOT': 'Polkadot',
+                    'UNI': 'Ethereum',
+                    'ADA': 'Cardano',
+                    'MATIC': 'Ethereum',
+                    'DOGE': 'Dogecoin',
+                    'SOL': 'Solana',
+                    'MANA': 'Ethereum',
+                    'SAND': 'Ethereum',
+                    'SHIB': 'Ethereum',
+                    'TRX': 'Tron',
+                    'RENDER': 'Solana',
+                    'WIF': 'Solana',
+                    'RLUSD': 'Ethereum',
+                    'PEPE': 'Ethereum',
+                },
+                'networks': {
+                    'BTC': 'Bitcoin',
+                    'ETH': 'Ethereum',
+                    'BCH': 'BitcoinCash',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'ETC': 'EthereumClassic',
+                    'BSV': 'BitcoinSV',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'ADA': 'Cardano',
+                    'SOL': 'Solana',
+                    'TRX': 'Tron',
+                },
+            },
         })
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -152,11 +282,12 @@ class independentreserve(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        baseCurrencies = self.publicGetGetValidPrimaryCurrencyCodes(params)
+        baseCurrenciesPromise = self.publicGetGetValidPrimaryCurrencyCodes(params)
         #     ['Xbt', 'Eth', 'Usdt', ...]
-        quoteCurrencies = self.publicGetGetValidSecondaryCurrencyCodes(params)
+        quoteCurrenciesPromise = self.publicGetGetValidSecondaryCurrencyCodes(params)
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        limits = self.publicGetGetOrderMinimumVolumes(params)
+        limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
+        baseCurrencies, quoteCurrencies, limits = [baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]
         #
         #     {
         #         "Xbt": 0.0001,
@@ -433,7 +564,6 @@ class independentreserve(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'Price'),
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': self.safe_string(order, 'Value'),
             'average': self.safe_string(order, 'AvgPrice'),
@@ -464,6 +594,7 @@ class independentreserve(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -681,7 +812,9 @@ class independentreserve(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://www.independentreserve.com/features/api#CancelOrder
+
+        https://www.independentreserve.com/features/api#CancelOrder
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -709,10 +842,12 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+
+        https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -733,7 +868,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        Tag: '3307446684',
@@ -747,9 +882,111 @@ class independentreserve(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_string(currency, 'code'),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'Tag'),
+        }
+
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+        """
+        make a withdrawal
+
+        https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+
+ EXCHANGE SPECIFIC PARAMETERS
+        :param dict [params.comment]: withdrawal comment, should not exceed 500 characters
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'primaryCurrencyCode': currency['id'],
+            'withdrawalAddress': address,
+            'amount': self.currency_to_precision(code, amount),
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            raise BadRequest(self.id + ' withdraw() does not accept params["networkCode"]')
+        response = self.privatePostWithdrawDigitalCurrency(self.extend(request, params))
+        #
+        #    {
+        #        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        #        "PrimaryCurrencyCode": "Bch",
+        #        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        #        "Amount": {
+        #            "Total": 0.1231,
+        #            "Fee": 0.0001
+        #        },
+        #        "Destination": {
+        #            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        #            "Tag": null
+        #        },
+        #        "Status": "Pending",
+        #        "Transaction": null
+        #    }
+        #
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #    {
+        #        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        #        "PrimaryCurrencyCode": "Bch",
+        #        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        #        "Amount": {
+        #            "Total": 0.1231,
+        #            "Fee": 0.0001
+        #        },
+        #        "Destination": {
+        #            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        #            "Tag": null
+        #        },
+        #        "Status": "Pending",
+        #        "Transaction": null
+        #    }
+        #
+        amount = self.safe_dict(transaction, 'Amount')
+        destination = self.safe_dict(transaction, 'Destination')
+        currencyId = self.safe_string(transaction, 'PrimaryCurrencyCode')
+        datetime = self.safe_string(transaction, 'CreatedTimestampUtc')
+        address = self.safe_string(destination, 'Address')
+        tag = self.safe_string(destination, 'Tag')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'TransactionGuid'),
+            'txid': None,
+            'type': 'withdraw',
+            'currency': code,
             'network': None,
+            'amount': self.safe_number(amount, 'Total'),
+            'status': self.safe_string(transaction, 'Status'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'address': address,
+            'addressFrom': None,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': None,
+            'tagTo': tag,
+            'updated': None,
+            'comment': None,
+            'fee': {
+                'currency': code,
+                'cost': self.safe_number(amount, 'Fee'),
+                'rate': None,
+            },
+            'internal': False,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

@@ -14,33 +14,255 @@ function test_safe_methods() {
         'id' => 'regirock',
     ));
     $input_dict = array(
-        'a' => 1,
+        'i' => 1,
+        'f' => 0.123,
         'bool' => true,
         'list' => [1, 2, 3],
         'dict' => array(
             'a' => 1,
         ),
-        'str' => 'hello',
+        'str' => 'heLlo',
+        'strNumber' => '3',
+        'zeroNumeric' => 0,
+        'zeroString' => '0',
+        'undefined' => null,
+        'emptyString' => '',
+        'floatNumeric' => 0.123,
+        'floatString' => '0.123',
     );
-    $input_list = ['hi', 2];
-    // safeValue
-    assert($exchange->safe_value($input_dict, 'a') === 1);
-    assert($exchange->safe_value($input_dict, 'bool') === true);
-    assert(equals($exchange->safe_value($input_dict, 'list'), [1, 2, 3]));
-    $dict_object = $exchange->safe_value($input_dict, 'dict');
-    assert(equals($dict_object, array(
+    $input_list = ['Hi', 2];
+    $compare_dict = array(
         'a' => 1,
-    )));
-    assert($exchange->safe_value($input_list, 0) === 'hi');
+    );
+    $compare_list = [1, 2, 3];
+    $factor = 10;
+    // safeValue
+    assert($exchange->safe_value($input_dict, 'i') === 1);
+    assert($exchange->safe_value($input_dict, 'f') === 0.123);
+    assert($exchange->safe_value($input_dict, 'bool') === true);
+    assert(equals($exchange->safe_value($input_dict, 'list'), $compare_list));
+    $dict_object = $exchange->safe_value($input_dict, 'dict');
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_value($input_dict, 'str') === 'heLlo');
+    assert($exchange->safe_value($input_dict, 'strNumber') === '3');
+    assert($exchange->safe_value($input_list, 0) === 'Hi');
     // safeValue2
-    assert($exchange->safe_value_2($input_dict, 'b', 'a') === 1);
-    assert($exchange->safe_value_2($input_dict, 's', 'bool') === true);
+    assert($exchange->safe_value_2($input_dict, 'a', 'i') === 1);
+    assert($exchange->safe_value_2($input_dict, 'a', 'f') === 0.123);
+    assert($exchange->safe_value_2($input_dict, 'a', 'bool') === true);
+    assert(equals($exchange->safe_value_2($input_dict, 'a', 'list'), $compare_list));
+    $dict_object = $exchange->safe_value_2($input_dict, 'a', 'dict');
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_value_2($input_dict, 'a', 'str') === 'heLlo');
+    assert($exchange->safe_value_2($input_dict, 'a', 'strNumber') === '3');
+    assert($exchange->safe_value_2($input_list, 2, 0) === 'Hi');
+    // safeValueN
+    assert($exchange->safe_value_n($input_dict, ['a', 'b', 'i']) === 1);
+    assert($exchange->safe_value_n($input_dict, ['a', 'b', 'f']) === 0.123);
+    assert($exchange->safe_value_n($input_dict, ['a', 'b', 'bool']) === true);
+    assert(equals($exchange->safe_value_n($input_dict, ['a', 'b', 'list']), $compare_list));
+    $dict_object = $exchange->safe_value_n($input_dict, ['a', 'b', 'dict']);
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_value_n($input_dict, ['a', 'b', 'str']) === 'heLlo');
+    assert($exchange->safe_value_n($input_dict, ['a', 'b', 'strNumber']) === '3');
+    assert($exchange->safe_value_n($input_list, [3, 2, 0]) === 'Hi');
+    // safeDict
+    $dict_object = $exchange->safe_dict($input_dict, 'dict');
+    assert(equals($dict_object, $compare_dict));
+    $list_object = $exchange->safe_dict($input_dict, 'list');
+    assert($list_object === null);
+    assert($exchange->safe_dict($input_list, 1) === null);
+    // safeDict2
+    $dict_object = $exchange->safe_dict_2($input_dict, 'a', 'dict');
+    assert(equals($dict_object, $compare_dict));
+    $list_object = $exchange->safe_dict_2($input_dict, 'a', 'list');
+    assert($list_object === null);
+    // @ts-expect-error
+    assert($exchange->safe_dict_2($input_list, 2, 1) === null);
+    // safeDictN
+    $dict_object = $exchange->safe_dict_n($input_dict, ['a', 'b', 'dict']);
+    assert(equals($dict_object, $compare_dict));
+    $list_object = $exchange->safe_dict_n($input_dict, ['a', 'b', 'list']);
+    assert($list_object === null);
+    assert($exchange->safe_dict_n($input_list, [3, 2, 1]) === null);
+    // safeList
+    $list_object = $exchange->safe_list($input_dict, 'list');
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_list($input_dict, 'dict') === null);
+    assert($exchange->safe_list($input_list, 1) === null);
+    // safeList2
+    $list_object = $exchange->safe_list_2($input_dict, 'a', 'list');
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_list_2($input_dict, 'a', 'dict') === null);
+    // @ts-expect-error
+    assert($exchange->safe_list_2($input_list, 2, 1) === null);
+    // safeListN
+    $list_object = $exchange->safe_list_n($input_dict, ['a', 'b', 'list']);
+    assert(equals($dict_object, $compare_dict));
+    assert($exchange->safe_list_n($input_dict, ['a', 'b', 'dict']) === null);
+    assert($exchange->safe_list_n($input_list, [3, 2, 1]) === null);
     // safeString
-    assert($exchange->safe_string($input_dict, 'a') === '1');
+    assert($exchange->safe_string($input_dict, 'i') === '1');
+    assert($exchange->safe_string($input_dict, 'f') === '0.123');
     // assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-    assert($exchange->safe_string($input_list, 0) === 'hi');
-    assert($exchange->safe_string($input_dict, 'str') === 'hello');
+    assert($exchange->safe_string($input_dict, 'str') === 'heLlo');
+    assert($exchange->safe_string($input_dict, 'strNumber') === '3');
+    assert($exchange->safe_string($input_list, 0) === 'Hi');
+    // safeString2
+    assert($exchange->safe_string_2($input_dict, 'a', 'i') === '1');
+    assert($exchange->safe_string_2($input_dict, 'a', 'f') === '0.123');
+    assert($exchange->safe_string_2($input_dict, 'a', 'str') === 'heLlo');
+    assert($exchange->safe_string_2($input_dict, 'a', 'strNumber') === '3');
+    assert($exchange->safe_string_2($input_list, 2, 0) === 'Hi');
+    // safeStringN
+    assert($exchange->safe_string_n($input_dict, ['a', 'b', 'i']) === '1');
+    assert($exchange->safe_string_n($input_dict, ['a', 'b', 'f']) === '0.123');
+    assert($exchange->safe_string_n($input_dict, ['a', 'b', 'str']) === 'heLlo');
+    assert($exchange->safe_string_n($input_dict, ['a', 'b', 'strNumber']) === '3');
+    assert($exchange->safe_string_n($input_list, [3, 2, 0]) === 'Hi');
+    // safeStringLower
+    assert($exchange->safe_string_lower($input_dict, 'i') === '1');
+    assert($exchange->safe_string_lower($input_dict, 'f') === '0.123');
+    assert($exchange->safe_string_lower($input_dict, 'str') === 'hello');
+    assert($exchange->safe_string_lower($input_dict, 'strNumber') === '3');
+    assert($exchange->safe_string_lower($input_list, 0) === 'hi');
+    // safeStringLower2
+    assert($exchange->safe_string_lower_2($input_dict, 'a', 'i') === '1');
+    assert($exchange->safe_string_lower_2($input_dict, 'a', 'f') === '0.123');
+    assert($exchange->safe_string_lower_2($input_dict, 'a', 'str') === 'hello');
+    assert($exchange->safe_string_lower_2($input_dict, 'a', 'strNumber') === '3');
+    assert($exchange->safe_string_lower_2($input_list, 2, 0) === 'hi');
+    // safeStringLowerN
+    assert($exchange->safe_string_lower_n($input_dict, ['a', 'b', 'i']) === '1');
+    assert($exchange->safe_string_lower_n($input_dict, ['a', 'b', 'f']) === '0.123');
+    assert($exchange->safe_string_lower_n($input_dict, ['a', 'b', 'str']) === 'hello');
+    assert($exchange->safe_string_lower_n($input_dict, ['a', 'b', 'strNumber']) === '3');
+    assert($exchange->safe_string_lower_n($input_list, [3, 2, 0]) === 'hi');
+    // safeStringUpper
+    assert($exchange->safe_string_upper($input_dict, 'i') === '1');
+    assert($exchange->safe_string_upper($input_dict, 'f') === '0.123');
+    assert($exchange->safe_string_upper($input_dict, 'str') === 'HELLO');
+    assert($exchange->safe_string_upper($input_dict, 'strNumber') === '3');
+    assert($exchange->safe_string_upper($input_list, 0) === 'HI');
+    // safeStringUpper2
+    assert($exchange->safe_string_upper_2($input_dict, 'a', 'i') === '1');
+    assert($exchange->safe_string_upper_2($input_dict, 'a', 'f') === '0.123');
+    assert($exchange->safe_string_upper_2($input_dict, 'a', 'str') === 'HELLO');
+    assert($exchange->safe_string_upper_2($input_dict, 'a', 'strNumber') === '3');
+    assert($exchange->safe_string_upper_2($input_list, 2, 0) === 'HI');
+    // safeStringUpperN
+    assert($exchange->safe_string_upper_n($input_dict, ['a', 'b', 'i']) === '1');
+    assert($exchange->safe_string_upper_n($input_dict, ['a', 'b', 'f']) === '0.123');
+    assert($exchange->safe_string_upper_n($input_dict, ['a', 'b', 'str']) === 'HELLO');
+    assert($exchange->safe_string_upper_n($input_dict, ['a', 'b', 'strNumber']) === '3');
+    assert($exchange->safe_string_upper_n($input_list, [3, 2, 0]) === 'HI');
     // safeInteger
-    assert($exchange->safe_integer($input_dict, 'a') === 1);
-    assert($exchange->safe_integer_2($input_dict, 'b', 'a') === 1);
+    assert($exchange->safe_integer($input_dict, 'i') === 1);
+    assert($exchange->safe_integer($input_dict, 'f') === 0);
+    assert($exchange->safe_integer($input_dict, 'strNumber') === 3);
+    assert($exchange->safe_integer($input_list, 1) === 2);
+    // safeInteger2
+    assert($exchange->safe_integer_2($input_dict, 'a', 'i') === 1);
+    assert($exchange->safe_integer_2($input_dict, 'a', 'f') === 0);
+    assert($exchange->safe_integer_2($input_dict, 'a', 'strNumber') === 3);
+    assert($exchange->safe_integer_2($input_list, 2, 1) === 2);
+    // safeIntegerN
+    assert($exchange->safe_integer_n($input_dict, ['a', 'b', 'i']) === 1);
+    assert($exchange->safe_integer_n($input_dict, ['a', 'b', 'f']) === 0);
+    assert($exchange->safe_integer_n($input_dict, ['a', 'b', 'strNumber']) === 3);
+    assert($exchange->safe_integer_n($input_list, [3, 2, 1]) === 2);
+    // safeIntegerOmitZero
+    assert($exchange->safe_integer_omit_zero($input_dict, 'i') === 1);
+    assert($exchange->safe_integer_omit_zero($input_dict, 'f') === null);
+    assert($exchange->safe_integer_omit_zero($input_dict, 'strNumber') === 3);
+    assert($exchange->safe_integer_omit_zero($input_list, 1) === 2);
+    // safeIntegerProduct
+    assert($exchange->safe_integer_product($input_dict, 'i', $factor) === 10);
+    assert($exchange->safe_integer_product($input_dict, 'f', $factor) === 1); // NB the result is 1
+    assert($exchange->safe_integer_product($input_dict, 'strNumber', $factor) === 30);
+    assert($exchange->safe_integer_product($input_list, 1, $factor) === 20);
+    // safeIntegerProduct2
+    assert($exchange->safe_integer_product_2($input_dict, 'a', 'i', $factor) === 10);
+    assert($exchange->safe_integer_product_2($input_dict, 'a', 'f', $factor) === 1); // NB the result is 1
+    assert($exchange->safe_integer_product_2($input_dict, 'a', 'strNumber', $factor) === 30);
+    assert($exchange->safe_integer_product_2($input_list, 2, 1, $factor) === 20);
+    // safeIntegerProductN
+    assert($exchange->safe_integer_product_n($input_dict, ['a', 'b', 'i'], $factor) === 10);
+    assert($exchange->safe_integer_product_n($input_dict, ['a', 'b', 'f'], $factor) === 1); // NB the result is 1
+    assert($exchange->safe_integer_product_n($input_dict, ['a', 'b', 'strNumber'], $factor) === 30);
+    assert($exchange->safe_integer_product_n($input_list, [3, 2, 1], $factor) === 20);
+    // safeTimestamp
+    assert($exchange->safe_timestamp($input_dict, 'i') === 1000);
+    assert($exchange->safe_timestamp($input_dict, 'f') === 123);
+    assert($exchange->safe_timestamp($input_dict, 'strNumber') === 3000);
+    assert($exchange->safe_timestamp($input_list, 1) === 2000);
+    // safeTimestamp2
+    assert($exchange->safe_timestamp_2($input_dict, 'a', 'i') === 1000);
+    assert($exchange->safe_timestamp_2($input_dict, 'a', 'f') === 123);
+    assert($exchange->safe_timestamp_2($input_dict, 'a', 'strNumber') === 3000);
+    assert($exchange->safe_timestamp_2($input_list, 2, 1) === 2000);
+    // safeTimestampN
+    assert($exchange->safe_timestamp_n($input_dict, ['a', 'b', 'i']) === 1000);
+    assert($exchange->safe_timestamp_n($input_dict, ['a', 'b', 'f']) === 123);
+    assert($exchange->safe_timestamp_n($input_dict, ['a', 'b', 'strNumber']) === 3000);
+    assert($exchange->safe_timestamp_n($input_list, [3, 2, 1]) === 2000);
+    // safeFloat
+    // @ts-expect-error
+    assert($exchange->safe_float($input_dict, 'i') === floatval(1));
+    assert($exchange->safe_float($input_dict, 'f') === 0.123);
+    // @ts-expect-error
+    assert($exchange->safe_float($input_dict, 'strNumber') === floatval(3));
+    // @ts-expect-error
+    assert($exchange->safe_float($input_list, 1) === floatval(2));
+    // safeFloat2
+    // @ts-expect-error
+    assert($exchange->safe_float_2($input_dict, 'a', 'i') === floatval(1));
+    assert($exchange->safe_float_2($input_dict, 'a', 'f') === 0.123);
+    // @ts-expect-error
+    assert($exchange->safe_float_2($input_dict, 'a', 'strNumber') === floatval(3));
+    // @ts-expect-error
+    assert($exchange->safe_float_2($input_list, 2, 1) === floatval(2));
+    // safeFloatN
+    // @ts-expect-error
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'i']) === floatval(1));
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'f']) === 0.123);
+    // @ts-expect-error
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'strNumber']) === floatval(3));
+    // @ts-expect-error
+    assert($exchange->safe_float_n($input_list, [3, 2, 1]) === floatval(2));
+    // safeNumber
+    assert($exchange->safe_number($input_dict, 'i') === $exchange->parse_number(1));
+    assert($exchange->safe_number($input_dict, 'f') === $exchange->parse_number(0.123));
+    assert($exchange->safe_number($input_dict, 'strNumber') === $exchange->parse_number(3));
+    assert($exchange->safe_number($input_list, 1) === $exchange->parse_number(2));
+    assert($exchange->safe_number($input_list, 'bool') === null);
+    assert($exchange->safe_number($input_list, 'list') === null);
+    assert($exchange->safe_number($input_list, 'dict') === null);
+    assert($exchange->safe_number($input_list, 'str') === null);
+    // safeNumber2
+    assert($exchange->safe_number_2($input_dict, 'a', 'i') === $exchange->parse_number(1));
+    assert($exchange->safe_number_2($input_dict, 'a', 'f') === $exchange->parse_number(0.123));
+    assert($exchange->safe_number_2($input_dict, 'a', 'strNumber') === $exchange->parse_number(3));
+    assert($exchange->safe_number_2($input_list, 2, 1) === $exchange->parse_number(2));
+    // safeNumberN
+    assert($exchange->safe_number_n($input_dict, ['a', 'b', 'i']) === $exchange->parse_number(1));
+    assert($exchange->safe_number_n($input_dict, ['a', 'b', 'f']) === $exchange->parse_number(0.123));
+    assert($exchange->safe_number_n($input_dict, ['a', 'b', 'strNumber']) === $exchange->parse_number(3));
+    assert($exchange->safe_number_n($input_list, [3, 2, 1]) === $exchange->parse_number(2));
+    // safeBool
+    assert($exchange->safe_bool($input_dict, 'bool') === true);
+    assert($exchange->safe_bool($input_list, 1) === null);
+    // safeBool2
+    assert($exchange->safe_bool_2($input_dict, 'a', 'bool') === true);
+    assert($exchange->safe_bool_2($input_list, 2, 1) === null);
+    // safeBoolN
+    assert($exchange->safe_bool_n($input_dict, ['a', 'b', 'bool']) === true);
+    assert($exchange->safe_bool_n($input_list, [3, 2, 1]) === null);
+    // safeNumberOmitZero
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroNumeric') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'undefined') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'emptyString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatNumeric') !== null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatString') !== null);
 }

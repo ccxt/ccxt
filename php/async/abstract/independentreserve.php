@@ -49,6 +49,15 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     public function public_get_getcryptowithdrawalfees($params = array()) {
         return $this->request('GetCryptoWithdrawalFees', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_getcryptowithdrawalfees2($params = array()) {
+        return $this->request('GetCryptoWithdrawalFees2', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_getnetworks($params = array()) {
+        return $this->request('GetNetworks', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_getprimarycurrencyconfig2($params = array()) {
+        return $this->request('GetPrimaryCurrencyConfig2', 'public', 'GET', $params, null, null, array());
+    }
     public function private_post_getopenorders($params = array()) {
         return $this->request('GetOpenOrders', 'private', 'POST', $params, null, null, array());
     }
@@ -73,8 +82,14 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     public function private_post_getdigitalcurrencydepositaddress($params = array()) {
         return $this->request('GetDigitalCurrencyDepositAddress', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_getdigitalcurrencydepositaddress2($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddress2', 'private', 'POST', $params, null, null, array());
+    }
     public function private_post_getdigitalcurrencydepositaddresses($params = array()) {
         return $this->request('GetDigitalCurrencyDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_getdigitalcurrencydepositaddresses2($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddresses2', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_gettrades($params = array()) {
         return $this->request('GetTrades', 'private', 'POST', $params, null, null, array());
@@ -105,6 +120,9 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     }
     public function private_post_withdrawdigitalcurrency($params = array()) {
         return $this->request('WithdrawDigitalCurrency', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_withdrawcrypto($params = array()) {
+        return $this->request('WithdrawCrypto', 'private', 'POST', $params, null, null, array());
     }
     public function publicGetGetValidPrimaryCurrencyCodes($params = array()) {
         return $this->request('GetValidPrimaryCurrencyCodes', 'public', 'GET', $params, null, null, array());
@@ -148,6 +166,15 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     public function publicGetGetCryptoWithdrawalFees($params = array()) {
         return $this->request('GetCryptoWithdrawalFees', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetGetCryptoWithdrawalFees2($params = array()) {
+        return $this->request('GetCryptoWithdrawalFees2', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetGetNetworks($params = array()) {
+        return $this->request('GetNetworks', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetGetPrimaryCurrencyConfig2($params = array()) {
+        return $this->request('GetPrimaryCurrencyConfig2', 'public', 'GET', $params, null, null, array());
+    }
     public function privatePostGetOpenOrders($params = array()) {
         return $this->request('GetOpenOrders', 'private', 'POST', $params, null, null, array());
     }
@@ -172,8 +199,14 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     public function privatePostGetDigitalCurrencyDepositAddress($params = array()) {
         return $this->request('GetDigitalCurrencyDepositAddress', 'private', 'POST', $params, null, null, array());
     }
+    public function privatePostGetDigitalCurrencyDepositAddress2($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddress2', 'private', 'POST', $params, null, null, array());
+    }
     public function privatePostGetDigitalCurrencyDepositAddresses($params = array()) {
         return $this->request('GetDigitalCurrencyDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostGetDigitalCurrencyDepositAddresses2($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddresses2', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostGetTrades($params = array()) {
         return $this->request('GetTrades', 'private', 'POST', $params, null, null, array());
@@ -204,5 +237,8 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     }
     public function privatePostWithdrawDigitalCurrency($params = array()) {
         return $this->request('WithdrawDigitalCurrency', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostWithdrawCrypto($params = array()) {
+        return $this->request('WithdrawCrypto', 'private', 'POST', $params, null, null, array());
     }
 }

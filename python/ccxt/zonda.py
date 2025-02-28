@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class zonda(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(zonda, self).describe(), {
             'id': 'zonda',
             'name': 'Zonda',
@@ -50,32 +50,52 @@ class zonda(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': None,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchPosition': False,
@@ -83,6 +103,7 @@ class zonda(Exchange, ImplicitAPI):
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -93,9 +114,13 @@ class zonda(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': None,
                 'fetchTransfer': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -278,6 +303,62 @@ class zonda(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo remove
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': None,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
@@ -319,7 +400,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/ticker-1
+
+        https://docs.zondacrypto.exchange/reference/ticker-1
+
         retrieves data on all markets for zonda
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -416,7 +499,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/active-orders
+
+        https://docs.zondacrypto.exchange/reference/active-orders
+
         fetch all unfilled currently open orders
         :param str symbol: not used by zonda fetchOpenOrders
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -426,6 +511,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
+        # todo pair
         response = self.v1_01PrivateGetTradingOffer(self.extend(request, params))
         items = self.safe_list(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
@@ -476,7 +562,6 @@ class zonda(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -489,7 +574,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.zondacrypto.exchange/reference/transactions-history
+
+        https://docs.zondacrypto.exchange/reference/transactions-history
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -548,7 +635,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs.zondacrypto.exchange/reference/list-of-wallets
+
+        https://docs.zondacrypto.exchange/reference/list-of-wallets
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -559,7 +648,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.zondacrypto.exchange/reference/orderbook-2
+
+        https://docs.zondacrypto.exchange/reference/orderbook-2
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -670,7 +761,9 @@ class zonda(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-        :see: https://docs.zondacrypto.exchange/reference/market-statistics
+
+        https://docs.zondacrypto.exchange/reference/market-statistics
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
@@ -736,9 +829,11 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-         * @ignore
+ @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-        :see: https://docs.zondacrypto.exchange/reference/market-statistics
+
+        https://docs.zondacrypto.exchange/reference/market-statistics
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
@@ -804,15 +899,17 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_dict(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/operations-history
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://docs.zondacrypto.exchange/reference/operations-history
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         balanceCurrencies = []
         if code is not None:
@@ -830,7 +927,7 @@ class zonda(Exchange, ImplicitAPI):
         items = response['items']
         return self.parse_ledger(items, None, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #    FUNDS_MIGRATION
         #    {
@@ -1101,6 +1198,7 @@ class zonda(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(item, 'time')
         balance = self.safe_value(item, 'balance', {})
         currencyId = self.safe_string(balance, 'currency')
+        currency = self.safe_currency(currencyId, currency)
         change = self.safe_value(item, 'change', {})
         amount = self.safe_string(change, 'total')
         direction = 'in'
@@ -1111,7 +1209,7 @@ class zonda(Exchange, ImplicitAPI):
         # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId parameter)
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': self.safe_string(item, 'historyId'),
             'direction': direction,
@@ -1127,7 +1225,7 @@ class zonda(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': None,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         types: dict = {
@@ -1174,7 +1272,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/candles-chart
+
+        https://docs.zondacrypto.exchange/reference/candles-chart
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1294,7 +1394,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/last-transactions
+
+        https://docs.zondacrypto.exchange/reference/last-transactions
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1319,6 +1421,9 @@ class zonda(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://docs.zondacrypto.exchange/reference/new-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1354,7 +1459,7 @@ class zonda(Exchange, ImplicitAPI):
         response = None
         if isStopOrder:
             if not isStopLossPrice:
-                raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders')
+                raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders')
             request['stopRate'] = self.price_to_precision(symbol, stopLossPrice)
             response = self.v1_01PrivatePostTradingStopOfferSymbol(self.extend(request, params))
         else:
@@ -1440,7 +1545,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.zondacrypto.exchange/reference/cancel-order
+
+        https://docs.zondacrypto.exchange/reference/cancel-order
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1467,7 +1574,7 @@ class zonda(Exchange, ImplicitAPI):
         # {status: "Ok", errors: []}
         return self.parse_order(response)
 
-    def is_fiat(self, currency):
+    def is_fiat(self, currency: str) -> bool:
         fiatCurrencies: dict = {
             'USD': True,
             'EUR': True,
@@ -1475,7 +1582,7 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_bool(fiatCurrencies, currency, False)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
@@ -1489,16 +1596,18 @@ class zonda(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'tag'),
-            'network': None,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+
+        https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1528,9 +1637,11 @@ class zonda(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0)
         return self.parse_deposit_address(first, currency)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
-        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+
+        https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1556,7 +1667,9 @@ class zonda(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        :see: https://docs.zondacrypto.exchange/reference/internal-transfer
+
+        https://docs.zondacrypto.exchange/reference/internal-transfer
+
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -1663,9 +1776,11 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
+
+        https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
+
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

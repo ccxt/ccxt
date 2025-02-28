@@ -46,11 +46,6 @@ public partial class bitpanda : onetrading
         return await this.callAsync ("publicGetMarketTickerInstrumentCode",parameters);
     }
 
-    public async Task<object> publicGetPriceTicksInstrumentCode (object parameters = null)
-    {
-        return await this.callAsync ("publicGetPriceTicksInstrumentCode",parameters);
-    }
-
     public async Task<object> publicGetTime (object parameters = null)
     {
         return await this.callAsync ("publicGetTime",parameters);
@@ -59,36 +54,6 @@ public partial class bitpanda : onetrading
     public async Task<object> privateGetAccountBalances (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBalances",parameters);
-    }
-
-    public async Task<object> privateGetAccountDepositCryptoCurrencyCode (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountDepositCryptoCurrencyCode",parameters);
-    }
-
-    public async Task<object> privateGetAccountDepositFiatEUR (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountDepositFiatEUR",parameters);
-    }
-
-    public async Task<object> privateGetAccountDeposits (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountDeposits",parameters);
-    }
-
-    public async Task<object> privateGetAccountDepositsBitpanda (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountDepositsBitpanda",parameters);
-    }
-
-    public async Task<object> privateGetAccountWithdrawals (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountWithdrawals",parameters);
-    }
-
-    public async Task<object> privateGetAccountWithdrawalsBitpanda (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountWithdrawalsBitpanda",parameters);
     }
 
     public async Task<object> privateGetAccountFees (object parameters = null)
@@ -119,31 +84,6 @@ public partial class bitpanda : onetrading
     public async Task<object> privateGetAccountTradesTradeId (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountTradesTradeId",parameters);
-    }
-
-    public async Task<object> privateGetAccountTradingVolume (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccountTradingVolume",parameters);
-    }
-
-    public async Task<object> privatePostAccountDepositCrypto (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAccountDepositCrypto",parameters);
-    }
-
-    public async Task<object> privatePostAccountWithdrawCrypto (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAccountWithdrawCrypto",parameters);
-    }
-
-    public async Task<object> privatePostAccountWithdrawFiat (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAccountWithdrawFiat",parameters);
-    }
-
-    public async Task<object> privatePostAccountFees (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAccountFees",parameters);
     }
 
     public async Task<object> privatePostAccountOrders (object parameters = null)
