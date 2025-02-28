@@ -7456,8 +7456,13 @@ export default class Exchange {
         // check if marginMode is passed
         if (this.safeString (params, 'marginMode') !== undefined) {
             // only if this is spot type
-            if (marketType === 'spot' || marketType === undefined) {
+            if (marketType === 'spot') {
                 return true;
+            } else if (marketType === undefined) {
+                if (this.has['spot']) {
+                    // as we already checked and there is no `options.type` set, it means exchange should be `spot` by default
+                    return true;
+                }
             }
         }
         return false;
