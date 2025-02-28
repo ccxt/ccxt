@@ -2021,6 +2021,11 @@ class gate extends gate$1 {
             'signature': signature,
             'req_param': reqParams,
         };
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
+            payload['req_header'] = {
+                'x-gate-channel-id': 'ccxt',
+            };
+        }
         const request = {
             'id': requestId,
             'time': time,
