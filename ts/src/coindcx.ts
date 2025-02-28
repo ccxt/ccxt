@@ -610,7 +610,8 @@ export default class coindcx extends Exchange {
         const last = this.safeString (ticker, 'last_price');
         const percentage = this.safeString (ticker, 'change_24_hour');
         const changeProportion = Precise.stringDiv (percentage, '100');
-        const open = Precise.stringDiv (last, (Precise.stringAdd ('1', changeProportion)));
+        const inversedProportion = Precise.stringAdd ('1', changeProportion);
+        const open = Precise.stringDiv (last, inversedProportion);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
