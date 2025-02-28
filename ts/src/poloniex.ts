@@ -28,7 +28,7 @@ export default class poloniex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'cancelAllOrders': true,
@@ -103,10 +103,11 @@ export default class poloniex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
-                    'rest': 'https://api.poloniex.com',
+                    'spot': 'https://api.poloniex.com',
+                    'swap': 'https://api.poloniex.com/v3',
                 },
                 'test': {
-                    'rest': 'https://sand-spot-api-gateway.poloniex.com',
+                    'spot': 'https://sand-spot-api-gateway.poloniex.com',
                 },
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://api-docs.poloniex.com/spot/',
@@ -191,6 +192,13 @@ export default class poloniex extends Exchange {
                     'put': {
                         'orders/{id}': 20,
                         'smartorders/{id}': 20,
+                    },
+                },
+                'swapPublic': {
+                    'get': {
+                        // 300 calls / second
+                        'market/allInstruments': 3 / 5,
+                        'market/instruments': 3 / 5,
                     },
                 },
             },
@@ -560,7 +568,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
         const markets = await this.publicGetMarkets (params);
         //
         //     [
@@ -586,6 +594,18 @@ export default class poloniex extends Exchange {
         //     ]
         //
         return this.parseMarkets (markets);
+    }
+
+    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+        // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        const markets = await this.swapPublicGetMarketAllInstruments (params);
+        return markets;
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const promises = [ this.fetchSpotMarkets (params), this.fetchSwapMarkets (params) ];
+        const results = await Promise.all (promises);
+        return this.arrayConcat (results[0], results[1]);
     }
 
     parseMarket (market: Dict): Market {
@@ -2404,7 +2424,7 @@ export default class poloniex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'];
+        let url = this.urls['api']['spot'];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         if (api === 'public') {
