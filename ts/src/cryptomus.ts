@@ -130,8 +130,8 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/user-api/exchange/markets': 1,
-                        'v1/user-api/exchange/markets/price': 1,
+                        'v1/exchange/market': 1,
+                        'v1/exchange/market/price': 1,
                         'v1/exchange/market/assets': 1,
                         'v1/exchange/market/order-book/{currencyPair}': 1,
                         'v1/exchange/market/tickers': 1,
@@ -140,7 +140,6 @@ export default class cryptomus extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v1/user-api/exchange/markets/price': 1,
                         'v2/user-api/balance': 1,
                         'v1/user-api/exchange/orders': 1,
                         'v1/user-api/exchange/orders/history': 1,
@@ -219,6 +218,10 @@ export default class cryptomus extends Exchange {
                 'broad': {},
             },
             'precisionMode': TICK_SIZE,
+            'requiredCredentials': {
+                'apiKey': false,
+                'uid': true,
+            },
         });
     }
 
@@ -1049,18 +1052,23 @@ export default class cryptomus extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let jsonParams = '';
+            headers = {
+                'userId': this.uid,
+            };
             if (method !== 'GET') {
                 body = this.json (params);
                 jsonParams = body;
+                headers['Content-Type'] = 'application/json';
+            } else {
+                const query = this.urlencode (params);
+                if (query.length !== 0) {
+                    url += '?' + query;
+                }
             }
             const jsonParamsBase64 = this.stringToBase64 (jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash (this.encode (stringToSign), md5);
-            headers = {
-                'userId': this.uid, // the correct parameter name is 'userId' in camelcase regardless of their API docs
-                'sign': signature,
-                'Content-Type': 'application/json',
-            };
+            headers['sign'] = signature;
         } else {
             const query = this.urlencode (params);
             if (query.length !== 0) {
