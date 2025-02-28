@@ -197,8 +197,8 @@ export default class poloniex extends Exchange {
                 'swapPublic': {
                     'get': {
                         // 300 calls / second
-                        'market/allInstruments': 3 / 5,
-                        'market/instruments': 3 / 5,
+                        'v3/market/allInstruments': 3 / 5,
+                        'v3/market/instruments': 3 / 5,
                     },
                 },
             },
@@ -568,6 +568,12 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const promises = [ this.fetchSpotMarkets (params), this.fetchSwapMarkets (params) ];
+        const results = await Promise.all (promises);
+        return this.arrayConcat (results[0], results[1]);
+    }
+
     async fetchSpotMarkets (params = {}): Promise<Market[]> {
         const markets = await this.publicGetMarkets (params);
         //
@@ -598,17 +604,58 @@ export default class poloniex extends Exchange {
 
     async fetchSwapMarkets (params = {}): Promise<Market[]> {
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
-        const markets = await this.swapPublicGetMarketAllInstruments (params);
-        return markets;
-    }
-
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises = [ this.fetchSpotMarkets (params), this.fetchSwapMarkets (params) ];
-        const results = await Promise.all (promises);
-        return this.arrayConcat (results[0], results[1]);
+        const response = await this.swapPublicGetV3MarketAllInstruments (params);//
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": [
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        const markets = this.safeList (response, 'data');
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
+        if ('ctType' in market) {
+            return this.parseSwapMarket (market);
+        } else {
+            return this.parseSpotMarket (market);
+        }
+    }
+
+    parseSpotMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrencyName');
         const quoteId = this.safeString (market, 'quoteCurrencyName');
@@ -661,6 +708,116 @@ export default class poloniex extends Exchange {
                 },
             },
             'created': this.safeInteger (market, 'tradableStartTime'),
+            'info': market,
+        };
+    }
+
+    parseSwapMarket (market: Dict): Market {
+        //
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'bCcy');
+        const quoteId = this.safeString (market, 'qCcy');
+        const settleId = this.safeString (market, 'sCcy');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const status = this.safeString (market, 'status');
+        const active = status === 'OPEN';
+        const linear = market['ctType'] === 'LINEAR';
+        let symbol = base + '/' + quote;
+        if (linear) {
+            symbol += ':' + settle;
+        } else {
+            // actually, exchange does not have any inverse future now
+            symbol += ':' + base;
+        }
+        const alias = this.safeString (market, 'alias');
+        let type = 'swap';
+        if (alias !== undefined) {
+            type = 'future';
+        }
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': (type === 'future') ? 'future' : 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': type === 'swap',
+            'future': type === 'future',
+            'option': false,
+            'active': active,
+            'contract': true,
+            'linear': linear,
+            'inverse': !linear,
+            'contractSize': this.safeNumber (market, 'ctVal'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': this.safeNumber (market, 'tFee'),
+            'maker': this.safeNumber (market, 'mFee'),
+            'precision': {
+                'amount': this.safeNumber (market, 'lotSz'),
+                'price': this.safeNumber (market, 'tSz'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (market, 'minSz'),
+                    'max': this.safeNumber (market, 'limitMaxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'minPx'),
+                    'max': this.safeNumber (market, 'maxPx'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'max': this.safeNumber (market, 'maxLever'),
+                    'min': undefined,
+                },
+            },
+            'created': this.safeInteger (market, 'oDate'),
             'info': market,
         };
     }
