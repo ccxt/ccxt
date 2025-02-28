@@ -49,9 +49,9 @@ export default class vertex extends vertexRest {
                 },
                 'ws': {
                     'inflate': true,
-                    "options": {
-                        "headers": {
-                            "Sec-WebSocket-Extensions": "permessage-deflate", // requires permessage-deflate extension, maybe we can set this in client implementation when inflate is true
+                    'options': {
+                        'headers': {
+                            'Sec-WebSocket-Extensions': 'permessage-deflate', // requires permessage-deflate extension, maybe we can set this in client implementation when inflate is true
                         },
                     },
                 },
