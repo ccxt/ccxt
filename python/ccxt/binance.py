@@ -6163,11 +6163,10 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        # don't handle/omit params here, omitting happens inside createOrderRequest
         marketType = self.safe_string(params, 'type', market['type'])
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
+        marginMode = self.safe_string(params, 'marginMode')
+        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', False)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
