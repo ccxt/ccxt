@@ -1728,10 +1728,41 @@
             }
         }
     },
+    "paradex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"not provided",
+                "currencyIdAndCode": "broken currencies"
+	          }
+	      }
+    },
+    "hashkey": {
+        "httpsProxy": "http://188.245.226.105:3128",
+        "wsProxy": "http://188.245.226.105:3128",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
+            }
+        }
+    },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": "linear and inverse values are same"
+        }
+    },
     "coindcx": {
         "skipMethods": {
             "fetchTrades": {
-                "takerOrMaker": "handle error with maker"
+                "takerOrMaker": "handle error in tests with maker"
             }
         }
     }
