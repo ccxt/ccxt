@@ -561,12 +561,11 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption (keyEnd, request, params);
-        let response = undefined;
         if (market['contract']) {
             if (this.inArray (timeframe, [ '10m', '1M' ])) {
                 throw new NotSupported (this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
             }
-            const responseInitial = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
+            const result = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
             //
             //     {
             //         code: "200",
@@ -584,30 +583,30 @@ export default class poloniex extends Exchange {
             //             "1740770099999",
             //           ],
             //
-            response = this.safeList (responseInitial, 'data');
-        } else {
-            response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
-            //
-            //     [
-            //         [
-            //             "22814.01",
-            //             "22937.42",
-            //             "22832.57",
-            //             "22937.42",
-            //             "3916.58764051",
-            //             "0.171199",
-            //             "2982.64647063",
-            //             "0.130295",
-            //             33,
-            //             0,
-            //             "22877.449915304470460711",
-            //             "MINUTE_5",
-            //             1659664800000,
-            //             1659665099999
-            //         ]
-            //     ]
-            //
+            const data = this.safeList (result, 'data');
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
         }
+        const response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             "22814.01",
+        //             "22937.42",
+        //             "22832.57",
+        //             "22937.42",
+        //             "3916.58764051",
+        //             "0.171199",
+        //             "2982.64647063",
+        //             "0.130295",
+        //             33,
+        //             0,
+        //             "22877.449915304470460711",
+        //             "MINUTE_5",
+        //             1659664800000,
+        //             1659665099999
+        //         ]
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -1314,7 +1313,7 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList (result, 'data', []);
+            const tradesList = this.safeList (result, 'data');
             return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
@@ -2063,7 +2062,7 @@ export default class poloniex extends Exchange {
             }
         }
         if (market['contract']) {
-            const contractResponse = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
+            const result = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
             //
             //    {
             //       "code": 200,
@@ -2076,7 +2075,7 @@ export default class poloniex extends Exchange {
             //       "msg": "Success"
             //    }
             //
-            const data = this.safeDict (contractResponse, 'data', {});
+            const data = this.safeDict (result, 'data', {});
             const ts = this.safeInteger (data, 'ts');
             return this.parseOrderBook (data, symbol, ts);
         }
