@@ -1051,7 +1051,7 @@ export default class coindcx extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'order': this.safeString (trade, 'order_id'),
-            'side': this.safeString (trade, 'side'),
+            'side': this.safeString (trade, 'side', 'buy'), // always buy for fetchTrades
             'takerOrMaker': takerOrMaker,
             'price': this.safeString2 (trade, 'p', 'price'),
             'amount': this.safeString2 (trade, 'q', 'quantity'),
