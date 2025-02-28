@@ -87,18 +87,18 @@ export default class poloniex extends Exchange {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10',
+                '10m': 'MINUTE_10', // not in swap
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6',
+                '6h': 'HOUR_6', // not in swap
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
                 '1w': 'WEEK_1',
-                '1M': 'MONTH_1',
+                '1M': 'MONTH_1', // not in swap
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -200,6 +200,7 @@ export default class poloniex extends Exchange {
                         'v3/market/allInstruments': 3 / 5,
                         'v3/market/instruments': 3 / 5,
                         'v3/market/orderBook': 3 / 5,
+                        'v3/market/candles': 3 / 5,
                     },
                 },
             },
@@ -465,6 +466,8 @@ export default class poloniex extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
+        // spot:
+        //
         //     [
         //         [
         //             "22814.01",
@@ -484,6 +487,32 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
+        // contract:
+        //
+        //           [
+        //             "84207.02",
+        //             "84320.85",
+        //             "84207.02",
+        //             "84253.83",
+        //             "3707.5395",
+        //             "44",
+        //             "14",
+        //             "1740770040000",
+        //             "1740770099999",
+        //           ],
+        //
+        const ohlcvLength = ohlcv.length;
+        const isContract = ohlcvLength === 9;
+        if (isContract) {
+            return [
+                this.safeInteger (ohlcv, 7),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 0),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
         return [
             this.safeInteger (ohlcv, 12),
             this.safeNumber (ohlcv, 2),
@@ -499,6 +528,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -520,35 +550,63 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        const keyStart = market['spot'] ? 'startTime' : 'sTime';
+        const keyEnd = market['spot'] ? 'endTime' : 'eTime';
         if (since !== undefined) {
-            request['startTime'] = since;
+            request[keyStart] = since;
         }
         if (limit !== undefined) {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
-        //
-        //     [
-        //         [
-        //             "22814.01",
-        //             "22937.42",
-        //             "22832.57",
-        //             "22937.42",
-        //             "3916.58764051",
-        //             "0.171199",
-        //             "2982.64647063",
-        //             "0.130295",
-        //             33,
-        //             0,
-        //             "22877.449915304470460711",
-        //             "MINUTE_5",
-        //             1659664800000,
-        //             1659665099999
-        //         ]
-        //     ]
-        //
+        [ request, params ] = this.handleUntilOption (keyEnd, request, params);
+        let response = undefined;
+        if (market['contract']) {
+            if (this.inArray (timeframe, [ '10m', '1M' ])) {
+                throw new NotSupported (this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
+            }
+            const responseInitial = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //           [
+            //             "84207.02",
+            //             "84320.85",
+            //             "84207.02",
+            //             "84253.83",
+            //             "3707.5395",
+            //             "44",
+            //             "14",
+            //             "1740770040000",
+            //             "1740770099999",
+            //           ],
+            //
+            response = this.safeList (responseInitial, 'data');
+        } else {
+            response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
+            //
+            //     [
+            //         [
+            //             "22814.01",
+            //             "22937.42",
+            //             "22832.57",
+            //             "22937.42",
+            //             "3916.58764051",
+            //             "0.171199",
+            //             "2982.64647063",
+            //             "0.130295",
+            //             33,
+            //             0,
+            //             "22877.449915304470460711",
+            //             "MINUTE_5",
+            //             1659664800000,
+            //             1659665099999
+            //         ]
+            //     ]
+            //
+        }
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
