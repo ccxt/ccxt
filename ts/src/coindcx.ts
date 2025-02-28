@@ -608,6 +608,9 @@ export default class coindcx extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
+        const percentage = this.safeString (ticker, 'change_24_hour');
+        const changeProportion = Precise.stringDiv (percentage, '100');
+        const open = Precise.stringDiv (last, (Precise.stringAdd ('1', changeProportion)));
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -619,12 +622,12 @@ export default class coindcx extends Exchange {
             'ask': undefined,
             'askVolume': this.safeString (ticker, 'ask'),
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change_24_hour'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume'),
