@@ -201,6 +201,7 @@ export default class poloniex extends Exchange {
                         'v3/market/instruments': 3 / 5,
                         'v3/market/orderBook': 3 / 5,
                         'v3/market/candles': 3 / 5,
+                        'v3/market/trades': 3 / 5,
                     },
                 },
             },
@@ -1176,6 +1177,8 @@ export default class poloniex extends Exchange {
         //
         // fetchTrades
         //
+        //  spot:
+        //
         //     {
         //         "id" : "60014521",
         //         "price" : "23162.94",
@@ -1184,6 +1187,17 @@ export default class poloniex extends Exchange {
         //         "takerSide" : "SELL",
         //         "ts" : 1659684602042,
         //         "createTime" : 1659684602036
+        //     }
+        //
+        //   swap:
+        //
+        //     {
+        //         "id": "105807376",
+        //         "side": "buy",
+        //         "px": "84410.57",
+        //         "qty": "1",
+        //         "amt": "84.41057",
+        //         "cT": "1740777563557",
         //     }
         //
         // fetchMyTrades
@@ -1226,18 +1240,17 @@ export default class poloniex extends Exchange {
         //         "clientOrderId": ""
         //     }
         //
-        //
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.safeInteger2 (trade, 'ts', 'createTime');
+        const timestamp = this.safeIntegerN (trade, [ 'ts', 'createTime', 'cT' ]);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeStringLower2 (trade, 'side', 'takerSide');
         let fee = undefined;
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
-        const costString = this.safeString (trade, 'amount');
+        const priceString = this.safeString2 (trade, 'price', 'px');
+        const amountString = this.safeString2 (trade, 'quantity', 'qty');
+        const costString = this.safeString2 (trade, 'amount', 'amt');
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
         const feeCostString = this.safeString (trade, 'feeAmount');
         if (feeCostString !== undefined) {
@@ -1269,6 +1282,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1282,7 +1296,26 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // max 1000, for spot & swap
+        }
+        if (market['contract']) {
+            const result = await this.swapPublicGetV3MarketTrades (this.extend (request, params));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //         {
+            //             id: "105807320", // descending order
+            //             side: "sell",
+            //             px: "84383.93",
+            //             qty: "1",
+            //             amt: "84.38393",
+            //             cT: "1740777074704",
+            //         },
+            //
+            const tradesList = this.safeList (result, 'data', []);
+            return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
