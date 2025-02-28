@@ -17,13 +17,13 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class binance extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
             'name' => 'Binance',
@@ -69,6 +69,7 @@ class binance extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'editOrders' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -1568,6 +1569,7 @@ class binance extends Exchange {
                 'legalMoneyCurrenciesById' => array(
                     'BUSD' => 'USD',
                 ),
+                'defaultWithdrawPrecision' => 0.00000001,
             ),
             'features' => array(
                 'spot' => array(
@@ -2945,7 +2947,7 @@ class binance extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -3115,6 +3117,7 @@ class binance extends Exchange {
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
+                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
                 $minPrecision = null;
                 $isWithdrawEnabled = true;
                 $isDepositEnabled = true;
@@ -3126,6 +3129,7 @@ class binance extends Exchange {
                     $networkItem = $networkList[$j];
                     $network = $this->safe_string($networkItem, 'network');
                     $networkCode = $this->network_id_to_code($network);
+                    $isETF = ($network === 'ETF'); // e.g. BTCUP, ETHDOWN
                     // $name = $this->safe_string($networkItem, 'name');
                     $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                     $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
@@ -3137,11 +3141,24 @@ class binance extends Exchange {
                     if ($isDefault || ($fee === null)) {
                         $fee = $withdrawFee;
                     }
+                    // todo => default $networks in "setMarkets" overload
+                    // if ($isDefault) {
+                    //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
+                    // }
                     $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
-                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    // so, when there is zero instead of $i->e. 0.001, then we skip those cases, because we don't know the precision - it might be because of $network is suspended or other reasons
+                    $withdrawPrecision = $precisionTick;
+                    // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                     if (!Precise::string_eq($precisionTick, '0')) {
                         $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
+                    } else {
+                        if (!$isFiat && !$isETF) {
+                            // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                            // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                            $withdrawPrecision = $this->omit_zero($this->safe_string($networkItem, 'withdrawInternalMin'));
+                            if ($withdrawPrecision === null) {
+                                $withdrawPrecision = $this->safe_string($this->options, 'defaultWithdrawPrecision');
+                            }
+                        }
                     }
                     $networks[$networkCode] = array(
                         'info' => $networkItem,
@@ -3151,7 +3168,7 @@ class binance extends Exchange {
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
                         'fee' => $withdrawFee,
-                        'precision' => $this->parse_number($precisionTick),
+                        'precision' => $this->parse_number($withdrawPrecision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($networkItem, 'withdrawMin'),
@@ -3181,6 +3198,7 @@ class binance extends Exchange {
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'precision' => $this->parse_number($minPrecision),
                     'info' => $entry,
                     'active' => $active,
@@ -5565,6 +5583,92 @@ class binance extends Exchange {
             } else {
                 return Async\await($this->edit_contract_order($id, $symbol, $type, $side, $amount, $price, $params));
             }
+        }) ();
+    }
+
+    public function edit_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * edit a list of trade $orders
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+             *
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $id = $this->safe_string($rawOrder, 'id');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $isPortfolioMargin = null;
+                list($isPortfolioMargin, $orderParams) = $this->handle_option_and_params_2($orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
+                if ($isPortfolioMargin) {
+                    throw new NotSupported($this->id . ' editOrders() does not support portfolio margin orders');
+                }
+                $orderRequest = $this->edit_contract_order_request($id, $marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($orderSymbols[0]);
+            if ($market['spot'] || $market['option']) {
+                throw new NotSupported($this->id . ' editOrders() does not support ' . $market['type'] . ' orders');
+            }
+            $response = null;
+            $request = array(
+                'batchOrders' => $ordersRequests,
+            );
+            $request = $this->extend($request, $params);
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivatePutBatchOrders ($request));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->dapiPrivatePutBatchOrders ($request));
+            }
+            //
+            //   array(
+            //       array(
+            //          "code" => -4005,
+            //          "msg" => "Quantity greater than max quantity."
+            //       ),
+            //       {
+            //          "orderId" => 650640530,
+            //          "symbol" => "LTCUSDT",
+            //          "status" => "NEW",
+            //          "clientOrderId" => "x-xcKtGhcu32184eb13585491289bbaf",
+            //          "price" => "54.00",
+            //          "avgPrice" => "0.00",
+            //          "origQty" => "0.100",
+            //          "executedQty" => "0.000",
+            //          "cumQty" => "0.000",
+            //          "cumQuote" => "0.00000",
+            //          "timeInForce" => "GTC",
+            //          "type" => "LIMIT",
+            //          "reduceOnly" => false,
+            //          "closePosition" => false,
+            //          "side" => "BUY",
+            //          "positionSide" => "BOTH",
+            //          "stopPrice" => "0.00",
+            //          "workingType" => "CONTRACT_PRICE",
+            //          "priceProtect" => false,
+            //          "origType" => "LIMIT",
+            //          "priceMatch" => "NONE",
+            //          "selfTradePreventionMode" => "NONE",
+            //          "goodTillDate" => 0,
+            //          "updateTime" => 1698073926929
+            //       }
+            //   )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -11958,7 +12062,7 @@ class binance extends Exchange {
             }
             $query = null;
             // handle $batchOrders
-            if (($path === 'batchOrders') && ($method === 'POST')) {
+            if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
                 $batchOrders = $this->safe_value($params, 'batchOrders');
                 $queryBatch = ($this->json($batchOrders));
                 $params['batchOrders'] = $queryBatch;

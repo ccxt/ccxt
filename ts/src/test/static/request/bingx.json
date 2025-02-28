@@ -979,6 +979,17 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "fetch closed orders with limit",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?pageSize=50&symbol=LTC-USDT&timestamp=1740518148275&signature=2797718cce7debcdd081aa813738210bf8f56e100aeefa9e51871847c15d0ddf",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    50
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?symbol=LTC-USDT&timestamp=1699458294623&signature=80016769e53019f01380e74b927ad3e36f5980e32c3de4a3a4bcfe9fc68efa7a",

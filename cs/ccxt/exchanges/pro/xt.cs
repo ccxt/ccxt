@@ -21,7 +21,7 @@ public partial class xt : ccxt.xt
                 { "watchBalance", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
-                { "watchPositions", null },
+                { "watchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -40,6 +40,11 @@ public partial class xt : ccxt.xt
                 } },
                 { "watchTickers", new Dictionary<string, object>() {
                     { "method", "tickers" },
+                } },
+                { "watchPositions", new Dictionary<string, object>() {
+                    { "type", "swap" },
+                    { "fetchPositionsSnapshot", true },
+                    { "awaitPositionsSnapshot", true },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -424,6 +429,135 @@ public partial class xt : ccxt.xt
         await this.loadMarkets();
         object name = "balance";
         return await this.subscribe(name, "private", "watchBalance", null, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name xt#watchPositions
+     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
+        var client = this.client(url);
+        this.setPositionsCache(client);
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        object cache = this.positions;
+        if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(this.isEmpty(cache))))
+        {
+            object snapshot = await client.future("fetchPositionsSnapshot");
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        object name = "position";
+        object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+    }
+
+    public virtual void setPositionsCache(WebSocketClient client)
+    {
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
+        if (isTrue(fetchPositionsSnapshot))
+        {
+            object messageHash = "fetchPositionsSnapshot";
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
+            }
+        }
+    }
+
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    {
+        object positions = await this.fetchPositions(null);
+        this.positions = new ArrayCacheBySymbolBySide();
+        object cache = this.positions;
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
+        }
+        // don't remove the future from the .futures cache
+        var future = getValue(client.futures, messageHash);
+        (future as Future).resolve(cache);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position::contract"});
+    }
+
+    public virtual void handlePosition(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //      topic: 'position',
+        //      event: 'position',
+        //      data: {
+        //        accountId: 245296,
+        //        accountType: 0,
+        //        symbol: 'eth_usdt',
+        //        contractType: 'PERPETUAL',
+        //        positionType: 'CROSSED',
+        //        positionSide: 'LONG',
+        //        positionSize: '1',
+        //        closeOrderSize: '0',
+        //        availableCloseSize: '1',
+        //        realizedProfit: '-0.0121',
+        //        entryPrice: '2637.87',
+        //        openOrderSize: '1',
+        //        isolatedMargin: '2.63787',
+        //        openOrderMarginFrozen: '2.78832014',
+        //        underlyingType: 'U_BASED',
+        //        leverage: 10,
+        //        welfareAccount: false,
+        //        profitFixedLatest: {},
+        //        closeProfit: '0.0000',
+        //        totalFee: '-0.0158',
+        //        totalFundFee: '0.0037',
+        //        markPrice: '2690.96'
+        //      }
+        //    }
+        //
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.positions;
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object position = this.parsePosition(data);
+        callDynamically(cache, "append", new object[] {position});
+        object messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(messageHashes, i);
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object symbolsString = getValue(parts, 1);
+            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object positions = this.filterByArray(new List<object>() {position}, "symbol", symbols, false);
+            if (!isTrue(this.isEmpty(positions)))
+            {
+                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+            }
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {position}, "position::contract"});
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -1171,6 +1305,7 @@ public partial class xt : ccxt.xt
                 { "agg_tickers", this.handleTickers },
                 { "balance", this.handleBalance },
                 { "order", this.handleOrder },
+                { "position", this.handlePosition },
             };
             object method = this.safeValue(methods, topic);
             if (isTrue(isEqual(topic, "trade")))

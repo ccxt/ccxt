@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, Orde
  * @augments Exchange
  */
 export default class bit2c extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -646,7 +646,7 @@ export default class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status = undefined;
+        let status: string;
         if (isNewOrder) {
             const tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -824,13 +824,13 @@ export default class bit2c extends Exchange {
         //         "isMaker": True,
         //     }
         //
-        let timestamp = undefined;
-        let id = undefined;
+        let timestamp: Int;
+        let id: Str;
         let price = undefined;
         let amount = undefined;
         let orderId = undefined;
         let fee = undefined;
-        let side = undefined;
+        let side: string;
         let makerOrTaker = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
@@ -846,10 +846,10 @@ export default class bit2c extends Exchange {
             const isMaker = this.safeValue (trade, 'isMaker');
             makerOrTaker = isMaker ? 'maker' : 'taker';
             orderId = isMaker ? reference_parts[2] : reference_parts[1];
-            side = this.safeInteger (trade, 'action');
-            if (side === 0) {
+            const action = this.safeInteger (trade, 'action');
+            if (action === 0) {
                 side = 'buy';
-            } else if (side === 1) {
+            } else {
                 side = 'sell';
             }
             const feeCost = this.safeString (trade, 'feeAmount');
@@ -996,4 +996,3 @@ export default class bit2c extends Exchange {
         return undefined;
     }
 }
-

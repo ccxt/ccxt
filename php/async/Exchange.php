@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.57';
+$version = '4.4.63';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.57';
+    const VERSION = '4.4.63';
 
     public $browser;
     public $marketsLoading = null;
@@ -72,7 +72,6 @@ class Exchange extends \ccxt\Exchange {
         parent::__construct($options);
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
-        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function set_request_browser($connector) {
@@ -294,6 +293,10 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
+    public function init_throttler() {
+        $this->throttler = new Throttler($this->tokenBucket);
+    }
+
     public function throttle($cost = null) {
         // stub so the async throttler gets called instead of the sync throttler
         return call_user_func($this->throttler, $cost);
@@ -351,7 +354,7 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function describe() {
+    public function describe(): mixed {
         return array(
             'id' => null,
             'name' => null,
@@ -431,6 +434,7 @@ class Exchange extends \ccxt\Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
+                'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -1486,8 +1490,40 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function after_construct() {
+        // networks
         $this->create_networks_by_id_object();
         $this->features_generator();
+        // init predefined markets if any
+        if ($this->markets) {
+            $this->set_markets($this->markets);
+        }
+        // init the request rate limiter
+        $this->init_rest_rate_limiter();
+        // sanbox mode
+        $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
+        if ($isSandbox) {
+            $this->set_sandbox_mode($isSandbox);
+        }
+    }
+
+    public function init_rest_rate_limiter() {
+        if ($this->rateLimit === null || ($this->id !== null && $this->rateLimit === -1)) {
+            throw new ExchangeError($this->id . '.rateLimit property is not configured');
+        }
+        $refillRate = $this->MAX_VALUE;
+        if ($this->rateLimit > 0) {
+            $refillRate = 1 / $this->rateLimit;
+        }
+        $defaultBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => $refillRate,
+        );
+        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
+        $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
+        $this->init_throttler();
     }
 
     public function features_generator() {
@@ -1652,6 +1688,9 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_currency_structure(array $currency) {
         // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        $currencyDeposit = $this->safe_bool($currency, 'deposit');
+        $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
+        $currencyActive = $this->safe_bool($currency, 'active');
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1659,15 +1698,15 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < $length; $i++) {
                 $network = $networks[$keys[$i]];
                 $deposit = $this->safe_bool($network, 'deposit');
-                if ($currency['deposit'] === null || $deposit) {
+                if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
                 }
                 $withdraw = $this->safe_bool($network, 'withdraw');
-                if ($currency['withdraw'] === null || $withdraw) {
+                if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
                 }
                 $active = $this->safe_bool($network, 'active');
-                if ($currency['active'] === null || $active) {
+                if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
@@ -2558,7 +2597,7 @@ class Exchange extends \ccxt\Exchange {
         $change = $this->omit_zero($this->safe_string($ticker, 'change'));
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
-        $vwap = $this->omit_zero($this->safe_string($ticker, 'vwap'));
+        $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'baseVolume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
@@ -3044,7 +3083,10 @@ class Exchange extends \ccxt\Exchange {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 $defaultNetworkCode = $this->default_network_code($currencyCode);
                 $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->network_code_to_id($defaultNetworkCode, $currencyCode);
-                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
+                if (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) {
+                    return $defaultNetworkId;
+                }
+                throw new NotSupported($this->id . ' - can not determine the default network, please pass param["network"] one from : ' . implode(', ', $availableNetworkIds));
             }
         }
         return $chosenNetworkId;
@@ -3861,23 +3903,33 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} [$defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @return array([string, object]) the $market $type and $params with $type and $defaultType omitted
          */
-        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
-        if ($defaultValue === null) {  // $defaultValue takes precendence over exchange wide $defaultType
-            $defaultValue = $defaultType;
+        // $type from param
+        $type = $this->safe_string_2($params, 'defaultType', 'type');
+        if ($type !== null) {
+            $params = $this->omit($params, array( 'defaultType', 'type' ));
+            return array( $type, $params );
+        }
+        // $type from $market
+        if ($market !== null) {
+            return [ $market['type'], $params ];
+        }
+        // $type from default-argument
+        if ($defaultValue !== null) {
+            return array( $defaultValue, $params );
         }
         $methodOptions = $this->safe_dict($this->options, $methodName);
-        $methodType = $defaultValue;
-        if ($methodOptions !== null) {  // user defined $methodType takes precedence over $defaultValue
+        if ($methodOptions !== null) {
             if (gettype($methodOptions) === 'string') {
-                $methodType = $methodOptions;
+                return array( $methodOptions, $params );
             } else {
-                $methodType = $this->safe_string_2($methodOptions, 'defaultType', 'type', $methodType);
+                $typeFromMethod = $this->safe_string_2($methodOptions, 'defaultType', 'type');
+                if ($typeFromMethod !== null) {
+                    return array( $typeFromMethod, $params );
+                }
             }
         }
-        $marketType = ($market === null) ? $methodType : $market['type'];
-        $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
-        $params = $this->omit($params, array( 'defaultType', 'type' ));
-        return array( $type, $params );
+        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        return array( $defaultType, $params );
     }
 
     public function handle_sub_type_and_params(string $methodName, $market = null, $params = array (), $defaultValue = null) {
@@ -4521,6 +4573,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function create_orders(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
+    }
+
+    public function edit_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' editOrders() is not supported yet');
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -5757,7 +5813,8 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit);
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function get_market_from_symbols(?array $symbols = null) {

@@ -19,7 +19,7 @@ class xt extends xt$1 {
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
-                'watchPositions': undefined, // TODO https://doc.xt.com/#futures_user_websocket_v2position
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -38,6 +38,11 @@ class xt extends xt$1 {
                 },
                 'watchTickers': {
                     'method': 'tickers', // agg_tickers (contract only)
+                },
+                'watchPositions': {
+                    'type': 'swap',
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true,
                 },
             },
             'streaming': {
@@ -367,6 +372,116 @@ class xt extends xt$1 {
         await this.loadMarkets();
         const name = 'balance';
         return await this.subscribe(name, 'private', 'watchBalance', undefined, undefined, params);
+    }
+    /**
+     * @method
+     * @name xt#watchPositions
+     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const url = this.urls['api']['ws']['contract'] + '/' + 'user';
+        const client = this.client(url);
+        this.setPositionsCache(client);
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.positions;
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty(cache)) {
+            const snapshot = await client.future('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        const name = 'position';
+        const newPositions = await this.subscribe(name, 'private', 'watchPositions', undefined, undefined, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+    }
+    setPositionsCache(client) {
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot');
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash) {
+        const positions = await this.fetchPositions(undefined);
+        this.positions = new Cache.ArrayCacheBySymbolBySide();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve(cache);
+        client.resolve(cache, 'position::contract');
+    }
+    handlePosition(client, message) {
+        //
+        //    {
+        //      topic: 'position',
+        //      event: 'position',
+        //      data: {
+        //        accountId: 245296,
+        //        accountType: 0,
+        //        symbol: 'eth_usdt',
+        //        contractType: 'PERPETUAL',
+        //        positionType: 'CROSSED',
+        //        positionSide: 'LONG',
+        //        positionSize: '1',
+        //        closeOrderSize: '0',
+        //        availableCloseSize: '1',
+        //        realizedProfit: '-0.0121',
+        //        entryPrice: '2637.87',
+        //        openOrderSize: '1',
+        //        isolatedMargin: '2.63787',
+        //        openOrderMarginFrozen: '2.78832014',
+        //        underlyingType: 'U_BASED',
+        //        leverage: 10,
+        //        welfareAccount: false,
+        //        profitFixedLatest: {},
+        //        closeProfit: '0.0000',
+        //        totalFee: '-0.0158',
+        //        totalFundFee: '0.0037',
+        //        markPrice: '2690.96'
+        //      }
+        //    }
+        //
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const data = this.safeDict(message, 'data', {});
+        const position = this.parsePosition(data);
+        cache.append(position);
+        const messageHashes = this.findMessageHashes(client, 'position::contract');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray([position], 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve([position], 'position::contract');
     }
     handleTicker(client, message) {
         //
@@ -1072,6 +1187,7 @@ class xt extends xt$1 {
                 'agg_tickers': this.handleTickers,
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
+                'position': this.handlePosition,
             };
             let method = this.safeValue(methods, topic);
             if (topic === 'trade') {

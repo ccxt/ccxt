@@ -1807,6 +1807,27 @@ public partial class gate : ccxt.gate
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         object data = this.safeDict(message, "data");
         object errs = this.safeDict(data, "errs");
@@ -1829,6 +1850,23 @@ public partial class gate : ccxt.gate
                 if (isTrue(isTrue((!isEqual(messageHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash)))))
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                }
+                // remove subscriptions for watchSymbols
+                object channel = this.safeString(message, "channel");
+                if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((isGreaterThan(getIndexOf(channel, "."), 0)))))
+                {
+                    object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                    object payload = this.safeList(message, "payload", new List<object>() {});
+                    for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
+                    {
+                        object marketType = ((bool) isTrue(isEqual(getValue(parsedChannel, 0), "futures"))) ? "swap" : getValue(parsedChannel, 0);
+                        object symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
+                        object messageHashSymbol = add(add(getValue(parsedChannel, 1), ":"), symbol);
+                        if (isTrue(isTrue((!isEqual(messageHashSymbol, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHashSymbol)))))
+                        {
+                            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHashSymbol);
+                        }
+                    }
                 }
             }
             if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))

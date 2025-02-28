@@ -14,7 +14,7 @@ import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dic
  * @augments Exchange
  */
 export default class tradeogre extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'tradeogre',
             'name': 'tradeogre',
@@ -530,12 +530,12 @@ export default class tradeogre extends Exchange {
             throw new BadRequest (this.id + ' createOrder does not support market orders');
         }
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a limit parameter');
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price parameter');
         }
         const request: Dict = {
             'market': market['id'],
-            'quantity': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-            'price': this.parseToNumeric (this.priceToPrecision (symbol, price)),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
         let response = undefined;
         if (side === 'buy') {

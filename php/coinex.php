@@ -10,7 +10,7 @@ use ccxt\abstract\coinex as Exchange;
 
 class coinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
@@ -1204,7 +1204,7 @@ class coinex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *

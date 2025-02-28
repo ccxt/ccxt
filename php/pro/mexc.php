@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class mexc extends \ccxt\async\mexc {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -475,7 +475,10 @@ class mexc extends \ccxt\async\mexc {
         //    }
         //
         $parsedTicker = $this->parse_ws_bid_ask($message);
-        $symbol = $parsedTicker['symbol'];
+        $symbol = $this->safe_string($parsedTicker, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $this->bidsasks[$symbol] = $parsedTicker;
         $messageHash = 'bidask:' . $symbol;
         $client->resolve ($parsedTicker, $messageHash);

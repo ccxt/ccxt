@@ -10,7 +10,7 @@ use ccxt\abstract\whitebit as Exchange;
 
 class whitebit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
@@ -1164,6 +1164,7 @@ class whitebit extends Exchange {
         //         "clientOrderId" => "customId11",
         //         "role" => 2, // 1 = maker, 2 = taker
         //         "deal" => "0.00419198" // $amount in money
+        //         "feeAsset" => "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1179,6 +1180,7 @@ class whitebit extends Exchange {
         //          "deal" => "9.981007",
         //          "fee" => "0.009981007",
         //          "orderId" => 58166729555,
+        //          "feeAsset" => "USDT"
         //      }
         //
         $market = $this->safe_market(null, $market);
@@ -1200,7 +1202,7 @@ class whitebit extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeAsset')),
             );
         }
         return $this->safe_trade(array(
@@ -1314,7 +1316,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2716,12 +2718,10 @@ class whitebit extends Exchange {
         }
         if ($accessibility === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
-            $timestamp = $this->parse_to_int($nonce / 1000);
-            $timestampString = (string) $timestamp;
+            $nonce = (string) $this->nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $timestampString ), $params));
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
@@ -2745,12 +2745,13 @@ class whitebit extends Exchange {
             // For cases where we have a meaningful $status
             // array("response":null,"status":422,"errors":array("orderId":["Finished order id 435453454535 not found on your account"]),"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null)
             $status = $this->safe_string($response, 'status');
+            $errors = $this->safe_value($response, 'errors');
             // array("code":10,"message":"Unauthorized request.")
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
             $codeNew = $this->safe_integer($response, 'code');
-            $hasErrorStatus = $status !== null && $status !== '200';
+            $hasErrorStatus = $status !== null && $status !== '200' && $errors !== null;
             if ($hasErrorStatus || $codeNew !== null) {
                 $feedback = $this->id . ' ' . $body;
                 $errorInfo = $message;

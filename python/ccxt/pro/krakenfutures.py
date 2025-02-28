@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class krakenfutures(ccxt.async_support.krakenfutures):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,

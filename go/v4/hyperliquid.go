@@ -66,7 +66,7 @@ func  (this *hyperliquid) Describe() interface{}  {
             "fetchDeposits": true,
             "fetchDepositWithdrawFee": "emulated",
             "fetchDepositWithdrawFees": false,
-            "fetchFundingHistory": false,
+            "fetchFundingHistory": true,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": true,
             "fetchFundingRates": true,
@@ -4095,6 +4095,116 @@ func  (this *hyperliquid) ParseOpenInterest(interest interface{}, optionalArgs .
         "datetime": nil,
         "info": interest,
     }, market)
+}
+/**
+ * @method
+ * @name hyperliquid#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
+func  (this *hyperliquid) FetchFundingHistory(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
+            _ = symbol
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]interface{} {})
+            _ = params
+        
+            retRes34368 := (<-this.LoadMarkets())
+            PanicOnError(retRes34368)
+            var market interface{} = nil
+            if IsTrue(!IsEqual(symbol, nil)) {
+                market = this.Market(symbol)
+            }
+            var userAddress interface{} = nil
+            userAddressparamsVariable := this.HandlePublicAddress("fetchFundingHistory", params);
+            userAddress = GetValue(userAddressparamsVariable,0);
+            params = GetValue(userAddressparamsVariable,1)
+            var request interface{} = map[string]interface{} {
+                "user": userAddress,
+                "type": "userFunding",
+            }
+            if IsTrue(!IsEqual(since, nil)) {
+                AddElementToObject(request, "startTime", since)
+            }
+            var until interface{} = this.SafeInteger(params, "until")
+            params = this.Omit(params, "until")
+            if IsTrue(!IsEqual(until, nil)) {
+                AddElementToObject(request, "endTime", until)
+            }
+        
+            response:= (<-this.PublicPostInfo(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
+            // [
+            //     {
+            //         "time": 1734026400057,
+            //         "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //         "delta": {
+            //             "type": "funding",
+            //             "coin": "SOL",
+            //             "usdc": "75.635093",
+            //             "szi": "-7375.9",
+            //             "fundingRate": "0.00004381",
+            //             "nSamples": null
+            //         }
+            //     }
+            // ]
+            //
+        ch <- this.ParseIncomes(response, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *hyperliquid) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    // {
+    //     "time": 1734026400057,
+    //     "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    //     "delta": {
+    //         "type": "funding",
+    //         "coin": "SOL",
+    //         "usdc": "75.635093",
+    //         "szi": "-7375.9",
+    //         "fundingRate": "0.00004381",
+    //         "nSamples": null
+    //     }
+    // }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var id interface{} = this.SafeString(income, "hash")
+    var timestamp interface{} = this.SafeInteger(income, "time")
+    var delta interface{} = this.SafeDict(income, "delta")
+    var baseId interface{} = this.SafeString(delta, "coin")
+    var marketSymbol interface{} = Add(baseId, "/USDC:USDC")
+    market = this.SafeMarket(marketSymbol)
+    var symbol interface{} = GetValue(market, "symbol")
+    var amount interface{} = this.SafeString(delta, "usdc")
+    var code interface{} = this.SafeCurrencyCode("USDC")
+    var rate interface{} = this.SafeNumber(delta, "fundingRate")
+    return map[string]interface{} {
+        "info": income,
+        "symbol": symbol,
+        "code": code,
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
+        "id": id,
+        "amount": this.ParseNumber(amount),
+        "rate": rate,
+    }
 }
 func  (this *hyperliquid) ExtractTypeFromDelta(optionalArgs ...interface{}) interface{}  {
     data := GetArg(optionalArgs, 0, []interface{}{})

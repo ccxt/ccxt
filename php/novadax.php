@@ -10,7 +10,7 @@ use ccxt\abstract\novadax as Exchange;
 
 class novadax extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'novadax',
             'name' => 'NovaDAX',
@@ -287,7 +287,7 @@ class novadax extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *

@@ -617,12 +617,12 @@ func  (this *tradeogre) CreateOrder(symbol interface{}, typeVar interface{}, sid
                 panic(BadRequest(Add(this.Id, " createOrder does not support market orders")))
             }
             if IsTrue(IsEqual(price, nil)) {
-                panic(ArgumentsRequired(Add(this.Id, " createOrder requires a limit parameter")))
+                panic(ArgumentsRequired(Add(this.Id, " createOrder requires a price parameter")))
             }
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
-                "quantity": this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
-                "price": this.ParseToNumeric(this.PriceToPrecision(symbol, price)),
+                "quantity": this.AmountToPrecision(symbol, amount),
+                "price": this.PriceToPrecision(symbol, price),
             }
             var response interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {

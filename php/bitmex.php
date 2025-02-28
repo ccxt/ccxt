@@ -10,7 +10,7 @@ use ccxt\abstract\bitmex as Exchange;
 
 class bitmex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmex',
             'name' => 'BitMEX',

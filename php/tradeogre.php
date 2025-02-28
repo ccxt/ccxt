@@ -10,7 +10,7 @@ use ccxt\abstract\tradeogre as Exchange;
 
 class tradeogre extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tradeogre',
             'name' => 'tradeogre',
@@ -518,12 +518,12 @@ class tradeogre extends Exchange {
             throw new BadRequest($this->id . ' createOrder does not support $market orders');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires a limit parameter');
+            throw new ArgumentsRequired($this->id . ' createOrder requires a $price parameter');
         }
         $request = array(
             'market' => $market['id'],
-            'quantity' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-            'price' => $this->parse_to_numeric($this->price_to_precision($symbol, $price)),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
         );
         $response = null;
         if ($side === 'buy') {

@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num
  * @augments Exchange
  */
 export default class hollaex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -1947,7 +1947,7 @@ export default class hollaex extends Exchange {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeList (response, 'coins');
+        const coins = this.safeDict (response, 'coins', {});
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 

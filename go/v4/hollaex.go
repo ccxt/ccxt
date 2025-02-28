@@ -2321,7 +2321,7 @@ func  (this *hollaex) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            var coins interface{} = this.SafeList(response, "coins")
+            var coins interface{} = this.SafeDict(response, "coins", map[string]interface{} {})
         
             ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
             return nil

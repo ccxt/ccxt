@@ -10,7 +10,7 @@ use ccxt\abstract\bithumb as Exchange;
 
 class bithumb extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',

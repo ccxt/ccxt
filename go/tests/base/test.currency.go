@@ -36,7 +36,7 @@ import "github.com/ccxt/ccxt/go/v4"
     })
             // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
             if IsTrue(!IsEqual(currencyType, nil)) {
-                AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "other"})
+                AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "leveraged", "other"})
             }
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if IsTrue(IsTrue(IsEqual(currencyType, "crypto")) || !IsTrue((InOp(skippedProperties, "depositForNonCrypto")))) {

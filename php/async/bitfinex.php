@@ -14,13 +14,13 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bitfinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
             'name' => 'Bitfinex',

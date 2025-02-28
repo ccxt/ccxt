@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -40,7 +40,7 @@ from ccxt.base.precise import Precise
 
 class binance(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
@@ -86,6 +86,7 @@ class binance(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -1585,6 +1586,7 @@ class binance(Exchange, ImplicitAPI):
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
+                'defaultWithdrawPrecision': 0.00000001,
             },
             'features': {
                 'spot': {
@@ -2938,7 +2940,7 @@ class binance(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -3098,6 +3100,7 @@ class binance(Exchange, ImplicitAPI):
             id = self.safe_string(entry, 'coin')
             name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
+            isFiat = self.safe_bool(entry, 'isLegalMoney')
             minPrecision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
@@ -3109,6 +3112,7 @@ class binance(Exchange, ImplicitAPI):
                 networkItem = networkList[j]
                 network = self.safe_string(networkItem, 'network')
                 networkCode = self.network_id_to_code(network)
+                isETF = (network == 'ETF')  # e.g. BTCUP, ETHDOWN
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
                 depositEnable = self.safe_bool(networkItem, 'depositEnable')
@@ -3119,11 +3123,22 @@ class binance(Exchange, ImplicitAPI):
                 isDefault = self.safe_bool(networkItem, 'isDefault')
                 if isDefault or (fee is None):
                     fee = withdrawFee
+                # todo: default networks in "setMarkets" overload
+                # if isDefault:
+                #     self.options['defaultNetworkCodesForCurrencies'][code] = networkCode
+                # }
                 precisionTick = self.safe_string(networkItem, 'withdrawIntegerMultiple')
-                # avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                # so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                withdrawPrecision = precisionTick
+                # avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if not Precise.string_eq(precisionTick, '0'):
                     minPrecision = precisionTick if (minPrecision is None) else Precise.string_min(minPrecision, precisionTick)
+                else:
+                    if not isFiat and not isETF:
+                        # non-fiat and non-ETF currency, there are many cases when precision is set to zero(probably bug, we've reported to binance already)
+                        # in such cases, we can set default precision of 8(which is in UI for such coins)
+                        withdrawPrecision = self.omit_zero(self.safe_string(networkItem, 'withdrawInternalMin'))
+                        if withdrawPrecision is None:
+                            withdrawPrecision = self.safe_string(self.options, 'defaultWithdrawPrecision')
                 networks[networkCode] = {
                     'info': networkItem,
                     'id': network,
@@ -3132,7 +3147,7 @@ class binance(Exchange, ImplicitAPI):
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': withdrawFee,
-                    'precision': self.parse_number(precisionTick),
+                    'precision': self.parse_number(withdrawPrecision),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(networkItem, 'withdrawMin'),
@@ -3161,6 +3176,7 @@ class binance(Exchange, ImplicitAPI):
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
                 'precision': self.parse_number(minPrecision),
                 'info': entry,
                 'active': active,
@@ -5377,6 +5393,85 @@ class binance(Exchange, ImplicitAPI):
             return await self.edit_spot_order(id, symbol, type, side, amount, price, params)
         else:
             return await self.edit_contract_order(id, symbol, type, side, amount, price, params)
+
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            id = self.safe_string(rawOrder, 'id')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            isPortfolioMargin = None
+            isPortfolioMargin, orderParams = self.handle_option_and_params_2(orderParams, 'editOrders', 'papi', 'portfolioMargin', False)
+            if isPortfolioMargin:
+                raise NotSupported(self.id + ' editOrders() does not support portfolio margin orders')
+            orderRequest = self.edit_contract_order_request(id, marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        if market['spot'] or market['option']:
+            raise NotSupported(self.id + ' editOrders() does not support ' + market['type'] + ' orders')
+        response = None
+        request: dict = {
+            'batchOrders': ordersRequests,
+        }
+        request = self.extend(request, params)
+        if market['linear']:
+            response = await self.fapiPrivatePutBatchOrders(request)
+        elif market['inverse']:
+            response = await self.dapiPrivatePutBatchOrders(request)
+        #
+        #   [
+        #       {
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
+        #       {
+        #          "orderId": 650640530,
+        #          "symbol": "LTCUSDT",
+        #          "status": "NEW",
+        #          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        #          "price": "54.00",
+        #          "avgPrice": "0.00",
+        #          "origQty": "0.100",
+        #          "executedQty": "0.000",
+        #          "cumQty": "0.000",
+        #          "cumQuote": "0.00000",
+        #          "timeInForce": "GTC",
+        #          "type": "LIMIT",
+        #          "reduceOnly": False,
+        #          "closePosition": False,
+        #          "side": "BUY",
+        #          "positionSide": "BOTH",
+        #          "stopPrice": "0.00",
+        #          "workingType": "CONTRACT_PRICE",
+        #          "priceProtect": False,
+        #          "origType": "LIMIT",
+        #          "priceMatch": "NONE",
+        #          "selfTradePreventionMode": "NONE",
+        #          "goodTillDate": 0,
+        #          "updateTime": 1698073926929
+        #       }
+        #   ]
+        #
+        return self.parse_orders(response)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -11228,7 +11323,7 @@ class binance(Exchange, ImplicitAPI):
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             # handle batchOrders
-            if (path == 'batchOrders') and (method == 'POST'):
+            if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
                 batchOrders = self.safe_value(params, 'batchOrders')
                 queryBatch = (self.json(batchOrders))
                 params['batchOrders'] = queryBatch

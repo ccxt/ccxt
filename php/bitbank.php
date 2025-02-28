@@ -10,7 +10,7 @@ use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
             'name' => 'bitbank',
