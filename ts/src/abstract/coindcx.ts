@@ -63,12 +63,14 @@ interface Exchange {
     privatePostExchangeV1DerivativesFuturesPositionsCreateTpsl (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsTransactions (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesTrades (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1DerivativesFuturesDataStats (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsCrossMarginDetails (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesWalletsTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesWallets (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesWalletsTransactions (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesOrdersEdit (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsMarginType (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1DerivativesFuturesDataConversions (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
