@@ -2113,6 +2113,11 @@ class gate extends \ccxt\async\gate {
                 'signature' => $signature,
                 'req_param' => $reqParams,
             );
+            if (($channel === 'spot.order_place') || ($channel === 'futures.order_place')) {
+                $payload['req_header'] = array(
+                    'x-gate-$channel-id' => 'ccxt',
+                );
+            }
             $request = array(
                 'id' => $requestId,
                 'time' => $time,
