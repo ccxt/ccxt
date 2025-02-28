@@ -104,7 +104,7 @@ export default class poloniex extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
                     'spot': 'https://api.poloniex.com',
-                    'swap': 'https://api.poloniex.com/v3',
+                    'swap': 'https://api.poloniex.com',
                 },
                 'test': {
                     'spot': 'https://sand-spot-api-gateway.poloniex.com',
@@ -199,6 +199,7 @@ export default class poloniex extends Exchange {
                         // 300 calls / second
                         'v3/market/allInstruments': 3 / 5,
                         'v3/market/instruments': 3 / 5,
+                        'v3/market/orderBook': 3 / 5,
                     },
                 },
             },
@@ -565,6 +566,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchMarkets
      * @description retrieves data on all markets for poloniex
      * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1951,6 +1953,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1964,6 +1967,27 @@ export default class poloniex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
+            if (market['contract']) {
+                request['limit'] = this.findNearestCeiling ([ 5, 10, 20, 100, 150 ], limit);
+            }
+        }
+        if (market['contract']) {
+            const contractResponse = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
+            //
+            //    {
+            //       "code": 200,
+            //       "data": {
+            //         "asks": [ ["58700", "9934"], ..],
+            //         "bids": [ ["58600", "9952"], ..],
+            //         "s": "100",
+            //         "ts": 1719974138333
+            //       },
+            //       "msg": "Success"
+            //    }
+            //
+            const data = this.safeDict (contractResponse, 'data', {});
+            const ts = this.safeInteger (data, 'ts');
+            return this.parseOrderBook (data, symbol, ts);
         }
         const response = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
         //
