@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ export default class whitebit extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createConvertTrade': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
@@ -46,6 +47,9 @@ export default class whitebit extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -2704,6 +2708,127 @@ export default class whitebit extends Exchange {
         //
         const records = this.safeList (response, 'records');
         return this.parseTransactions (records, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const request: Dict = {
+            'from': fromCode,
+            'to': toCode,
+            'amount': this.numberToString (amount),
+            'direction': 'from',
+        };
+        const response = await this.v4PrivatePostConvertEstimate (this.extend (request, params));
+        //
+        //
+        return this.parseConversion (response, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name whitebit#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const request: Dict = {
+            'quoteId': id,
+        };
+        const response = await this.v4PrivatePostConvertConfirm (this.extend (request, params));
+        //
+        //
+        return this.parseConversion (response, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromTicker] the currency that you sold and converted from
+     * @param {string} [params.toTicker] the currency that you bought and converted into
+     * @param {string} [params.quoteId] the quote id of the conversion
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (code !== undefined) {
+            request['fromTicker'] = code;
+        }
+        if (since !== undefined) {
+            const start = this.parseToInt (since / 1000);
+            request['from'] = this.numberToString (start);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
+        const response = await this.v4PrivatePostConvertHistory (this.extend (request, params));
+        //
+        //
+        const rows = this.safeList (response, 'records', []);
+        return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
+    }
+
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //
+        // createConvertTrade
+        //
+        //
+        // fetchConvertTradeHistory
+        //
+        //
+        const path = this.safeDict (conversion, 'path', []);
+        const fromPath = this.safeString (path[0], 'from');
+        const toPath = this.safeString (path[0], 'to');
+        const timestamp = this.safeTimestamp2 (conversion, 'date', 'expireAt');
+        const fromCoin = this.safeString (conversion, 'from', fromPath);
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const toCoin = this.safeString (conversion, 'to', toPath);
+        const toCode = this.safeCurrencyCode (toCoin, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber2 (conversion, 'give', 'finalGive'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber2 (conversion, 'receive', 'finalReceive'),
+            'price': this.safeNumber (conversion, 'rate'),
+            'fee': undefined,
+        } as Conversion;
     }
 
     isFiat (currency: string): boolean {
