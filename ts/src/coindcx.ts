@@ -230,12 +230,14 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/positions/create_tpsl': 1, // todo check
                         'exchange/v1/derivatives/futures/positions/transactions': 1, // not unified
                         'exchange/v1/derivatives/futures/trades': 1, // done
+                        'api/v1/derivatives/futures/data/stats': 1, // new
                         'exchange/v1/derivatives/futures/positions/cross_margin_details': 1, // new
                         'exchange/v1/derivatives/futures/wallets/transfer': 1, // new
                         'exchange/v1/derivatives/futures/wallets': 1, // new
                         'exchange/v1/derivatives/futures/wallets/transactions': 1, // new
                         'exchange/v1/derivatives/futures/orders/edit': 1, // new
-                        '/exchange/v1/derivatives/futures/positions/margin_type': 1, // new
+                        'exchange/v1/derivatives/futures/positions/margin_type': 1, // new
+                        'api/v1/derivatives/futures/data/conversions': 1, // new
                     },
                 },
             },
@@ -2742,6 +2744,7 @@ export default class coindcx extends Exchange {
                     idsString = idsString + ',';
                 }
             }
+            // todo: add settle
             request['pairs'] = idsString;
         }
         const response = await this.privatePostExchangeV1DerivativesFuturesPositions (this.extend (request, params));
