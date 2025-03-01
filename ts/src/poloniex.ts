@@ -56,7 +56,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': undefined, // has but not implemented
                 'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -198,13 +198,28 @@ export default class poloniex extends Exchange {
                 'swapPublic': {
                     'get': {
                         // 300 calls / second
-                        'v3/market/allInstruments': 3 / 5,
-                        'v3/market/instruments': 3 / 5,
-                        'v3/market/orderBook': 3 / 5,
-                        'v3/market/candles': 3 / 5,
-                        'v3/market/trades': 3 / 5,
-                        'v3/market/liquidationOrder': 3 / 5,
-                        'v3/market/tickers': 3 / 5,
+                        'v3/market/allInstruments': 2 / 3,
+                        'v3/market/instruments': 2 / 3,
+                        'v3/market/orderBook': 2 / 3,
+                        'v3/market/candles': 10, // candles have differnt RL
+                        'v3/market/indexPriceCandlesticks': 10,
+                        'v3/market/premiumIndexCandlesticks': 10,
+                        'v3/market/markPriceCandlesticks': 10,
+                        'v3/market/trades': 2 / 3,
+                        'v3/market/liquidationOrder': 2 / 3,
+                        'v3/market/tickers': 2 / 3,
+                        'v3/market/markPrice': 2 / 3,
+                        'v3/market/indexPrice': 2 / 3,
+                        'v3/market/indexPriceComponents': 2 / 3,
+                        'v3/market/fundingRate': 2 / 3,
+                        'v3/market/openInterest': 2 / 3,
+                        'v3/market/insurance': 2 / 3,
+                        'v3/market/riskLimit': 2 / 3,
+                    },
+                },
+                'swapPrivate': {
+                    'get': {
+                        'v3/account/balance': 4,
                     },
                 },
             },
@@ -2029,6 +2044,24 @@ export default class poloniex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
+        // for swap
+        if (!Array.isArray (response)) {
+            const ts = this.safeInteger (response, 'uTime');
+            result['timestamp'] = ts;
+            result['datetime'] = this.iso8601 (ts);
+            const details = this.safeList (response, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString (balance, 'ccy');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'avail');
+                account['used'] = this.safeString (balance, 'im');
+                result[code] = account;
+            }
+            return this.safeBalance (result);
+        }
+        // for spot
         for (let i = 0; i < response.length; i++) {
             const account = this.safeValue (response, i, {});
             const balances = this.safeValue (account, 'balances');
@@ -2050,11 +2083,56 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+     * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if (marketType !== 'spot') {
+            const responseRaw = await this.swapPrivateGetV3AccountBalance (params);
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": {
+            //            "state": "NORMAL",
+            //            "eq": "9.98571622",
+            //            "isoEq": "0",
+            //            "im": "0",
+            //            "mm": "0",
+            //            "mmr": "0",
+            //            "upl": "0",
+            //            "availMgn": "9.98571622",
+            //            "cTime": "1738093601775",
+            //            "uTime": "1740829116236",
+            //            "details": [
+            //                {
+            //                    "ccy": "USDT",
+            //                    "eq": "9.98571622",
+            //                    "isoEq": "0",
+            //                    "avail": "9.98571622",
+            //                    "trdHold": "0",
+            //                    "upl": "0",
+            //                    "isoAvail": "0",
+            //                    "isoHold": "0",
+            //                    "isoUpl": "0",
+            //                    "im": "0",
+            //                    "mm": "0",
+            //                    "mmr": "0",
+            //                    "imr": "0",
+            //                    "cTime": "1740829116236",
+            //                    "uTime": "1740829116236"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            const data = this.safeDict (responseRaw, 'data', {});
+            return this.parseBalance (data);
+        }
         const request: Dict = {
             'accountType': 'SPOT',
         };
