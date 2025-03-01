@@ -67,11 +67,11 @@ export default class poloniex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': true, // true endpoint for open orders
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchTicker': true,
@@ -224,10 +224,13 @@ export default class poloniex extends Exchange {
                     'get': {
                         'v3/account/balance': 4,
                         'v3/account/bills': 20,
+                        'v3/trade/order/opens': 20,
                     },
                     'post': {
                         'v3/trade/order': 4,
                         'v3/trade/orders': 40,
+                        'v3/trade/position': 20,
+                        'v3/trade/positionAll': 100,
                     },
                     'delete': {
                         'v3/trade/order': 2,
@@ -341,7 +344,9 @@ export default class poloniex extends Exchange {
                         'trailing': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 20,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
@@ -382,6 +387,9 @@ export default class poloniex extends Exchange {
                     },
                     'createOrders': {
                         'max': 10,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 100,
                     },
                 },
                 'swap': {
@@ -1555,6 +1563,8 @@ export default class poloniex extends Exchange {
         //
         // fetchOpenOrders
         //
+        //  spot:
+        //
         //     {
         //         "id": "24993088082542592",
         //         "clientOrderId": "",
@@ -1574,6 +1584,42 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646925216548
         //     }
         //
+        //  contract:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "ordId": "418890767248232148",
+        //         "clOrdId": "polo418890767248232148",
+        //         "mgnMode": "CROSS",
+        //         "px": "81130.13",
+        //         "reduceOnly": false,
+        //         "lever": "20",
+        //         "state": "NEW",
+        //         "source": "WEB",
+        //         "timeInForce": "GTC",
+        //         "tpTrgPx": "",
+        //         "tpPx": "",
+        //         "tpTrgPxType": "",
+        //         "slTrgPx": "",
+        //         "slPx": "",
+        //         "slTrgPxType": "",
+        //         "avgPx": "0",
+        //         "execQty": "0",
+        //         "execAmt": "0",
+        //         "feeCcy": "",
+        //         "feeAmt": "0",
+        //         "deductCcy": "0",
+        //         "deductAmt": "0",
+        //         "stpMode": "NONE", // todo: selfTradePrevention
+        //         "cTime": "1740837741523",
+        //         "uTime": "1740840846882",
+        //         "sz": "1",
+        //         "posSide": "BOTH",
+        //         "qCcy": "USDT"
+        //     },
+        //
         // createOrder, editOrder
         //
         //  spot:
@@ -1590,7 +1636,7 @@ export default class poloniex extends Exchange {
         //        "clOrdId":"polo418876147745775616"
         //    }
         //
-        let timestamp = this.safeInteger2 (order, 'timestamp', 'createTime');
+        let timestamp = this.safeIntegerN (order, [ 'timestamp', 'createTime', 'cTime' ]);
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
@@ -1603,16 +1649,16 @@ export default class poloniex extends Exchange {
                 resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
             }
         }
-        const price = this.safeString2 (order, 'price', 'rate');
-        const amount = this.safeString (order, 'quantity');
-        const filled = this.safeString (order, 'filledQuantity');
+        const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
+        const amount = this.safeString2 (order, 'quantity', 'sz');
+        const filled = this.safeString2 (order, 'filledQuantity', 'execQty');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
         const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId', 'ordId' ]);
         let fee = undefined;
-        const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
+        const feeCurrency = this.safeString2 (order, 'tokenFeeCurrency', 'feeCcy');
         let feeCost: Str = undefined;
         let feeCurrencyCode: Str = undefined;
         const rate = this.safeString (order, 'fee');
@@ -1621,7 +1667,7 @@ export default class poloniex extends Exchange {
         } else {
             // poloniex accepts a 30% discount to pay fees in TRX
             feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
-            feeCost = this.safeString (order, 'tokenFee');
+            feeCost = this.safeString2 (order, 'tokenFee', 'feeAmt');
         }
         if (feeCost !== undefined) {
             fee = {
@@ -1631,6 +1677,10 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clOrdId');
+        const marginMode = this.safeStringLower (order, 'mgnMode');
+        const reduceOnly = this.safeBool (order, 'reduceOnly');
+        const leverage = this.safeInteger (order, 'lever');
+        const hedged = this.safeString (order, 'posSide') !== 'BOTH';
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1642,17 +1692,21 @@ export default class poloniex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': this.safeString (order, 'timeInForce'),
-            'postOnly': undefined,
+            'postOnly': rawType === 'LIMIT_MAKER',
             'side': side,
             'price': price,
             'triggerPrice': this.safeString2 (order, 'triggerPrice', 'stopPrice'),
-            'cost': undefined,
-            'average': this.safeString (order, 'avgPrice'),
+            'cost': this.safeString (order, 'execAmt'),
+            'average': this.safeString2 (order, 'avgPrice', 'avgPx'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
             'trades': resultingTrades,
             'fee': fee,
+            'marginMode': marginMode,
+            'reduceOnly': reduceOnly,
+            'leverage': leverage,
+            'hedged': hedged,
         }, market);
     }
 
@@ -1660,6 +1714,7 @@ export default class poloniex extends Exchange {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
             'STOP-LIMIT': 'limit',
             'STOP-MARKET': 'market',
         };
@@ -1686,6 +1741,7 @@ export default class poloniex extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1701,13 +1757,58 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            const max = marketType === 'spot' ? 2000 : 100;
+            request['limit'] = Math.max (limit, max);
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
-        if (isTrigger) {
+        if (market['contract']) {
+            const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "side": "BUY",
+            //                "type": "LIMIT",
+            //                "ordId": "418890767248232148",
+            //                "clOrdId": "polo418890767248232148",
+            //                "mgnMode": "CROSS",
+            //                "px": "81130.13",
+            //                "reduceOnly": false,
+            //                "lever": "20",
+            //                "state": "NEW",
+            //                "source": "WEB",
+            //                "timeInForce": "GTC",
+            //                "tpTrgPx": "",
+            //                "tpPx": "",
+            //                "tpTrgPxType": "",
+            //                "slTrgPx": "",
+            //                "slPx": "",
+            //                "slTrgPxType": "",
+            //                "avgPx": "0",
+            //                "execQty": "0",
+            //                "execAmt": "0",
+            //                "feeCcy": "",
+            //                "feeAmt": "0",
+            //                "deductCcy": "0",
+            //                "deductAmt": "0",
+            //                "stpMode": "NONE",
+            //                "cTime": "1740837741523",
+            //                "uTime": "1740840846882",
+            //                "sz": "1",
+            //                "posSide": "BOTH",
+            //                "qCcy": "USDT"
+            //            },
+            //
+            response = this.safeList (raw, 'data');
+        } else if (isTrigger) {
             response = await this.privateGetSmartorders (this.extend (request, params));
         } else {
             response = await this.privateGetOrders (this.extend (request, params));
