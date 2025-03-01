@@ -38,6 +38,7 @@ export default class poloniex extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -225,6 +226,10 @@ export default class poloniex extends Exchange {
                     },
                     'post': {
                         'v3/trade/order': 4,
+                        'v3/trade/orders': 40,
+                    },
+                    'delete': {
+                        'v3/trade/order': 2,
                     },
                 },
             },
@@ -371,6 +376,9 @@ export default class poloniex extends Exchange {
                         'hedged': true,
                         'stpMode': true, // todo
                         'marketBuyByCost': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
                     },
                 },
                 'swap': {
@@ -1917,7 +1925,17 @@ export default class poloniex extends Exchange {
         // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         //
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
         const request: Dict = {};
+        if (market['swap'] || market['future']) {
+            request['symbol'] = market['id'];
+            request['ordId'] = id;
+            const responseInitial = await this.swapPrivateDeleteV3TradeOrder (this.extend (request, params));
+            return this.parseOrder (this.safeDict (responseInitial, 'data'));
+        }
         const clientOrderId = this.safeValue (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             id = clientOrderId;
