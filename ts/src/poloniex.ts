@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Bool, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -86,6 +86,7 @@ export default class poloniex extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'sandbox': true,
+                'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -234,6 +235,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/orders': 40,
                         'v3/trade/position': 20,
                         'v3/trade/positionAll': 100,
+                        'v3/position/leverage': 20,
                     },
                     'delete': {
                         'v3/trade/order': 2,
@@ -3218,6 +3220,44 @@ export default class poloniex extends Exchange {
                 'rate': undefined,
             },
         } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name poloniex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
+        }
+        let hedged: Bool = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        if (hedged) {
+            if (!('posSide' in params)) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
+            }
+        }
+        const request: Dict = {
+            'lever': leverage,
+            'mgnMode': marginMode.toUpperCase (),
+            'symbol': market['id'],
+        };
+        const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
+        return response;
     }
 
     nonce () {
