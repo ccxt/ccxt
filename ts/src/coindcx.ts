@@ -15,7 +15,7 @@ import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Mar
  * @augments Exchange
  */
 export default class coindcx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coindcx',
             'name': 'CoinDCX',
@@ -689,11 +689,26 @@ export default class coindcx extends Exchange {
             const options = this.safeDict (this.options, 'fetchOHLCV', {});
             const timeframes = this.safeDict (options, 'swapTimeframes', {});
             request['resolution'] = this.safeString (timeframes, timeframe, timeframe);
-            const until = this.safeString (params, 'until');
-            if ((since === undefined) || (until === undefined)) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires both since and params.until arguments for ' + market['type'] + ' markets');
+            let until = this.safeString (params, 'until');
+            let sinceString: Str = undefined;
+            if (since !== undefined) {
+                sinceString = since.toString ();
             }
-            const sinceString = since.toString ();
+            if ((sinceString === undefined) || (until === undefined)) {
+                const duration = this.parseTimeframe (timeframe);
+                const numberOfCandles = limit ? limit : 500; // use default spot number of candles to return
+                const timeDelta = duration * numberOfCandles * 1000;
+                const timeDeltaString = timeDelta.toString ();
+                if ((until === undefined) && (since !== undefined)) {
+                    until = Precise.stringAdd (sinceString, timeDeltaString);
+                } else if (until === undefined) {
+                    const now = this.milliseconds ();
+                    until = now.toString ();
+                }
+                if (since === undefined) {
+                    sinceString = Precise.stringSub (until, timeDeltaString);
+                }
+            }
             request['from'] = sinceString.slice (0, -3); // the exchange accepts from and to params in seconds
             request['to'] = until.slice (0, -3);
             params = this.omit (params, 'until');
