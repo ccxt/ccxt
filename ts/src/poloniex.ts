@@ -363,13 +363,31 @@ export default class poloniex extends Exchange {
                 'spot': {
                     'extends': 'default',
                 },
+                'forContracts': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'hedged': true,
+                        'stpMode': true, // todo
+                        'marketBuyByCost': false,
+                    },
+                },
                 'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'forContracts',
+                    },
+                    'inverse': {
+                        'extends': 'forContracts',
+                    },
                 },
                 'future': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'forContracts',
+                    },
+                    'inverse': {
+                        'extends': 'forContracts',
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
