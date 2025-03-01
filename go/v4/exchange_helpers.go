@@ -1075,6 +1075,12 @@ func MathFloor(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Floor(num)
 	}
+	if num, ok := v.(int); ok {
+		return math.Floor(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Floor(float64(num))
+	}
 	return 0
 }
 
