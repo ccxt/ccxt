@@ -45,6 +45,7 @@ export default class poloniex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -226,6 +227,7 @@ export default class poloniex extends Exchange {
                         'v3/account/bills': 20,
                         'v3/trade/order/opens': 20,
                         'v3/trade/order/trades': 20,
+                        'v3/trade/order/history': 20,
                     },
                     'post': {
                         'v3/trade/order': 4,
@@ -391,6 +393,10 @@ export default class poloniex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'limit': 100,
+                    },
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'daysBackCanceled': 1 / 6,
                     },
                     'fetchMyTrades': {
                         'limit': 100,
@@ -1525,7 +1531,7 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isContract = this.inArray (marketType, [ 'swap', 'future' ]);
         let request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
@@ -1641,7 +1647,7 @@ export default class poloniex extends Exchange {
         //         "updateTime" : 16xxxxxxxxx36
         //     }
         //
-        // fetchOpenOrders
+        // fetchOpenOrders (and fetchClosedOrders same for contracts)
         //
         //  spot:
         //
@@ -1698,6 +1704,7 @@ export default class poloniex extends Exchange {
         //         "sz": "1",
         //         "posSide": "BOTH",
         //         "qCcy": "USDT"
+        //         "cancelReason": "", // this field can only be in closed orders
         //     },
         //
         // createOrder, editOrder
@@ -1918,6 +1925,84 @@ export default class poloniex extends Exchange {
         //
         const extension: Dict = { 'status': 'open' };
         return this.parseOrders (response, market, since, limit, extension);
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchClosedOrders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' fetchClosedOrders() is not supported for spot markets yet');
+        }
+        if (limit !== undefined) {
+            const max = this.features[marketType]['fetchClosedOrders']['limit'];
+            request['limit'] = Math.min (limit, max);
+        }
+        if (since !== undefined) {
+            request['sTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('eTime', request, params);
+        const response = await this.swapPrivateGetV3TradeOrderHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "side": "SELL",
+        //                "type": "MARKET",
+        //                "ordId": "418912106147315712",
+        //                "clOrdId": "polo418912106147315712",
+        //                "mgnMode": "CROSS",
+        //                "px": "0",
+        //                "sz": "2",
+        //                "lever": "20",
+        //                "state": "FILLED",
+        //                "cancelReason": "",
+        //                "source": "WEB",
+        //                "reduceOnly": "true",
+        //                "timeInForce": "GTC",
+        //                "tpTrgPx": "",
+        //                "tpPx": "",
+        //                "tpTrgPxType": "",
+        //                "slTrgPx": "",
+        //                "slPx": "",
+        //                "slTrgPxType": "",
+        //                "avgPx": "84705.56",
+        //                "execQty": "2",
+        //                "execAmt": "169.41112",
+        //                "feeCcy": "USDT",
+        //                "feeAmt": "0.08470556",
+        //                "deductCcy": "0",
+        //                "deductAmt": "0",
+        //                "stpMode": "NONE",
+        //                "cTime": "1740842829116",
+        //                "uTime": "1740842829130",
+        //                "posSide": "BOTH",
+        //                "qCcy": "USDT"
+        //            },
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
