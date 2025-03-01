@@ -57,6 +57,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined, // has but not implemented
+                'fetchLedger': undefined, // has but not implemented
                 'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -220,6 +221,10 @@ export default class poloniex extends Exchange {
                 'swapPrivate': {
                     'get': {
                         'v3/account/balance': 4,
+                        'v3/account/bills': 20,
+                    },
+                    'post': {
+                        'v3/trade/order': 4,
                     },
                 },
             },
@@ -317,7 +322,7 @@ export default class poloniex extends Exchange {
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -1542,10 +1547,19 @@ export default class poloniex extends Exchange {
         //
         // createOrder, editOrder
         //
+        //  spot:
+        //
         //     {
         //         "id": "29772698821328896",
         //         "clientOrderId": "1234Abc"
         //     }
+        //
+        //  contract:
+        //
+        //    {
+        //        "ordId":"418876147745775616",
+        //        "clOrdId":"polo418876147745775616"
+        //    }
         //
         let timestamp = this.safeInteger2 (order, 'timestamp', 'createTime');
         if (timestamp === undefined) {
@@ -1567,7 +1581,7 @@ export default class poloniex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
-        const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId' ]);
+        const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId', 'ordId' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
         let feeCost: Str = undefined;
@@ -1587,7 +1601,7 @@ export default class poloniex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clOrdId');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1715,20 +1729,23 @@ export default class poloniex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         let request: Dict = {
             'symbol': market['id'],
-            'side': side,
-            // 'timeInForce': timeInForce,
+            'side': side.toUpperCase (), // uppercase, both for spot & swap
+            // 'timeInForce': timeInForce, // matches unified values
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response = undefined;
-        if (triggerPrice !== undefined) {
+        if (market['swap'] || market['future']) {
+            const responseInitial = await this.swapPrivatePostV3TradeOrder (this.extend (request, params));
+            //
+            // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
+            //
+            response = this.safeDict (responseInitial, 'data');
+        } else if (triggerPrice !== undefined) {
             response = await this.privatePostSmartorders (this.extend (request, params));
         } else {
             response = await this.privatePostOrders (this.extend (request, params));
@@ -1747,12 +1764,34 @@ export default class poloniex extends Exchange {
     }
 
     orderRequest (symbol, type, side, amount, request, price = undefined, params = {}) {
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        const market = this.market (symbol);
+        if (market['contract']) {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleParamString (params, 'marginMode');
+            if (marginMode !== undefined) {
+                this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+                request['mgnMode'] = marginMode.toUpperCase ();
+            }
+            let hedged = undefined;
+            [ hedged, params ] = this.handleParamString (params, 'hedged');
+            if (hedged) {
+                if (marginMode === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
+                }
+                if (!('posSide' in params)) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
+                }
+            }
+        }
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice !== undefined) {
+            if (!market['spot']) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
+            }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
             request['stopPrice'] = triggerPrice;
         } else if (isPostOnly) {
@@ -1785,8 +1824,10 @@ export default class poloniex extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
         } else {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-            request['price'] = this.priceToPrecision (symbol, price);
+            const amountKey = market['spot'] ? 'quantity' : 'sz';
+            request[amountKey] = this.amountToPrecision (symbol, amount);
+            const priceKey = market['spot'] ? 'price' : 'px';
+            request[priceKey] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
