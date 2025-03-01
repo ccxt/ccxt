@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, Bool, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined, // has but not implemented
                 'fetchLedger': undefined, // has but not implemented
+                'fetchLeverage': true,
                 'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -229,6 +230,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/opens': 20,
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
+                        'v3/position/leverages': 20,
                     },
                     'post': {
                         'v3/trade/order': 4,
@@ -3258,6 +3260,70 @@ export default class poloniex extends Exchange {
         };
         const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
         return response;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
+        }
+        request['mgnMode'] = marginMode.toUpperCase ();
+        const response = await this.swapPrivateGetV3PositionLeverages (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "10",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "BOTH"
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        const entry = this.safeDict (data, 0);
+        return this.parseLeverage (entry, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        let shortLeverage: Int = undefined;
+        let longLeverage: Int = undefined;
+        const posSide = this.safeString (leverage, 'posSide');
+        const lever = this.safeInteger (leverage, 'lever');
+        if (posSide === 'BOTH') {
+            longLeverage = lever;
+            shortLeverage = lever;
+        } else if (posSide === 'LONG') {
+            longLeverage = lever;
+        } else if (posSide === 'SHORT') {
+            shortLeverage = lever;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'mgnMode'),
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     nonce () {
