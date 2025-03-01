@@ -271,6 +271,141 @@ export default class coindcx extends Exchange {
                     'Insufficient funds': InsufficientFunds, // {"code":422,"message":"Insufficient funds","status":"error"}
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'leverage': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': undefined,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 5000,
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false, // todo check
+                        'trailing': false, // todo check
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false, // todo check
+                        'limit': 200, // todo check
+                        'trigger': false, // todo check
+                        'trailing': false, // todo check
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000, // todo check
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                        'trigger': false, // todo check
+                        'trailing': false, // todo check
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false, // todo check
+                            'index': false,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true, // todo check
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo check
+                        'trigger': true, // todo check
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 200, // todo check
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo check
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 
@@ -2066,6 +2201,7 @@ export default class coindcx extends Exchange {
                 throw new NotSupported (this.id + ' fetchClosedOrders() is supported only for swap markets');
             }
         }
+        // todo update for margin orders
         const request: Dict = {
             'status': 'filled,partially_filled',
             'type': 'swap',
@@ -2099,7 +2235,7 @@ export default class coindcx extends Exchange {
         const request: Dict = {};
         if (marketType === 'spot') {
             if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param for spot type of markets');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for spot type of markets');
             }
             request['market'] = market['id'];
             const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
@@ -2142,7 +2278,7 @@ export default class coindcx extends Exchange {
             const orders = this.safeList (response, 'orders', []);
             return this.parseOrders (orders, market, since, limit);
         } else if (marketType === 'margin') {
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot margin markets');
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot margin markets'); // todo check
         } else if (marketType === 'swap') {
             request['status'] = 'open';
             request['type'] = 'swap';
@@ -2352,52 +2488,27 @@ export default class coindcx extends Exchange {
             throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
         }
         if (marketType === 'spot') {
-            return await this.editSpotOrder (id, symbol, type, side, amount, price, params);
+            let priceString = price.toString ();
+            if (symbol !== undefined) {
+                priceString = this.priceToPrecision (market['symbol'], price);
+            }
+            const request: Dict = {
+                'price_per_unit': priceString,
+            };
+            if (id !== undefined) {
+                request['id'] = id;
+            }
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+            }
+            const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
+            // {"code":422,"message":"Edit order is not available yet for this exchange","status":"error"}
+            return this.parseOrder (response);
         } else if (marketType === 'margin') {
             return await this.editMarginOrder (id, symbol, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' EditOrder is not supported for ' + marketType + ' markets');
         }
-    }
-
-    async editSpotOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name coindcx#editSpotOrder
-         * @description edit a trade order
-         * @see https://docs.coindcx.com/#edit-target
-         * @see https://docs.coindcx.com/#edit-price-of-target-order
-         * @see https://docs.coindcx.com/#edit-sl-price
-         * @see https://docs.coindcx.com/#edit-sl-price-of-trailing-stop-loss
-         * @param {string} id order id
-         * @param {string} symbol not used by coindcx
-         * @param {string} type not used by coindcx
-         * @param {string} side not used by coindcx
-         * @param {float} amount not used by coindcx
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        let market: Market = undefined;
-        let priceString = price.toString ();
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            priceString = this.priceToPrecision (market['symbol'], price);
-        }
-        const request: Dict = {
-            'price_per_unit': priceString,
-        };
-        if (id !== undefined) {
-            request['id'] = id;
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-        }
-        const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
-        // {"code":422,"message":"Edit order is not available yet for this exchange","status":"error"}
-        return this.parseOrder (response);
     }
 
     async editMarginOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
