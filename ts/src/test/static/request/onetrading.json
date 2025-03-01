@@ -32,6 +32,14 @@
                 "output": "{\"instrument_code\":\"BTC_USDT\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"amount\":\"0.00083\",\"price\":\"100000\",\"time_in_force\":\"GOOD_TILL_CANCELLED\"}"
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch Markets",
+                "method": "fetchMarkets",
+                "url": "https://api.onetrading.com/fast/v1/instruments",
+                "input": []
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetch my trades",
@@ -42,7 +50,7 @@
                 ]
             }
         ],
-    "fetchBalance": [
+        "fetchBalance": [
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
