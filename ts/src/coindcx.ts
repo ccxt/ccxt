@@ -130,27 +130,19 @@ export default class coindcx extends Exchange {
                 'ws': false,
             },
             'timeframes': {
-                'spot': {
-                    '1m': '1m',
-                    '5m': '5m',
-                    '15m': '15m',
-                    '30m': '30m',
-                    '1h': '1h',
-                    '2h': '2h',
-                    '4h': '4h',
-                    '6h': '6h',
-                    '8h': '8h',
-                    '1d': '1d',
-                    '3d': '3d',
-                    '1w': '1w',
-                    '1M': '1M',
-                },
-                'contract': {
-                    '1m': '1',
-                    '5m': '5',
-                    '1h': '60',
-                    '1d': '1D',
-                },
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '', // todo: add a logo
@@ -254,6 +246,14 @@ export default class coindcx extends Exchange {
             // exchange-specific options
             'options': {
                 'defaultType': 'spot', // spot, margin or swap
+                'fetchOHLCV': {
+                    'swapTimeframes': {
+                        '1m': '1',
+                        '5m': '5',
+                        '1h': '60',
+                        '1d': '1D',
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -659,8 +659,7 @@ export default class coindcx extends Exchange {
             'pair': pair,
         };
         if (market['spot']) {
-            const timeframes = this.safeDict (this.timeframes, 'spot');
-            request['interval'] = this.safeString (timeframes, timeframe, timeframe);
+            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -687,7 +686,8 @@ export default class coindcx extends Exchange {
             //
             return this.parseOHLCVs (response, market, timeframe, since, limit);
         } else if (market['swap']) {
-            const timeframes = this.safeDict (this.timeframes, 'contract');
+            const options = this.safeDict (this.options, 'fetchOHLCV', {});
+            const timeframes = this.safeDict (options, 'swapTimeframes', {});
             request['resolution'] = this.safeString (timeframes, timeframe, timeframe);
             const until = this.safeString (params, 'until');
             if ((since === undefined) || (until === undefined)) {
