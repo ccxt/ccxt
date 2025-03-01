@@ -33,6 +33,7 @@ export default class poloniex extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -230,6 +231,8 @@ export default class poloniex extends Exchange {
                     },
                     'delete': {
                         'v3/trade/order': 2,
+                        'v3/trade/batchOrders': 20,
+                        'v3/trade/allOrders': 20,
                     },
                 },
             },
@@ -1933,8 +1936,18 @@ export default class poloniex extends Exchange {
         if (market['swap'] || market['future']) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
-            const responseInitial = await this.swapPrivateDeleteV3TradeOrder (this.extend (request, params));
-            return this.parseOrder (this.safeDict (responseInitial, 'data'));
+            const raw = await this.swapPrivateDeleteV3TradeOrder (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": {
+            //            "ordId": "418886099910612040",
+            //            "clOrdId": "polo418886099910612040"
+            //        }
+            //    }
+            //
+            return this.parseOrder (this.safeDict (raw, 'data'));
         }
         const clientOrderId = this.safeValue (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1967,6 +1980,7 @@ export default class poloniex extends Exchange {
      * @description cancel all open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
@@ -1985,9 +1999,30 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
+        let response = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (marketType === 'swap' || marketType === 'future') {
+            const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "code": "200",
+            //                "msg": "Success",
+            //                "ordId": "418885787866388511",
+            //                "clOrdId": "polo418885787866388511"
+            //            }
+            //        ]
+            //    }
+            //
+            response = this.safeDict (raw, 'data');
+            return this.parseOrders (response, market);
+        }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response = undefined;
         if (isTrigger) {
             response = await this.privateDeleteSmartorders (this.extend (request, params));
         } else {
