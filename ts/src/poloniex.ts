@@ -225,6 +225,7 @@ export default class poloniex extends Exchange {
                         'v3/account/balance': 4,
                         'v3/account/bills': 20,
                         'v3/trade/order/opens': 20,
+                        'v3/trade/order/trades': 20,
                     },
                     'post': {
                         'v3/trade/order': 4,
@@ -390,6 +391,10 @@ export default class poloniex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'limit': 100,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                        'untilDays': 90,
                     },
                 },
                 'swap': {
@@ -1332,6 +1337,8 @@ export default class poloniex extends Exchange {
         //
         // fetchMyTrades
         //
+        //  spot:
+        //
         //     {
         //         "id": "32164924331503616",
         //         "symbol": "LINK_USDT",
@@ -1349,6 +1356,34 @@ export default class poloniex extends Exchange {
         //         "pageId": "32164924331503616",
         //         "clientOrderId": "myOwnId-321"
         //     }
+        //
+        //  swap:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "trdId": "105813553",
+        //         "side": "SELL",
+        //         "type": "TRADE",
+        //         "mgnMode": "CROSS",
+        //         "ordType": "MARKET",
+        //         "clOrdId": "polo418912106147315112",
+        //         "role": "TAKER",
+        //         "px": "84704.9",
+        //         "qty": "1",
+        //         "cTime": "1740842829430",
+        //         "uTime": "1740842829450",
+        //         "feeCcy": "USDT",
+        //         "feeAmt": "0.04235245",
+        //         "deductCcy": "",
+        //         "deductAmt": "0",
+        //         "feeRate": "0.0005",
+        //         "id": "418912106342654592",
+        //         "posSide": "BOTH",
+        //         "ordId": "418912106147315112",
+        //         "qCcy": "USDT",
+        //         "value": "84.7049",
+        //         "actType": "TRADING"
+        //     },
         //
         // fetchOrderTrades (taker trades)
         //
@@ -1370,9 +1405,9 @@ export default class poloniex extends Exchange {
         //         "clientOrderId": ""
         //     }
         //
-        const id = this.safeString2 (trade, 'id', 'tradeID');
-        const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.safeIntegerN (trade, [ 'ts', 'createTime', 'cT' ]);
+        const id = this.safeStringN (trade, [ 'id', 'tradeID', 'trdId' ]);
+        const orderId = this.safeString2 (trade, 'orderId', 'ordId');
+        const timestamp = this.safeIntegerN (trade, [ 'ts', 'createTime', 'cT', 'cTime' ]);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
@@ -1381,8 +1416,8 @@ export default class poloniex extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'px');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const costString = this.safeString2 (trade, 'amount', 'amt');
-        const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-        const feeCostString = this.safeString (trade, 'feeAmount');
+        const feeCurrencyId = this.safeString2 (trade, 'feeCurrency', 'feeCcy');
+        const feeCostString = this.safeString2 (trade, 'feeAmount', 'feeAmt');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
@@ -1397,9 +1432,9 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': this.safeStringLower (trade, 'type'),
+            'type': this.safeStringLower2 (trade, 'ordType', 'type'), // ordType should take precedence
             'side': side,
-            'takerOrMaker': this.safeStringLower (trade, 'matchRole'),
+            'takerOrMaker': this.safeStringLower2 (trade, 'matchRole', 'role'),
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -1469,6 +1504,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1488,17 +1524,61 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const isContract = this.inArray (marketType, [ 'swap', 'future' ]);
         let request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
+        const startKey = isContract ? 'sTime' : 'startTime';
+        const endKey = isContract ? 'eTime' : 'endTime';
         if (since !== undefined) {
-            request['startTime'] = since;
+            request[startKey] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (isContract && symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        [ request, params ] = this.handleUntilOption (endKey, request, params);
+        if (isContract) {
+            const raw = await this.swapPrivateGetV3TradeOrderTrades (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "trdId": "105813553",
+            //                "side": "SELL",
+            //                "type": "TRADE",
+            //                "mgnMode": "CROSS",
+            //                "ordType": "MARKET",
+            //                "clOrdId": "polo418912106147315112",
+            //                "role": "TAKER",
+            //                "px": "84704.9",
+            //                "qty": "1",
+            //                "cTime": "1740842829430",
+            //                "uTime": "1740842829450",
+            //                "feeCcy": "USDT",
+            //                "feeAmt": "0.04235245",
+            //                "deductCcy": "",
+            //                "deductAmt": "0",
+            //                "feeRate": "0.0005",
+            //                "id": "418912106342654592",
+            //                "posSide": "BOTH",
+            //                "ordId": "418912106147315112",
+            //                "qCcy": "USDT",
+            //                "value": "84.7049",
+            //                "actType": "TRADING"
+            //            },
+            //
+            const data = this.safeList (raw, 'data');
+            return this.parseTrades (data, market, since, limit);
+        }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     [
