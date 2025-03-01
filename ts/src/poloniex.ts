@@ -972,7 +972,8 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'quantity', 'qty'),
             'quoteVolume': this.safeString2 (ticker, 'amount', 'amt'),
-            'markPrice': this.safeString (ticker, 'markPrice'),
+            'markPrice': this.safeString2 (ticker, 'markPrice', 'mPx'),
+            'indexPrice': this.safeString (ticker, 'iPx'),
             'info': ticker,
         }, market);
     }
@@ -982,17 +983,27 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        const request: Dict = {};
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            market = this.market (symbols[0]);
+            if (symbolsLength === 1) {
+                request['symbol'] = market['id'];
+            }
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (marketType === 'swap') {
-            const responseRaw = await this.swapPublicGetV3MarketTickers (params);
+            const responseRaw = await this.swapPublicGetV3MarketTickers (this.extend (request, params));
             //
             //    {
             //        "code": "200",
@@ -1194,6 +1205,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1204,6 +1216,10 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        if (market['contract']) {
+            const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+            return this.safeDict (tickers, symbol) as Ticker;
+        }
         const response = await this.publicGetMarketsSymbolTicker24h (this.extend (request, params));
         //
         //     {
