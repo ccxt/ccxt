@@ -81,9 +81,8 @@ export default class coindcx extends coindcxRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const marketId = market['id'];
         const suffix = '@trades';
         const channelName = marketId + suffix;
         const messageHash = 'new-trade:' + symbol;
@@ -205,9 +204,12 @@ export default class coindcx extends coindcxRest {
         const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'candlestick:' + symbol + ':' + interval;
         const marketType = this.safeString (market, 'type');
-        let channelName = market['id'] + '_' + interval + '-' + 'futures';
+        const swapId = this.marketId (symbol);
+        let channelName = swapId + '_' + interval + '-' + 'futures';
         if (marketType === 'spot') {
-            channelName = 'B-' + market['base'] + '_' + market['quote'] + '_' + interval;
+            const base = this.safeString (market, 'base', '');
+            const quote = this.safeString (market, 'quote', '');
+            channelName = 'B-' + base + '_' + quote + '_' + interval;
         }
         const request: Dict = {
             'type': 'subscribe',
@@ -312,10 +314,12 @@ export default class coindcx extends coindcxRest {
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         let exchangeLimit = '50';
-        if (limit <= 11) {
-            exchangeLimit = '10';
-        } else if (limit <= 21) {
-            exchangeLimit = '20';
+        if (limit) {
+            if (limit <= 11) {
+                exchangeLimit = '10';
+            } else if (limit <= 21) {
+                exchangeLimit = '20';
+            }
         }
         const channelName = marketId + '@' + 'orderbook' + '@' + exchangeLimit;
         const messageHash = 'orderbook' + ':' + symbol;
