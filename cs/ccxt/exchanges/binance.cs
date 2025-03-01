@@ -456,6 +456,7 @@ public partial class binance : Exchange
                         { "portfolio/margin-asset-leverage", 5 },
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
+                        { "portfolio/pmloan-history", 5 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
