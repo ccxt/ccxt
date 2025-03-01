@@ -1,5 +1,5 @@
 package ccxt
 
-var Version string = "4.4.63"
+var Version string = "4.4.64"
 
 var Exchanges []string = []string{ "Ace", "Alpaca", "Ascendex", "Bequant", "Bigone", "Binance", "Binancecoinm", "Binanceus", "Binanceusdm", "Bingx", "Bit2c", "Bitbank", "Bitbns", "Bitcoincom", "Bitfinex", "Bitfinex1", "Bitflyer", "Bitget", "Bithumb", "Bitmart", "Bitmex", "Bitopro", "Bitpanda", "Bitrue", "Bitso", "Bitstamp", "Bitteam", "Bitvavo", "Bl3p", "Blockchaincom", "Blofin", "Btcalpha", "Btcbox", "Btcmarkets", "Btcturk", "Bybit", "Cex", "Coinbase", "Coinbaseadvanced", "Coinbaseexchange", "Coinbaseinternational", "Coincatch", "Coincheck", "Coinex", "Coinlist", "Coinmate", "Coinmetro", "Coinone", "Coinsph", "Coinspot", "Cryptocom", "Currencycom", "Defx", "Delta", "Deribit", "Digifinex", "Ellipx", "Exmo", "Fmfwio", "Gate", "Gateio", "Gemini", "Hashkey", "Hitbtc", "Hollaex", "Htx", "Huobi", "Huobijp", "Hyperliquid", "Idex", "Independentreserve", "Indodax", "Kraken", "Krakenfutures", "Kucoin", "Kucoinfutures", "Kuna", "Latoken", "Lbank", "Luno", "Mercado", "Mexc", "Myokx", "Ndax", "Novadax", "Oceanex", "Okcoin", "Okx", "Onetrading", "Oxfun", "P2b", "Paradex", "Paymium", "Phemex", "Poloniex", "Poloniexfutures", "Probit", "Timex", "Tokocrypto", "Tradeogre", "Upbit", "Vertex", "Wavesexchange", "Whitebit", "Woo", "Woofipro", "Xt", "Yobit", "Zaif", "Zonda" };
