@@ -1797,7 +1797,13 @@
             "fetchTrades": {
                 "takerOrMaker": "handle error in tests with maker"
             },
-            "fetchOHLCV": "index 1 (open price) could be higher than index 2 (high) or lower than index 3 (low)"
+            "fetchOHLCV": "index 1 (open price) could be higher than index 2 (high) or lower than index 3 (low)",
+            "watchTrades": {
+                "side": "not provided"
+            },
+            "watchMyTrades": {
+                "side": "not provided"
+            }
         }
     }
 }
