@@ -56,10 +56,7 @@ export default class coindcx extends coindcxRest {
                 'OHLCVLimit': 1000,
                 'orderbook': {},
             },
-            'streaming': {
-                'ping': this.ping,
-                'keepAlive': 50000,
-            },
+            'streaming': {},
             'exceptions': {
                 'exact': {
                     'unrecognised input': AuthenticationError,
@@ -83,9 +80,8 @@ export default class coindcx extends coindcxRest {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const suffix = '@trades';
-        const channelName = marketId + suffix;
-        const messageHash = 'new-trade:' + symbol;
+        const channelName = marketId + '@trades';
+        const messageHash = 'new-trade:' + this.symbol (symbol);
         const request: Dict = {
             'type': 'subscribe',
             'channelName': channelName,
@@ -198,6 +194,7 @@ export default class coindcx extends coindcxRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const timeframes = this.safeDict (this.options, 'wsTimeframes', {});
@@ -284,8 +281,7 @@ export default class coindcx extends coindcxRest {
                 this.safeFloat (data, 'v'),
             ];
         }
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol (marketId);
         const messageHash = event + ':' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -310,8 +306,7 @@ export default class coindcx extends coindcxRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
         let exchangeLimit = '50';
         if (limit) {
