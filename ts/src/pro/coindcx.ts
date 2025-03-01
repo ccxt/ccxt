@@ -288,10 +288,13 @@ export default class coindcx extends coindcxRest {
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
-        if ((limit !== 10) && (limit !== 20) && (limit !== 50)) {
-            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be 10, 20, or 50');
+        let exchangeLimit = 50;
+        if (limit <= 11) {
+            exchangeLimit = 10;
+        } else if (limit <= 21) {
+            exchangeLimit = 20;
         }
-        const channelName = marketId + '@' + 'orderbook' + '@' + limit;
+        const channelName = marketId + '@' + 'orderbook' + '@' + exchangeLimit;
         const messageHash = 'orderbook' + ':' + symbol;
         const request: Dict = {
             'type': 'subscribe',
