@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -38,7 +38,7 @@ export default class coindcx extends coindcxRest {
                 },
             },
             'options': {
-                'timeframes': {
+                'wsTimeframes': {
                     '1m': '1m',
                     '5m': '5m',
                     '15m': '15m',
@@ -199,15 +199,16 @@ export default class coindcx extends coindcxRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '4h') && (timeframe !== '8h') && (timeframe !== '1d') && (timeframe !== '3d') && (timeframe !== '1w') && (timeframe !== '1M')) {
-            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
-        }
         const market = this.market (symbol);
-        const marketId = market['id'];
         const url = this.urls['api']['ws'];
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const channelName = marketId + '_' + interval;
-        const messageHash = 'candlestick:' + symbol;
+        const timeframes = this.safeDict (this.options, 'wsTimeframes', {});
+        const interval = this.safeString (timeframes, timeframe, timeframe);
+        const messageHash = 'candlestick:' + symbol + ':' + interval;
+        const marketType = this.safeString (market, 'type');
+        let channelName = market['id'] + '_' + interval + '-' + 'futures';
+        if (marketType === 'spot') {
+            channelName = 'B-' + market['base'] + '_' + market['quote'] + '_' + interval;
+        }
         const request: Dict = {
             'type': 'subscribe',
             'channelName': channelName,
@@ -221,6 +222,7 @@ export default class coindcx extends coindcxRest {
 
     handleOHLCV (client: Client, message) {
         //
+        // spot
         //     event: 'candlestick',
         //     data: {
         //         B: '0',
@@ -245,23 +247,44 @@ export default class coindcx extends coindcxRest {
         //         x: false
         //     }
         //
-        const data = this.safeDict (message, 'data');
+        // swap
+        //     {
+        //         event: 'candlestick',
+        //         data: {
+        //             Ets: 1740859806718,
+        //             channel: 'B-ETH_USDT_1m-futures',
+        //             data: [ [Object] ],
+        //             ecode: 'B',
+        //             i: '1m',
+        //             pr: 'futures',
+        //             pts: 1740859806799
+        //         }
+        //     }
+        //
+        let data = this.safeDict (message, 'data');
+        const marketType = this.safeString (message, 'pr');
         const event = this.safeString (message, 'event');
-        const channel = this.safeString (data, 'channel');
-        const parts = channel.split ('_');
-        const marketId = parts[0] + '_' + parts[1];
+        const timeframe = this.safeString (data, 'i');
+        let marketId = this.safeString (data, 's');
+        let parsed = [];
+        if (marketType === 'futures') {
+            const dataList = this.safeList (data, 'data', []);
+            data = this.safeDict (dataList, 0, {});
+            marketId = this.safeString (data, 'pair');
+            parsed = this.parseOHLCV (data);
+        } else {
+            parsed = [
+                this.safeInteger (data, 't'),
+                this.safeFloat (data, 'o'),
+                this.safeFloat (data, 'h'),
+                this.safeFloat (data, 'l'),
+                this.safeFloat (data, 'c'),
+                this.safeFloat (data, 'v'),
+            ];
+        }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const timeframe = this.safeString (data, 'i');
-        const messageHash = event + ':' + symbol;
-        const parsed = [
-            this.safeInteger (data, 't'),
-            this.safeFloat (data, 'o'),
-            this.safeFloat (data, 'h'),
-            this.safeFloat (data, 'l'),
-            this.safeFloat (data, 'c'),
-            this.safeFloat (data, 'v'),
-        ];
+        const messageHash = event + ':' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -288,11 +311,11 @@ export default class coindcx extends coindcxRest {
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
-        let exchangeLimit = 50;
+        let exchangeLimit = '50';
         if (limit <= 11) {
-            exchangeLimit = 10;
+            exchangeLimit = '10';
         } else if (limit <= 21) {
-            exchangeLimit = 20;
+            exchangeLimit = '20';
         }
         const channelName = marketId + '@' + 'orderbook' + '@' + exchangeLimit;
         const messageHash = 'orderbook' + ':' + symbol;
