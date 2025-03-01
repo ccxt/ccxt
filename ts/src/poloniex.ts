@@ -57,6 +57,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -202,6 +203,8 @@ export default class poloniex extends Exchange {
                         'v3/market/orderBook': 3 / 5,
                         'v3/market/candles': 3 / 5,
                         'v3/market/trades': 3 / 5,
+                        'v3/market/liquidationOrder': 3 / 5,
+                        'v3/market/tickers': 3 / 5,
                     },
                 },
             },
@@ -252,6 +255,7 @@ export default class poloniex extends Exchange {
                 'UST': 'USTC',
             },
             'options': {
+                'defaultType': 'spot',
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BEP20': 'BSC',
@@ -565,7 +569,7 @@ export default class poloniex extends Exchange {
             if (this.inArray (timeframe, [ '10m', '1M' ])) {
                 throw new NotSupported (this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
             }
-            const result = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
+            const responseRaw = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
             //
             //     {
             //         code: "200",
@@ -583,7 +587,7 @@ export default class poloniex extends Exchange {
             //             "1740770099999",
             //           ],
             //
-            const data = this.safeList (result, 'data');
+            const data = this.safeList (responseRaw, 'data');
             return this.parseOHLCVs (data, market, timeframe, since, limit);
         }
         const response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
@@ -897,6 +901,8 @@ export default class poloniex extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
+        //  spot:
+        //
         //     {
         //         "symbol" : "BTC_USDT",
         //         "open" : "26053.33",
@@ -918,35 +924,54 @@ export default class poloniex extends Exchange {
         //         "markPrice" : "26444.11"
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'ts');
-        const marketId = this.safeString (ticker, 'symbol');
+        //  swap:
+        //
+        //            {
+        //                "s": "XRP_USDT_PERP",
+        //                "o": "2.0503",
+        //                "l": "2.0066",
+        //                "h": "2.216",
+        //                "c": "2.1798",
+        //                "qty": "21090",
+        //                "amt": "451339.65",
+        //                "tC": "3267",
+        //                "sT": "1740736380000",
+        //                "cT": "1740822777559",
+        //                "dN": "XRP/USDT/PERP",
+        //                "dC": "0.0632",
+        //                "bPx": "2.175",
+        //                "bSz": "3",
+        //                "aPx": "2.1831",
+        //                "aSz": "111",
+        //                "mPx": "2.1798",
+        //                "iPx": "2.1834"
+        //            },
+        //
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'cT');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
         market = this.safeMarket (marketId);
-        const close = this.safeString (ticker, 'close');
-        const relativeChange = this.safeString (ticker, 'dailyChange');
+        const relativeChange = this.safeString2 (ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul (relativeChange, '100');
-        const bidVolume = this.safeString (ticker, 'bidQuantity');
-        const askVolume = this.safeString (ticker, 'askQuantity');
         return this.safeTicker ({
             'id': marketId,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': bidVolume,
-            'ask': this.safeString (ticker, 'ask'),
-            'askVolume': askVolume,
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
+            'bid': this.safeString2 (ticker, 'bid', 'bPx'),
+            'bidVolume': this.safeString2 (ticker, 'bidQuantity', 'bSz'),
+            'ask': this.safeString2 (ticker, 'ask', 'aPx'),
+            'askVolume': this.safeString2 (ticker, 'askQuantity', 'aSz'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': close,
-            'last': close,
+            'open': this.safeString2 (ticker, 'open', 'o'),
+            'close': this.safeString2 (ticker, 'close', 'c'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'quantity'),
-            'quoteVolume': this.safeString (ticker, 'amount'),
+            'baseVolume': this.safeString2 (ticker, 'quantity', 'qty'),
+            'quoteVolume': this.safeString2 (ticker, 'amount', 'amt'),
             'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
@@ -963,7 +988,40 @@ export default class poloniex extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        if (marketType === 'swap') {
+            const responseRaw = await this.swapPublicGetV3MarketTickers (params);
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "s": "XRP_USDT_PERP",
+            //                "o": "2.0503",
+            //                "l": "2.0066",
+            //                "h": "2.216",
+            //                "c": "2.1798",
+            //                "qty": "21090",
+            //                "amt": "451339.65",
+            //                "tC": "3267",
+            //                "sT": "1740736380000",
+            //                "cT": "1740822777559",
+            //                "dN": "XRP/USDT/PERP",
+            //                "dC": "0.0632",
+            //                "bPx": "2.175",
+            //                "bSz": "3",
+            //                "aPx": "2.1831",
+            //                "aSz": "111",
+            //                "mPx": "2.1798",
+            //                "iPx": "2.1834"
+            //            },
+            //
+            const data = this.safeList (responseRaw, 'data');
+            return this.parseTickers (data, symbols);
+        }
         const response = await this.publicGetMarketsTicker24h (params);
         //
         //     [
@@ -1298,7 +1356,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit; // max 1000, for spot & swap
         }
         if (market['contract']) {
-            const result = await this.swapPublicGetV3MarketTrades (this.extend (request, params));
+            const response = await this.swapPublicGetV3MarketTrades (this.extend (request, params));
             //
             //     {
             //         code: "200",
@@ -1313,7 +1371,7 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList (result, 'data');
+            const tradesList = this.safeList (response, 'data');
             return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
@@ -2062,7 +2120,7 @@ export default class poloniex extends Exchange {
             }
         }
         if (market['contract']) {
-            const result = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
+            const responseRaw = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
             //
             //    {
             //       "code": 200,
@@ -2075,7 +2133,7 @@ export default class poloniex extends Exchange {
             //       "msg": "Success"
             //    }
             //
-            const data = this.safeDict (result, 'data', {});
+            const data = this.safeDict (responseRaw, 'data', {});
             const ts = this.safeInteger (data, 'ts');
             return this.parseOrderBook (data, symbol, ts);
         }
