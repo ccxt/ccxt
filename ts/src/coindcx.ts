@@ -2048,7 +2048,7 @@ export default class coindcx extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name coindcx#fetchCanceledAndClosedOrders
+         * @name coindcx#fetchClosedOrders
          * @description *for contract markets only* fetches information on multiple closed orders made by the user
          * @see https://docs.coindcx.com/#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -2403,7 +2403,7 @@ export default class coindcx extends Exchange {
     async editMarginOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
-         * @name coindcx#editSpotOrder
+         * @name coindcx#editMarginOrder
          * @description edit a trade order
          * @see https://docs.coindcx.com/#edit-price
          * @param {string} id order id
