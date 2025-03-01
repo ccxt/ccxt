@@ -487,6 +487,7 @@ class binance extends Exchange {
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
                         'portfolio/negative-balance-exchange-record' => 2,
+                        'portfolio/pmloan-history' => 5,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
