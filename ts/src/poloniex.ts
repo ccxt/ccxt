@@ -75,7 +75,7 @@ export default class poloniex extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -231,6 +231,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
                         'v3/position/leverages': 20,
+                        'v3/position/mode': 20,
                     },
                     'post': {
                         'v3/trade/order': 4,
@@ -3324,6 +3325,35 @@ export default class poloniex extends Exchange {
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.swapPrivateGetV3PositionMode (params);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {
+        //            "posMode": "ONE_WAY"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const posMode = this.safeBool (data, 'posMode');
+        const hedged = posMode === 'HEDGE';
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     nonce () {
