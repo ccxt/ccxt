@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -42,6 +42,8 @@ export default class poloniex extends Exchange {
                 'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
                 'createStopOrder': true,
                 'createTriggerOrder': true,
+                'addMargin': true,
+                'reduceMargin': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
@@ -233,6 +235,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
                         'v3/trade/position/opens': 20,
+                        'v3/trade/position/history': 20, // todo: method for this
                         'v3/position/leverages': 20,
                         'v3/position/mode': 20,
                     },
@@ -243,6 +246,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/positionAll': 100,
                         'v3/position/leverage': 20,
                         'v3/position/mode': 20,
+                        'v3/position/margin': 20,
                     },
                     'delete': {
                         'v3/trade/order': 2,
@@ -3535,6 +3539,82 @@ export default class poloniex extends Exchange {
             'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
             'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),
         });
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const request: Dict = {
+            'symbol': market['id'],
+            'amnt': Precise.stringAbs (amount),
+            'type': type.toUpperCase (), // 'ADD' or 'REDUCE'
+        };
+        // todo: hedged handling, tricky
+        const response = await this.swapPrivatePostV3PositionMargin (this.extend (request, params));
+        //
+        // {
+        //     "code": 200,
+        //     "data": {
+        //       "amt": "50",
+        //       "lever": "20",
+        //       "symbol": "DOT_USDT_PERP",
+        //       "posSide": "BOTH",
+        //       "type": "ADD"
+        //     },
+        //     "msg": "Success"
+        // }
+        //
+        if (type === 'reduce') {
+            amount = Precise.stringAbs (amount);
+        }
+        const data = this.safeDict (response, 'data');
+        return this.parseMarginModification (data, market);
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const rawType = this.safeString (data, 'type');
+        const type = (rawType === 'ADD') ? 'add' : 'reduce';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': type,
+            'marginMode': undefined,
+            'amount': this.safeNumber (data, 'amt'),
+            'total': undefined,
+            'code': undefined,
+            'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name ascendex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
+    }
+
+    /**
+     * @method
+     * @name ascendex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     nonce () {
