@@ -75,6 +75,7 @@ export default class poloniex extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositions': true,
                 'fetchPositionMode': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -88,6 +89,7 @@ export default class poloniex extends Exchange {
                 'fetchWithdrawals': true,
                 'sandbox': true,
                 'setLeverage': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -230,6 +232,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/opens': 20,
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
+                        'v3/trade/position/opens': 20,
                         'v3/position/leverages': 20,
                         'v3/position/mode': 20,
                     },
@@ -3409,6 +3412,129 @@ export default class poloniex extends Exchange {
         //    }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.swapPrivateGetV3TradePositionOpens (params);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //        ]
+        //    }
+        //
+        const positions = this.safeList (response, 'data', []);
+        return this.parsePositions (positions, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (position, 'cTime');
+        const marginMode = this.safeStringLower (position, 'mngMode');
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            collateral = this.safeString (position, 'isolatedMargin');
+        }
+        // todo: some more fields
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': this.safeNumber (position, 'liqPx'),
+            'entryPrice': this.safeNumber (position, 'openAvgPx'),
+            'unrealizedPnl': this.safeNumber (position, 'upl'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'qty'),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber (position, 'markPx'),
+            'lastPrice': undefined,
+            'side': this.safeStringLower (position, 'posSide'),
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeInteger (position, 'lever'),
+            'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
+            'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),
+        });
     }
 
     nonce () {
