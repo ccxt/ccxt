@@ -239,6 +239,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/position': 20,
                         'v3/trade/positionAll': 100,
                         'v3/position/leverage': 20,
+                        'v3/position/mode': 20,
                     },
                     'delete': {
                         'v3/trade/order': 2,
@@ -3348,12 +3349,38 @@ export default class poloniex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const posMode = this.safeBool (data, 'posMode');
+        const posMode = this.safeString (data, 'posMode');
         const hedged = posMode === 'HEDGE';
         return {
             'info': response,
             'hedged': hedged,
         };
+    }
+
+    /**
+     * @method
+     * @name poloniex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        const mode = hedged ? 'HEDGE' : 'ONE_WAY';
+        const request: Dict = {
+            'posMode': mode,
+        };
+        const response = await this.swapPrivatePostV3PositionMode (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {}
+        //    }
+        //
+        return response;
     }
 
     nonce () {
