@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'ccxt-benchmark'
+    static_configs:
+      - targets: ['benchmark:3000', 'benchmark-python:3003']

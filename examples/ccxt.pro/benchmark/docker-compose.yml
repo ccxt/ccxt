@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  benchmark:
+    build: .
+    container_name: ccxt-benchmark
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    ports:
+      - "3000:3000"
+    environment:
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_SECRET=${BINANCE_SECRET}
+      - BITFINEX_API_KEY=${BITFINEX_API_KEY}
+      - BITFINEX_SECRET=${BITFINEX_SECRET}
+      - NODE_OPTIONS="--max-old-space-size=8192"  # 8GB for Node.js heap
+
+  benchmark-python:
+    build: 
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: ccxt-benchmark-python
+    ports:
+      - "3003:3003"
+    environment:
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_SECRET=${BINANCE_SECRET}
+      - BITFINEX_API_KEY=${BITFINEX_API_KEY}
+      - BITFINEX_SECRET=${BITFINEX_SECRET}
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
