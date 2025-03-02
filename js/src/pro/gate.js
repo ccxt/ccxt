@@ -1193,7 +1193,10 @@ export default class gate extends gateRest {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append(position);
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
