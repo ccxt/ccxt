@@ -3287,6 +3287,8 @@ export default class poloniex extends Exchange {
         request['mgnMode'] = marginMode.toUpperCase ();
         const response = await this.swapPrivateGetV3PositionLeverages (this.extend (request, params));
         //
+        //  for one-way mode:
+        //
         //    {
         //        "code": "200",
         //        "msg": "",
@@ -3300,29 +3302,55 @@ export default class poloniex extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data');
-        const entry = this.safeDict (data, 0);
-        return this.parseLeverage (entry, market);
+        //  for hedge:
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "SHORT"
+        //            },
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "LONG"
+        //            }
+        //        ]
+        //    }
+        //
+        return this.parseLeverage (response, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
         let shortLeverage: Int = undefined;
         let longLeverage: Int = undefined;
-        const posSide = this.safeString (leverage, 'posSide');
-        const lever = this.safeInteger (leverage, 'lever');
-        if (posSide === 'BOTH') {
-            longLeverage = lever;
-            shortLeverage = lever;
-        } else if (posSide === 'LONG') {
-            longLeverage = lever;
-        } else if (posSide === 'SHORT') {
-            shortLeverage = lever;
+        let marketId: Str = undefined;
+        let marginMode: Str = undefined;
+        const data = this.safeList (leverage, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            marketId = this.safeString (entry, 'symbol');
+            marginMode = this.safeString (entry, 'mgnMode');
+            const lever = this.safeInteger (entry, 'lever');
+            const posSide = this.safeString (entry, 'posSide');
+            if (posSide === 'LONG') {
+                longLeverage = lever;
+            } else if (posSide === 'SHORT') {
+                shortLeverage = lever;
+            } else {
+                longLeverage = lever;
+                shortLeverage = lever;
+            }
         }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
-            'marginMode': this.safeStringLower (leverage, 'mgnMode'),
+            'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
