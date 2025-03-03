@@ -763,7 +763,7 @@ export default class cryptomus extends Exchange {
                     cost = cost ? cost : amountToString;
                 }
             }
-            request['value'] = sideBuy ? cost : amountToString;
+            request['quantity'] = sideBuy ? cost : amountToString;
             response = await this.privatePostV2UserApiExchangeOrdersMarket (this.extend (request, params));
         } else if (type === 'limit') {
             if (price === undefined) {
