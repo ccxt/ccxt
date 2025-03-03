@@ -234,40 +234,46 @@ export default class cryptomus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetV1ExchangeMarketTickers (params);
+        const response = await this.publicGetV2UserApiExchangeMarkets (params);
         //
         //     {
-        //         "data": [
+        //         "result": [
         //             {
-        //                 "currency_pair": "XMR_USDT",
-        //                 "last_price": "158.04829771",
-        //                 "base_volume": "0.35185785",
-        //                 "quote_volume": "55.523761128544"
-        //             },
-        //             {
-        //                 "currency_pair": "AVAX_USDT",
-        //                 "last_price": "23.80761382",
-        //                 "base_volume": "45.09235372",
-        //                 "quote_volume": "1073.5458110958"
+        //                 "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //                 "symbol": "POL_USDT",
+        //                 "baseCurrency": "POL",
+        //                 "quoteCurrency": "USDT",
+        //                 "baseMinSize": "1.00000000",
+        //                 "quoteMinSize": "5.00000000",
+        //                 "baseMaxSize": "50000.00000000",
+        //                 "quoteMaxSize": "10000000000.00000000",
+        //                 "basePrec": "1",
+        //                 "quotePrec": "4"
         //             },
         //             ...
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data');
-        return this.parseMarkets (data);
+        const result = this.safeList (response, 'result', []);
+        return this.parseMarkets (result);
     }
 
     parseMarket (market: Dict): Market {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829771",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //         "symbol": "POL_USDT",
+        //         "baseCurrency": "POL",
+        //         "quoteCurrency": "USDT",
+        //         "baseMinSize": "1.00000000",
+        //         "quoteMinSize": "5.00000000",
+        //         "baseMaxSize": "50000.00000000",
+        //         "quoteMaxSize": "10000000000.00000000",
+        //         "basePrec": "1",
+        //         "quotePrec": "4"
         //     }
         //
-        const marketId = this.safeString (market, 'currency_pair');
+        const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
         const baseId = parts[0];
         const quoteId = parts[1];
@@ -305,17 +311,17 @@ export default class cryptomus extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrec'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrec'))),
             },
             'limits': {
                 'amount': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'quoteMinSize'),
+                    'max': this.safeNumber (market, 'quoteMaxSize'),
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'baseMinSize'),
+                    'max': this.safeNumber (market, 'baseMaxSize'),
                 },
                 'leverage': {
                     'min': undefined,
