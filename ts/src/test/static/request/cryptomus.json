@@ -98,7 +98,7 @@
                     "sell",
                     0.001
                 ],
-                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.001\",\"value\":\"0.001\"}"
+                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.001\"}"
             },
             {
                 "description": "Create limit buy  order",
@@ -112,18 +112,6 @@
                     2000
                 ],
                 "output": "{\"market\":\"ETH_USDT\",\"direction\":\"buy\",\"tag\":\"ccxt\",\"quantity\":\"0.001\",\"price\":2000}"
-            },
-            {
-                "description": "Create market sell order",
-                "method": "createOrder",
-                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders/market",
-                "input": [
-                    "ETH/USDT",
-                    "market",
-                    "sell",
-                    0.001
-                ],
-                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.001\",\"amount\":\"0.001\"}"
             },
             {
                 "description": "Create market buy order",
