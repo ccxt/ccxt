@@ -1521,6 +1521,48 @@
         ],
         "createOrder": [
             {
+                "description": "Create market sell order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "httpResponse": "{\"order_id\":\"01JNEDBKSRZX8Q0DG9SKYTFC1J\"}",
+                "parsedResponse": {
+                    "id": "01JNEDBKSRZX8Q0DG9SKYTFC1J",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "01JNEDBKSRZX8Q0DG9SKYTFC1J"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "Create market buy order",
                 "method": "createOrder",
                 "input": [
