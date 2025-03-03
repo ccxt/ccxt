@@ -1276,7 +1276,7 @@ func  (this *bybit) IsUnifiedEnabled(optionalArgs ...interface{}) <- chan interf
                     // so we're assuming UTA is enabled
                     AddElementToObject(this.Options, "enableUnifiedMargin", false)
                     AddElementToObject(this.Options, "enableUnifiedAccount", true)
-                    AddElementToObject(this.Options, "unifiedMarginStatus", 3)
+                    AddElementToObject(this.Options, "unifiedMarginStatus", 6)
         
                     ch <- []interface{}{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
                     return nil
@@ -1346,7 +1346,7 @@ func  (this *bybit) IsUnifiedEnabled(optionalArgs ...interface{}) <- chan interf
                 var accountResult interface{} = this.SafeDict(accountInfo, "result", map[string]interface{} {})
                 AddElementToObject(this.Options, "enableUnifiedMargin", IsEqual(this.SafeInteger(result, "unified"), 1))
                 AddElementToObject(this.Options, "enableUnifiedAccount", IsEqual(this.SafeInteger(result, "uta"), 1))
-                AddElementToObject(this.Options, "unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 3)) // default to uta.1 if not found
+                AddElementToObject(this.Options, "unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
             }
         
             ch <- []interface{}{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
@@ -3648,7 +3648,7 @@ func  (this *bybit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
             var isInverse interface{} =     (IsEqual(typeVar, "inverse"))
             var isFunding interface{} = IsTrue((IsEqual(lowercaseRawType, "fund"))) || IsTrue((IsEqual(lowercaseRawType, "funding")))
             if IsTrue(isUnifiedAccount) {
-                var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 3)
+                var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
                 if IsTrue(IsLessThan(unifiedMarginStatus, 5)) {
                     // it's not uta.20 where inverse are unified
                     if IsTrue(isInverse) {
@@ -4477,7 +4477,7 @@ func  (this *bybit) CreateOrders(orders interface{}, optionalArgs ...interface{}
             }
             var symbols interface{} = this.MarketSymbols(orderSymbols, nil, false, true, true)
             var market interface{} = this.Market(GetValue(symbols, 0))
-            var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 3)
+            var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
             var category interface{} = nil
             categoryparamsVariable := this.GetBybitType("createOrders", market, params);
             category = GetValue(categoryparamsVariable,0);
@@ -4723,7 +4723,7 @@ func  (this *bybit) EditOrders(orders interface{}, optionalArgs ...interface{}) 
             }
             orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
             var market interface{} = this.Market(GetValue(orderSymbols, 0))
-            var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 3)
+            var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
             var category interface{} = nil
             categoryparamsVariable := this.GetBybitType("editOrders", market, params);
             category = GetValue(categoryparamsVariable,0);
