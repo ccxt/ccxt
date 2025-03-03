@@ -44,7 +44,7 @@ export default class cryptomus extends Exchange {
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -130,8 +130,8 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/exchange/market': 1,
-                        'v1/exchange/market/price': 1,
+                        'v2/user-api/exchange/markets': 1,
+                        'v2/user-api/exchange/market/price': 1,
                         'v1/exchange/market/assets': 1,
                         'v1/exchange/market/order-book/{currencyPair}': 1,
                         'v1/exchange/market/tickers': 1,
@@ -141,19 +141,19 @@ export default class cryptomus extends Exchange {
                 'private': {
                     'get': {
                         'v2/user-api/balance': 1,
-                        'v1/user-api/exchange/orders': 1,
-                        'v1/user-api/exchange/orders/history': 1,
+                        'v2/user-api/exchange/orders': 1,
+                        'v2/user-api/exchange/orders/history': 1,
                         'v1/user-api/account/tariffs': 1,
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v1/user-api/exchange/orders': 1,
-                        'v1/user-api/exchange/orders/market': 1,
+                        'v2/user-api/exchange/orders': 1,
+                        'v2/user-api/exchange/orders/market': 1,
                     },
                     'delete': {
-                        'v1/user-api/exchange/orders/{orderId}': 1,
+                        'v2/user-api/exchange/orders/{orderId}': 1,
                     },
                 },
             },
@@ -759,13 +759,13 @@ export default class cryptomus extends Exchange {
             }
             request['amount'] = sideBuy ? cost : amountToString;
             request['value'] = price;
-            response = await this.privatePostV1UserApiExchangeOrdersMarket (this.extend (request, params));
+            response = await this.privatePostV2UserApiExchangeOrdersMarket (this.extend (request, params));
         } else if (type === 'limit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
             }
             request['price'] = price;
-            response = await this.privatePostV1UserApiExchangeOrders (this.extend (request, params));
+            response = await this.privatePostV2UserApiExchangeOrders (this.extend (request, params));
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a type parameter (limit or market)');
         }
@@ -792,7 +792,7 @@ export default class cryptomus extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         request['orderId'] = id;
-        const response = await this.privateDeleteV1UserApiExchangeOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteV2UserApiExchangeOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true
@@ -824,7 +824,7 @@ export default class cryptomus extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        const response = await this.privateGetV1UserApiExchangeOrdersHistory (this.extend (request, params));
+        const response = await this.privateGetV2UserApiExchangeOrdersHistory (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -895,7 +895,7 @@ export default class cryptomus extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        const response = await this.privateGetV1UserApiExchangeOrders (this.extend (request, params));
+        const response = await this.privateGetV2UserApiExchangeOrders (this.extend (request, params));
         //
         //     {
         //         "result": [
