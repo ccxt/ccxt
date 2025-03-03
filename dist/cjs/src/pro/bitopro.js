@@ -74,7 +74,7 @@ class bitopro extends bitopro$1 {
             endPart = market['id'];
         }
         else {
-            endPart = market['id'] + ':' + limit;
+            endPart = market['id'] + ':' + this.numberToString(limit);
         }
         const orderbook = await this.watchPublic('order-books', messageHash, endPart);
         return orderbook.limit();

@@ -6,6 +6,36 @@
         "unifiedAccount": false
     },
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw SOL",
+                "method": "withdraw",
+                "url": "https://api.gateio.ws/api/v4/withdrawals",
+                "input": [
+                    "USDT",
+                    5,
+                    "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"address\":\"Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC\",\"amount\":\"5\",\"chain\":\"SOL\"}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",
@@ -883,7 +913,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"USDT\"}"
             }
         ],
         "fetchFundingHistory": [
@@ -1806,7 +1836,7 @@
             {
                 "description": "fetch the isolated borrow interest",
                 "method": "fetchBorrowInterest",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=usdt&currency_pair=BTC_USDT",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=USDT&currency_pair=BTC_USDT",
                 "input": [
                   "USDT",
                   "BTC/USDT",
@@ -1820,7 +1850,7 @@
             {
                 "description": "fetch the borrow interest of the unified account",
                 "method": "fetchBorrowInterest",
-                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=usdt",
+                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=USDT",
                 "input": [
                   "USDT",
                   null,

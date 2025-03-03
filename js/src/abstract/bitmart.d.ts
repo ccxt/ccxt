@@ -27,6 +27,7 @@ interface Exchange {
     publicGetContractPublicFundingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicKline(params?: {}): Promise<implicitReturnType>;
     publicGetAccountV1Currencies(params?: {}): Promise<implicitReturnType>;
+    publicGetContractPublicMarkpriceKline(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferList(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountMainV1Wallet(params?: {}): Promise<implicitReturnType>;
@@ -41,6 +42,7 @@ interface Exchange {
     privateGetAccountV1WithdrawCharge(params?: {}): Promise<implicitReturnType>;
     privateGetAccountV2DepositWithdrawHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountV1DepositWithdrawDetail(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountV1WithdrawAddressList(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1OrderDetail(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV2Orders(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1Trades(params?: {}): Promise<implicitReturnType>;
@@ -106,6 +108,8 @@ interface Exchange {
     privatePostContractPrivateModifyPlanOrder(params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyPresetPlanOrder(params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyTpSlOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitTrailOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateCancelTrailOrder(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -291,6 +291,38 @@
                 "output": "timestamp=1699380695835&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu392bafca1fb740208ee8d3&newOrderRespType=RESULT&type=LIMIT&quantity=0.2&price=50&timeInForce=GTX&recvWindow=10000&signature=27dfce7c02d210d4d88f029e34550f153283e849b34bbf80aebbc7f860937b84"
             },
             {
+                "description": "spot isolated",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/margin/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.15,
+                  40,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "output": "timestamp=1726126410920&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S829ee307a9c5b6406893c9fd&isIsolated=true&newOrderRespType=FULL&type=LIMIT&quantity=0.15&price=40&timeInForce=GTC&recvWindow=10000&signature=cdda411d70279bbc920d218fcb6c772c7e0d7114041854c4bf611c1bfb001eb2"
+            },
+            {
+                "description": "spot cross",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/margin/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.15,
+                  40,
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "timestamp=1726126711973&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82ad18e3768ed94e88bde664&newOrderRespType=FULL&type=LIMIT&quantity=0.15&price=40&timeInForce=GTC&recvWindow=10000&signature=c71bd2e5740c2f2d8f4eb3c8530c933e94a5d718cc286687cff398566533b7da"
+            },
+            {
                 "description": "Swap trailingPercent order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
