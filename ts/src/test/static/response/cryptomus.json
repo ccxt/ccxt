@@ -1529,9 +1529,9 @@
                     "sell",
                     0.001
                 ],
-                "httpResponse": "{\"order_id\":\"01JNEDBKSRZX8Q0DG9SKYTFC1J\"}",
+                "httpResponse": "{\"order_id\":\"01JNEECXEE8C0E06HA9NQHM99B\"}",
                 "parsedResponse": {
-                    "id": "01JNEDBKSRZX8Q0DG9SKYTFC1J",
+                    "id": "01JNEECXEE8C0E06HA9NQHM99B",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
@@ -1553,7 +1553,7 @@
                     "fee": null,
                     "trades": [],
                     "info": {
-                        "order_id": "01JNEDBKSRZX8Q0DG9SKYTFC1J"
+                        "order_id": "01JNEECXEE8C0E06HA9NQHM99B"
                     },
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -1597,48 +1597,6 @@
                     "trades": [],
                     "info": {
                         "order_id": "01JNECK29M1993PGNC9CXDGM3Y"
-                    },
-                    "fees": [],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                }
-            },
-            {
-                "description": "Create market sell order",
-                "method": "createOrder",
-                "input": [
-                    "ETH/USDT",
-                    "market",
-                    "sell",
-                    0.001
-                ],
-                "httpResponse": "{\"order_id\":\"01JNECJHDF52W4A7PVTVNAAF6Q\"}",
-                "parsedResponse": {
-                    "id": "01JNECJHDF52W4A7PVTVNAAF6Q",
-                    "clientOrderId": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "lastTradeTimestamp": null,
-                    "symbol": "ETH/USDT",
-                    "type": null,
-                    "timeInForce": null,
-                    "postOnly": null,
-                    "side": null,
-                    "price": null,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "amount": null,
-                    "cost": null,
-                    "average": null,
-                    "filled": null,
-                    "remaining": null,
-                    "status": null,
-                    "fee": null,
-                    "trades": [],
-                    "info": {
-                        "order_id": "01JNECJHDF52W4A7PVTVNAAF6Q"
                     },
                     "fees": [],
                     "lastUpdateTimestamp": null,
