@@ -18,7 +18,8 @@ interface Exchange {
     privateGetV2UserApiBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiExchangeOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetV1UserApiAccountTariffs (params?: {}): Promise<implicitReturnType>;
+    privateGetV2UserApiExchangeAccountBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetV2UserApiExchangeAccountTariffs (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiPaymentServices (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiPayoutServices (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiTransactionList (params?: {}): Promise<implicitReturnType>;
