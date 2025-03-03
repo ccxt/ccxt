@@ -81,6 +81,11 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostAddExport",parameters);
     }
 
+    public async Task<object> privatePostAmendOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAmendOrder",parameters);
+    }
+
     public async Task<object> privatePostBalance (object parameters = null)
     {
         return await this.callAsync ("privatePostBalance",parameters);

@@ -515,64 +515,161 @@
                         "nextFundingDatetime": null,
                         "previousFundingRate": null,
                         "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "previousFundingDatetime": null,
+                        "interval": null
                     }
                 }
             }
         ],
         "fetchOpenInterest": [
             {
-                "description": "fetch OpenInterest",
+                "description": "fetch the open interest of a unified linear swap symbol",
                 "method": "fetchOpenInterest",
                 "input": [
-                    "SOL/USDC:USDC"
+                  "SOL/USDC:USDC"
                 ],
                 "httpResponse": {
-                    "SOL-PERP_USDC": {
-                        "ticker_id": "SOL-PERP_USDC",
-                        "base_currency": "SOL-PERP",
-                        "quote_currency": "USDC",
-                        "last_price": "170.512",
-                        "base_volume": "18707.0",
-                        "quote_volume": "3215648.053220067",
-                        "product_type": "perpetual",
-                        "contract_price": "170.51551470021332",
-                        "contract_price_currency": "USD",
-                        "open_interest": "145974.0",
-                        "open_interest_usd": "24890831.74284894",
-                        "index_price": "170.7464188081763",
-                        "mark_price": "170.3300719168569",
-                        "funding_rate": "-0.002440357802150754",
-                        "next_funding_rate_timestamp": "1717736400",
-                        "price_change_percent_24h": "-1.7922116060212385"
-                    }
+                  "SOL-PERP_USDC": {
+                    "ticker_id": "SOL-PERP_USDC",
+                    "base_currency": "SOL-PERP",
+                    "quote_currency": "USDC",
+                    "last_price": "180.586",
+                    "base_volume": "11205.0",
+                    "quote_volume": "2106146.2184327813",
+                    "product_type": "perpetual",
+                    "contract_price": "180.56568887112087",
+                    "contract_price_currency": "USD",
+                    "open_interest": "2925.5",
+                    "open_interest_usd": "528244.9227924641",
+                    "index_price": "180.68562290740093",
+                    "mark_price": "180.64793109646737",
+                    "funding_rate": "-0.00020819561114687",
+                    "next_funding_rate_timestamp": "1734825600",
+                    "price_change_percent_24h": "-6.760766908367906"
+                  }
                 },
                 "parsedResponse": {
+                  "symbol": "SOL/USDC:USDC",
+                  "openInterestAmount": 2925.5,
+                  "openInterestValue": 528244.9227924641,
+                  "timestamp": null,
+                  "datetime": null,
+                  "info": {
+                    "ticker_id": "SOL-PERP_USDC",
+                    "base_currency": "SOL-PERP",
+                    "quote_currency": "USDC",
+                    "last_price": "180.586",
+                    "base_volume": "11205.0",
+                    "quote_volume": "2106146.2184327813",
+                    "product_type": "perpetual",
+                    "contract_price": "180.56568887112087",
+                    "contract_price_currency": "USD",
+                    "open_interest": "2925.5",
+                    "open_interest_usd": "528244.9227924641",
+                    "index_price": "180.68562290740093",
+                    "mark_price": "180.64793109646737",
+                    "funding_rate": "-0.00020819561114687",
+                    "next_funding_rate_timestamp": "1734825600",
+                    "price_change_percent_24h": "-6.760766908367906"
+                  },
+                  "baseVolume": null,
+                  "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch the open interest for unified symbols",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "SOL/USDC:USDC"
+                  ]
+                ],
+                "httpResponse": {
+                  "WLD-PERP_USDC": {
+                    "ticker_id": "WLD-PERP_USDC",
+                    "base_currency": "WLD-PERP",
+                    "quote_currency": "USDC",
+                    "last_price": "2.1508",
+                    "base_volume": "114325.0",
+                    "quote_volume": "263529.1307322623",
+                    "product_type": "perpetual",
+                    "contract_price": "2.1763030333316675",
+                    "contract_price_currency": "USD",
+                    "open_interest": "154345.0",
+                    "open_interest_usd": "335901.4916795762",
+                    "index_price": "2.1760031982399672",
+                    "mark_price": "2.176768202944781",
+                    "funding_rate": "0.000349487448554836",
+                    "next_funding_rate_timestamp": "1734825600",
+                    "price_change_percent_24h": "-8.224980507028002"
+                  },
+                  "SOL-PERP_USDC": {
+                    "ticker_id": "SOL-PERP_USDC",
+                    "base_currency": "SOL-PERP",
+                    "quote_currency": "USDC",
+                    "last_price": "179.354",
+                    "base_volume": "11205.0",
+                    "quote_volume": "2106159.5237538456",
+                    "product_type": "perpetual",
+                    "contract_price": "180.56568887112087",
+                    "contract_price_currency": "USD",
+                    "open_interest": "2925.5",
+                    "open_interest_usd": "528244.9227924641",
+                    "index_price": "180.63565039228425",
+                    "mark_price": "180.60024230600266",
+                    "funding_rate": "-0.000197154274392456",
+                    "next_funding_rate_timestamp": "1734825600",
+                    "price_change_percent_24h": "-6.760766908367906"
+                  },
+                  "JTO-PERP_USDC": {
+                    "ticker_id": "JTO-PERP_USDC",
+                    "base_currency": "JTO-PERP",
+                    "quote_currency": "USDC",
+                    "last_price": "2.896",
+                    "base_volume": "33910.0",
+                    "quote_volume": "102783.5045504801",
+                    "product_type": "perpetual",
+                    "contract_price": "2.899911827808894",
+                    "contract_price_currency": "USD",
+                    "open_interest": "71360.0",
+                    "open_interest_usd": "206937.70803244266",
+                    "index_price": "2.899470291339763",
+                    "mark_price": "2.9009167569056",
+                    "funding_rate": "0.000497434661637557",
+                    "next_funding_rate_timestamp": "1734825600",
+                    "price_change_percent_24h": "-5.100260960019056"
+                  }
+                },
+                "parsedResponse": {
+                  "SOL/USDC:USDC": {
                     "symbol": "SOL/USDC:USDC",
-                    "openInterestAmount": null,
-                    "openInterestValue": 24890831.74284894,
+                    "openInterestAmount": 2925.5,
+                    "openInterestValue": 528244.9227924641,
                     "timestamp": null,
                     "datetime": null,
                     "info": {
-                        "ticker_id": "SOL-PERP_USDC",
-                        "base_currency": "SOL-PERP",
-                        "quote_currency": "USDC",
-                        "last_price": "170.512",
-                        "base_volume": "18707.0",
-                        "quote_volume": "3215648.053220067",
-                        "product_type": "perpetual",
-                        "contract_price": "170.51551470021332",
-                        "contract_price_currency": "USD",
-                        "open_interest": "145974.0",
-                        "open_interest_usd": "24890831.74284894",
-                        "index_price": "170.7464188081763",
-                        "mark_price": "170.3300719168569",
-                        "funding_rate": "-0.002440357802150754",
-                        "next_funding_rate_timestamp": "1717736400",
-                        "price_change_percent_24h": "-1.7922116060212385"
+                      "ticker_id": "SOL-PERP_USDC",
+                      "base_currency": "SOL-PERP",
+                      "quote_currency": "USDC",
+                      "last_price": "179.354",
+                      "base_volume": "11205.0",
+                      "quote_volume": "2106159.5237538456",
+                      "product_type": "perpetual",
+                      "contract_price": "180.56568887112087",
+                      "contract_price_currency": "USD",
+                      "open_interest": "2925.5",
+                      "open_interest_usd": "528244.9227924641",
+                      "index_price": "180.63565039228425",
+                      "mark_price": "180.60024230600266",
+                      "funding_rate": "-0.000197154274392456",
+                      "next_funding_rate_timestamp": "1734825600",
+                      "price_change_percent_24h": "-6.760766908367906"
                     },
                     "baseVolume": null,
                     "quoteVolume": null
+                  }
                 }
             }
         ],
@@ -796,7 +893,8 @@
                     "nextFundingDatetime": null,
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": null
                 }
             }
         ],
@@ -4669,6 +4767,8 @@
                         "average": null,
                         "baseVolume": 30851.79,
                         "quoteVolume": 117809333.88248695,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "ticker_id": "ETH-PERP_USDC",
                             "base_currency": "ETH-PERP",

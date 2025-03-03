@@ -305,7 +305,7 @@
                         "timestamp": 1723228261453,
                         "datetime": "2024-08-09T18:31:01.453Z",
                         "symbol": "BTC/USDT",
-                        "side": null,
+                        "side": "buy",
                         "price": 60064.04,
                         "amount": 0.00024,
                         "cost": 14.4153696,
@@ -345,7 +345,7 @@
                         "timestamp": 1723228382236,
                         "datetime": "2024-08-09T18:33:02.236Z",
                         "symbol": "BTC/USDT:USDT",
-                        "side": null,
+                        "side": "buy",
                         "price": 60125.7,
                         "amount": 2,
                         "cost": 120.2514,
@@ -951,6 +951,8 @@
                     "average": 65334.43,
                     "baseVolume": 840.82448,
                     "quoteVolume": 54553459.3478067,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1721910147500",
                         "s": "BTCUSDT",
@@ -1005,6 +1007,8 @@
                     "average": 2541.34,
                     "baseVolume": 1561096,
                     "quoteVolume": 4138307.86688,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1723212900000",
                         "s": "ETHUSDT-PERPETUAL",
@@ -3090,7 +3094,8 @@
                     "nextFundingDatetime": "2024-08-05T16:00:00.000Z",
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": null
                 }
             }
         ],

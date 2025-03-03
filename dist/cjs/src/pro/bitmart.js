@@ -6,7 +6,7 @@ var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitmart extends bitmart$1 {
     describe() {
@@ -101,6 +101,11 @@ class bitmart extends bitmart$1 {
         }
         else {
             messageHash = 'futures/' + channel + ':' + market['id'];
+            const speed = this.safeString(params, 'speed');
+            if (speed !== undefined) {
+                params = this.omit(params, 'speed');
+                messageHash += ':' + speed;
+            }
             request = {
                 'action': 'subscribe',
                 'args': [messageHash],
@@ -113,7 +118,7 @@ class bitmart extends bitmart$1 {
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        let rawSubscriptions = [];
+        const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
@@ -122,25 +127,26 @@ class bitmart extends bitmart$1 {
             messageHashes.push(channel + ':' + market['symbol']);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
-        if ((type !== 'spot') && (channel === 'ticker')) {
-            rawSubscriptions = [channelType + '/' + channel];
-        }
+        // if ((type !== 'spot') && (channel === 'ticker')) {
+        //     rawSubscriptions = [ channelType + '/' + channel ];
+        // }
+        // Exchange update from 2025-02-11 supports subscription by trading pair for swap
         const request = {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), rawSubscriptions);
     }
+    /**
+     * @method
+     * @name bitmart#watchBalance
+     * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchBalance
-         * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -265,33 +271,33 @@ class bitmart extends bitmart$1 {
         const messageHash = 'balance:' + type;
         client.resolve(this.balance[type], messageHash);
     }
+    /**
+     * @method
+     * @name bitmart#watchTrades
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchTrades
-         * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name bitmart#watchTradesForSymbols
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchTradesForSymbols
-         * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-         * @description get the list of most recent trades for a list of symbols
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         let marketType = undefined;
         [symbols, marketType, params] = this.getParamsForMultipleSub('watchTradesForSymbols', symbols, limit, params);
@@ -315,33 +321,33 @@ class bitmart extends bitmart$1 {
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params);
         return [symbols, marketType, params];
     }
+    /**
+     * @method
+     * @name bitmart#watchTicker
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchTicker
-         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
     }
+    /**
+     * @method
+     * @name bitmart#watchTickers
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchTickers
-         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -354,17 +360,17 @@ class bitmart extends bitmart$1 {
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name bitmart#watchBidsAsks
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchBidsAsks
-         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
-         * @description watches best bid & ask for symbols
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const firstMarket = this.getMarketFromSymbols(symbols);
@@ -432,19 +438,19 @@ class bitmart extends bitmart$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name bitmart#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         let messageHash = 'orders';
@@ -722,16 +728,18 @@ class bitmart extends bitmart$1 {
         };
         return this.safeString(sides, sideId, sideId);
     }
+    /**
+     * @method
+     * @name bitmart#watchPositions
+     * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchPositions
-         * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
-         * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets();
         const type = 'swap';
         await this.authenticate(type, params);
@@ -938,39 +946,44 @@ class bitmart extends bitmart$1 {
     }
     parseWsTrade(trade, market = undefined) {
         // spot
-        //    {
-        //        "price": "52700.50",
-        //        "s_t": 1630982050,
-        //        "side": "buy",
-        //        "size": "0.00112",
-        //        "symbol": "BTC_USDT"
-        //    }
-        // swap
-        //    {
-        //       "trade_id":6798697637,
-        //       "contract_id":1,
-        //       "symbol":"BTCUSDT",
-        //       "deal_price":"39735.8",
-        //       "deal_vol":"2",
-        //       "type":0,
-        //       "way":1,
-        //       "create_time":1701618503,
-        //       "create_time_mill":1701618503517,
-        //       "created_at":"2023-12-03T15:48:23.517518538Z"
-        //    }
+        //     {
+        //         "ms_t": 1740320841473,
+        //         "price": "2806.54",
+        //         "s_t": 1740320841,
+        //         "side": "sell",
+        //         "size": "0.77598",
+        //         "symbol": "ETH_USDT"
+        //     }
         //
-        const contractId = this.safeString(trade, 'contract_id');
-        const marketType = (contractId === undefined) ? 'spot' : 'swap';
-        const marketDelimiter = (marketType === 'spot') ? '_' : '';
-        const timestamp = this.safeInteger(trade, 'create_time_mill', this.safeTimestamp(trade, 's_t'));
+        // swap
+        //     {
+        //         "trade_id": "3000000245258661",
+        //         "symbol": "ETHUSDT",
+        //         "deal_price": "2811.1",
+        //         "deal_vol": "1858",
+        //         "way": 2,
+        //         "m": true,
+        //         "created_at": "2025-02-23T13:59:59.646490751Z"
+        //     }
+        //
         const marketId = this.safeString(trade, 'symbol');
+        market = this.safeMarket(marketId, market);
+        let timestamp = this.safeInteger(trade, 'ms_t');
+        let datetime = undefined;
+        if (timestamp === undefined) {
+            datetime = this.safeString(trade, 'created_at');
+            timestamp = this.parse8601(datetime);
+        }
+        else {
+            datetime = this.iso8601(timestamp);
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'trade_id'),
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'symbol': this.safeSymbol(marketId, market, marketDelimiter, marketType),
+            'datetime': datetime,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': this.safeString(trade, 'side'),
             'price': this.safeString2(trade, 'price', 'deal_price'),
@@ -996,20 +1009,22 @@ class bitmart extends bitmart$1 {
         //        ],
         //        "table": "spot/ticker"
         //    }
-        //    {
-        //        "group":"futures/ticker",
-        //        "data":{
-        //              "symbol":"BTCUSDT",
-        //              "volume_24":"117387.58",
-        //              "fair_price":"146.24",
-        //              "last_price":"146.24",
-        //              "range":"147.17",
-        //              "ask_price": "147.11",
-        //              "ask_vol": "1",
-        //              "bid_price": "142.11",
-        //              "bid_vol": "1"
-        //            }
-        //    }
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "ETHUSDT",
+        //             "last_price": "2807.73",
+        //             "volume_24": "2227011952",
+        //             "range": "0.0273398194664491",
+        //             "mark_price": "2807.5",
+        //             "index_price": "2808.71047619",
+        //             "ask_price": "2808.04",
+        //             "ask_vol": "7371",
+        //             "bid_price": "2807.28",
+        //             "bid_vol": "3561"
+        //         },
+        //         "group": "futures/ticker:ETHUSDT@100ms"
+        //     }
         //
         this.handleBidAsk(client, message);
         const table = this.safeString(message, 'table');
@@ -1034,17 +1049,19 @@ class bitmart extends bitmart$1 {
     }
     parseWsSwapTicker(ticker, market = undefined) {
         //
-        //    {
-        //        "symbol":"BTCUSDT",
-        //        "volume_24":"117387.58",
-        //        "fair_price":"146.24",
-        //        "last_price":"146.24",
-        //        "range":"147.17",
-        //        "ask_price": "147.11",
-        //        "ask_vol": "1",
-        //        "bid_price": "142.11",
-        //        "bid_vol": "1"
-        //    }
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "last_price": "2807.73",
+        //         "volume_24": "2227011952",
+        //         "range": "0.0273398194664491",
+        //         "mark_price": "2807.5",
+        //         "index_price": "2808.71047619",
+        //         "ask_price": "2808.04",
+        //         "ask_vol": "7371",
+        //         "bid_price": "2807.28",
+        //         "bid_vol": "3561"
+        //     }
+        //
         const marketId = this.safeString(ticker, 'symbol');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, '', 'swap'),
@@ -1063,26 +1080,28 @@ class bitmart extends bitmart$1 {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeString(ticker, 'fair_price'),
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(ticker, 'volume_24'),
             'info': ticker,
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
         }, market);
     }
+    /**
+     * @method
+     * @name bitmart#watchOHLCV
+     * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchOHLCV
-         * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const market = this.market(symbol);
@@ -1196,19 +1215,20 @@ class bitmart extends bitmart$1 {
             client.resolve(stored, channel);
         }
     }
+    /**
+     * @method
+     * @name bitmart#watchOrderBook
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.speed] *futures only* '100ms' or '200ms'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchOrderBook
-         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
-         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrderBook', {});
         let depth = this.safeString(options, 'depth', 'depth/increase100');
@@ -1431,18 +1451,18 @@ class bitmart extends bitmart$1 {
             client.resolve(orderbook, messageHashForMulti);
         }
     }
+    /**
+     * @method
+     * @name bitmart#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         let type = undefined;
         [symbols, type, params] = this.getParamsForMultipleSub('watchOrderBookForSymbols', symbols, limit, params);

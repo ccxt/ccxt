@@ -94,6 +94,8 @@
                     "average": null,
                     "baseVolume": 19018.83725,
                     "quoteVolume": 1362205687.8796,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "date": 1710328246,
                         "vol": "19018.83725",
@@ -142,6 +144,106 @@
                         114.77683
                     ]
                 ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer 5 USDT from spot to margin account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "margin"
+                ],
+                "httpResponse": {
+                    "code": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0"
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "transfer 5 USDT from spot to swap account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "swap"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": {
+                        "type": "1",
+                        "currency": "USDT",
+                        "transfer_amount": "5"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": {
+                            "type": "1",
+                            "currency": "USDT",
+                            "transfer_amount": "5"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 5,
+                    "fromAccount": "spot",
+                    "toAccount": "swap",
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "transfer 10 USDT from swap to spot account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "swap",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "type": "2",
+                        "currency": "USDT",
+                        "transfer_amount": "10"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": {
+                            "type": "2",
+                            "currency": "USDT",
+                            "transfer_amount": "10"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "swap",
+                    "toAccount": "spot",
+                    "status": "ok"
+                }
             }
         ]
     }

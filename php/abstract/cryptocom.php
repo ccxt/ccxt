@@ -34,6 +34,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v1_public_get_public_get_insurance($params = array()) {
         return $this->request('public/get-insurance', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v1_public_get_public_get_risk_parameters($params = array()) {
+        return $this->request('public/get-risk-parameters', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1_public_post_public_staking_get_conversion_rate($params = array()) {
         return $this->request('public/staking/get-conversion-rate', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -381,6 +384,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1PublicGetPublicGetInsurance($params = array()) {
         return $this->request('public/get-insurance', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v1PublicGetPublicGetRiskParameters($params = array()) {
+        return $this->request('public/get-risk-parameters', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v1PublicPostPublicStakingGetConversionRate($params = array()) {
         return $this->request('public/staking/get-conversion-rate', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 2));

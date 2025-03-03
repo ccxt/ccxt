@@ -237,6 +237,18 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.instType</term>
     /// <description>
     /// string : one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
@@ -281,7 +293,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for watching trigger orders
     /// </description>

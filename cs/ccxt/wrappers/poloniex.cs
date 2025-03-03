@@ -238,7 +238,7 @@ public partial class poloniex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set true to fetch trigger orders instead of regular orders
     /// </description>
@@ -275,7 +275,7 @@ public partial class poloniex
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *spot only* The price at which a trigger order is triggered at
+    /// float : the price at which a trigger order is triggered at
     /// </description>
     /// </item>
     /// <item>
@@ -542,10 +542,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account

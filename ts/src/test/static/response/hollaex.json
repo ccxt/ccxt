@@ -90,7 +90,9 @@
                     "percentage": 1.7401987989921301,
                     "average": 72699.9,
                     "baseVolume": 28,
-                    "quoteVolume": null
+                    "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null
                 }
             }
         ],

@@ -1,7 +1,7 @@
 {
     "exchange": "coinmetro",
     "skipKeys": [],
-    "outputType": "urlencode",
+    "outputType": "urlencoded",
     "methods": {
         "createOrder": [
             {

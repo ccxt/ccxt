@@ -145,7 +145,7 @@
                         "cost": 7.08137472,
                         "trades": [],
                         "fee": {
-                            "cost": "0.00354069",
+                            "cost": 0.00354069,
                             "currency": "USDT"
                         },
                         "info": {
@@ -248,7 +248,7 @@
                     "cost": 7.661,
                     "trades": [],
                     "fee": {
-                      "cost": "0.0038305",
+                      "cost": 0.0038305,
                       "currency": "USDT"
                     },
                     "info": {
@@ -875,7 +875,7 @@
                     }
                   ],
                   "fee": {
-                    "cost": "0.00354069",
+                    "cost": 0.00354069,
                     "currency": "USDT"
                   },
                   "info": {
@@ -1032,7 +1032,7 @@
                     }
                   ],
                   "fee": {
-                    "cost": "0.0001",
+                    "cost": 0.0001,
                     "currency": "LTC"
                   },
                   "info": {

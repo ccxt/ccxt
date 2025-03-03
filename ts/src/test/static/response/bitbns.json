@@ -7180,6 +7180,8 @@
                     "average": 71940.68119999999,
                     "baseVolume": 0.14916274,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC/USDT",
                         "info": {

@@ -24,5 +24,6 @@ function test_fetch_margin_modes($exchange, $skipped_properties, $symbol) {
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $margin_mode, $symbol);
             test_margin_mode($exchange, $skipped_properties, $method, $margin_mode);
         }
+        return true;
     }) ();
 }
