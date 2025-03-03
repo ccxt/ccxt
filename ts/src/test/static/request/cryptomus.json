@@ -87,14 +87,6 @@
                 "output": null
             }
         ],
-        "fetchBalance": [
-            {
-                "description": "Fetch balance",
-                "method": "fetchBalance",
-                "url": "https://api.cryptomus.com/v2/user-api/balance",
-                "input": []
-            }
-        ],
         "createOrder": [
             {
                 "description": "Create limit buy  order",
