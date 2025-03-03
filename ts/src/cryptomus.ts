@@ -130,27 +130,28 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1,
-                        'v2/user-api/exchange/market/price': 1,
-                        'v1/exchange/market/assets': 1,
-                        'v1/exchange/market/order-book/{currencyPair}': 1,
-                        'v1/exchange/market/tickers': 1,
-                        'v1/exchange/market/trades/{currencyPair}': 1,
+                        'v2/user-api/exchange/markets': 1, // done
+                        'v2/user-api/exchange/market/price': 1, // not used
+                        'v1/exchange/market/assets': 1, // done
+                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
+                        'v1/exchange/market/tickers': 1, // done
+                        'v1/exchange/market/trades/{currencyPair}': 1, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/balance': 1,
-                        'v2/user-api/exchange/orders': 1,
+                        'v2/user-api/balance': 1, // done but need to change to another endpoint
+                        'v2/user-api/exchange/orders': 1, // done
                         'v2/user-api/exchange/orders/history': 1,
-                        'v1/user-api/account/tariffs': 1,
+                        'v2/user-api/exchange/account/balance': 1, // todo {"code":0,"message":"The requested resource could not be found on this server."}
+                        'v2/user-api/exchange/account/tariffs': 1,
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1,
-                        'v2/user-api/exchange/orders/market': 1,
+                        'v2/user-api/exchange/orders': 1, // done
+                        'v2/user-api/exchange/orders/market': 1, // done
                     },
                     'delete': {
                         'v2/user-api/exchange/orders/{orderId}': 1,
@@ -666,7 +667,7 @@ export default class cryptomus extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        const response = await this.privateGetV2UserApiBalance (this.extend (request, params));
+        const response = await this.privateGetV2UserApiExchangeAccountBalance (this.extend (request, params));
         //
         //     {
         //         "state": 0,
@@ -719,7 +720,6 @@ export default class cryptomus extends Exchange {
          * @name cryptomus#createOrder
          * @description create a trade order
          * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-         * @see https://api.cryptomus.com/v1/user-api/exchange/orders
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or for spot
          * @param {string} side 'buy' or 'sell'
@@ -743,7 +743,7 @@ export default class cryptomus extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an amount parameter');
         } else {
-            request['amount'] = amountToString;
+            request['quantity'] = amountToString;
         }
         const priceToString = this.numberToString (price);
         let cost = undefined;
@@ -780,8 +780,7 @@ export default class cryptomus extends Exchange {
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result, market);
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -921,8 +920,7 @@ export default class cryptomus extends Exchange {
         //             ...
         //         ]
         //     }
-        const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, undefined, undefined);
     }
 
@@ -991,7 +989,7 @@ export default class cryptomus extends Exchange {
         const id = this.safeString2 (order, 'order_id', 'id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const dateTime = this.safeString (order, 'created_at');
+        const dateTime = this.safeString (order, 'createdAt');
         const timestamp = this.parse8601 (dateTime);
         const deal = this.safeDict (order, 'deal', {});
         const averageFilledPrice = this.safeNumber (deal, 'averageFilledPrice');
@@ -1010,12 +1008,16 @@ export default class cryptomus extends Exchange {
         if (price === undefined) {
             price = this.safeNumber (transaction[0], 'filledPrice');
         }
-        const amount = this.safeNumber (order, 'filledQuantity');
-        const cost = this.safeNumber (order, 'filledValue');
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const amount = this.safeNumber (order, 'quantity');
+        const cost = this.safeNumber (order, 'value');
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        if (status === undefined) {
+            status = 'open';
+        }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1025,12 +1027,12 @@ export default class cryptomus extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString (order, 'stopLossPrice'),
+            'triggerPrice': this.safeString (order, 'stopLossPrice'),
             'amount': amount,
             'cost': cost,
             'average': averageFilledPrice,
-            'filled': undefined,
+            'filled': this.safeString (order, 'filledQuantity'),
             'remaining': undefined,
             'status': status,
             'fee': fee,
