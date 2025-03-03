@@ -9,23 +9,22 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetV1UserApiExchangeMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetV1UserApiExchangeMarketsPrice (params?: {}): Promise<implicitReturnType>;
+    publicGetV2UserApiExchangeMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetV2UserApiExchangeMarketPrice (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketAssets (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketOrderBookCurrencyPair (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketTickers (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketTradesCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    privateGetV1UserApiExchangeMarketsPrice (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetV1UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetV1UserApiExchangeOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV2UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetV2UserApiExchangeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV1UserApiAccountTariffs (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiPaymentServices (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiPayoutServices (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiTransactionList (params?: {}): Promise<implicitReturnType>;
-    privatePostV1UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostV1UserApiExchangeOrdersMarket (params?: {}): Promise<implicitReturnType>;
-    privateDeleteV1UserApiExchangeOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privatePostV2UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostV2UserApiExchangeOrdersMarket (params?: {}): Promise<implicitReturnType>;
+    privateDeleteV2UserApiExchangeOrdersOrderId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
