@@ -57,7 +57,7 @@ export default class cryptomus extends Exchange {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -88,7 +88,7 @@ export default class cryptomus extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -154,7 +154,7 @@ export default class cryptomus extends Exchange {
                         'v2/user-api/exchange/orders/market': 1, // done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': 1,
+                        'v2/user-api/exchange/orders/{orderId}': 1, // done
                     },
                 },
             },
@@ -806,7 +806,7 @@ export default class cryptomus extends Exchange {
         return response;
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptomus#fetchOrders
@@ -828,6 +828,9 @@ export default class cryptomus extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privateGetV2UserApiExchangeOrdersHistory (this.extend (request, params));
         //
         //     {
