@@ -456,6 +456,8 @@ export default class cryptocom extends Exchange {
                 'exact': {
                     '219': InvalidOrder,
                     '314': InvalidOrder,
+                    '325': InvalidOrder,
+                    '415': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
