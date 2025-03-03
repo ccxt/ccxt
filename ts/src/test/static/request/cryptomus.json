@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders?market=ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchCanceledAndClosedOrders": [
             {
                 "description": "Fetch canceled and closed orders",
