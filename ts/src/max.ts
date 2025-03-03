@@ -569,6 +569,12 @@ export default class max extends Exchange {
         return this.networkIdToCode (networkName, code);
     }
 
+    validateTimestamp (methodName: string, timestamp: Int) {
+        if (timestamp < 1512950400000 || timestamp > 4102444800000) {
+            throw new BadRequest (this.id + ' ' + methodName + '() timestamp must be between 1512950400000 (Dec 2017) and 4102444800000 (Dec 2099)');
+        }
+    }
+
     /**
      * @method
      * @name max#fetchCurrencies
@@ -1017,7 +1023,13 @@ export default class max extends Exchange {
             request['limit'] = this.checkLimit ('fetchOHLCV', limit, 1, 10000);
         }
         if (since !== undefined) {
-            request['timestamp'] = this.parseToInt (since / 1000);
+            // Convert milliseconds to seconds for API
+            const sinceSeconds = this.parseToInt (since / 1000);
+            // Validate timestamp
+            if (sinceSeconds < 1512950400 || sinceSeconds > 4102444800) {
+                throw new BadRequest (this.id + ' fetchOHLCV() timestamp must be between Dec 2017 and Dec 2099');
+            }
+            request['timestamp'] = sinceSeconds;
         }
         const response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -1063,9 +1075,10 @@ export default class max extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = this.checkLimit ('fetchOpenOrders', limit);
+            request['limit'] = this.checkLimit ('fetchOpenOrders', limit, 1, 1000);
         }
         if (since !== undefined) {
+            this.validateTimestamp ('fetchOpenOrders', since);
             request['timestamp'] = since;
         }
         const response = await this.privateGetWalletWalletTypeOrdersOpen (this.extend (request, params));
@@ -1294,13 +1307,11 @@ export default class max extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = this.checkLimit ('fetchMyTrades', limit);
+            request['limit'] = this.checkLimit ('fetchMyTrades', limit, 1, 1000);
         }
         if (since !== undefined) {
             // Validate timestamp range
-            if (since < 1512950400000 || since > 4102444800000) {
-                throw new BadRequest (this.id + ' fetchMyTrades() timestamp must be between 1512950400000 and 4102444800000');
-            }
+            this.validateTimestamp ('fetchMyTrades', since);
             request['timestamp'] = since;
         }
         const response = await this.privateGetWalletWalletTypeTrades (this.extend (request, params));
@@ -1641,6 +1652,7 @@ export default class max extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
+        // Validate state parameter
         const validStates = [ 'processing', 'failed', 'canceled', 'done' ];
         let state;
         [ state, params ] = this.handleParamString (params, 'state');
@@ -1651,10 +1663,11 @@ export default class max extends Exchange {
             request['state'] = state;
         }
         if (since !== undefined) {
+            this.validateTimestamp ('fetchWithdrawals', since);
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = this.checkLimit ('fetchWithdrawals', limit);
+            request['limit'] = this.checkLimit ('fetchWithdrawals', limit, 1, 1000);
         }
         const response = await this.privateGetWithdrawals (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
@@ -1792,10 +1805,11 @@ export default class max extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
+            this.validateTimestamp ('fetchDeposits', since);
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = this.checkLimit ('fetchDeposits', limit, 1, 100);
+            request['limit'] = this.checkLimit ('fetchDeposits', limit, 1, 1000);
         }
         const response = await this.privateGetDeposits (this.extend (request, params));
         // Add deposit type for consistency
@@ -2028,10 +2042,11 @@ export default class max extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
+            this.validateTimestamp ('fetchBorrowInterest', since);
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = this.checkLimit ('fetchBorrowInterest', limit, 1, 1000);
         }
         const response = await this.privateGetWalletMInterests (this.extend (request, params));
         // [
