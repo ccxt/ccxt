@@ -867,6 +867,8 @@ func (this *Exchange) binaryLength(binary interface{}) int {
 	switch v := binary.(type) {
 	case []byte:
 		length = len(v)
+	case string:
+		length = len(v)
 	default:
 		panic(fmt.Sprintf("unsupported binary: %v", reflect.TypeOf(binary)))
 	}
