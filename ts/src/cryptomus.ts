@@ -803,8 +803,7 @@ export default class cryptomus extends Exchange {
         //         "success": true
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result);
+        return response;
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -931,11 +930,6 @@ export default class cryptomus extends Exchange {
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
-        // cancelOrder
-        //     {
-        //         "success": true
-        //     }
-        //
         // fetchOrders
         //     {
         //         "id": "01JEXAPY04JDFBVFC2D23BCKMK",
@@ -1010,10 +1004,7 @@ export default class cryptomus extends Exchange {
         }
         const amount = this.safeNumber (order, 'quantity');
         const cost = this.safeNumber (order, 'value');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        if (status === undefined) {
-            status = 'open';
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const clientOrderId = this.safeString (order, 'clientOrderId');
         return this.safeOrder ({
             'id': id,
