@@ -75,12 +75,6 @@
         ],
         "fetchTickers": [
             {
-                "description": "Fetch Tickers with no symbol specified",
-                "method": "fetchTickers",
-                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=aaveusdt&markets[]=adausdt&markets[]=b3trvet&markets[]=bchusdt&markets[]=btcusdt&markets[]=dogeusdt&markets[]=ethusdt&markets[]=haibtc&markets[]=linkusdt&markets[]=ltcusdt&markets[]=mkrusdt&markets[]=ocevet&markets[]=shabtc&markets[]=shausdt&markets[]=shavet&markets[]=usdcusdt&markets[]=vetusdt&markets[]=vthousdt&markets[]=vthovet&markets[]=xrpusdt&",
-                "input": []
-            },
-            {
                 "description": "fetch Tickers with symbols specified",
                 "method": "fetchTickers",
                 "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=btcusdt&markets[]=ethusdt&",
