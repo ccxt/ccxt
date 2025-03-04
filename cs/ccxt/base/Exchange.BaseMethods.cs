@@ -1640,6 +1640,9 @@ public partial class Exchange
     public virtual object safeCurrencyStructure(object currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        object currencyDeposit = this.safeBool(currency, "deposit");
+        object currencyWithdraw = this.safeBool(currency, "withdraw");
+        object currencyActive = this.safeBool(currency, "active");
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)networks).Keys);
         object length = getArrayLength(keys);
@@ -1649,17 +1652,17 @@ public partial class Exchange
             {
                 object network = getValue(networks, getValue(keys, i));
                 object deposit = this.safeBool(network, "deposit");
-                if (isTrue(isTrue(isEqual(getValue(currency, "deposit"), null)) || isTrue(deposit)))
+                if (isTrue(isTrue(isEqual(currencyDeposit, null)) || isTrue(deposit)))
                 {
                     ((IDictionary<string,object>)currency)["deposit"] = deposit;
                 }
                 object withdraw = this.safeBool(network, "withdraw");
-                if (isTrue(isTrue(isEqual(getValue(currency, "withdraw"), null)) || isTrue(withdraw)))
+                if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
                 }
                 object active = this.safeBool(network, "active");
-                if (isTrue(isTrue(isEqual(getValue(currency, "active"), null)) || isTrue(active)))
+                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
                 {
                     ((IDictionary<string,object>)currency)["active"] = active;
                 }
@@ -3322,7 +3325,11 @@ public partial class Exchange
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
                 object defaultNetworkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = ((bool) isTrue((inOp(indexedNetworkEntries, defaultNetworkId)))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
+                if (isTrue(inOp(indexedNetworkEntries, defaultNetworkId)))
+                {
+                    return defaultNetworkId;
+                }
+                throw new NotSupported ((string)add(add(this.id, " - can not determine the default network, please pass param[\"network\"] one from : "), String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
             }
         }
         return chosenNetworkId;

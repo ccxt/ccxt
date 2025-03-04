@@ -640,7 +640,8 @@ public partial class phemex : Exchange
         //     }
         //
         object id = this.safeString(market, "symbol");
-        object baseId = this.safeString2(market, "baseCurrency", "contractUnderlyingAssets");
+        object contractUnderlyingAssets = this.safeString(market, "contractUnderlyingAssets");
+        object baseId = this.safeString(market, "baseCurrency", contractUnderlyingAssets);
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
@@ -651,6 +652,11 @@ public partial class phemex : Exchange
         if (isTrue(!isEqual(settleId, quoteId)))
         {
             inverse = true;
+            // some unhandled cases
+            if (isTrue(!isTrue((inOp(market, "baseCurrency"))) && isTrue(isEqual(bs, quote))))
+            {
+                bs = settle;
+            }
         }
         object priceScale = this.safeInteger(market, "priceScale");
         object ratioScale = this.safeInteger(market, "ratioScale");
@@ -846,7 +852,7 @@ public partial class phemex : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object v2Products = await this.v2GetPublicProducts(parameters);
+        object v2ProductsPromise = this.v2GetPublicProducts(parameters);
         //
         //     {
         //         "code":0,
@@ -996,7 +1002,10 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object v1Products = await this.v1GetExchangePublicProducts(parameters);
+        object v1ProductsPromise = this.v1GetExchangePublicProducts(parameters);
+        var v2Productsv1ProductsVariable = await promiseAll(new List<object>() {v2ProductsPromise, v1ProductsPromise});
+        var v2Products = ((IList<object>) v2Productsv1ProductsVariable)[0];
+        var v1Products = ((IList<object>) v2Productsv1ProductsVariable)[1];
         object v1ProductsData = this.safeValue(v1Products, "data", new List<object>() {});
         //
         //     {
@@ -1033,14 +1042,14 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object v2ProductsData = this.safeValue(v2Products, "data", new Dictionary<string, object>() {});
-        object products = this.safeValue(v2ProductsData, "products", new List<object>() {});
-        object perpetualProductsV2 = this.safeValue(v2ProductsData, "perpProductsV2", new List<object>() {});
+        object v2ProductsData = this.safeDict(v2Products, "data", new Dictionary<string, object>() {});
+        object products = this.safeList(v2ProductsData, "products", new List<object>() {});
+        object perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new List<object>() {});
         products = this.arrayConcat(products, perpetualProductsV2);
-        object riskLimits = this.safeValue(v2ProductsData, "riskLimits", new List<object>() {});
-        object riskLimitsV2 = this.safeValue(v2ProductsData, "riskLimitsV2", new List<object>() {});
+        object riskLimits = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
+        object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new List<object>() {});
         riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
-        object currencies = this.safeValue(v2ProductsData, "currencies", new List<object>() {});
+        object currencies = this.safeList(v2ProductsData, "currencies", new List<object>() {});
         object riskLimitsById = this.indexBy(riskLimits, "symbol");
         object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         object currenciesByCode = this.indexBy(currencies, "currency");
@@ -1052,15 +1061,15 @@ public partial class phemex : Exchange
             if (isTrue(isTrue(isTrue((isEqual(type, "perpetual"))) || isTrue((isEqual(type, "perpetualv2")))) || isTrue((isEqual(type, "perpetualpilot")))))
             {
                 object id = this.safeString(market, "symbol");
-                object riskLimitValues = this.safeValue(riskLimitsById, id, new Dictionary<string, object>() {});
+                object riskLimitValues = this.safeDict(riskLimitsById, id, new Dictionary<string, object>() {});
                 market = this.extend(market, riskLimitValues);
-                object v1ProductsValues = this.safeValue(v1ProductsById, id, new Dictionary<string, object>() {});
+                object v1ProductsValues = this.safeDict(v1ProductsById, id, new Dictionary<string, object>() {});
                 market = this.extend(market, v1ProductsValues);
                 market = this.parseSwapMarket(market);
             } else
             {
                 object baseCurrency = this.safeString(market, "baseCurrency");
-                object currencyValues = this.safeValue(currenciesByCode, baseCurrency, new Dictionary<string, object>() {});
+                object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new Dictionary<string, object>() {});
                 object valueScale = this.safeString(currencyValues, "valueScale", "8");
                 market = this.extend(market, new Dictionary<string, object>() {
                     { "valueScale", valueScale },

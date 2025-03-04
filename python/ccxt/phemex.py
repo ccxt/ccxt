@@ -685,7 +685,8 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string_2(market, 'baseCurrency', 'contractUnderlyingAssets')
+        contractUnderlyingAssets = self.safe_string(market, 'contractUnderlyingAssets')
+        baseId = self.safe_string(market, 'baseCurrency', contractUnderlyingAssets)
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
@@ -695,6 +696,9 @@ class phemex(Exchange, ImplicitAPI):
         inverse = False
         if settleId != quoteId:
             inverse = True
+            # some unhandled cases
+            if not ('baseCurrency' in market) and base == quote:
+                base = settle
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
         valueScale = self.safe_integer(market, 'valueScale')
@@ -880,7 +884,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        v2Products = self.v2GetPublicProducts(params)
+        v2ProductsPromise = self.v2GetPublicProducts(params)
         #
         #     {
         #         "code":0,
@@ -1030,7 +1034,8 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        v1Products = self.v1GetExchangePublicProducts(params)
+        v1ProductsPromise = self.v1GetExchangePublicProducts(params)
+        v2Products, v1Products = [v2ProductsPromise, v1ProductsPromise]
         v1ProductsData = self.safe_value(v1Products, 'data', [])
         #
         #     {
@@ -1067,14 +1072,14 @@ class phemex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        v2ProductsData = self.safe_value(v2Products, 'data', {})
-        products = self.safe_value(v2ProductsData, 'products', [])
-        perpetualProductsV2 = self.safe_value(v2ProductsData, 'perpProductsV2', [])
+        v2ProductsData = self.safe_dict(v2Products, 'data', {})
+        products = self.safe_list(v2ProductsData, 'products', [])
+        perpetualProductsV2 = self.safe_list(v2ProductsData, 'perpProductsV2', [])
         products = self.array_concat(products, perpetualProductsV2)
-        riskLimits = self.safe_value(v2ProductsData, 'riskLimits', [])
-        riskLimitsV2 = self.safe_value(v2ProductsData, 'riskLimitsV2', [])
+        riskLimits = self.safe_list(v2ProductsData, 'riskLimits', [])
+        riskLimitsV2 = self.safe_list(v2ProductsData, 'riskLimitsV2', [])
         riskLimits = self.array_concat(riskLimits, riskLimitsV2)
-        currencies = self.safe_value(v2ProductsData, 'currencies', [])
+        currencies = self.safe_list(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
         currenciesByCode = self.index_by(currencies, 'currency')
@@ -1084,14 +1089,14 @@ class phemex(Exchange, ImplicitAPI):
             type = self.safe_string_lower(market, 'type')
             if (type == 'perpetual') or (type == 'perpetualv2') or (type == 'perpetualpilot'):
                 id = self.safe_string(market, 'symbol')
-                riskLimitValues = self.safe_value(riskLimitsById, id, {})
+                riskLimitValues = self.safe_dict(riskLimitsById, id, {})
                 market = self.extend(market, riskLimitValues)
-                v1ProductsValues = self.safe_value(v1ProductsById, id, {})
+                v1ProductsValues = self.safe_dict(v1ProductsById, id, {})
                 market = self.extend(market, v1ProductsValues)
                 market = self.parse_swap_market(market)
             else:
                 baseCurrency = self.safe_string(market, 'baseCurrency')
-                currencyValues = self.safe_value(currenciesByCode, baseCurrency, {})
+                currencyValues = self.safe_dict(currenciesByCode, baseCurrency, {})
                 valueScale = self.safe_string(currencyValues, 'valueScale', '8')
                 market = self.extend(market, {'valueScale': valueScale})
                 market = self.parse_spot_market(market)
