@@ -252,7 +252,21 @@ export default class coindcx extends coindcxRest {
         //         data: {
         //             Ets: 1740859806718,
         //             channel: 'B-ETH_USDT_1m-futures',
-        //             data: [ [Object] ],
+        //             data: [
+        //                 {
+        //                     close: '2097.18',
+        //                     close_time: 1741089779.999,
+        //                     duration: '1m',
+        //                     high: '2097.56',
+        //                     low: '2097.11',
+        //                     open: '2097.11',
+        //                     open_time: 1741089720,
+        //                     pair: 'B-ETH_USDT',
+        //                     quote_volume: '394154.77372',
+        //                     symbol: 'ETHUSDT',
+        //                     volume: '187.941'
+        //                 }
+        //             ],
         //             ecode: 'B',
         //             i: '1m',
         //             pr: 'futures',
@@ -261,8 +275,7 @@ export default class coindcx extends coindcxRest {
         //     }
         //
         let data = this.safeDict (message, 'data');
-        const marketType = this.safeString (message, 'pr');
-        const event = this.safeString (message, 'event');
+        const marketType = this.safeString (data, 'pr');
         const timeframe = this.safeString (data, 'i');
         let marketId = this.safeString (data, 's');
         let parsed = [];
@@ -282,7 +295,7 @@ export default class coindcx extends coindcxRest {
             ];
         }
         const symbol = this.safeSymbol (marketId);
-        const messageHash = event + ':' + symbol + ':' + timeframe;
+        const messageHash = 'candlestick' + ':' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
