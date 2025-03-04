@@ -29,7 +29,7 @@ export default class poloniex extends Exchange {
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -246,7 +246,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/positionAll': 100,
                         'v3/position/leverage': 20,
                         'v3/position/mode': 20,
-                        'v3/position/margin': 20,
+                        'v3/trade/position/margin': 20,
                     },
                     'delete': {
                         'v3/trade/order': 2,
@@ -3504,17 +3504,19 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'cTime');
-        const marginMode = this.safeStringLower (position, 'mngMode');
-        let collateral = undefined;
-        if (marginMode === 'isolated') {
-            collateral = this.safeString (position, 'isolatedMargin');
-        }
+        const marginMode = this.safeStringLower (position, 'mgnMode');
+        const leverage = this.safeString (position, 'lever');
+        const initialMargin = this.safeString (position, 'im');
+        const notional = Precise.stringMul (leverage, initialMargin);
+        const qty = this.safeString (position, 'qty');
+        const avgPrice = this.safeString (position, 'openAvgPx');
+        const collateral = Precise.stringMul (qty, avgPrice);
         // todo: some more fields
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': undefined,
+            'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'liqPx'),
             'entryPrice': this.safeNumber (position, 'openAvgPx'),
@@ -3529,13 +3531,13 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': this.safeNumber (position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
-            'initialMargin': undefined,
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
-            'leverage': this.safeInteger (position, 'lever'),
-            'marginRatio': undefined,
+            'leverage': parseInt (leverage),
+            'marginRatio': this.safeNumber (position, 'mgnRatio'),
             'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
             'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),
         });
@@ -3547,11 +3549,14 @@ export default class poloniex extends Exchange {
         amount = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'symbol': market['id'],
-            'amnt': Precise.stringAbs (amount),
+            'amt': Precise.stringAbs (amount),
             'type': type.toUpperCase (), // 'ADD' or 'REDUCE'
         };
         // todo: hedged handling, tricky
-        const response = await this.swapPrivatePostV3PositionMargin (this.extend (request, params));
+        if (!('posMode' in params)) {
+            request['posMode'] = 'BOTH';
+        }
+        const response = await this.swapPrivatePostV3TradePositionMargin (this.extend (request, params));
         //
         // {
         //     "code": 200,
@@ -3593,7 +3598,7 @@ export default class poloniex extends Exchange {
 
     /**
      * @method
-     * @name ascendex#reduceMargin
+     * @name poloniex#reduceMargin
      * @description remove margin from a position
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
@@ -3606,7 +3611,7 @@ export default class poloniex extends Exchange {
 
     /**
      * @method
-     * @name ascendex#addMargin
+     * @name poloniex#addMargin
      * @description add margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
