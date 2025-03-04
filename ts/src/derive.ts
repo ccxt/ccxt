@@ -137,7 +137,7 @@ export default class derive extends Exchange {
             },
             'hostname': 'derive.xyz',
             'urls': {
-                'logo': undefined,
+                'logo': 'https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c',
                 'api': {
                     'public': 'https://api.lyra.finance/public',
                     'private': 'https://api.lyra.finance/private',
@@ -149,7 +149,7 @@ export default class derive extends Exchange {
                 'www': 'https://www.derive.xyz/',
                 'doc': 'https://docs.derive.xyz/docs/',
                 'fees': 'https://docs.derive.xyz/reference/fees-1/',
-                'referral': 'https://www.derive.xyz/',
+                'referral': 'https://www.derive.xyz/invite/3VB0B',
             },
             'api': {
                 'public': {
