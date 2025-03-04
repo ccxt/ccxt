@@ -2733,6 +2733,15 @@ export default class whitebit extends Exchange {
         };
         const response = await this.v4PrivatePostConvertEstimate (this.extend (request, params));
         //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
         //
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
@@ -2758,6 +2767,10 @@ export default class whitebit extends Exchange {
         };
         const response = await this.v4PrivatePostConvertConfirm (this.extend (request, params));
         //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
         //
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
@@ -2793,6 +2806,27 @@ export default class whitebit extends Exchange {
         [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
         const response = await this.v4PrivatePostConvertHistory (this.extend (request, params));
         //
+        //     {
+        //         "records": [
+        //             {
+        //                 "id": "1741105",
+        //                 "path": [
+        //                     {
+        //                         "from": "USDT",
+        //                         "to": "BTC",
+        //                         "rate": "0.00001193"
+        //                     }
+        //                 ],
+        //                 "date": 1741090757,
+        //                 "give": "4",
+        //                 "receive": "0.00004772",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
         const rows = this.safeList (response, 'records', []);
         return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
@@ -2802,14 +2836,41 @@ export default class whitebit extends Exchange {
         //
         // fetchConvertQuote
         //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
         //
         // createConvertTrade
         //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
         //
         // fetchConvertTradeHistory
         //
+        //     {
+        //         "id": "1741105",
+        //         "path": [
+        //             {
+        //                 "from": "USDT",
+        //                 "to": "BTC",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "date": 1741090757,
+        //         "give": "4",
+        //         "receive": "0.00004772",
+        //         "rate": "0.00001193"
+        //     }
         //
-        const path = this.safeDict (conversion, 'path', []);
+        const path = this.safeList (conversion, 'path', []);
         const fromPath = this.safeString (path[0], 'from');
         const toPath = this.safeString (path[0], 'to');
         const timestamp = this.safeTimestamp2 (conversion, 'date', 'expireAt');
