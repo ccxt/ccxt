@@ -14,6 +14,105 @@
                 "httpResponse": {
                     "code": 200,
                     "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "posSide": "LONG",
+                            "side": "BUY",
+                            "mgnMode": "CROSS",
+                            "openAvgPx": "88186.586666666666666666",
+                            "qty": "3",
+                            "availQty": "3",
+                            "lever": "75",
+                            "adl": "0.4897",
+                            "liqPx": "86347.445746143527880952",
+                            "im": "3.529424",
+                            "mm": "1.5882408",
+                            "upl": "0.14704",
+                            "uplRatio": "0.0416",
+                            "pnl": "0",
+                            "markPx": "88232.54",
+                            "mgnRatio": "0.22",
+                            "state": "NORMAL",
+                            "cTime": "1740950344402",
+                            "uTime": "1741119274973",
+                            "mgn": "3.529424",
+                            "actType": "TRADING",
+                            "maxWAmt": "0",
+                            "tpTrgPx": "",
+                            "slTrgPx": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "posSide": "LONG",
+                            "side": "BUY",
+                            "mgnMode": "CROSS",
+                            "openAvgPx": "88186.586666666666666666",
+                            "qty": "3",
+                            "availQty": "3",
+                            "lever": "75",
+                            "adl": "0.4897",
+                            "liqPx": "86347.445746143527880952",
+                            "im": "3.529424",
+                            "mm": "1.5882408",
+                            "upl": "0.14704",
+                            "uplRatio": "0.0416",
+                            "pnl": "0",
+                            "markPx": "88232.54",
+                            "mgnRatio": "0.22",
+                            "state": "NORMAL",
+                            "cTime": "1740950344402",
+                            "uTime": "1741119274973",
+                            "mgn": "3.529424",
+                            "actType": "TRADING",
+                            "maxWAmt": "0",
+                            "tpTrgPx": "",
+                            "slTrgPx": ""
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": "264.7068",
+                        "marginMode": "cross",
+                        "liquidationPrice": 86347.44574614352,
+                        "entryPrice": 88186.58666666667,
+                        "unrealizedPnl": 0.14704,
+                        "percentage": null,
+                        "contracts": 3,
+                        "contractSize": 0.001,
+                        "markPrice": 88232.54,
+                        "lastPrice": null,
+                        "side": "long",
+                        "hedged": null,
+                        "timestamp": 1740950344402,
+                        "datetime": "2025-03-02T21:19:04.402Z",
+                        "lastUpdateTimestamp": null,
+                        "maintenanceMargin": 1.5882408,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": "264559.759999999999999998",
+                        "initialMargin": "3.529424",
+                        "initialMarginPercentage": null,
+                        "leverage": 75,
+                        "marginRatio": 0.22,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "linear",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
                     "data": []
                 },
                 "parsedResponse": []

@@ -17,6 +17,17 @@
                     ]
                 ],
                 "output": null
+            },
+            {
+                "description": "linear",
+                "method": "fetchPositions",
+                "url": "https://api.poloniex.com/v3/trade/position/opens",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
             }
         ],
         "setPositionMode": [
