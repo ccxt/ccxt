@@ -30,6 +30,16 @@
         ],
         "cancelOrder": [
             {
+                "description": "linear",
+                "method": "cancelOrder",
+                "url": "https://api.poloniex.com/v3/trade/order",
+                "input": [
+                    "420053842861056000",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"ordId\":\"420053842861056000\"}"
+            },
+            {
                 "description": "cancel spot order",
                 "method": "cancelOrder",
                 "url": "https://api.poloniex.com/orders/258660009938837504",
@@ -89,6 +99,19 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "linear, limi buy",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/v3/trade/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    84000
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"84000\"}"
+            },
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",

@@ -2115,7 +2115,7 @@ export default class poloniex extends Exchange {
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice) {
+                } else if (createMarketBuyOrderRequiresPrice && market['spot']) {
                     if (price === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
@@ -2127,9 +2127,11 @@ export default class poloniex extends Exchange {
                 } else {
                     quoteAmount = this.costToPrecision (symbol, amount);
                 }
-                request['amount'] = quoteAmount;
+                const amountKey = market['spot'] ? 'amount' : 'sz';
+                request[amountKey] = quoteAmount;
             } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
+                const amountKey = market['spot'] ? 'quantity' : 'sz';
+                request[amountKey] = this.amountToPrecision (symbol, amount);
             }
         } else {
             const amountKey = market['spot'] ? 'quantity' : 'sz';

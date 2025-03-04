@@ -2,6 +2,174 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "createOrder": [
+            {
+                "description": "linear, market sell",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420059153596510208",
+                        "clOrdId": "polo420059153596510208"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420059153596510208",
+                        "clOrdId": "polo420059153596510208",
+                        "type": "market",
+                        "side": "sell"
+                    },
+                    "id": "420059153596510208",
+                    "clientOrderId": "polo420059153596510208",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear, market buy",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420058057809432576",
+                        "clOrdId": "polo420058057809432576"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420058057809432576",
+                        "clOrdId": "polo420058057809432576",
+                        "type": "market",
+                        "side": "buy"
+                    },
+                    "id": "420058057809432576",
+                    "clientOrderId": "polo420058057809432576",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear, limi buy",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    84000
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420051664352153600",
+                        "clOrdId": "polo420051664352153600"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420051664352153600",
+                        "clOrdId": "polo420051664352153600",
+                        "type": "limit",
+                        "side": "buy"
+                    },
+                    "id": "420051664352153600",
+                    "clientOrderId": "polo420051664352153600",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
