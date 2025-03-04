@@ -2026,7 +2026,7 @@ class gate extends gate$1 {
         };
         if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
             payload['req_header'] = {
-                'x-gate-channel-id': 'ccxt',
+                'X-Gate-Channel-Id': 'ccxt',
             };
         }
         const request = {
