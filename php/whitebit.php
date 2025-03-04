@@ -2718,12 +2718,10 @@ class whitebit extends Exchange {
         }
         if ($accessibility === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
-            $timestamp = $this->parse_to_int($nonce / 1000);
-            $timestampString = (string) $timestamp;
+            $nonce = (string) $this->nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $timestampString ), $params));
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(

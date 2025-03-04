@@ -1346,7 +1346,7 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
-                self.options['unifiedMarginStatus'] = 3
+                self.options['unifiedMarginStatus'] = 6
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = await asyncio.gather(*rawPromises)
@@ -1411,7 +1411,7 @@ class bybit(Exchange, ImplicitAPI):
             accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
-            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 6)  # default to uta 2.0 pro if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     async def upgrade_unified_trade_account(self, params={}):
@@ -3304,7 +3304,7 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
             if unifiedMarginStatus < 5:
                 # it's not uta.20 where inverse are unified
                 if isInverse:
@@ -4009,7 +4009,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
@@ -4208,7 +4208,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('editOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):

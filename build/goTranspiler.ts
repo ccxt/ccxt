@@ -1150,6 +1150,7 @@ ${caseStatements.join('\n')}
         }
 
         if (transpilingSingleExchange) {
+            this.createDynamicInstanceFile();
             return;
         }
         if (child) {

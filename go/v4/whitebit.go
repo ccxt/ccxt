@@ -3220,14 +3220,12 @@ func  (this *whitebit) Sign(path interface{}, optionalArgs ...interface{}) inter
     }
     if IsTrue(IsEqual(accessibility, "private")) {
         this.CheckRequiredCredentials()
-        var nonce interface{} = this.Nonce()
-        var timestamp interface{} = this.ParseToInt(Divide(nonce, 1000))
-        var timestampString interface{} = ToString(timestamp)
+        var nonce interface{} = ToString(this.Nonce())
         var secret interface{} = this.Encode(this.Secret)
         var request interface{} = Add(Add(Add(Add("/", "api"), "/"), version), pathWithParams)
         body = this.Json(this.Extend(map[string]interface{} {
             "request": request,
-            "nonce": timestampString,
+            "nonce": nonce,
         }, params))
         var payload interface{} = this.StringToBase64(body)
         var signature interface{} = this.Hmac(this.Encode(payload), secret, sha512)

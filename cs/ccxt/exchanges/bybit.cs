@@ -1277,7 +1277,7 @@ public partial class bybit : Exchange
                 // so we're assuming UTA is enabled
                 ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = false;
                 ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = true;
-                ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = 3;
+                ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = 6;
                 return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
             }
             object rawPromises = new List<object> {this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)};
@@ -1343,7 +1343,7 @@ public partial class bybit : Exchange
             object accountResult = this.safeDict(accountInfo, "result", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = isEqual(this.safeInteger(result, "unified"), 1);
             ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = isEqual(this.safeInteger(result, "uta"), 1);
-            ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = this.safeInteger(accountResult, "unifiedMarginStatus", 3); // default to uta.1 if not found
+            ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = this.safeInteger(accountResult, "unifiedMarginStatus", 6); // default to uta 2.0 pro if not found
         }
         return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
     }
@@ -3563,7 +3563,7 @@ public partial class bybit : Exchange
         object isFunding = isTrue((isEqual(lowercaseRawType, "fund"))) || isTrue((isEqual(lowercaseRawType, "funding")));
         if (isTrue(isUnifiedAccount))
         {
-            object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 3);
+            object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             if (isTrue(isLessThan(unifiedMarginStatus, 5)))
             {
                 // it's not uta.20 where inverse are unified
@@ -4424,7 +4424,7 @@ public partial class bybit : Exchange
         }
         object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         object market = this.market(getValue(symbols, 0));
-        object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 3);
+        object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
         object category = null;
         var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4656,7 +4656,7 @@ public partial class bybit : Exchange
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         object market = this.market(getValue(orderSymbols, 0));
-        object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 3);
+        object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
         object category = null;
         var categoryparametersVariable = this.getBybitType("editOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];

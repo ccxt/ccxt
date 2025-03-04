@@ -544,12 +544,12 @@ public partial class tradeogre : Exchange
         }
         if (isTrue(isEqual(price, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a limit parameter")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price parameter")) ;
         }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "quantity", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
-            { "price", this.parseToNumeric(this.priceToPrecision(symbol, price)) },
+            { "quantity", this.amountToPrecision(symbol, amount) },
+            { "price", this.priceToPrecision(symbol, price) },
         };
         object response = null;
         if (isTrue(isEqual(side, "buy")))

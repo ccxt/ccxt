@@ -669,7 +669,8 @@ class phemex extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
-        $baseId = $this->safe_string_2($market, 'baseCurrency', 'contractUnderlyingAssets');
+        $contractUnderlyingAssets = $this->safe_string($market, 'contractUnderlyingAssets');
+        $baseId = $this->safe_string($market, 'baseCurrency', $contractUnderlyingAssets);
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settleCurrency');
         $base = $this->safe_currency_code($baseId);
@@ -679,6 +680,10 @@ class phemex extends Exchange {
         $inverse = false;
         if ($settleId !== $quoteId) {
             $inverse = true;
+            // some unhandled cases
+            if (!(is_array($market) && array_key_exists('baseCurrency', $market)) && $base === $quote) {
+                $base = $settle;
+            }
         }
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
@@ -868,7 +873,7 @@ class phemex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $v2Products = $this->v2GetPublicProducts ($params);
+        $v2ProductsPromise = $this->v2GetPublicProducts ($params);
         //
         //     {
         //         "code":0,
@@ -1018,7 +1023,8 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $v1Products = $this->v1GetExchangePublicProducts ($params);
+        $v1ProductsPromise = $this->v1GetExchangePublicProducts ($params);
+        list($v2Products, $v1Products) = array( $v2ProductsPromise, $v1ProductsPromise );
         $v1ProductsData = $this->safe_value($v1Products, 'data', array());
         //
         //     {
@@ -1055,14 +1061,14 @@ class phemex extends Exchange {
         //         )
         //     }
         //
-        $v2ProductsData = $this->safe_value($v2Products, 'data', array());
-        $products = $this->safe_value($v2ProductsData, 'products', array());
-        $perpetualProductsV2 = $this->safe_value($v2ProductsData, 'perpProductsV2', array());
+        $v2ProductsData = $this->safe_dict($v2Products, 'data', array());
+        $products = $this->safe_list($v2ProductsData, 'products', array());
+        $perpetualProductsV2 = $this->safe_list($v2ProductsData, 'perpProductsV2', array());
         $products = $this->array_concat($products, $perpetualProductsV2);
-        $riskLimits = $this->safe_value($v2ProductsData, 'riskLimits', array());
-        $riskLimitsV2 = $this->safe_value($v2ProductsData, 'riskLimitsV2', array());
+        $riskLimits = $this->safe_list($v2ProductsData, 'riskLimits', array());
+        $riskLimitsV2 = $this->safe_list($v2ProductsData, 'riskLimitsV2', array());
         $riskLimits = $this->array_concat($riskLimits, $riskLimitsV2);
-        $currencies = $this->safe_value($v2ProductsData, 'currencies', array());
+        $currencies = $this->safe_list($v2ProductsData, 'currencies', array());
         $riskLimitsById = $this->index_by($riskLimits, 'symbol');
         $v1ProductsById = $this->index_by($v1ProductsData, 'symbol');
         $currenciesByCode = $this->index_by($currencies, 'currency');
@@ -1072,14 +1078,14 @@ class phemex extends Exchange {
             $type = $this->safe_string_lower($market, 'type');
             if (($type === 'perpetual') || ($type === 'perpetualv2') || ($type === 'perpetualpilot')) {
                 $id = $this->safe_string($market, 'symbol');
-                $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
+                $riskLimitValues = $this->safe_dict($riskLimitsById, $id, array());
                 $market = $this->extend($market, $riskLimitValues);
-                $v1ProductsValues = $this->safe_value($v1ProductsById, $id, array());
+                $v1ProductsValues = $this->safe_dict($v1ProductsById, $id, array());
                 $market = $this->extend($market, $v1ProductsValues);
                 $market = $this->parse_swap_market($market);
             } else {
                 $baseCurrency = $this->safe_string($market, 'baseCurrency');
-                $currencyValues = $this->safe_value($currenciesByCode, $baseCurrency, array());
+                $currencyValues = $this->safe_dict($currenciesByCode, $baseCurrency, array());
                 $valueScale = $this->safe_string($currencyValues, 'valueScale', '8');
                 $market = $this->extend($market, array( 'valueScale' => $valueScale ));
                 $market = $this->parse_spot_market($market);
