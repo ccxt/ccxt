@@ -65,6 +65,21 @@ export default class coindcx extends coindcxRest {
         });
     }
 
+    getChannelName (symbol: string, channel: string): string {
+        const market = this.market (symbol);
+        const marketType = market['type'];
+        let marketId = market['id'];
+        let suffix = '-futures';
+        if (marketType === 'spot') {
+            suffix = '';
+            const base = market['base'];
+            const quote = market['quote'];
+            marketId = 'B-' + base + '_' + quote;
+        }
+        const channelName = marketId + '@' + channel + suffix;
+        return channelName;
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -78,10 +93,10 @@ export default class coindcx extends coindcxRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        symbol = this.symbol (symbol);
         const url = this.urls['api']['ws'];
-        const channelName = marketId + '@trades';
-        const messageHash = 'new-trade:' + this.symbol (symbol);
+        const channelName = this.getChannelName (symbol, 'trades');
+        const messageHash = 'new-trade:' + symbol;
         const request: Dict = {
             'type': 'subscribe',
             'channelName': channelName,
@@ -108,7 +123,12 @@ export default class coindcx extends coindcxRest {
         const data = this.safeDict (message, 'data');
         const event = this.safeString (message, 'event');
         const timestamp = this.safeInteger (data, 'T');
-        const marketId = this.safeString (data, 's');
+        let marketId = this.safeString (data, 's');
+        const marketType = this.safeString (data, 'pr');
+        if (marketType === 'spot') {
+            marketId = marketId.replace ('B-', '');
+            marketId = marketId.replace ('_', '/');
+        }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = event + ':' + symbol;
