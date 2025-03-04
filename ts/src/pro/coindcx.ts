@@ -339,7 +339,7 @@ export default class coindcx extends coindcxRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        symbol = this.symbol (symbol);
         const url = this.urls['api']['ws'];
         let exchangeLimit = '50';
         if (limit) {
@@ -349,11 +349,11 @@ export default class coindcx extends coindcxRest {
                 exchangeLimit = '20';
             }
         }
-        const channelName = marketId + '@' + 'orderbook' + '@' + exchangeLimit;
+        const channel = 'orderbook' + '@' + exchangeLimit;
         const messageHash = 'orderbook' + ':' + symbol;
         const request: Dict = {
             'type': 'subscribe',
-            'channelName': channelName,
+            'channelName': this.getChannelName (symbol, channel),
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
@@ -395,13 +395,16 @@ export default class coindcx extends coindcxRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const pair = this.safeString (data, 's');
-        const product = this.safeString (data, 'pr');
-        const market = this.safeMarket (pair);
-        let symbol = market['symbol'];
-        if (product === 'spot') {
-            symbol = market['symbol'] + ':' + market['quote']; // todo is it right?
+        let marketId = this.safeString (data, 's');
+        let market = this.safeMarket (marketId);
+        const marketType = this.safeString (data, 'pr');
+        if (marketType !== 'spot') {
+            const base = market['base'];
+            const quote = market['quote'];
+            marketId = base + '/' + quote + ':' + quote; // todo check if it's correct
+            market = this.safeMarket (marketId);
         }
+        const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (data, 'ts');
         const increment = this.safeInteger (data, 'vs');
@@ -452,15 +455,22 @@ export default class coindcx extends coindcxRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const pair = this.safeString (data, 's');
-        const product = this.safeString (data, 'pr');
-        const market = this.safeMarket (pair);
-        let symbol = market['symbol'];
-        if (product === 'spot') {
-            symbol = market['symbol'] + ':' + market['quote'];
+        let marketId = this.safeString (data, 's');
+        let market = this.safeMarket (marketId);
+        const marketType = this.safeString (data, 'pr');
+        if (marketType !== 'spot') {
+            const base = market['base'];
+            const quote = market['quote'];
+            marketId = base + '/' + quote + ':' + quote; // todo check if it's correct
+            market = this.safeMarket (marketId);
+        }
+        const symbol = market['symbol'];
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (storedOrderBook === undefined) {
+            this.handleOrderBookSnapshot (client, message); // sometimes the update comes before the snapshot
+            return;
         }
         const increment = this.safeInteger (data, 'vs');
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const messageHash = 'orderbook:' + symbol;
         if (increment !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
