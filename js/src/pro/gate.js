@@ -2029,7 +2029,7 @@ export default class gate extends gateRest {
         };
         if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
             payload['req_header'] = {
-                'x-gate-channel-id': 'ccxt',
+                'X-Gate-Channel-Id': 'ccxt',
             };
         }
         const request = {
