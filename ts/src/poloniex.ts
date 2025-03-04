@@ -1073,12 +1073,14 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = {};
-        symbols = this.marketSymbols (symbols, undefined, true, true, false);
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
-            market = this.market (symbols[0]);
-            if (symbolsLength === 1) {
-                request['symbol'] = market['id'];
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols, undefined, true, true, false);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
             }
         }
         let marketType = undefined;
@@ -1860,13 +1862,13 @@ export default class poloniex extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
-            const max = marketType === 'spot' ? 2000 : 100;
+            const max = (marketType === 'spot') ? 2000 : 100;
             request['limit'] = Math.max (limit, max);
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
-        if (market['contract']) {
+        if (!market['spot']) {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
             //    {
@@ -2214,7 +2216,7 @@ export default class poloniex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        if (market['swap'] || market['future']) {
+        if (!market['spot']) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder (this.extend (request, params));
@@ -2299,7 +2301,7 @@ export default class poloniex extends Exchange {
             //        ]
             //    }
             //
-            response = this.safeDict (raw, 'data');
+            response = this.safeList (raw, 'data');
             return this.parseOrders (response, market);
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -2347,6 +2349,16 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
+        }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;

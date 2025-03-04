@@ -6,7 +6,95 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "linear",
+                "method": "fetchPositions",
+                "url": "https://api.poloniex.com/v3/trade/position/opens",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "linear",
+                "method": "setPositionMode",
+                "url": "https://api.poloniex.com/v3/position/mode",
+                "input": [
+                    true,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"posMode\":\"HEDGE\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "linear",
+                "method": "fetchPositionMode",
+                "url": "https://api.poloniex.com/v3/position/mode",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "linear",
+                "method": "fetchLeverage",
+                "url": "https://api.poloniex.com/v3/position/leverages?symbol=BTC_USDT_PERP&mgnMode=CROSS",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "linear",
+                "method": "setLeverage",
+                "url": "https://api.poloniex.com/v3/position/leverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"lever\":20,\"mgnMode\":\"CROSS\",\"symbol\":\"BTC_USDT_PERP\"}"
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "linear",
+                "method": "fetchOrderTrades",
+                "url": "https://api.poloniex.com/orders/420069629655085056/trades",
+                "input": [
+                    "420069629655085056",
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
+            {
+                "description": "linear",
+                "method": "fetchMyTrades",
+                "url": "https://api.poloniex.com/v3/trade/order/trades?sTime=1730000000000&limit=3&symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1730000000000,
+                    3
+                ],
+                "output": null
+            },
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
@@ -51,6 +139,15 @@
         ],
         "cancelAllOrders": [
             {
+                "description": "linear",
+                "method": "cancelAllOrders",
+                "url": "https://api.poloniex.com/v3/trade/allOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbols\":[\"BTC_USDT_PERP\"]}"
+            },
+            {
                 "description": "Cancel spot orders",
                 "method": "cancelAllOrders",
                 "url": "https://api.poloniex.com/orders",
@@ -61,6 +158,17 @@
             }
         ],
         "fetchBalance": [
+            {
+                "description": "linear",
+                "method": "fetchBalance",
+                "url": "https://api.poloniex.com/v3/account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
@@ -189,6 +297,17 @@
         ],
         "fetchTrades": [
             {
+                "description": "linear",
+                "method": "fetchTrades",
+                "url": "https://api.poloniex.com/v3/market/trades?symbol=BTC_USDT_PERP&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1730000000000,
+                    3
+                ],
+                "output": null
+            },
+            {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
                 "url": "https://api.poloniex.com/markets/BTC_USDT/trades",
@@ -198,6 +317,15 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "linear",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/v3/market/orderBook?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
@@ -209,6 +337,15 @@
         ],
         "fetchTicker": [
             {
+                "description": "linear",
+                "method": "fetchTicker",
+                "url": "https://api.poloniex.com/v3/market/tickers?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "spot ticker",
                 "method": "fetchTicker",
                 "url": "https://api.poloniex.com/markets/BTC_USDT/ticker24h",
@@ -218,6 +355,13 @@
             }
         ],
         "fetchTickers": [
+            {
+                "description": "linear",
+                "method": "fetchTickers",
+                "url": "https://api.poloniex.com/markets/ticker24h",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
@@ -231,6 +375,16 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "linear",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MINUTE_1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "output": null
+            },
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
