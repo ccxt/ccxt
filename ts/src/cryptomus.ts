@@ -819,13 +819,12 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        const request: Dict = {}
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
         }
-        const market = this.market (symbol);
-        const request: Dict = {
-            'market': market['id'],
-        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -896,13 +895,16 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        const market = this.market (symbol);
         const request: Dict = {
-            'market': market['id'],
         };
+
+        if (market !== undefined) {
+            request['market'] = market['id'];
+        }
         const response = await this.privateGetV2UserApiExchangeOrders (this.extend (request, params));
         //
         //     {
