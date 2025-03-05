@@ -140,10 +140,9 @@ export default class cryptomus extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/balance': 1, // done but need to change to another endpoint
                         'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/history': 1,
-                        'v2/user-api/exchange/account/balance': 1, // todo {"code":0,"message":"The requested resource could not be found on this server."}
+                        'v2/user-api/exchange/orders/history': 1, // done
+                        'v2/user-api/exchange/account/balance': 1, // done
                         'v2/user-api/exchange/account/tariffs': 1,
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
@@ -670,45 +669,23 @@ export default class cryptomus extends Exchange {
         const response = await this.privateGetV2UserApiExchangeAccountBalance (this.extend (request, params));
         //
         //     {
-        //         "state": 0,
-        //         "result":
-        //         ...
-        //         {
-        //             "balances": [
-        //                 {
-        //                     "walletUuid": "cc94572d-beaf-4c12-90cb-09507451dd3a",
-        //                     "currency_code": "USDT",
-        //                     "balance": "49.20000000",
-        //                     "balanceUsd": "49.20"
-        //                 }
-        //             ]
-        //         }
-        //         ...
+        //         "result": [
+        //             {
+        //                 "ticker": "AVAX",
+        //                 "available": "0.00000000",
+        //                 "held": "0.00000000"
+        //             }
+        //         ]
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
-        return this.parseBalance (result);
-    }
-
-    parseBalance (balance): Balances {
-        //
-        //     {
-        //         "walletUuid": "cc94572d-beaf-4c12-90cb-09507451dd3a",
-        //         "currency_code": "USDT",
-        //         "balance": "49.20000000",
-        //         "balanceUsd": "49.20"
-        //     }
-        //
-        const result: Dict = {
-            'info': balance,
-        };
-        const balances = this.safeList (balance, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = balances[i];
-            const currencyId = this.safeString (balanceEntry, 'currency_code');
+        const result = this.safeList (response, 'result', []);
+        for (let i = 0; i < result.length; i++) {
+            const balance = result[i];
+            const currencyId = this.safeString (balance, 'ticker');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balanceEntry, 'balance');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'held');
             result[code] = account;
         }
         return this.safeBalance (result);
