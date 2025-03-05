@@ -2118,7 +2118,7 @@ class gate extends \ccxt\async\gate {
             );
             if (($channel === 'spot.order_place') || ($channel === 'futures.order_place')) {
                 $payload['req_header'] = array(
-                    'x-gate-$channel-id' => 'ccxt',
+                    'X-Gate-Channel-Id' => 'ccxt',
                 );
             }
             $request = array(

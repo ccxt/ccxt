@@ -1200,6 +1200,11 @@ class paradex extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
+        $flags = $this->safe_list($order, 'flags', array());
+        $reduceOnly = null;
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+            $reduceOnly = true;
+        }
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -1212,7 +1217,7 @@ class paradex extends Exchange {
             'type' => $this->parse_order_type($orderType),
             'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'instrunction')),
             'postOnly' => null,
-            'reduceOnly' => null,
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
             'triggerPrice' => $this->safe_string($order, 'trigger_price'),
@@ -1287,6 +1292,8 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] alias for $triggerPrice
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
+         * @param {float} [$params->stopLossPrice] the $price that a stop loss $order is triggered at
+         * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
@@ -1302,11 +1309,15 @@ class paradex extends Exchange {
         $request = array(
             'market' => $market['id'],
             'side' => $orderSide,
-            'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size' => $this->amount_to_precision($symbol, $amount),
+            'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $isMarket = $orderType === 'MARKET';
+        $isTakeProfitOrder = ($takeProfitPrice !== null);
+        $isStopLossOrder = ($stopLossPrice !== null);
+        $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
         if (!$isMarket) {
@@ -1316,11 +1327,6 @@ class paradex extends Exchange {
                 $request['instruction'] = 'IOC';
             }
         }
-        if ($reduceOnly) {
-            $request['flags'] = array(
-                'REDUCE_ONLY',
-            );
-        }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1328,15 +1334,52 @@ class paradex extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
         }
-        if ($triggerPrice !== null) {
+        $sizeString = '0';
+        $stopPrice = null;
+        if ($isStopOrder) {
+            // flags => Reduce_Only must be provided for TPSL orders.
             if ($isMarket) {
-                $request['type'] = 'STOP_MARKET';
+                if ($isStopLossOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'STOP_LOSS_MARKET';
+                } elseif ($isTakeProfitOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'TAKE_PROFIT_MARKET';
+                } else {
+                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
+                    $sizeString = $this->amount_to_precision($symbol, $amount);
+                    $request['type'] = 'STOP_MARKET';
+                }
             } else {
-                $request['type'] = 'STOP_LIMIT';
+                if ($isStopLossOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'STOP_LOSS_LIMIT';
+                } elseif ($isTakeProfitOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'TAKE_PROFIT_LIMIT';
+                } else {
+                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
+                    $sizeString = $this->amount_to_precision($symbol, $amount);
+                    $request['type'] = 'STOP_LIMIT';
+                }
             }
-            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+        } else {
+            $sizeString = $this->amount_to_precision($symbol, $amount);
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
+        if ($stopPrice !== null) {
+            $request['trigger_price'] = $stopPrice;
+        }
+        $request['size'] = $sizeString;
+        if ($reduceOnly) {
+            $request['flags'] = array(
+                'REDUCE_ONLY',
+            );
+        }
+        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         $account = $this->retrieve_account();
         $now = $this->nonce();
         $orderReq = array(
