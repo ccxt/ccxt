@@ -3642,7 +3642,7 @@ export default class poloniex extends Exchange {
         }
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        if (api === 'public') {
+        if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
