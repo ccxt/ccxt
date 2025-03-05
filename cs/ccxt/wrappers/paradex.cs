@@ -270,6 +270,18 @@ public partial class paradex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : the price that a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : the price that a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
     /// string : "GTC", "IOC", or "POST_ONLY"

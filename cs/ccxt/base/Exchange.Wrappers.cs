@@ -1259,7 +1259,6 @@ public class  Coinone: coinone { public Coinone(object args = null) : base(args)
 public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args) { } }
 public class  Coinspot: coinspot { public Coinspot(object args = null) : base(args) { } }
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
-public class  Currencycom: currencycom { public Currencycom(object args = null) : base(args) { } }
 public class  Defx: defx { public Defx(object args = null) : base(args) { } }
 public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }

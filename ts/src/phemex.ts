@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ export default class phemex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closePosition': false,
+                'createConvertTrade': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -46,6 +47,9 @@ export default class phemex extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -670,7 +674,8 @@ export default class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const contractUnderlyingAssets = this.safeString (market, 'contractUnderlyingAssets');
+        const baseId = this.safeString (market, 'baseCurrency', contractUnderlyingAssets);
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
         let base = this.safeCurrencyCode (baseId);
@@ -680,6 +685,10 @@ export default class phemex extends Exchange {
         let inverse = false;
         if (settleId !== quoteId) {
             inverse = true;
+            // some unhandled cases
+            if (!('baseCurrency' in market) && base === quote) {
+                base = settle;
+            }
         }
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
@@ -869,7 +878,7 @@ export default class phemex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const v2Products = await this.v2GetPublicProducts (params);
+        const v2ProductsPromise = this.v2GetPublicProducts (params);
         //
         //     {
         //         "code":0,
@@ -1019,7 +1028,8 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await this.v1GetExchangePublicProducts (params);
+        const v1ProductsPromise = this.v1GetExchangePublicProducts (params);
+        const [ v2Products, v1Products ] = await Promise.all ([ v2ProductsPromise, v1ProductsPromise ]);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -1056,14 +1066,14 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const v2ProductsData = this.safeValue (v2Products, 'data', {});
-        let products = this.safeValue (v2ProductsData, 'products', []);
-        const perpetualProductsV2 = this.safeValue (v2ProductsData, 'perpProductsV2', []);
+        const v2ProductsData = this.safeDict (v2Products, 'data', {});
+        let products = this.safeList (v2ProductsData, 'products', []);
+        const perpetualProductsV2 = this.safeList (v2ProductsData, 'perpProductsV2', []);
         products = this.arrayConcat (products, perpetualProductsV2);
-        let riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
-        const riskLimitsV2 = this.safeValue (v2ProductsData, 'riskLimitsV2', []);
+        let riskLimits = this.safeList (v2ProductsData, 'riskLimits', []);
+        const riskLimitsV2 = this.safeList (v2ProductsData, 'riskLimitsV2', []);
         riskLimits = this.arrayConcat (riskLimits, riskLimitsV2);
-        const currencies = this.safeValue (v2ProductsData, 'currencies', []);
+        const currencies = this.safeList (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
         const currenciesByCode = this.indexBy (currencies, 'currency');
@@ -1071,16 +1081,16 @@ export default class phemex extends Exchange {
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
             const type = this.safeStringLower (market, 'type');
-            if ((type === 'perpetual') || (type === 'perpetualv2') || (type === 'PerpetualPilot')) {
+            if ((type === 'perpetual') || (type === 'perpetualv2') || (type === 'perpetualpilot')) {
                 const id = this.safeString (market, 'symbol');
-                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                const riskLimitValues = this.safeDict (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
-                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
+                const v1ProductsValues = this.safeDict (v1ProductsById, id, {});
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
                 const baseCurrency = this.safeString (market, 'baseCurrency');
-                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const currencyValues = this.safeDict (currenciesByCode, baseCurrency, {});
                 const valueScale = this.safeString (currencyValues, 'valueScale', '8');
                 market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
@@ -1264,7 +1274,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const preciseString = precise.toString ();
-        return this.parseToInt (preciseString);
+        return this.parseToNumeric (preciseString);
     }
 
     toEv (amount, market: Market = undefined) {
@@ -2633,7 +2643,6 @@ export default class phemex extends Exchange {
         const market = this.market (symbol);
         const requestSide = this.capitalize (side);
         type = this.capitalize (type);
-        const reduceOnly = this.safeBool (params, 'reduceOnly');
         const request: Dict = {
             // common
             'symbol': market['id'],
@@ -2727,8 +2736,10 @@ export default class phemex extends Exchange {
             let posSide = this.safeStringLower (params, 'posSide');
             if (posSide === undefined) {
                 if (hedged) {
+                    const reduceOnly = this.safeBool (params, 'reduceOnly');
                     if (reduceOnly) {
                         side = (side === 'buy') ? 'sell' : 'buy';
+                        params = this.omit (params, 'reduceOnly');
                     }
                     posSide = (side === 'buy') ? 'Long' : 'Short';
                 } else {
@@ -2833,7 +2844,6 @@ export default class phemex extends Exchange {
             }
             params = this.omit (params, 'stopLossPrice');
         }
-        params = this.omit (params, 'reduceOnly');
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privatePostGOrders (this.extend (request, params));
@@ -5042,6 +5052,228 @@ export default class phemex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         }, market);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://phemex-docs.github.io/#rfq-quote
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const valueScale = this.safeInteger (fromCurrency, 'valueScale');
+        const request: Dict = {
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+            'fromAmountEv': this.toEn (amount, valueScale),
+        };
+        const response = await this.privateGetAssetsQuote (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "code": "GIF...AAA",
+        //             "quoteArgs": {
+        //                 "origin": 10,
+        //                 "price": "0.00000939",
+        //                 "proceeds": "0.00000000",
+        //                 "ttlMs": 7000,
+        //                 "expireAt": 1739875826009,
+        //                 "requestAt": 1739875818009,
+        //                 "quoteAt": 1739875816594
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name phemex#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://phemex-docs.github.io/#convert
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const valueScale = this.safeInteger (fromCurrency, 'valueScale');
+        const request: Dict = {
+            'code': id,
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+        };
+        if (amount !== undefined) {
+            request['fromAmountEv'] = this.toEn (amount, valueScale);
+        }
+        const response = await this.privatePostAssetsConvert (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "moveOp": 0,
+        //             "fromCurrency": "USDT",
+        //             "toCurrency": "BTC",
+        //             "fromAmountEv": 4000000000,
+        //             "toAmountEv": 41511,
+        //             "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //             "status": 10
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const fromCurrencyId = this.safeString (data, 'fromCurrency');
+        const fromResult = this.safeCurrency (fromCurrencyId, fromCurrency);
+        const toCurrencyId = this.safeString (data, 'toCurrency');
+        const to = this.safeCurrency (toCurrencyId, toCurrency);
+        return this.parseConversion (data, fromResult, to);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://phemex-docs.github.io/#query-convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromCurrency] the currency that you sold and converted from
+     * @param {string} [params.toCurrency] the currency that you bought and converted into
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (code !== undefined) {
+            request['fromCurrency'] = code;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetAssetsConvert (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "total": 2,
+        //             "rows": [
+        //                 {
+        //                     "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //                     "createTime": 1739882294000,
+        //                     "fromCurrency": "USDT",
+        //                     "toCurrency": "BTC",
+        //                     "fromAmountEv": 4000000000,
+        //                     "toAmountEv": 41511,
+        //                     "status": 10,
+        //                     "conversionRate": 1037,
+        //                     "errorCode": 0
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
+    }
+
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "code": "GIF...AAA",
+        //         "quoteArgs": {
+        //             "origin": 10,
+        //             "price": "0.00000939",
+        //             "proceeds": "0.00000000",
+        //             "ttlMs": 7000,
+        //             "expireAt": 1739875826009,
+        //             "requestAt": 1739875818009,
+        //             "quoteAt": 1739875816594
+        //         }
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "moveOp": 0,
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "status": 10
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "createTime": 1739882294000,
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "status": 10,
+        //         "conversionRate": 1037,
+        //         "errorCode": 0
+        //     }
+        //
+        const quoteArgs = this.safeDict (conversion, 'quoteArgs', {});
+        const requestTime = this.safeInteger (quoteArgs, 'requestAt');
+        const timestamp = this.safeInteger (conversion, 'createTime', requestTime);
+        const fromCoin = this.safeString (conversion, 'fromCurrency', this.safeString (fromCurrency, 'code'));
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const toCoin = this.safeString (conversion, 'toCurrency', this.safeString (toCurrency, 'code'));
+        const toCode = this.safeCurrencyCode (toCoin, toCurrency);
+        const fromValueScale = this.safeInteger (fromCurrency, 'valueScale');
+        const toValueScale = this.safeInteger (toCurrency, 'valueScale');
+        let fromAmount = this.fromEn (this.safeString (conversion, 'fromAmountEv'), fromValueScale);
+        if (fromAmount === undefined && quoteArgs !== undefined) {
+            fromAmount = this.fromEn (this.safeString (quoteArgs, 'origin'), fromValueScale);
+        }
+        let toAmount = this.fromEn (this.safeString (conversion, 'toAmountEv'), toValueScale);
+        if (toAmount === undefined && quoteArgs !== undefined) {
+            toAmount = this.fromEn (this.safeString (quoteArgs, 'proceeds'), toValueScale);
+        }
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'code'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.parseNumber (fromAmount),
+            'toCurrency': toCode,
+            'toAmount': this.parseNumber (toAmount),
+            'price': this.safeNumber (quoteArgs, 'price'),
+            'fee': undefined,
+        } as Conversion;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

@@ -27,6 +27,7 @@ public partial class phemex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closePosition", false },
+                { "createConvertTrade", true },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -37,6 +38,9 @@ public partial class phemex : Exchange
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", false },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -636,7 +640,8 @@ public partial class phemex : Exchange
         //     }
         //
         object id = this.safeString(market, "symbol");
-        object baseId = this.safeString2(market, "baseCurrency", "contractUnderlyingAssets");
+        object contractUnderlyingAssets = this.safeString(market, "contractUnderlyingAssets");
+        object baseId = this.safeString(market, "baseCurrency", contractUnderlyingAssets);
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
@@ -647,6 +652,11 @@ public partial class phemex : Exchange
         if (isTrue(!isEqual(settleId, quoteId)))
         {
             inverse = true;
+            // some unhandled cases
+            if (isTrue(!isTrue((inOp(market, "baseCurrency"))) && isTrue(isEqual(bs, quote))))
+            {
+                bs = settle;
+            }
         }
         object priceScale = this.safeInteger(market, "priceScale");
         object ratioScale = this.safeInteger(market, "ratioScale");
@@ -842,7 +852,7 @@ public partial class phemex : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object v2Products = await this.v2GetPublicProducts(parameters);
+        object v2ProductsPromise = this.v2GetPublicProducts(parameters);
         //
         //     {
         //         "code":0,
@@ -992,7 +1002,10 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object v1Products = await this.v1GetExchangePublicProducts(parameters);
+        object v1ProductsPromise = this.v1GetExchangePublicProducts(parameters);
+        var v2Productsv1ProductsVariable = await promiseAll(new List<object>() {v2ProductsPromise, v1ProductsPromise});
+        var v2Products = ((IList<object>) v2Productsv1ProductsVariable)[0];
+        var v1Products = ((IList<object>) v2Productsv1ProductsVariable)[1];
         object v1ProductsData = this.safeValue(v1Products, "data", new List<object>() {});
         //
         //     {
@@ -1029,14 +1042,14 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object v2ProductsData = this.safeValue(v2Products, "data", new Dictionary<string, object>() {});
-        object products = this.safeValue(v2ProductsData, "products", new List<object>() {});
-        object perpetualProductsV2 = this.safeValue(v2ProductsData, "perpProductsV2", new List<object>() {});
+        object v2ProductsData = this.safeDict(v2Products, "data", new Dictionary<string, object>() {});
+        object products = this.safeList(v2ProductsData, "products", new List<object>() {});
+        object perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new List<object>() {});
         products = this.arrayConcat(products, perpetualProductsV2);
-        object riskLimits = this.safeValue(v2ProductsData, "riskLimits", new List<object>() {});
-        object riskLimitsV2 = this.safeValue(v2ProductsData, "riskLimitsV2", new List<object>() {});
+        object riskLimits = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
+        object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new List<object>() {});
         riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
-        object currencies = this.safeValue(v2ProductsData, "currencies", new List<object>() {});
+        object currencies = this.safeList(v2ProductsData, "currencies", new List<object>() {});
         object riskLimitsById = this.indexBy(riskLimits, "symbol");
         object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         object currenciesByCode = this.indexBy(currencies, "currency");
@@ -1045,18 +1058,18 @@ public partial class phemex : Exchange
         {
             object market = getValue(products, i);
             object type = this.safeStringLower(market, "type");
-            if (isTrue(isTrue(isTrue((isEqual(type, "perpetual"))) || isTrue((isEqual(type, "perpetualv2")))) || isTrue((isEqual(type, "PerpetualPilot")))))
+            if (isTrue(isTrue(isTrue((isEqual(type, "perpetual"))) || isTrue((isEqual(type, "perpetualv2")))) || isTrue((isEqual(type, "perpetualpilot")))))
             {
                 object id = this.safeString(market, "symbol");
-                object riskLimitValues = this.safeValue(riskLimitsById, id, new Dictionary<string, object>() {});
+                object riskLimitValues = this.safeDict(riskLimitsById, id, new Dictionary<string, object>() {});
                 market = this.extend(market, riskLimitValues);
-                object v1ProductsValues = this.safeValue(v1ProductsById, id, new Dictionary<string, object>() {});
+                object v1ProductsValues = this.safeDict(v1ProductsById, id, new Dictionary<string, object>() {});
                 market = this.extend(market, v1ProductsValues);
                 market = this.parseSwapMarket(market);
             } else
             {
                 object baseCurrency = this.safeString(market, "baseCurrency");
-                object currencyValues = this.safeValue(currenciesByCode, baseCurrency, new Dictionary<string, object>() {});
+                object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new Dictionary<string, object>() {});
                 object valueScale = this.safeString(currencyValues, "valueScale", "8");
                 market = this.extend(market, new Dictionary<string, object>() {
                     { "valueScale", valueScale },
@@ -1261,7 +1274,7 @@ public partial class phemex : Exchange
         precise.decimals = subtract(precise.decimals, scale);
         precise.reduce();
         object preciseString = ((object)precise).ToString();
-        return this.parseToInt(preciseString);
+        return this.parseToNumeric(preciseString);
     }
 
     public virtual object toEv(object amount, object market = null)
@@ -2738,7 +2751,6 @@ public partial class phemex : Exchange
         object market = this.market(symbol);
         object requestSide = this.capitalize(side);
         type = this.capitalize(type);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", requestSide },
@@ -2829,9 +2841,11 @@ public partial class phemex : Exchange
             {
                 if (isTrue(hedged))
                 {
+                    object reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if (isTrue(reduceOnly))
                     {
                         side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                        parameters = this.omit(parameters, "reduceOnly");
                     }
                     posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "Long" : "Short";
                 } else
@@ -2971,7 +2985,6 @@ public partial class phemex : Exchange
             }
             parameters = this.omit(parameters, "stopLossPrice");
         }
-        parameters = this.omit(parameters, "reduceOnly");
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
         {
@@ -5397,6 +5410,243 @@ public partial class phemex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://phemex-docs.github.io/#rfq-quote
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        object valueScale = this.safeInteger(fromCurrency, "valueScale");
+        object request = new Dictionary<string, object>() {
+            { "fromCurrency", fromCode },
+            { "toCurrency", toCode },
+            { "fromAmountEv", this.toEn(amount, valueScale) },
+        };
+        object response = await this.privateGetAssetsQuote(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "code": "GIF...AAA",
+        //             "quoteArgs": {
+        //                 "origin": 10,
+        //                 "price": "0.00000939",
+        //                 "proceeds": "0.00000000",
+        //                 "ttlMs": 7000,
+        //                 "expireAt": 1739875826009,
+        //                 "requestAt": 1739875818009,
+        //                 "quoteAt": 1739875816594
+        //             }
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name phemex#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://phemex-docs.github.io/#convert
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        object valueScale = this.safeInteger(fromCurrency, "valueScale");
+        object request = new Dictionary<string, object>() {
+            { "code", id },
+            { "fromCurrency", fromCode },
+            { "toCurrency", toCode },
+        };
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["fromAmountEv"] = this.toEn(amount, valueScale);
+        }
+        object response = await this.privatePostAssetsConvert(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "moveOp": 0,
+        //             "fromCurrency": "USDT",
+        //             "toCurrency": "BTC",
+        //             "fromAmountEv": 4000000000,
+        //             "toAmountEv": 41511,
+        //             "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //             "status": 10
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(data, "fromCurrency");
+        object fromResult = this.safeCurrency(fromCurrencyId, fromCurrency);
+        object toCurrencyId = this.safeString(data, "toCurrency");
+        object to = this.safeCurrency(toCurrencyId, toCurrency);
+        return this.parseConversion(data, fromResult, to);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://phemex-docs.github.io/#query-convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromCurrency] the currency that you sold and converted from
+     * @param {string} [params.toCurrency] the currency that you bought and converted into
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)request)["fromCurrency"] = code;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetAssetsConvert(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "total": 2,
+        //             "rows": [
+        //                 {
+        //                     "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //                     "createTime": 1739882294000,
+        //                     "fromCurrency": "USDT",
+        //                     "toCurrency": "BTC",
+        //                     "fromAmountEv": 4000000000,
+        //                     "toAmountEv": 41511,
+        //                     "status": 10,
+        //                     "conversionRate": 1037,
+        //                     "errorCode": 0
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "code": "GIF...AAA",
+        //         "quoteArgs": {
+        //             "origin": 10,
+        //             "price": "0.00000939",
+        //             "proceeds": "0.00000000",
+        //             "ttlMs": 7000,
+        //             "expireAt": 1739875826009,
+        //             "requestAt": 1739875818009,
+        //             "quoteAt": 1739875816594
+        //         }
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "moveOp": 0,
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "status": 10
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        //         "createTime": 1739882294000,
+        //         "fromCurrency": "USDT",
+        //         "toCurrency": "BTC",
+        //         "fromAmountEv": 4000000000,
+        //         "toAmountEv": 41511,
+        //         "status": 10,
+        //         "conversionRate": 1037,
+        //         "errorCode": 0
+        //     }
+        //
+        object quoteArgs = this.safeDict(conversion, "quoteArgs", new Dictionary<string, object>() {});
+        object requestTime = this.safeInteger(quoteArgs, "requestAt");
+        object timestamp = this.safeInteger(conversion, "createTime", requestTime);
+        object fromCoin = this.safeString(conversion, "fromCurrency", this.safeString(fromCurrency, "code"));
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object toCoin = this.safeString(conversion, "toCurrency", this.safeString(toCurrency, "code"));
+        object toCode = this.safeCurrencyCode(toCoin, toCurrency);
+        object fromValueScale = this.safeInteger(fromCurrency, "valueScale");
+        object toValueScale = this.safeInteger(toCurrency, "valueScale");
+        object fromAmount = this.fromEn(this.safeString(conversion, "fromAmountEv"), fromValueScale);
+        if (isTrue(isTrue(isEqual(fromAmount, null)) && isTrue(!isEqual(quoteArgs, null))))
+        {
+            fromAmount = this.fromEn(this.safeString(quoteArgs, "origin"), fromValueScale);
+        }
+        object toAmount = this.fromEn(this.safeString(conversion, "toAmountEv"), toValueScale);
+        if (isTrue(isTrue(isEqual(toAmount, null)) && isTrue(!isEqual(quoteArgs, null))))
+        {
+            toAmount = this.fromEn(this.safeString(quoteArgs, "proceeds"), toValueScale);
+        }
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(conversion, "code") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.parseNumber(fromAmount) },
+            { "toCurrency", toCode },
+            { "toAmount", this.parseNumber(toAmount) },
+            { "price", this.safeNumber(quoteArgs, "price") },
+            { "fee", null },
+        };
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

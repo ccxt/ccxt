@@ -456,6 +456,7 @@ public partial class binance : Exchange
                         { "portfolio/margin-asset-leverage", 5 },
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
+                        { "portfolio/pmloan-history", 5 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -6567,15 +6568,10 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        // don't handle/omit params here, omitting happens inside createOrderRequest
         object marketType = this.safeString(parameters, "type", getValue(market, "type"));
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object isPortfolioMargin = null;
-        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "createOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
-        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        object marginMode = this.safeString(parameters, "marginMode");
+        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", false);
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");

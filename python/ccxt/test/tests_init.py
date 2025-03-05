@@ -24,9 +24,10 @@ runAll = get_cli_arg_value('--all')
 if (isBaseTests):
     if (isWs):
         test_base_init_ws()
+        print('base WS tests passed!')
     else:
         base_tests_init()
-    print('base tests passed!')
+        print('base REST tests passed!')
     if not runAll:
         exit(0)
 

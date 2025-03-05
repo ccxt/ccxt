@@ -22,5 +22,6 @@ public partial class BaseTest
             testOmit();
             testGroupBy();
             testFilterBy();
+            testHandleMethods();
         }
 }
