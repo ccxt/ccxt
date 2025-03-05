@@ -1342,7 +1342,7 @@ class bybit extends Exchange {
                     // so we're assuming UTA is enabled
                     $this->options['enableUnifiedMargin'] = false;
                     $this->options['enableUnifiedAccount'] = true;
-                    $this->options['unifiedMarginStatus'] = 3;
+                    $this->options['unifiedMarginStatus'] = 6;
                     return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
                 }
                 $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
@@ -1408,7 +1408,7 @@ class bybit extends Exchange {
                 $accountResult = $this->safe_dict($accountInfo, 'result', array());
                 $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
                 $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
-                $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+                $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
             }
             return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
         }) ();
@@ -3459,7 +3459,7 @@ class bybit extends Exchange {
             $isInverse = ($type === 'inverse');
             $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
             if ($isUnifiedAccount) {
-                $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+                $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
                 if ($unifiedMarginStatus < 5) {
                     // it's not uta.20 where inverse are unified
                     if ($isInverse) {
@@ -4239,7 +4239,7 @@ class bybit extends Exchange {
             }
             $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
             $market = $this->market($symbols[0]);
-            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
             $category = null;
             list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
             if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
@@ -4459,7 +4459,7 @@ class bybit extends Exchange {
             }
             $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
             $market = $this->market($orderSymbols[0]);
-            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
             $category = null;
             list($category, $params) = $this->get_bybit_type('editOrders', $market, $params);
             if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {

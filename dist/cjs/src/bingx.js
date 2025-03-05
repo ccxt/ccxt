@@ -4686,7 +4686,7 @@ class bingx extends bingx$1 {
         }
         else if (type === 'spot') {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['pageSize'] = limit;
             }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, params));
             //

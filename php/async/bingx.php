@@ -4737,7 +4737,7 @@ class bingx extends Exchange {
                 $response = Async\await($this->contractV1PrivateGetAllOrders ($this->extend($request, $params)));
             } elseif ($type === 'spot') {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['pageSize'] = $limit;
                 }
                 $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params)));
                 //

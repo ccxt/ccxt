@@ -1108,6 +1108,7 @@ public partial class whitebit : Exchange
         //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
@@ -1123,6 +1124,7 @@ public partial class whitebit : Exchange
         //          "deal": "9.981007",
         //          "fee": "0.009981007",
         //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         market = this.safeMarket(null, market);
@@ -1146,7 +1148,7 @@ public partial class whitebit : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset")) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -2819,14 +2821,12 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
-            object timestamp = this.parseToInt(divide(nonce, 1000));
-            object timestampString = ((object)timestamp).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
-                { "nonce", timestampString },
+                { "nonce", nonce },
             }, parameters));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);

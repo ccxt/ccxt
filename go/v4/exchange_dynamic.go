@@ -214,10 +214,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         cryptocomItf := &cryptocom{}
         cryptocomItf.Init(exchangeArgs)
         return cryptocomItf, true
-    case "currencycom":
-        currencycomItf := &currencycom{}
-        currencycomItf.Init(exchangeArgs)
-        return currencycomItf, true
     case "defx":
         defxItf := &defx{}
         defxItf.Init(exchangeArgs)

@@ -1820,107 +1820,87 @@ public partial class gate : Exchange
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
-        //    {
-        //        "currency": "BCN",
-        //        "delisted": false,
-        //        "withdraw_disabled": true,
-        //        "withdraw_delayed": false,
-        //        "deposit_disabled": true,
-        //        "trade_disabled": false
-        //    }
+        //  [
+        //   {
+        //       "currency": "USDT_ETH",
+        //       "name": "Tether",
+        //       "delisted": false,
+        //       "withdraw_disabled": false,
+        //       "withdraw_delayed": false,
+        //       "deposit_disabled": false,
+        //       "trade_disabled": true,
+        //       "chain": "ETH"
+        //    },
+        //  ]
         //
-        //    {
-        //        "currency":"USDT_ETH",
-        //        "delisted":false,
-        //        "withdraw_disabled":false,
-        //        "withdraw_delayed":false,
-        //        "deposit_disabled":false,
-        //        "trade_disabled":false,
-        //        "chain":"ETH"
-        //    }
-        //
+        object indexedCurrencies = this.indexBy(response, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             object currencyId = this.safeString(entry, "currency");
-            object currencyIdLower = this.safeStringLower(entry, "currency");
             object parts = ((string)currencyId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object currency = getValue(parts, 0);
-            object code = this.safeCurrencyCode(currency);
-            object networkId = this.safeString(entry, "chain");
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
+            object partFirst = this.safeString(parts, 0);
+            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
+            object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
+            object withdrawEnabled = !isTrue(this.safeBool(entry, "withdraw_disabled"));
+            object depositEnabled = !isTrue(this.safeBool(entry, "deposit_disabled"));
+            object tradeDisabled = !isTrue(this.safeBool(entry, "trade_disabled"));
+            object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
+            object code = this.safeCurrencyCode(currencyName);
+            // check leveraged tokens (e.g. BTC3S, ETH5L)
+            object isLeveragedToken = false;
+            if (isTrue(isTrue(isTrue(isTrue(((string)currencyId).EndsWith(((string)"3S"))) || isTrue(((string)currencyId).EndsWith(((string)"3L")))) || isTrue(((string)currencyId).EndsWith(((string)"5S")))) || isTrue(((string)currencyId).EndsWith(((string)"5L")))))
             {
-                networkCode = this.networkIdToCode(networkId, code);
+                object realCurrencyId = slice(currencyId, 0, -2);
+                if (isTrue(inOp(indexedCurrencies, realCurrencyId)))
+                {
+                    isLeveragedToken = true;
+                }
             }
-            object delisted = this.safeValue(entry, "delisted");
-            object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
-            object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
-            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
-            object withdrawEnabled = !isTrue(withdrawDisabled);
-            object depositEnabled = !isTrue(depositDisabled);
-            object tradeEnabled = !isTrue(tradeDisabled);
-            object listed = !isTrue(delisted);
-            object active = isTrue(isTrue(isTrue(listed) && isTrue(tradeEnabled)) && isTrue(withdrawEnabled)) && isTrue(depositEnabled);
-            if (isTrue(isEqual(this.safeValue(result, code), null)))
+            object type = ((bool) isTrue(isLeveragedToken)) ? "leveraged" : "crypto";
+            // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
+            object networkId = this.safeString(entry, "chain", currencyId);
+            object networkCode = this.networkIdToCode(networkId, code);
+            object networkEntry = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "active", !isTrue(tradeDisabled) },
+                { "deposit", depositEnabled },
+                { "withdraw", withdrawEnabled },
+                { "fee", null },
+                { "precision", precision },
+            };
+            // check if first entry for the specific currency
+            if (!isTrue((inOp(result, code))))
             {
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", currency },
+                    { "id", currencyName },
+                    { "lowerCaseId", ((string)currencyName).ToLower() },
                     { "code", code },
-                    { "info", null },
-                    { "name", null },
-                    { "active", active },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "fee", null },
-                    { "fees", new List<object>() {} },
-                    { "precision", this.parseNumber("1e-4") },
+                    { "type", type },
+                    { "precision", precision },
                     { "limits", this.limits },
                     { "networks", new Dictionary<string, object>() {} },
+                    { "info", new List<object>() {} },
                 };
             }
-            object depositAvailable = this.safeValue(getValue(result, code), "deposit");
-            depositAvailable = ((bool) isTrue((depositEnabled))) ? depositEnabled : depositAvailable;
-            object withdrawAvailable = this.safeValue(getValue(result, code), "withdraw");
-            withdrawAvailable = ((bool) isTrue((withdrawEnabled))) ? withdrawEnabled : withdrawAvailable;
-            object networks = this.safeValue(getValue(result, code), "networks", new Dictionary<string, object>() {});
-            if (isTrue(!isEqual(networkCode, null)))
-            {
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", entry },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "currencyId", currencyId },
-                    { "lowerCaseCurrencyId", currencyIdLower },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "active", active },
-                    { "fee", null },
-                    { "precision", this.parseNumber("1e-4") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
-            object info = this.safeValue(getValue(result, code), "info", new List<object>() {});
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = networkEntry;
+            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
             ((IList<object>)info).Add(entry);
             ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-            ((IDictionary<string,object>)getValue(result, code))["active"] = isTrue(depositAvailable) && isTrue(withdrawAvailable);
-            ((IDictionary<string,object>)getValue(result, code))["deposit"] = depositAvailable;
-            ((IDictionary<string,object>)getValue(result, code))["withdraw"] = withdrawAvailable;
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
         return result;
     }
@@ -2192,6 +2172,32 @@ public partial class gate : Exchange
 
     /**
      * @method
+     * @name gate#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
+        object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
+        object currencyId = this.safeString(response, "currency");
+        currency = this.safeCurrency(currencyId, currency);
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        });
+        return this.indexBy(parsed, "network");
+    }
+
+    /**
+     * @method
      * @name gate#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2204,81 +2210,34 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object rawNetwork = this.safeStringUpper(parameters, "network");
-        parameters = this.omit(parameters, "network");
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object selectedNetworkId = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        return getValue(chainsIndexedById, selectedNetworkId);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
         //
-        //    {
-        //        "currency": "XRP",
-        //        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        //        "multichain_addresses": [
-        //            {
-        //                "chain": "XRP",
-        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        //                "payment_id": "391331007",
-        //                "payment_name": "Tag",
-        //                "obtain_failed": 0
-        //            }
-        //        ]
-        //    }
+        //     {
+        //         chain: "BTC",
+        //         address: "1Nxu.......Ys",
+        //         payment_id: "",
+        //         payment_name: "",
+        //         obtain_failed: "0",
+        //     }
         //
-        object currencyId = this.safeString(response, "currency");
-        code = this.safeCurrencyCode(currencyId);
-        object networkId = this.networkCodeToId(rawNetwork, code);
-        object network = null;
-        object tag = null;
-        object address = null;
-        if (isTrue(!isEqual(networkId, null)))
-        {
-            object addresses = this.safeValue(response, "multichain_addresses");
-            for (object i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
-            {
-                object entry = getValue(addresses, i);
-                object entryNetwork = this.safeString(entry, "chain");
-                if (isTrue(isEqual(networkId, entryNetwork)))
-                {
-                    object obtainFailed = this.safeInteger(entry, "obtain_failed");
-                    if (isTrue(obtainFailed))
-                    {
-                        break;
-                    }
-                    address = this.safeString(entry, "address");
-                    tag = this.safeString(entry, "payment_id");
-                    network = this.networkIdToCode(networkId, code);
-                    break;
-                }
-            }
-        } else
-        {
-            object addressField = this.safeString(response, "address");
-            if (isTrue(!isEqual(addressField, null)))
-            {
-                if (isTrue(isGreaterThanOrEqual(getIndexOf(addressField, "New address is being generated for you, please wait"), 0)))
-                {
-                    throw new BadResponse ((string)add(add(this.id, " "), "New address is being generated for you, please wait a few seconds and try again to get the address.")) ;
-                }
-                if (isTrue(isGreaterThanOrEqual(getIndexOf(addressField, " "), 0)))
-                {
-                    object splitted = ((string)addressField).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-                    address = getValue(splitted, 0);
-                    tag = getValue(splitted, 1);
-                } else
-                {
-                    address = addressField;
-                }
-            }
-        }
+        object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", network },
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "payment_id") },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain")) },
         };
     }
 
@@ -4202,16 +4161,13 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["memo"] = tag;
         }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
-        if (isTrue(!isEqual(network, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = network;
-            parameters = this.omit(parameters, "network");
-        } else
-        {
-            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id"); // todo: currencies have network-junctions
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode);
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //

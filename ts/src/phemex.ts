@@ -674,7 +674,8 @@ export default class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const contractUnderlyingAssets = this.safeString (market, 'contractUnderlyingAssets');
+        const baseId = this.safeString (market, 'baseCurrency', contractUnderlyingAssets);
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
         let base = this.safeCurrencyCode (baseId);
@@ -684,6 +685,10 @@ export default class phemex extends Exchange {
         let inverse = false;
         if (settleId !== quoteId) {
             inverse = true;
+            // some unhandled cases
+            if (!('baseCurrency' in market) && base === quote) {
+                base = settle;
+            }
         }
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
@@ -873,7 +878,7 @@ export default class phemex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const v2Products = await this.v2GetPublicProducts (params);
+        const v2ProductsPromise = this.v2GetPublicProducts (params);
         //
         //     {
         //         "code":0,
@@ -1023,7 +1028,8 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await this.v1GetExchangePublicProducts (params);
+        const v1ProductsPromise = this.v1GetExchangePublicProducts (params);
+        const [ v2Products, v1Products ] = await Promise.all ([ v2ProductsPromise, v1ProductsPromise ]);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -1060,14 +1066,14 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const v2ProductsData = this.safeValue (v2Products, 'data', {});
-        let products = this.safeValue (v2ProductsData, 'products', []);
-        const perpetualProductsV2 = this.safeValue (v2ProductsData, 'perpProductsV2', []);
+        const v2ProductsData = this.safeDict (v2Products, 'data', {});
+        let products = this.safeList (v2ProductsData, 'products', []);
+        const perpetualProductsV2 = this.safeList (v2ProductsData, 'perpProductsV2', []);
         products = this.arrayConcat (products, perpetualProductsV2);
-        let riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
-        const riskLimitsV2 = this.safeValue (v2ProductsData, 'riskLimitsV2', []);
+        let riskLimits = this.safeList (v2ProductsData, 'riskLimits', []);
+        const riskLimitsV2 = this.safeList (v2ProductsData, 'riskLimitsV2', []);
         riskLimits = this.arrayConcat (riskLimits, riskLimitsV2);
-        const currencies = this.safeValue (v2ProductsData, 'currencies', []);
+        const currencies = this.safeList (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
         const currenciesByCode = this.indexBy (currencies, 'currency');
@@ -1077,14 +1083,14 @@ export default class phemex extends Exchange {
             const type = this.safeStringLower (market, 'type');
             if ((type === 'perpetual') || (type === 'perpetualv2') || (type === 'perpetualpilot')) {
                 const id = this.safeString (market, 'symbol');
-                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                const riskLimitValues = this.safeDict (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
-                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
+                const v1ProductsValues = this.safeDict (v1ProductsById, id, {});
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
                 const baseCurrency = this.safeString (market, 'baseCurrency');
-                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const currencyValues = this.safeDict (currenciesByCode, baseCurrency, {});
                 const valueScale = this.safeString (currencyValues, 'valueScale', '8');
                 market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
