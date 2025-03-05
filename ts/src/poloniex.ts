@@ -1968,8 +1968,7 @@ export default class poloniex extends Exchange {
             throw new NotSupported (this.id + ' fetchClosedOrders() is not supported for spot markets yet');
         }
         if (limit !== undefined) {
-            const max = this.features[marketType]['fetchClosedOrders']['limit'];
-            request['limit'] = Math.min (limit, max);
+            request['limit'] = Math.min (200, limit);
         }
         if (since !== undefined) {
             request['sTime'] = since;
