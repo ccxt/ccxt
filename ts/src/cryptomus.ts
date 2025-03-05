@@ -819,7 +819,7 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request: Dict = {}
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -901,7 +901,6 @@ export default class cryptomus extends Exchange {
         }
         const request: Dict = {
         };
-
         if (market !== undefined) {
             request['market'] = market['id'];
         }
