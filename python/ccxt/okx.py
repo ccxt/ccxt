@@ -27,8 +27,8 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
+from ccxt.base.types import OrderType, OrderSide, Num
 
-from base.types import OrderType, OrderSide, Num
 
 TO_FLOAT_PARAMS = {'sz', 'slOrdPx', 'slTriggerPx', 'tpOrdPx', 'tpTriggerPx', 'orderPx', 'triggerPx', 'px'}
 PERMISSION_TO_VALUE = {"spot": ["read_only", "trade"], "futures": ["read_only", "trade"]}
