@@ -134,7 +134,7 @@
                     0.005
                 ],
                 "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.005\"}"
-            },
+            }
         ],
         "cancelOrder": [
             {
