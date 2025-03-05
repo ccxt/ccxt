@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch open orders",
