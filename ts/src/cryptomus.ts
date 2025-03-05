@@ -209,7 +209,8 @@ export default class cryptomus extends Exchange {
             'exceptions': {
                 'exact': {
                     '500': ExchangeError,
-                    'Insufficient funds': InsufficientFunds,
+                    '6': InsufficientFunds, //  {"code":6,"message":"Insufficient funds."}
+                    'Insufficient funds.': InsufficientFunds,
                     'Minimum amount 15 USDT': InvalidOrder,
                     // {"code":500,"message":"Server error."}
                     // {"message":"Minimum amount 15 USDT","state":1}
@@ -1076,7 +1077,7 @@ export default class cryptomus extends Exchange {
         if ('code' in response) {
             const code = this.safeString (response, 'code');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback);
         } else if ('message' in response) {
             //
