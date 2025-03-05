@@ -209,7 +209,7 @@ export default class cryptomus extends Exchange {
             'exceptions': {
                 'exact': {
                     '500': ExchangeError,
-                    '6': InsufficientFunds, //  {"code":6,"message":"Insufficient funds."}
+                    '6': InsufficientFunds, // {"code":6,"message":"Insufficient funds."}
                     'Insufficient funds.': InsufficientFunds,
                     'Minimum amount 15 USDT': InvalidOrder,
                     // {"code":500,"message":"Server error."}
