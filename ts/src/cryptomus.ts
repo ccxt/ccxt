@@ -125,7 +125,7 @@ export default class cryptomus extends Exchange {
                 'www': 'https://cryptomus.com',
                 'doc': 'https://doc.cryptomus.com/personal',
                 'fees': 'https://cryptomus.com/tariffs', // todo check
-                'referral': '', // todo
+                'referral': 'https://app.cryptomus.com/signup/?ref=JRP4yj', // todo
             },
             'api': {
                 'public': {
