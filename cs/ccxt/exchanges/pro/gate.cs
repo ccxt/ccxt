@@ -2322,6 +2322,12 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
+        if (isTrue(isTrue((isEqual(channel, "spot.order_place"))) || isTrue((isEqual(channel, "futures.order_place")))))
+        {
+            ((IDictionary<string,object>)payload)["req_header"] = new Dictionary<string, object>() {
+                { "x-gate-channel-id", "ccxt" },
+            };
+        }
         object request = new Dictionary<string, object>() {
             { "id", requestId },
             { "time", time },

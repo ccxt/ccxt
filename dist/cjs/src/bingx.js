@@ -4667,14 +4667,13 @@ class bingx extends bingx$1 {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
         let type = undefined;
         let subType = undefined;
         let standard = undefined;
@@ -4687,7 +4686,7 @@ class bingx extends bingx$1 {
         }
         else if (type === 'spot') {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['pageSize'] = limit;
             }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, params));
             //

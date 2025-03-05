@@ -511,11 +511,11 @@ class tradeogre(Exchange, ImplicitAPI):
         if type == 'market':
             raise BadRequest(self.id + ' createOrder does not support market orders')
         if price is None:
-            raise ArgumentsRequired(self.id + ' createOrder requires a limit parameter')
+            raise ArgumentsRequired(self.id + ' createOrder requires a price parameter')
         request: dict = {
             'market': market['id'],
-            'quantity': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-            'price': self.parse_to_numeric(self.price_to_precision(symbol, price)),
+            'quantity': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = None
         if side == 'buy':

@@ -487,6 +487,7 @@ class binance extends Exchange {
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance' => 2,
                         'portfolio/negative-balance-exchange-record' => 2,
+                        'portfolio/pmloan-history' => 5,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -6379,11 +6380,10 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            // don't handle/omit $params here, omitting happens inside createOrderRequest
             $marketType = $this->safe_string($params, 'type', $market['type']);
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            $isPortfolioMargin = null;
-            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
+            $marginMode = $this->safe_string($params, 'marginMode');
+            $isPortfolioMargin = $this->safe_bool_2($params, 'papi', 'portfolioMargin', false);
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');

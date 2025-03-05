@@ -131,8 +131,10 @@ class bitmart(ccxt.async_support.bitmart):
             rawSubscriptions.append(message)
             messageHashes.append(channel + ':' + market['symbol'])
         # exclusion, futures "tickers" need one generic request for all symbols
-        if (type != 'spot') and (channel == 'ticker'):
-            rawSubscriptions = [channelType + '/' + channel]
+        # if (type != 'spot') and (channel == 'ticker'):
+        #     rawSubscriptions = [channelType + '/' + channel]
+        # }
+        # Exchange update from 2025-02-11 supports subscription by trading pair for swap
         request: dict = {
             'args': rawSubscriptions,
         }
@@ -898,39 +900,42 @@ class bitmart(ccxt.async_support.bitmart):
 
     def parse_ws_trade(self, trade: dict, market: Market = None):
         # spot
-        #    {
-        #        "price": "52700.50",
-        #        "s_t": 1630982050,
-        #        "side": "buy",
-        #        "size": "0.00112",
-        #        "symbol": "BTC_USDT"
-        #    }
-        # swap
-        #    {
-        #       "trade_id":6798697637,
-        #       "contract_id":1,
-        #       "symbol":"BTCUSDT",
-        #       "deal_price":"39735.8",
-        #       "deal_vol":"2",
-        #       "type":0,
-        #       "way":1,
-        #       "create_time":1701618503,
-        #       "create_time_mill":1701618503517,
-        #       "created_at":"2023-12-03T15:48:23.517518538Z"
-        #    }
+        #     {
+        #         "ms_t": 1740320841473,
+        #         "price": "2806.54",
+        #         "s_t": 1740320841,
+        #         "side": "sell",
+        #         "size": "0.77598",
+        #         "symbol": "ETH_USDT"
+        #     }
         #
-        contractId = self.safe_string(trade, 'contract_id')
-        marketType = 'spot' if (contractId is None) else 'swap'
-        marketDelimiter = '_' if (marketType == 'spot') else ''
-        timestamp = self.safe_integer(trade, 'create_time_mill', self.safe_timestamp(trade, 's_t'))
+        # swap
+        #     {
+        #         "trade_id": "3000000245258661",
+        #         "symbol": "ETHUSDT",
+        #         "deal_price": "2811.1",
+        #         "deal_vol": "1858",
+        #         "way": 2,
+        #         "m": True,
+        #         "created_at": "2025-02-23T13:59:59.646490751Z"
+        #     }
+        #
         marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(trade, 'ms_t')
+        datetime: Str = None
+        if timestamp is None:
+            datetime = self.safe_string(trade, 'created_at')
+            timestamp = self.parse8601(datetime)
+        else:
+            datetime = self.iso8601(timestamp)
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'trade_id'),
             'order': None,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': self.safe_symbol(marketId, market, marketDelimiter, marketType),
+            'datetime': datetime,
+            'symbol': market['symbol'],
             'type': None,
             'side': self.safe_string(trade, 'side'),
             'price': self.safe_string_2(trade, 'price', 'deal_price'),
@@ -956,20 +961,22 @@ class bitmart(ccxt.async_support.bitmart):
         #        ],
         #        "table": "spot/ticker"
         #    }
-        #    {
-        #        "group":"futures/ticker",
-        #        "data":{
-        #              "symbol":"BTCUSDT",
-        #              "volume_24":"117387.58",
-        #              "fair_price":"146.24",
-        #              "last_price":"146.24",
-        #              "range":"147.17",
-        #              "ask_price": "147.11",
-        #              "ask_vol": "1",
-        #              "bid_price": "142.11",
-        #              "bid_vol": "1"
-        #            }
-        #    }
+        #
+        #     {
+        #         "data": {
+        #             "symbol": "ETHUSDT",
+        #             "last_price": "2807.73",
+        #             "volume_24": "2227011952",
+        #             "range": "0.0273398194664491",
+        #             "mark_price": "2807.5",
+        #             "index_price": "2808.71047619",
+        #             "ask_price": "2808.04",
+        #             "ask_vol": "7371",
+        #             "bid_price": "2807.28",
+        #             "bid_vol": "3561"
+        #         },
+        #         "group": "futures/ticker:ETHUSDT@100ms"
+        #     }
         #
         self.handle_bid_ask(client, message)
         table = self.safe_string(message, 'table')
@@ -990,17 +997,19 @@ class bitmart(ccxt.async_support.bitmart):
 
     def parse_ws_swap_ticker(self, ticker, market: Market = None):
         #
-        #    {
-        #        "symbol":"BTCUSDT",
-        #        "volume_24":"117387.58",
-        #        "fair_price":"146.24",
-        #        "last_price":"146.24",
-        #        "range":"147.17",
-        #        "ask_price": "147.11",
-        #        "ask_vol": "1",
-        #        "bid_price": "142.11",
-        #        "bid_vol": "1"
-        #    }
+        #     {
+        #         "symbol": "ETHUSDT",
+        #         "last_price": "2807.73",
+        #         "volume_24": "2227011952",
+        #         "range": "0.0273398194664491",
+        #         "mark_price": "2807.5",
+        #         "index_price": "2808.71047619",
+        #         "ask_price": "2808.04",
+        #         "ask_vol": "7371",
+        #         "bid_price": "2807.28",
+        #         "bid_vol": "3561"
+        #     }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, '', 'swap'),
@@ -1019,10 +1028,12 @@ class bitmart(ccxt.async_support.bitmart):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_string(ticker, 'fair_price'),
+            'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume_24'),
             'info': ticker,
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
         }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:

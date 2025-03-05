@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.61';
+$version = '4.4.64';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.61';
+    const VERSION = '4.4.64';
 
     public $browser;
     public $marketsLoading = null;
@@ -1688,6 +1688,9 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_currency_structure(array $currency) {
         // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        $currencyDeposit = $this->safe_bool($currency, 'deposit');
+        $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
+        $currencyActive = $this->safe_bool($currency, 'active');
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1695,15 +1698,15 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < $length; $i++) {
                 $network = $networks[$keys[$i]];
                 $deposit = $this->safe_bool($network, 'deposit');
-                if ($currency['deposit'] === null || $deposit) {
+                if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
                 }
                 $withdraw = $this->safe_bool($network, 'withdraw');
-                if ($currency['withdraw'] === null || $withdraw) {
+                if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
                 }
                 $active = $this->safe_bool($network, 'active');
-                if ($currency['active'] === null || $active) {
+                if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
@@ -3080,7 +3083,10 @@ class Exchange extends \ccxt\Exchange {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 $defaultNetworkCode = $this->default_network_code($currencyCode);
                 $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->network_code_to_id($defaultNetworkCode, $currencyCode);
-                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
+                if (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) {
+                    return $defaultNetworkId;
+                }
+                throw new NotSupported($this->id . ' - can not determine the default network, please pass param["network"] one from : ' . implode(', ', $availableNetworkIds));
             }
         }
         return $chosenNetworkId;
@@ -3897,23 +3903,33 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} [$defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @return array([string, object]) the $market $type and $params with $type and $defaultType omitted
          */
-        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
-        if ($defaultValue === null) {  // $defaultValue takes precendence over exchange wide $defaultType
-            $defaultValue = $defaultType;
+        // $type from param
+        $type = $this->safe_string_2($params, 'defaultType', 'type');
+        if ($type !== null) {
+            $params = $this->omit($params, array( 'defaultType', 'type' ));
+            return array( $type, $params );
+        }
+        // $type from $market
+        if ($market !== null) {
+            return [ $market['type'], $params ];
+        }
+        // $type from default-argument
+        if ($defaultValue !== null) {
+            return array( $defaultValue, $params );
         }
         $methodOptions = $this->safe_dict($this->options, $methodName);
-        $methodType = $defaultValue;
-        if ($methodOptions !== null) {  // user defined $methodType takes precedence over $defaultValue
+        if ($methodOptions !== null) {
             if (gettype($methodOptions) === 'string') {
-                $methodType = $methodOptions;
+                return array( $methodOptions, $params );
             } else {
-                $methodType = $this->safe_string_2($methodOptions, 'defaultType', 'type', $methodType);
+                $typeFromMethod = $this->safe_string_2($methodOptions, 'defaultType', 'type');
+                if ($typeFromMethod !== null) {
+                    return array( $typeFromMethod, $params );
+                }
             }
         }
-        $marketType = ($market === null) ? $methodType : $market['type'];
-        $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
-        $params = $this->omit($params, array( 'defaultType', 'type' ));
-        return array( $type, $params );
+        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        return array( $defaultType, $params );
     }
 
     public function handle_sub_type_and_params(string $methodName, $market = null, $params = array (), $defaultValue = null) {
