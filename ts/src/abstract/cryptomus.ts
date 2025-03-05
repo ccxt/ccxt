@@ -15,7 +15,6 @@ interface Exchange {
     publicGetV1ExchangeMarketOrderBookCurrencyPair (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketTickers (params?: {}): Promise<implicitReturnType>;
     publicGetV1ExchangeMarketTradesCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    privateGetV2UserApiBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiExchangeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiExchangeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV2UserApiExchangeAccountBalance (params?: {}): Promise<implicitReturnType>;
