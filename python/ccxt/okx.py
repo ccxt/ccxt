@@ -28,6 +28,8 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
+from base.types import OrderType, OrderSide, Num
+
 TO_FLOAT_PARAMS = {'sz', 'slOrdPx', 'slTriggerPx', 'tpOrdPx', 'tpTriggerPx', 'orderPx', 'triggerPx', 'px'}
 PERMISSION_TO_VALUE = {"spot": ["read_only", "trade"], "futures": ["read_only", "trade"]}
 ACCOUNT_MODES = {"margin_free": 1, "single_currency_margin": 2, "multi_currency_margin": 3, "portfolio_margin": 4}
@@ -310,6 +312,7 @@ class okx(Exchange):
                         'trade/close-position',
                         'trade/order-algo',
                         'trade/cancel-algos',
+                        'trade/amend-algos',
                         'trade/cancel-advance-algos',
                         'users/subaccount/delete-apikey',
                         'users/subaccount/modify-apikey',
@@ -2151,6 +2154,150 @@ class okx(Exchange):
             'type': type,
             'side': side,
         })
+
+    def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        market = self.market(symbol)
+        request: dict = {
+            'instId': market['id'],
+        }
+        stopLossTriggerPrice = self.safe_value_n(params, ['stopLossPrice', 'newSlTriggerPx', 'stopPrice'])
+        takeProfitTriggerPrice = self.safe_value_2(params, 'takeProfitPrice', 'newTpTriggerPx')
+        isAlgoOrder = bool(stopLossTriggerPrice or takeProfitTriggerPrice)
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            if isAlgoOrder:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['clOrdId'] = clientOrderId
+        else:
+            if isAlgoOrder:
+                request['algoId'] = id
+            else:
+                request['ordId'] = id
+        stopLossPrice = price or self.safe_value(params, 'newSlOrdPx')
+        stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
+        takeProfitPrice = price or self.safe_value(params, 'newTpOrdPx')
+        takeProfitTriggerPriceType = self.safe_string(params, 'newTpTriggerPxType', 'last')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLossDefined = (stopLoss is not None)
+        takeProfitDefined = (takeProfit is not None)
+        is_limit = True
+        if isAlgoOrder:
+            if (stopLossTriggerPrice is None) and (takeProfitTriggerPrice is None):
+                raise BadRequest(self.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order')
+            if stopLossTriggerPrice is not None:
+                if stopLossPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+                is_limit = False
+            if takeProfitTriggerPrice is not None:
+                if takeProfitPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order')
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+                is_limit = False
+        else:
+            if stopLossTriggerPrice is not None:
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+                is_limit = False
+            if takeProfitTriggerPrice is not None:
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+                is_limit = False
+            if stopLossDefined:
+                stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
+                stopLossPrice = self.safe_value(stopLoss, 'price')
+                stopLossType = self.safe_string(stopLoss, 'type')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+                is_limit = False
+            if takeProfitDefined:
+                takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
+                takeProfitPrice = self.safe_value(takeProfit, 'price')
+                takeProfitType = self.safe_string(takeProfit, 'type')
+                request['newTpOrdKind'] = takeProfitType if (takeProfitType == 'limit') else 'condition'
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+                is_limit = False
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if is_limit:
+            if price is not None:
+                request['newPx'] = self.price_to_precision(symbol, price)
+        params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'stopPrice',
+                                    'takeProfit', 'postOnly'])
+        return isAlgoOrder, self.extend(request, params)
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+        https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, uses id if not passed
+        :param float [params.stopLossPrice]: stop loss trigger price
+        :param float [params.newSlOrdPx]: the stop loss order price, set to stopLossPrice if the type is market
+        :param str [params.newSlTriggerPxType]: 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+        :param float [params.takeProfitPrice]: take profit trigger price
+        :param float [params.newTpOrdPx]: the take profit order price, set to takeProfitPrice if the type is market
+        :param str [params.newTpTriggerPxType]: 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
+        :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
+        :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
+        :param str [params.newTpOrdKind]: 'condition' or 'limit', the default is 'condition'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        isAlgoOrder, request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        response = None
+        if isAlgoOrder:
+            response = self.privatePostTradeAmendAlgos(self.extend(request, params))
+        else:
+            response = self.privatePostTradeAmendOrder(self.extend(request, params))
+        #
+        #     {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #                 "ordId": "559176536793178112",
+        #                 "reqId": "",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #            }
+        #        ],
+        #        "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        order = self.parse_order(first, market)
+        order['type'] = type
+        order['side'] = side
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         """
