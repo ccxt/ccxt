@@ -472,7 +472,6 @@ func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAl
  * @method
  * @name hyperliquid#editOrder
  * @description edit a trade order
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
@@ -516,6 +515,24 @@ func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, sid
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
 }
 /**
  * @method
