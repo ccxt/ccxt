@@ -1791,6 +1791,14 @@
             },
             "loadMarkets": "linear and inverse values are same"
         }
+    }
+    "derive": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currency": "messed",
+                "currencyIdAndCode": "messed"
+            }
+        }
     },
     "cryptomus": {
         "skipMethods": {

@@ -1220,6 +1220,9 @@ export default class Exchange {
         }
         return parseInt(number, 10);
     }
+    binaryLength(binary) {
+        return binary.length;
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################

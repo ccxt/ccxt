@@ -397,6 +397,10 @@ public partial class Exchange
         }
         return int.Parse(number);
     }
+    public int binaryLength(object binary)
+    {
+        return getArrayLength(binary);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
