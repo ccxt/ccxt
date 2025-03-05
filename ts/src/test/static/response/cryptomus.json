@@ -2,6 +2,297 @@
     "exchange": "cryptomus",
     "skipKeys": [ "timestamp", "datetime" ],
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": "{\"result\":[{\"ticker\":\"AVAX\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"BCH\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"BNB\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"BTC\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"BUSD\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"CGPT\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"DAI\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"DASH\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"DOGE\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"ETH\",\"available\":\"0.01087820\",\"held\":\"0.00000000\"},{\"ticker\":\"HMSTR\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"LTC\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"POL\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"SHIB\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"SOL\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"TON\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"TRX\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"USDC\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"USDT\",\"available\":\"22.90000000\",\"held\":\"2.10000000\"},{\"ticker\":\"VERSE\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"},{\"ticker\":\"XMR\",\"available\":\"0.00000000\",\"held\":\"0.00000000\"}]}",
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "ticker": "AVAX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BCH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BNB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BUSD",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "CGPT",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DAI",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DASH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DOGE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "ETH",
+                            "available": "0.01087820",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "HMSTR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "LTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "POL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SHIB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SOL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TON",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TRX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDT",
+                            "available": "22.90000000",
+                            "held": "2.10000000"
+                        },
+                        {
+                            "ticker": "VERSE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "XMR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        }
+                    ],
+                    "AVAX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BCH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BNB": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BUSD": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "CGPT": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DAI": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DASH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DOGE": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETH": {
+                        "free": 0.0108782,
+                        "used": 0,
+                        "total": 0.0108782
+                    },
+                    "HMSTR": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "LTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "POL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SHIB": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TON": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TRX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDT": {
+                        "free": 22.9,
+                        "used": 2.1,
+                        "total": 25
+                    },
+                    "VERSE": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "XMR": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0.0108782,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 22.9,
+                        "VERSE": 0,
+                        "XMR": 0
+                    },
+                    "used": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 2.1,
+                        "VERSE": 0,
+                        "XMR": 0
+                    },
+                    "total": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0.0108782,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 25,
+                        "VERSE": 0,
+                        "XMR": 0
+                    }
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Fetch order book",
