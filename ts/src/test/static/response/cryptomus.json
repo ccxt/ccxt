@@ -1812,17 +1812,18 @@
         ],
         "createOrder": [
             {
-                "description": "Create market sell order",
+                "description": "Create limit sell order",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT",
-                    "market",
-                    "sell",
-                    0.001
+                    "limit",
+                    "buy",
+                    0.001,
+                    2000
                 ],
-                "httpResponse": "{\"order_id\":\"01JNEECXEE8C0E06HA9NQHM99B\"}",
+                "httpResponse": "{\"order_id\":\"01JNK9AF9AT4M6GHKAQ6Y8ZPBH\"}",
                 "parsedResponse": {
-                    "id": "01JNEECXEE8C0E06HA9NQHM99B",
+                    "id": "01JNK9AF9AT4M6GHKAQ6Y8ZPBH",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
@@ -1844,7 +1845,7 @@
                     "fee": null,
                     "trades": [],
                     "info": {
-                        "order_id": "01JNEECXEE8C0E06HA9NQHM99B"
+                        "order_id": "01JNK9AF9AT4M6GHKAQ6Y8ZPBH"
                     },
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -1860,12 +1861,12 @@
                     "ETH/USDT",
                     "market",
                     "buy",
-                    0.001,
-                    5
+                    5,
+                    1
                 ],
-                "httpResponse": "{\"order_id\":\"01JNECK29M1993PGNC9CXDGM3Y\"}",
+                "httpResponse": "{\"order_id\":\"01JNK99ERV4YY09NGBSAE2853Y\"}",
                 "parsedResponse": {
-                    "id": "01JNECK29M1993PGNC9CXDGM3Y",
+                    "id": "01JNK99ERV4YY09NGBSAE2853Y",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
@@ -1887,7 +1888,7 @@
                     "fee": null,
                     "trades": [],
                     "info": {
-                        "order_id": "01JNECK29M1993PGNC9CXDGM3Y"
+                        "order_id": "01JNK99ERV4YY09NGBSAE2853Y"
                     },
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -1897,18 +1898,17 @@
                 }
             },
             {
-                "description": "Create limit buy  order",
+                "description": "Create market sell order",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT",
-                    "limit",
-                    "buy",
-                    0.001,
-                    2100
+                    "market",
+                    "sell",
+                    0.005
                 ],
-                "httpResponse": "{\"order_id\":\"01JNECHEYYN6GNJQEDB1AMWGBE\"}",
+                "httpResponse": "{\"order_id\":\"01JNK995N4FC84SM6JBT17EN63\"}",
                 "parsedResponse": {
-                    "id": "01JNECHEYYN6GNJQEDB1AMWGBE",
+                    "id": "01JNK995N4FC84SM6JBT17EN63",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
@@ -1930,7 +1930,7 @@
                     "fee": null,
                     "trades": [],
                     "info": {
-                        "order_id": "01JNECHEYYN6GNJQEDB1AMWGBE"
+                        "order_id": "01JNK995N4FC84SM6JBT17EN63"
                     },
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -1938,7 +1938,7 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
-            }
+            },
         ]
     }
 }
