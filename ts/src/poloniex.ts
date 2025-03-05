@@ -2066,10 +2066,6 @@ export default class poloniex extends Exchange {
         //         "clientOrderId" : ""
         //     }
         //
-        response = this.extend (response, {
-            'type': type,
-            'side': side,
-        });
         return this.parseOrder (response, market);
     }
 
