@@ -93,7 +93,7 @@ class hyperliquid extends hyperliquid$1 {
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const [order, globalParams] = this.parseCreateOrderArgs(symbol, type, side, amount, price, params);
+        const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
         return orders[0];
     }
@@ -101,7 +101,6 @@ class hyperliquid extends hyperliquid$1 {
      * @method
      * @name hyperliquid#editOrderWs
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -122,7 +121,8 @@ class hyperliquid extends hyperliquid$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const url = this.urls['api']['ws']['public'];
-        const postRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const [order, globalParams] = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params);
+        const postRequest = this.editOrdersRequest([order], globalParams);
         const wrapped = this.wrapAsPostAction(postRequest);
         const request = this.safeDict(wrapped, 'request', {});
         const requestId = this.safeString(wrapped, 'requestId');
