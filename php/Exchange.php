@@ -391,6 +391,7 @@ class Exchange {
         'defx',
         'delta',
         'deribit',
+        'derive',
         'digifinex',
         'ellipx',
         'exmo',
@@ -1165,7 +1166,6 @@ class Exchange {
         // todo: write conversion foo_bar10_ohlcv2_candles → fooBar10OHLCV2Candles
         throw new NotSupported($this->id . ' camelcase() is not supported yet');
     }
-
     public static function hash($request, $type = 'md5', $digest = 'hex') {
         $base64 = ('base64' === $digest);
         $binary = ('binary' === $digest);
@@ -1335,6 +1335,12 @@ class Exchange {
             'publicKey' => $publicKey,
             'address' => $address
         ];
+    }
+
+    public function convert_to_big_int($strVal) {
+        // floatval is not big number, we should return either phpseclib\Math\BigInteger or BN\BN in the future
+        // for now return string (only used in derive)
+        return $strVal;
     }
 
     public function starknet_encode_structured_data($domain, $messageTypes, $messageData, $address) {
@@ -2206,6 +2212,10 @@ class Exchange {
             $number .= mt_rand(0, 9);
         }
         return (int)$number;
+    }
+
+    public function binary_length($binary) {
+        return strlen($binary);
     }
 
     // ########################################################################
