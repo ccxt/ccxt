@@ -578,6 +578,7 @@ func (this *Binance) EditOrder(id string, symbol string, typeVar string, side st
  * @method
  * @name binance#editOrders
  * @description edit a list of trade orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
