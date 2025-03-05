@@ -819,6 +819,9 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -893,6 +896,9 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
