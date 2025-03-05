@@ -378,22 +378,22 @@ export default class valr extends Exchange {
             'fees': {
                 'trading': {
                     'percentage': true,
-                    'spot': {
-                        'maker': '0.0',
-                        'taker': '0.005',
-                    },
-                    'swap': {
-                        'maker': '0.0',
-                        'taker': '0.004',
-                    },
-                    'zar': {
-                        'maker': '-0.001',
-                        'taker': '0.1',
-                    },
-                    'usdt/usdc': {
-                        'maker': '0.0',
-                        'taker': '0.01',
-                    },
+                    // 'spot': {
+                    //     'maker': '0.0',
+                    //     'taker': '0.005',
+                    // },
+                    // 'swap': {
+                    //     'maker': '0.0',
+                    //     'taker': '0.004',
+                    // },
+                    // 'zar': {
+                    //     'maker': '-0.001',
+                    //     'taker': '0.1',
+                    // },
+                    // 'usdt/usdc': {
+                    //     'maker': '0.0',
+                    //     'taker': '0.01',
+                    // },
                 },
             },
             'options': {
@@ -625,22 +625,11 @@ export default class valr extends Exchange {
         let contractSize = undefined;
         let settle = undefined;
         let settleId = undefined;
-        let fees = { 'taker': undefined, 'maker': undefined };
+        const fees = { 'taker': undefined, 'maker': undefined };
         if (currencyPairType === 'SPOT') {
             marketType = 'spot';
             spot = true;
-            // Adding extra step for PHP transpiling.
-            const quoteCheck = quote.toLowerCase ();
-            const symbolCheck = symbol.toLowerCase ();
-            if (quoteCheck in this.fees['trading']) {
-                fees = this.fees['trading'][quoteCheck];
-            } else if (symbolCheck in this.fees['trading']) {
-                fees = this.fees['trading'][symbolCheck];
-            } else {
-                fees = this.fees['trading']['spot'];
-            }
         } else if (currencyPairType === 'FUTURE') {
-            fees = this.fees['trading']['swap'];
             marketType = 'swap';
             spot = false;
             swap = true;
