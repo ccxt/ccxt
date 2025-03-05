@@ -721,7 +721,7 @@ export default class cryptomus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.client_order_id] a unique identifier for the order (optional)
+         * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -731,6 +731,11 @@ export default class cryptomus extends Exchange {
             'direction': side,
             'tag': 'ccxt',
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        }
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
