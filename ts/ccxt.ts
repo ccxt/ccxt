@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.64';
+const version = '4.4.65';
 
 (Exchange as any).ccxtVersion = version
 
@@ -97,7 +97,6 @@ import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
-import currencycom from  './src/currencycom.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
@@ -192,7 +191,6 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
-import currencycomPro from  './src/pro/currencycom.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import exmoPro from  './src/pro/exmo.js'
@@ -286,7 +284,6 @@ const exchanges = {
     'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
-    'currencycom':            currencycom,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
@@ -381,7 +378,6 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
-    'currencycom':            currencycomPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
     'exmo':                   exmoPro,
@@ -616,7 +612,6 @@ export {
     coinsph,
     coinspot,
     cryptocom,
-    currencycom,
     defx,
     delta,
     deribit,

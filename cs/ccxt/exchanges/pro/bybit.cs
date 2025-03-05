@@ -848,7 +848,7 @@ public partial class bybit : ccxt.bybit
         object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object parsed = this.parseWsOHLCV(getValue(data, i));
+            object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
@@ -873,7 +873,8 @@ public partial class bybit : ccxt.bybit
         //         "timestamp": 1670363219614
         //     }
         //
-        return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber2(ohlcv, "volume", "turnover")};
+        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "turnover" : "volume";
+        return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)};
     }
 
     /**
