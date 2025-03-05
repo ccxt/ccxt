@@ -1503,18 +1503,9 @@ export default class valr extends Exchange {
     parseTrade (trade: object, market: Market = undefined): Trade {
         const symbol = this.safeSymbol (this.safeString (trade, 'currencyPair'));
         const timestamp = this.parse8601 (this.safeString (trade, 'tradedAt'));
-        let takerOrMaker = undefined;
-        let feeCost = this.safeNumber2 (trade, 'fee', 'makerReward');
-        if ('makerReward' in trade) {
-            takerOrMaker = 'maker';
-            feeCost = (feeCost) ? -feeCost : feeCost;
-        } else if (feeCost === 0) {
-            takerOrMaker = 'maker';
-        } else {
-            takerOrMaker = 'taker';
-        }
+        const feeCost = this.safeNumber (trade, 'totalFee');
         const fee = {
-            'currency': this.safeCurrencyCode (this.safeString2 (trade, 'feeCurrency', 'makerRewardCurrency')),
+            'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
             'cost': feeCost,
             'rate': undefined,
         };
@@ -1526,12 +1517,10 @@ export default class valr extends Exchange {
             'clientOrderId': this.safeString (trade, 'customerOrderId'),
             'order': this.safeString (trade, 'orderId'),
             'symbol': symbol,
-            'type': (takerOrMaker === 'taker') ? 'market' : 'limit',
             'side': this.safeString2 (trade, 'side', 'takerSide'),
             'amount': this.safeNumber (trade, 'quantity'),
             'price': this.safeNumber (trade, 'price'),
             'cost': this.safeNumber (trade, 'quoteVolume'),
-            'takerOrMaker': takerOrMaker,
             'fee': fee,
         });
     }
