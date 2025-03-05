@@ -1804,7 +1804,7 @@
                 "input": [
                     "01JNECDY55FDVWN81XRMRNCTXG"
                 ],
-                "httpResponse": "{\"success\":true}",
+                "httpResponse": {"success":true},
                 "parsedResponse": {
                     "success": true
                 }
@@ -1821,7 +1821,7 @@
                     0.001,
                     2000
                 ],
-                "httpResponse": "{\"order_id\":\"01JNK9AF9AT4M6GHKAQ6Y8ZPBH\"}",
+                "httpResponse": {"order_id":"01JNK9AF9AT4M6GHKAQ6Y8ZPBH"},
                 "parsedResponse": {
                     "id": "01JNK9AF9AT4M6GHKAQ6Y8ZPBH",
                     "clientOrderId": null,
@@ -1864,7 +1864,7 @@
                     5,
                     1
                 ],
-                "httpResponse": "{\"order_id\":\"01JNK99ERV4YY09NGBSAE2853Y\"}",
+                "httpResponse": {"order_id":"01JNK99ERV4YY09NGBSAE2853Y"},
                 "parsedResponse": {
                     "id": "01JNK99ERV4YY09NGBSAE2853Y",
                     "clientOrderId": null,
@@ -1906,7 +1906,7 @@
                     "sell",
                     0.005
                 ],
-                "httpResponse": "{\"order_id\":\"01JNK995N4FC84SM6JBT17EN63\"}",
+                "httpResponse": {"order_id":"01JNK995N4FC84SM6JBT17EN63"},
                 "parsedResponse": {
                     "id": "01JNK995N4FC84SM6JBT17EN63",
                     "clientOrderId": null,
