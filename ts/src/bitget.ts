@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class bitget extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -1575,17 +1575,20 @@ export default class bitget extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 90,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
@@ -1596,6 +1599,7 @@ export default class bitget extends Exchange {
                         'untilDays': 90,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // variable timespans for recent endpoint, 200 for historical
@@ -1746,7 +1750,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicCommonGetV2PublicTime (params);
         //
         //     {
@@ -1956,10 +1960,10 @@ export default class bitget extends Exchange {
             const amountDecimals = this.safeInteger (market, 'volumePlace');
             const priceStep = this.safeString (market, 'priceEndStep');
             const amountStep = this.safeString (market, 'minTradeNum');
-            const precisePrice = new Precise (priceStep);
-            precisePrice.decimals = Math.max (precisePrice.decimals, priceDecimals);
-            precisePrice.reduce ();
-            const priceString = precisePrice.toString ();
+            const precise = new Precise (priceStep);
+            precise.decimals = Math.max (precise.decimals, priceDecimals);
+            precise.reduce ();
+            const priceString = precise.toString ();
             pricePrecision = this.parseNumber (priceString);
             const preciseAmount = new Precise (amountStep);
             preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
@@ -4801,7 +4805,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (triggerPrice === undefined) {
-                throw new NotSupported (this.id + 'editOrder() only supports plan/trigger spot orders');
+                throw new NotSupported (this.id + ' editOrder() only supports plan/trigger spot orders');
             }
             const editMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
@@ -9298,6 +9302,14 @@ export default class bitget extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
+        }
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        if (sandboxMode && (path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
