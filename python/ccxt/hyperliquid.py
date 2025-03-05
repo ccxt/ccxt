@@ -1847,7 +1847,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         edit a list of trade orders
 
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
