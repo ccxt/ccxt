@@ -508,7 +508,9 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
-func (this *Exchange) CreateSafeDictionary() 
+func (this *Exchange) CreateSafeDictionary() interface{} {
+	return map[string]interface{}{}
+}
 
 func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
 	return data
