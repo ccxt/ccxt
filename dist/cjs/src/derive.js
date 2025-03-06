@@ -24,7 +24,7 @@ class derive extends derive$1 {
             'version': 'v1',
             'rateLimit': 50,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,

@@ -1223,6 +1223,9 @@ class Exchange {
     createSafeDictionary() {
         return {};
     }
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
     randomBytes(length) {
         const rng$1 = new rng.SecureRandom();
         const x = [];
