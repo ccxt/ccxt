@@ -1799,5 +1799,24 @@
                 "currencyIdAndCode": "messed"
             }
         }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": {
+                "active":"not provided",
+                "precision": "not provided",
+                "limits": "not provided"
+            },
+            "fetchOrderBook": "best ask is not always greater than best bid",
+            "fetchL2OrderBook": "same",
+            "fetchTrades": {
+                "price": "sometimes is not set",
+                "amount": "same",
+                "cost": "same"
+            }
+        }
     }
 }
