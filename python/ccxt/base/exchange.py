@@ -1742,6 +1742,9 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def convert_to_safe_dictionary(self, dictionary):
+        return dictionary
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 

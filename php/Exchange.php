@@ -2207,6 +2207,10 @@ class Exchange {
         return array();
     }
 
+    public function convert_to_safe_dictionary($dict) {
+        return $dict;
+    }
+
     public function rand_number($size) {
         $number = '';
         for ($i = 0; $i < $size; $i++) {

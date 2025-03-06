@@ -1537,6 +1537,10 @@ export default class Exchange {
         return {};
     }
 
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
+
     randomBytes (length: number) {
         const rng = new SecureRandom();
         const x:number[] = [];
