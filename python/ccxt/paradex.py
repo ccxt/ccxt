@@ -1170,6 +1170,10 @@ class paradex(Exchange, ImplicitAPI):
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
+        flags = self.safe_list(order, 'flags', [])
+        reduceOnly = None
+        if 'REDUCE_ONLY' in flags:
+            reduceOnly = True
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1182,7 +1186,7 @@ class paradex(Exchange, ImplicitAPI):
             'type': self.parse_order_type(orderType),
             'timeInForce': self.parse_time_in_force(self.safe_string(order, 'instrunction')),
             'postOnly': None,
-            'reduceOnly': None,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': self.safe_string(order, 'trigger_price'),
@@ -1250,6 +1254,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
@@ -1265,11 +1271,15 @@ class paradex(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size': self.amount_to_precision(symbol, amount),
+            'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         }
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isMarket = orderType == 'MARKET'
+        isTakeProfitOrder = (takeProfitPrice is not None)
+        isStopLossOrder = (stopLossPrice is not None)
+        isStopOrder = (triggerPrice is not None) or isTakeProfitOrder or isStopLossOrder
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
         if not isMarket:
@@ -1277,22 +1287,51 @@ class paradex(Exchange, ImplicitAPI):
                 request['instruction'] = 'POST_ONLY'
             elif timeInForce == 'ioc':
                 request['instruction'] = 'IOC'
-        if reduceOnly:
-            request['flags'] = [
-                'REDUCE_ONLY',
-            ]
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-        if triggerPrice is not None:
+        sizeString = '0'
+        stopPrice = None
+        if isStopOrder:
+            # flags: Reduce_Only must be provided for TPSL orders.
             if isMarket:
-                request['type'] = 'STOP_MARKET'
+                if isStopLossOrder:
+                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
+                    reduceOnly = True
+                    request['type'] = 'STOP_LOSS_MARKET'
+                elif isTakeProfitOrder:
+                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    reduceOnly = True
+                    request['type'] = 'TAKE_PROFIT_MARKET'
+                else:
+                    stopPrice = self.price_to_precision(symbol, triggerPrice)
+                    sizeString = self.amount_to_precision(symbol, amount)
+                    request['type'] = 'STOP_MARKET'
             else:
-                request['type'] = 'STOP_LIMIT'
-            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
+                if isStopLossOrder:
+                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
+                    reduceOnly = True
+                    request['type'] = 'STOP_LOSS_LIMIT'
+                elif isTakeProfitOrder:
+                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    reduceOnly = True
+                    request['type'] = 'TAKE_PROFIT_LIMIT'
+                else:
+                    stopPrice = self.price_to_precision(symbol, triggerPrice)
+                    sizeString = self.amount_to_precision(symbol, amount)
+                    request['type'] = 'STOP_LIMIT'
+        else:
+            sizeString = self.amount_to_precision(symbol, amount)
+        if stopPrice is not None:
+            request['trigger_price'] = stopPrice
+        request['size'] = sizeString
+        if reduceOnly:
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ]
+        params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         account = self.retrieve_account()
         now = self.nonce()
         orderReq = {

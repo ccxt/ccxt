@@ -6331,7 +6331,8 @@ class binance extends Exchange {
         // don't handle/omit $params here, omitting happens inside createOrderRequest
         $marketType = $this->safe_string($params, 'type', $market['type']);
         $marginMode = $this->safe_string($params, 'marginMode');
-        $isPortfolioMargin = $this->safe_bool_2($params, 'papi', 'portfolioMargin', false);
+        $porfolioOptionsValue = $this->safe_bool_2($this->options, 'papi', 'portfolioMargin', false);
+        $isPortfolioMargin = $this->safe_bool_2($params, 'papi', 'portfolioMargin', $porfolioOptionsValue);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -6343,9 +6344,9 @@ class binance extends Exchange {
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, array( 'sor', 'SOR', 'test' ));
-        if ($isPortfolioMargin) {
-            $params['portfolioMargin'] = $isPortfolioMargin;
-        }
+        // if ($isPortfolioMargin) {
+        //     $params['portfolioMargin'] = $isPortfolioMargin;
+        // }
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['option']) {
