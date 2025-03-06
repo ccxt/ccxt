@@ -1236,7 +1236,7 @@ class testMainClass {
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_request_statically($exchange, $method, $result, $type, $skip_keys);
                 // reset options
-                $exchange->options = $exchange->deep_extend($old_exchange_options, array());
+                $exchange->options = $exchange->convert_to_safe_dictionary($exchange->deep_extend($old_exchange_options, array()));
             }
         }
         if (!is_sync()) {
