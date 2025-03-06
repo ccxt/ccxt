@@ -1019,8 +1019,7 @@ class testMainClass:
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_request_statically(exchange, method, result, type, skip_keys)
                 # reset options
-                # exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, {}))
+                exchange.options = exchange.deep_extend(old_exchange_options, {})
         if not is_sync():
             close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
