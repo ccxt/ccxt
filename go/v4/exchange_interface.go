@@ -171,6 +171,8 @@ type IExchange interface {
 	CallInternal(name2 string, args ...interface{}) <-chan interface{}
 	WarmUpCache()
 	GetItf() interface{}
+	ConvertToSafeDictionary(data interface{}) interface{}
+	CreateSafeDictionary() interface{}
 }
 
 type IDerivedExchange interface {
