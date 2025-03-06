@@ -6398,7 +6398,8 @@ class binance extends binance$1 {
         // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString(params, 'type', market['type']);
         const marginMode = this.safeString(params, 'marginMode');
-        const isPortfolioMargin = this.safeBool2(params, 'papi', 'portfolioMargin', false);
+        const porfolioOptionsValue = this.safeBool2(this.options, 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.safeBool2(params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
@@ -6410,9 +6411,9 @@ class binance extends binance$1 {
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, ['sor', 'SOR', 'test']);
-        if (isPortfolioMargin) {
-            params['portfolioMargin'] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['option']) {
