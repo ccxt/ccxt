@@ -22,7 +22,7 @@ func  (this *derive) Describe() interface{}  {
         "version": "v1",
         "rateLimit": 50,
         "certified": false,
-        "pro": false,
+        "pro": true,
         "dex": true,
         "has": map[string]interface{} {
             "CORS": nil,
