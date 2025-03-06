@@ -11,8 +11,7 @@
     }
   },
   "bin": {
-    "ccxt-js": "./js/cli/cli.js",
-    "ccxt": "./js/cli/cli.js"
+    "ccxt-cli": "./js/cli/cli.js"
   },
   "engines": {
     "node": ">=15.0.0"
