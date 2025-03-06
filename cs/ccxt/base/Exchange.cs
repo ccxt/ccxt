@@ -1082,6 +1082,11 @@ public partial class Exchange
         this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
     }
 
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
+    }
+
     public IDictionary<string, object> createSafeDictionary()
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
