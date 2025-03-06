@@ -6791,6 +6791,14 @@ In some specific cases you may want a proxy, when:
 
 However, beware that each added intermediary might add some latency to requests.
 
+**Note for Go users:** After setting any proxy property, you must call `UpdateProxySettings()` to apply the changes:
+```go
+exchange := ccxt.NewBinance(nil)
+exchange.ProxyUrl = "http://your-proxy-url:8080"
+exchange.UpdateProxySettings()  // Required in Go to apply proxy settings
+```
+However be aware that each added intermediary might add some latency to requests.
+
 ### Supported proxy types
 CCXT supports the following proxy types (note, each of them also have [callback support](#using-proxy-callbacks)):
 
