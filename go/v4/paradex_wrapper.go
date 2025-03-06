@@ -282,6 +282,8 @@ func (this *Paradex) FetchOpenInterest(symbol string, options ...FetchOpenIntere
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopPrice] alias for triggerPrice
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
  * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.

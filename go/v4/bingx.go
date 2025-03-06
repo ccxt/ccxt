@@ -4827,7 +4827,7 @@ func  (this *bingx) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-
                 PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "spot")) {
                 if IsTrue(!IsEqual(limit, nil)) {
-                    AddElementToObject(request, "limit", limit)
+                    AddElementToObject(request, "pageSize", limit)
                 }
                 
         response = (<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, params)))

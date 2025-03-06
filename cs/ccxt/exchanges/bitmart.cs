@@ -63,6 +63,7 @@ public partial class bitmart : Exchange
                 { "fetchLiquidations", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -87,6 +88,7 @@ public partial class bitmart : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", true },
+                { "fetchWithdrawAddresses", true },
                 { "fetchWithdrawAddressesByNetwork", false },
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
@@ -147,6 +149,7 @@ public partial class bitmart : Exchange
                         { "contract/public/funding-rate-history", 30 },
                         { "contract/public/kline", 6 },
                         { "account/v1/currencies", 30 },
+                        { "contract/public/markprice-kline", 5 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -165,6 +168,7 @@ public partial class bitmart : Exchange
                         { "account/v1/withdraw/charge", 32 },
                         { "account/v2/deposit-withdraw/history", 7.5 },
                         { "account/v1/deposit-withdraw/detail", 7.5 },
+                        { "account/v1/withdraw/address/list", 30 },
                         { "spot/v1/order_detail", 1 },
                         { "spot/v2/orders", 5 },
                         { "spot/v1/trades", 5 },
@@ -216,7 +220,7 @@ public partial class bitmart : Exchange
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
-                        { "spot/v1/margin/submit_order", 1 },
+                        { "spot/v1/margin/submit_order", 1.5 },
                         { "spot/v1/margin/isolated/borrow", 30 },
                         { "spot/v1/margin/isolated/repay", 30 },
                         { "spot/v1/margin/isolated/transfer", 30 },
@@ -232,6 +236,8 @@ public partial class bitmart : Exchange
                         { "contract/private/modify-plan-order", 2.5 },
                         { "contract/private/modify-preset-plan-order", 2.5 },
                         { "contract/private/modify-tp-sl-order", 2.5 },
+                        { "contract/private/submit-trail-order", 2.5 },
+                        { "contract/private/cancel-trail-order", 1.5 },
                     } },
                 } },
             } },
@@ -750,6 +756,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -775,6 +782,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchStatus
      * @description the latest known information on the availability of the exchange API
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -1072,8 +1080,9 @@ public partial class bitmart : Exchange
     /**
      * @method
      * @name bitmart#fetchMarkets
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @description retrieves data on all markets for bitmart
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1093,6 +1102,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1103,8 +1113,8 @@ public partial class bitmart : Exchange
         //
         //     {
         //         "message": "OK",
-        //         "code":1000,
-        //         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "code": 1000,
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
         //         "data": {
         //             "currencies": [
         //                 {
@@ -1115,7 +1125,9 @@ public partial class bitmart : Exchange
         //                     "withdraw_enabled": true,
         //                     "deposit_enabled": true,
         //                     "withdraw_minsize": "0.0003",
-        //                     "withdraw_minfee": "9.74"
+        //                     "withdraw_minfee": "9.61",
+        //                     "withdraw_fee_estimate": "9.61",
+        //                     "withdraw_fee": "0.0001"
         //                 }
         //             ]
         //         }
@@ -1166,7 +1178,7 @@ public partial class bitmart : Exchange
                 { "withdraw", withdraw },
                 { "deposit", deposit },
                 { "active", isTrue(withdraw) && isTrue(deposit) },
-                { "fee", this.safeNumber(currency, "withdraw_minfee") },
+                { "fee", this.safeNumber(currency, "withdraw_fee") },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(currency, "withdraw_minsize") },
@@ -1306,6 +1318,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network code of the currency
@@ -1621,7 +1634,6 @@ public partial class bitmart : Exchange
      * @name bitmart#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -1995,7 +2007,15 @@ public partial class bitmart : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.publicGetContractPublicKline(this.extend(request, parameters));
+            object price = this.safeString(parameters, "price");
+            if (isTrue(isEqual(price, "mark")))
+            {
+                parameters = this.omit(parameters, "price");
+                response = await this.publicGetContractPublicMarkpriceKline(this.extend(request, parameters));
+            } else
+            {
+                response = await this.publicGetContractPublicKline(this.extend(request, parameters));
+            }
         } else
         {
             response = await this.publicGetSpotQuotationV3Klines(this.extend(request, parameters));
@@ -2041,7 +2061,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchMyTrades
      * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2261,11 +2281,10 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -2325,8 +2344,8 @@ public partial class bitmart : Exchange
         //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
         //         "data":{
         //             "wallet":[
-        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
-        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000","available_usd_valuation":null},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000","available_usd_valuation":null}
         //             ]
         //         }
         //     }
@@ -2423,6 +2442,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchTradingFee
      * @description fetch the trading fees for a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -2656,11 +2676,11 @@ public partial class bitmart : Exchange
      * @name bitmart#createOrder
      * @description create a trade order
      * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -2710,7 +2730,12 @@ public partial class bitmart : Exchange
         } else
         {
             object swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
-            if (isTrue(isTriggerOrder))
+            object activationPrice = this.safeString(swapRequest, "activation_price");
+            if (isTrue(!isEqual(activationPrice, null)))
+            {
+                // if type is trailing
+                response = await this.privatePostContractPrivateSubmitTrailOrder(swapRequest);
+            } else if (isTrue(isTriggerOrder))
             {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
             } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
@@ -2834,7 +2859,8 @@ public partial class bitmart : Exchange
         * @description create a trade order
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
         * @param {string} side 'buy' or 'sell'
@@ -2871,7 +2897,6 @@ public partial class bitmart : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "type", type },
             { "size", parseInt(this.amountToPrecision(symbol, amount)) },
         };
         object timeInForce = this.safeString(parameters, "timeInForce");
@@ -2909,6 +2934,7 @@ public partial class bitmart : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         } else if (isTrue(isTrue(isEqual(type, "trailing")) || isTrue(isTrailingPercentOrder)))
         {
+            type = "trailing";
             ((IDictionary<string,object>)request)["callback_rate"] = trailingPercent;
             ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, trailingTriggerPrice);
             ((IDictionary<string,object>)request)["activation_price_type"] = this.safeInteger(parameters, "activation_price_type", 1);
@@ -2995,6 +3021,10 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["leverage"] = "1"; // for plan orders leverage is required, if not available default to 1
         }
+        if (isTrue(!isEqual(type, "trailing")))
+        {
+            ((IDictionary<string,object>)request)["type"] = type;
+        }
         return this.extend(request, parameters);
     }
 
@@ -3005,8 +3035,8 @@ public partial class bitmart : Exchange
         * @name bitmart#createSpotOrderRequest
         * @ignore
         * @description create a spot order request
-        * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
-        * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+        * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+        * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -3096,17 +3126,17 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#cancelOrder
      * @description cancels an open order
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
      * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
+     * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -3137,13 +3167,17 @@ public partial class bitmart : Exchange
         } else
         {
             object trigger = this.safeBool2(parameters, "stop", "trigger");
+            object trailing = this.safeBool(parameters, "trailing");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            if (!isTrue(trigger))
-            {
-                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, parameters));
-            } else
+            if (isTrue(trigger))
             {
                 response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, parameters));
+            } else if (isTrue(trailing))
+            {
+                response = await this.privatePostContractPrivateCancelTrailOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, parameters));
             }
         }
         // swap
@@ -3284,9 +3318,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3410,8 +3442,8 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchOpenOrders
      * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -3559,7 +3591,6 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchClosedOrders
      * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @description fetches information on multiple closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -3646,7 +3677,6 @@ public partial class bitmart : Exchange
      * @description fetches information on an order made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
@@ -3802,6 +3832,7 @@ public partial class bitmart : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
+        // fetchDepositAddress
         //    {
         //        currency: 'ETH',
         //        chain: 'Ethereum',
@@ -3809,8 +3840,19 @@ public partial class bitmart : Exchange
         //        address_memo: ''
         //    }
         //
+        // fetchWithdrawAddress
+        //     {
+        //         "currency": "ETH",
+        //         "network": "ETH",
+        //         "address": "0x1121",
+        //         "memo": "12",
+        //         "remark": "12",
+        //         "addressType": 0,
+        //         "verifyStatus": 0
+        //     }
+        //
         object currencyId = this.safeString(depositAddress, "currency");
-        object network = this.safeString(depositAddress, "chain");
+        object network = this.safeString2(depositAddress, "chain", "network");
         if (isTrue(isLessThan(getIndexOf(currencyId, "NFT"), 0)))
         {
             object parts = ((string)currencyId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -3829,7 +3871,7 @@ public partial class bitmart : Exchange
             { "currency", this.safeString(currency, "code") },
             { "network", this.networkIdToCode(network) },
             { "address", address },
-            { "tag", this.safeString(depositAddress, "address_memo") },
+            { "tag", this.safeString2(depositAddress, "address_memo", "memo") },
         };
     }
 
@@ -3837,6 +3879,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#withdraw
      * @description make a withdrawal
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-signed
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3894,11 +3937,10 @@ public partial class bitmart : Exchange
         await this.loadMarkets();
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 50; // max 50
+            limit = 1000; // max 1000
         }
         object request = new Dictionary<string, object>() {
             { "operation_type", type },
-            { "offset", 1 },
             { "N", limit },
         };
         object currency = null;
@@ -3906,6 +3948,16 @@ public partial class bitmart : Exchange
         {
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = await this.privateGetAccountV2DepositWithdrawHistory(this.extend(request, parameters));
         //
@@ -3941,6 +3993,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchDeposit
      * @description fetch information on a deposit
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id deposit id
      * @param {string} code not used by bitmart fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3985,6 +4038,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -4001,6 +4055,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id withdrawal id
      * @param {string} code not used by bitmart.fetchWithdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4045,6 +4100,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -4160,7 +4216,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#repayIsolatedMargin
      * @description repay borrowed margin and interest
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
@@ -4201,7 +4257,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#borrowIsolatedMargin
      * @description create a loan to borrow margin
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
@@ -4419,7 +4475,6 @@ public partial class bitmart : Exchange
      * @name bitmart#transfer
      * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
      * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -4575,7 +4630,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchTransfers
      * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfer structures to retrieve
@@ -4646,7 +4701,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed
      * @param {string} code unified currency code
      * @param {string} symbol unified market symbol when fetch interest in isolated markets
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -4797,7 +4852,6 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
@@ -4973,8 +5027,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5026,8 +5079,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5160,7 +5212,7 @@ public partial class bitmart : Exchange
      * @method
      * @name bitmart#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -5596,6 +5648,55 @@ public partial class bitmart : Exchange
         }
         object sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit);
+    }
+
+    public async virtual Task<object> fetchWithdrawAddresses(object code, object note = null, object networkCode = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object codes = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            object currency = this.currency(code);
+            code = getValue(currency, "code");
+            codes = new List<object>() {code};
+        }
+        object response = await this.privateGetAccountV1WithdrawAddressList(parameters);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "currency": "ETH",
+        //                     "network": "ETH",
+        //                     "address": "0x1121",
+        //                     "memo": "12",
+        //                     "remark": "12",
+        //                     "addressType": 0,
+        //                     "verifyStatus": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object list = this.safeList(data, "list", new List<object>() {});
+        object allAddresses = this.parseDepositAddresses(list, codes, false);
+        object addresses = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
+        {
+            object address = getValue(allAddresses, i);
+            object noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
+            object networkMatch = isTrue((isEqual(networkCode, null))) || isTrue((isEqual(getValue(address, "network"), networkCode)));
+            if (isTrue(isTrue(noteMatch) && isTrue(networkMatch)))
+            {
+                ((IList<object>)addresses).Add(address);
+            }
+        }
+        return addresses;
     }
 
     public override object nonce()

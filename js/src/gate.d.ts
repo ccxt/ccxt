@@ -135,6 +135,15 @@ export default class gate extends Exchange {
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<Dict>;
     /**
      * @method
+     * @name gate#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    /**
+     * @method
      * @name gate#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -144,6 +153,13 @@ export default class gate extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: string;
+    };
     /**
      * @method
      * @name gate#fetchTradingFee

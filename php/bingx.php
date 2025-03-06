@@ -4656,7 +4656,7 @@ class bingx extends Exchange {
             $response = $this->contractV1PrivateGetAllOrders ($this->extend($request, $params));
         } elseif ($type === 'spot') {
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['pageSize'] = $limit;
             }
             $response = $this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params));
             //

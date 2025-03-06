@@ -1223,6 +1223,9 @@ class Exchange {
     createSafeDictionary() {
         return {};
     }
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
     randomBytes(length) {
         const rng$1 = new rng.SecureRandom();
         const x = [];
@@ -1236,6 +1239,9 @@ class Exchange {
             number += Math.floor(Math.random() * 10);
         }
         return parseInt(number, 10);
+    }
+    binaryLength(binary) {
+        return binary.length;
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -2513,6 +2519,9 @@ class Exchange {
     }
     safeCurrencyStructure(currency) {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const currencyDeposit = this.safeBool(currency, 'deposit');
+        const currencyWithdraw = this.safeBool(currency, 'withdraw');
+        const currencyActive = this.safeBool(currency, 'active');
         const networks = this.safeDict(currency, 'networks', {});
         const keys = Object.keys(networks);
         const length = keys.length;
@@ -2520,15 +2529,15 @@ class Exchange {
             for (let i = 0; i < length; i++) {
                 const network = networks[keys[i]];
                 const deposit = this.safeBool(network, 'deposit');
-                if (currency['deposit'] === undefined || deposit) {
+                if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
-                if (currency['withdraw'] === undefined || withdraw) {
+                if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
                 const active = this.safeBool(network, 'active');
-                if (currency['active'] === undefined || active) {
+                if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
@@ -3896,7 +3905,10 @@ class Exchange {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode(currencyCode);
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
+                if (defaultNetworkId in indexedNetworkEntries) {
+                    return defaultNetworkId;
+                }
+                throw new errors.NotSupported(this.id + ' - can not determine the default network, please pass param["network"] one from : ' + availableNetworkIds.join(', '));
             }
         }
         return chosenNetworkId;

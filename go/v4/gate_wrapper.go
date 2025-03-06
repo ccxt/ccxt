@@ -159,6 +159,32 @@ func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetwor
 }
 /**
  * @method
+ * @name gate#fetchDepositAddressesByNetwork
+ * @description fetch a dictionary of addresses for a currency, indexed by network
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the api endpoint
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ */
+func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+
+    opts := FetchDepositAddressesByNetworkOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchDepositAddressesByNetwork(code, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewDepositAddressArray(res), nil
+}
+/**
+ * @method
  * @name gate#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
  * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address

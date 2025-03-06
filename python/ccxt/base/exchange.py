@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.62'
+__version__ = '4.4.66'
 
 # -----------------------------------------------------------------------------
 
@@ -1450,11 +1450,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode('latin-1')
+        return string.encode('utf-8')
 
     @staticmethod
     def decode(string):
-        return string.decode('latin-1')
+        return string.decode('utf-8')
 
     @staticmethod
     def to_array(value):
@@ -1742,8 +1742,14 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def convert_to_safe_dictionary(self, dictionary):
+        return dictionary
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
+    def binary_length(self, binary):
+        return len(binary)
 
     # ########################################################################
     # ########################################################################
@@ -2903,6 +2909,9 @@ class Exchange(object):
 
     def safe_currency_structure(self, currency: object):
         # derive data from networks: deposit, withdraw, active, fee, limits, precision
+        currencyDeposit = self.safe_bool(currency, 'deposit')
+        currencyWithdraw = self.safe_bool(currency, 'withdraw')
+        currencyActive = self.safe_bool(currency, 'active')
         networks = self.safe_dict(currency, 'networks', {})
         keys = list(networks.keys())
         length = len(keys)
@@ -2910,13 +2919,13 @@ class Exchange(object):
             for i in range(0, length):
                 network = networks[keys[i]]
                 deposit = self.safe_bool(network, 'deposit')
-                if currency['deposit'] is None or deposit:
+                if currencyDeposit is None or deposit:
                     currency['deposit'] = deposit
                 withdraw = self.safe_bool(network, 'withdraw')
-                if currency['withdraw'] is None or withdraw:
+                if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
                 active = self.safe_bool(network, 'active')
-                if currency['active'] is None or active:
+                if currencyActive is None or active:
                     currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
@@ -4065,7 +4074,9 @@ class Exchange(object):
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 defaultNetworkCode = self.default_network_code(currencyCode)
                 defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
-                chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
+                if defaultNetworkId in indexedNetworkEntries:
+                    return defaultNetworkId
+                raise NotSupported(self.id + ' - can not determine the default network, please pass param["network"] one from : ' + ', '.join(availableNetworkIds))
         return chosenNetworkId
 
     def safe_number_2(self, dictionary: object, key1: IndexType, key2: IndexType, d=None):

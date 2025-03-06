@@ -488,18 +488,15 @@ public partial class hyperliquid
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditOrdersRequest(object orders, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
-        var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        var res = this.editOrdersRequest(orders, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order"/>  <br/>
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -559,6 +556,26 @@ public partial class hyperliquid
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// edit a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.editOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches historical funding rate prices

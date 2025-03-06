@@ -472,7 +472,6 @@ func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAl
  * @method
  * @name hyperliquid#editOrder
  * @description edit a trade order
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
@@ -516,6 +515,33 @@ func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, sid
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name hyperliquid#editOrders
+ * @description edit a list of trade orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
 }
 /**
  * @method

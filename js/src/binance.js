@@ -483,6 +483,7 @@ export default class binance extends Exchange {
                         'portfolio/margin-asset-leverage': 5,
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
+                        'portfolio/pmloan-history': 5,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -6397,11 +6398,11 @@ export default class binance extends Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString(params, 'type', market['type']);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
-        let isPortfolioMargin = undefined;
-        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const marginMode = this.safeString(params, 'marginMode');
+        const porfolioOptionsValue = this.safeBool2(this.options, 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.safeBool2(params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
@@ -6413,9 +6414,9 @@ export default class binance extends Exchange {
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, ['sor', 'SOR', 'test']);
-        if (isPortfolioMargin) {
-            params['portfolioMargin'] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['option']) {

@@ -2821,14 +2821,12 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
-            object timestamp = this.parseToInt(divide(nonce, 1000));
-            object timestampString = ((object)timestamp).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
-                { "nonce", timestampString },
+                { "nonce", nonce },
             }, parameters));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);
