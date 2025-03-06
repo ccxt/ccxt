@@ -388,6 +388,7 @@ class Exchange {
         'coinsph',
         'coinspot',
         'cryptocom',
+        'cryptomus',
         'defx',
         'delta',
         'deribit',

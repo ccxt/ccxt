@@ -6167,7 +6167,8 @@ class binance(Exchange, ImplicitAPI):
         # don't handle/omit params here, omitting happens inside createOrderRequest
         marketType = self.safe_string(params, 'type', market['type'])
         marginMode = self.safe_string(params, 'marginMode')
-        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', False)
+        porfolioOptionsValue = self.safe_bool_2(self.options, 'papi', 'portfolioMargin', False)
+        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', porfolioOptionsValue)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -6179,8 +6180,9 @@ class binance(Exchange, ImplicitAPI):
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, ['sor', 'SOR', 'test'])
-        if isPortfolioMargin:
-            params['portfolioMargin'] = isPortfolioMargin
+        # if isPortfolioMargin:
+        #     params['portfolioMargin'] = isPortfolioMargin
+        # }
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
         if market['option']:
