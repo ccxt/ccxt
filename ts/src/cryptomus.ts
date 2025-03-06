@@ -997,15 +997,16 @@ export default class cryptomus extends Exchange {
         let price = this.safeNumber (order, 'price');
         const transaction = this.safeList (deal, 'transactions', []);
         let fee = undefined;
-        const feeCurrency = this.safeString (transaction[0], 'feeCurrency');
+        const firstTx = this.safeDict(transaction, 0);
+        const feeCurrency = this.safeString (firstTx, 'feeCurrency');
         if (feeCurrency !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrency),
-                'cost': this.safeNumber (transaction[0], 'fee'),
+                'cost': this.safeNumber (firstTx, 'fee'),
             };
         }
         if (price === undefined) {
-            price = this.safeNumber (transaction[0], 'filledPrice');
+            price = this.safeNumber (firstTx, 'filledPrice');
         }
         const amount = this.safeNumber (order, 'quantity');
         const cost = this.safeNumber (order, 'value');
@@ -1037,7 +1038,7 @@ export default class cryptomus extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: string): string {
+    parseOrderStatus (status: Str = undefined): Str {
         const statuses = {
             'active': 'open',
             'completed': 'closed',
