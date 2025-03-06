@@ -223,6 +223,7 @@ export default class cryptomus extends Exchange {
                 'apiKey': false,
                 'uid': true,
             },
+            'features': {},
         });
     }
 
