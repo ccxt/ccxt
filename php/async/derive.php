@@ -25,7 +25,7 @@ class derive extends Exchange {
             'version' => 'v1',
             'rateLimit' => 50,
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'dex' => true,
             'has' => array(
                 'CORS' => null,
