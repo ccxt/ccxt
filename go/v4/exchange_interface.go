@@ -173,6 +173,7 @@ type IExchange interface {
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
 	CreateSafeDictionary() interface{}
+	SetOptions(options interface{})
 }
 
 type IDerivedExchange interface {
