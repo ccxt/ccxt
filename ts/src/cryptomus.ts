@@ -782,7 +782,7 @@ export default class cryptomus extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name hashkey#cancelOrder
+         * @name cryptomus#cancelOrder
          * @description cancels an open limit order
          * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
          * @param {string} id order id
