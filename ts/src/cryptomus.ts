@@ -997,7 +997,7 @@ export default class cryptomus extends Exchange {
         let price = this.safeNumber (order, 'price');
         const transaction = this.safeList (deal, 'transactions', []);
         let fee = undefined;
-        const firstTx = this.safeDict(transaction, 0);
+        const firstTx = this.safeDict (transaction, 0);
         const feeCurrency = this.safeString (firstTx, 'feeCurrency');
         if (feeCurrency !== undefined) {
             fee = {
