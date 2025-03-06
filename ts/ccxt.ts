@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.65';
+const version = '4.4.66';
 
 (Exchange as any).ccxtVersion = version
 
@@ -97,9 +97,11 @@ import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
+import cryptomus from  './src/cryptomus.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
+import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
@@ -193,6 +195,7 @@ import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
+import derivePro from  './src/pro/derive.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
@@ -284,9 +287,11 @@ const exchanges = {
     'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
+    'cryptomus':              cryptomus,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
+    'derive':                 derive,
     'digifinex':              digifinex,
     'ellipx':                 ellipx,
     'exmo':                   exmo,
@@ -380,6 +385,7 @@ const pro = {
     'cryptocom':              cryptocomPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
+    'derive':                 derivePro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
     'gateio':                 gateioPro,
@@ -612,9 +618,11 @@ export {
     coinsph,
     coinspot,
     cryptocom,
+    cryptomus,
     defx,
     delta,
     deribit,
+    derive,
     digifinex,
     ellipx,
     exmo,
