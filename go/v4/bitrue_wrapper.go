@@ -159,6 +159,7 @@ func (this *Bitrue) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitrue) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
