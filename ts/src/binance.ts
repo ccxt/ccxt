@@ -6339,7 +6339,7 @@ export default class binance extends Exchange {
         // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString (params, 'type', market['type']);
         const marginMode = this.safeString (params, 'marginMode');
-        const porfolioOptionsValue = this.safeBool2(this.options, 'papi', 'portfolioMargin', false);
+        const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
         const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
