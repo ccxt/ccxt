@@ -226,6 +226,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         deribitItf := &deribit{}
         deribitItf.Init(exchangeArgs)
         return deribitItf, true
+    case "derive":
+        deriveItf := &derive{}
+        deriveItf.Init(exchangeArgs)
+        return deriveItf, true
     case "digifinex":
         digifinexItf := &digifinex{}
         digifinexItf.Init(exchangeArgs)
