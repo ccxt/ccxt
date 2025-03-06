@@ -2871,8 +2871,9 @@ export default class whitebit extends Exchange {
         //     }
         //
         const path = this.safeList (conversion, 'path', []);
-        const fromPath = this.safeString (path[0], 'from');
-        const toPath = this.safeString (path[0], 'to');
+        const first = this.safeDict (path, 0, {});
+        const fromPath = this.safeString (first, 'from');
+        const toPath = this.safeString (first, 'to');
         const timestamp = this.safeTimestamp2 (conversion, 'date', 'expireAt');
         const fromCoin = this.safeString (conversion, 'from', fromPath);
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
