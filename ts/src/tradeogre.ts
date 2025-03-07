@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -338,18 +338,75 @@ export default class tradeogre extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    /**
+     * @method
+     * @name tradeogre#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        const response = await this.publicGetMarkets (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "AAVE-USDT": {
+        //                 "initialprice": "177.20325711",
+        //                 "price": "177.20325711",
+        //                 "high": "177.20325711",
+        //                 "low": "177.20325711",
+        //                 "volume": "0.00000000",
+        //                 "bid": "160.72768581",
+        //                 "ask": "348.99999999",
+        //                 "basename": "Aave"
+        //             }
+        //         },
+        //         ...
+        //     ]
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = Object.keys (entry)[0];
+            const market = this.safeMarket (marketId);
+            const data = entry[marketId];
+            const ticker = this.parseTicker (data, market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
     parseTicker (ticker, market: Market = undefined) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     {
+        //         "initialprice": "177.20325711",
+        //         "price": "177.20325711",
+        //         "high": "177.20325711",
+        //         "low": "177.20325711",
+        //         "volume": "0.00000000",
+        //         "bid": "160.72768581",
+        //         "ask": "348.99999999",
+        //         "basename": "Aave"
+        //     },
+        //     ...
         //
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
