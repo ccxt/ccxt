@@ -5,7 +5,8 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ export default class tradeogre extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -89,7 +90,7 @@ export default class tradeogre extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -137,6 +138,7 @@ export default class tradeogre extends Exchange {
                     'get': {
                         'account/balance': 1,
                         'account/balances': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                         'account/order/{uuid}': 1,
                     },
                     'post': {
@@ -158,6 +160,14 @@ export default class tradeogre extends Exchange {
                     'Insufficient funds': InsufficientFunds,
                     'Order not found': BadRequest,
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {
             },
@@ -430,6 +440,67 @@ export default class tradeogre extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name tradeogre#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (since === undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV requires a since argument');
+        } else {
+            request['timestamp'] = since;
+        }
+        const response = await this.privateGetChartIntervalMarketTimestamp (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             1729130040,
+        //             67581.47235999,
+        //             67581.47235999,
+        //             67338.01,
+        //             67338.01,
+        //             6.72168016
+        //         ],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     /**
