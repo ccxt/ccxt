@@ -265,9 +265,18 @@ function getCacheDirectory () {
  */
 function checkCache () {
     const cachePath = getCacheDirectory ();
+    const marketsPath = path.join (cachePath, 'markets');
     if (!fs.existsSync (cachePath)) {
         try {
             fs.mkdirSync (cachePath, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', cachePath);
+        }
+    } else if (!fs.existsSync (marketsPath)) {
+        try {
+            fs.mkdirSync (marketsPath, {
                 'recursive': true,
             });
         } catch (e) {
@@ -362,17 +371,43 @@ function setNoSend (exchange: ccxt.Exchange) {
  * @param exchange
  */
 async function handleMarketsLoading (exchange: ccxt.Exchange) {
-    const path = '.cache/' + exchangeId + '-markets.json';
+    const cachePath = getCacheDirectory ();
+    const marketsPath = path.join (cachePath, 'markets', exchangeId + '.json');
+    // console.log (marketsPath);
+    // try {
+    //     await fsPromises.access (marketsPath, fs.constants.R_OK);
+    //     exchange.markets = JSON.parse (
+    //         (await fsPromises.readFile (marketsPath)).toString ()
+    //     );
+    // } catch {
+    //     await exchange.loadMarkets ();
+    //     if (cache_markets) {
+    //         await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
+    //     }
+    // }
     try {
-        await fsPromises.access (path, fs.constants.R_OK);
-        exchange.markets = JSON.parse (
-            (await fsPromises.readFile (path)).toString ()
-        );
-    } catch {
-        await exchange.loadMarkets ();
-        if (cache_markets) {
-            await fsPromises.writeFile (path, jsonStringify (exchange.markets));
+        if (fs.existsSync (marketsPath)) {
+            const stats = fs.statSync (marketsPath);
+            const now = new Date ().getTime ();
+            const diff = now - stats.mtime.getTime ();
+            if (diff > 3 * 24 * 60 * 60 * 1000) { // diff > 3 days
+                await exchange.loadMarkets ();
+                if (cache_markets) {
+                    await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
+                }
+            } else {
+                exchange.markets = JSON.parse (
+                    fs.readFileSync (marketsPath).toString ()
+                );
+            }
+        } else {
+            // create file and save markets
+            await exchange.loadMarkets ();
+            await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
         }
+    } catch (e) {
+        log.red (e);
+        // error loading/cacheing markets
     }
 }
 
@@ -520,3 +555,4 @@ run ();
 
 export {
 };
+
