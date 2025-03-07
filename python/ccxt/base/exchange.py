@@ -7,7 +7,9 @@
 __version__ = '4.4.66'
 
 # -----------------------------------------------------------------------------
+import decimal
 
+import numpy as np
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -66,6 +68,7 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+from python.ccxt.static_dependencies.zklink import zklink_sdk
 
 # -----------------------------------------------------------------------------
 
@@ -6708,6 +6711,38 @@ class Exchange(object):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        message = hashlib.sha256()
+        message.update(self.safe_string(params, 'slotId').encode())  # Encode as UTF-8.
+        nonceHash = message.hexdigest()
+        nonceInt = int(nonceHash, 16)
+
+        maxUint32 = np.iinfo(np.uint32).max
+        maxUint64 = np.iinfo(np.uint64).max
+
+        slotId = (nonceInt % maxUint64) / maxUint32
+        nonce = nonceInt % maxUint32
+        accountId = int(self.safe_string(params, 'accountId'), 10) % maxUint32
+
+        priceStr = (decimal.Decimal(self.safe_string(params, 'price')) * decimal.Decimal(10) ** decimal.Decimal('18')).quantize(decimal.Decimal(0), rounding=decimal.ROUND_DOWN)
+        sizeStr = (decimal.Decimal(self.safe_string(params, 'size')) * decimal.Decimal(10) ** decimal.Decimal('18')).quantize(decimal.Decimal(0), rounding=decimal.ROUND_DOWN)
+
+        takerFeeRateStr = (decimal.Decimal(self.safe_string(params, 'takerFeeRate')) * decimal.Decimal(10000)).quantize(decimal.Decimal(0), rounding=decimal.ROUND_UP)
+        makerFeeRateStr = (decimal.Decimal(self.safe_string(params, 'makerFeeRate')) * decimal.Decimal(10000)).quantize(decimal.Decimal(0), rounding=decimal.ROUND_UP)
+
+        builder = zklink_sdk.ContractBuilder(
+            int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
+            sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
+            int(takerFeeRateStr), int(makerFeeRateStr), False)
+
+
+        tx = zklink_sdk.Contract(builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
 
     def clean_unsubscription(self, client, subHash: str, unsubHash: str):
         if unsubHash in client.subscriptions:

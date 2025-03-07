@@ -8,11 +8,15 @@ __version__ = '4.4.66'
 
 import asyncio
 import concurrent.futures
+import decimal
+import hashlib
 import socket
 import certifi
 import aiohttp
 import ssl
 import sys
+
+import numpy as np
 import yarl
 import math
 from typing import Any, List
@@ -40,6 +44,7 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 
 
 # -----------------------------------------------------------------------------
+from python.ccxt.static_dependencies.zklink import zklink_sdk
 
 try:
     from aiohttp_socks import ProxyConnector
@@ -2093,3 +2098,36 @@ class Exchange(BaseExchange):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    async def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        message = hashlib.sha256()
+        message.update(self.safe_string(params, 'slotId').encode())  # Encode as UTF-8.
+        nonceHash = message.hexdigest()
+        nonceInt = int(nonceHash, 16)
+
+        maxUint32 = np.iinfo(np.uint32).max
+        maxUint64 = np.iinfo(np.uint64).max
+
+        slotId = (nonceInt % maxUint64) / maxUint32
+        nonce = nonceInt % maxUint32
+        accountId = int(self.safe_string(params, 'accountId'), 10) % maxUint32
+
+        priceStr = (decimal.Decimal(self.safe_string(params, 'price')) * decimal.Decimal(10) ** decimal.Decimal('18')).quantize(decimal.Decimal(0), rounding=decimal.ROUND_DOWN)
+        sizeStr = (decimal.Decimal(self.safe_string(params, 'size')) * decimal.Decimal(10) ** decimal.Decimal('18')).quantize(decimal.Decimal(0), rounding=decimal.ROUND_DOWN)
+
+        takerFeeRateStr = (decimal.Decimal(self.safe_string(params, 'takerFeeRate')) * decimal.Decimal(10000)).quantize(decimal.Decimal(0), rounding=decimal.ROUND_UP)
+        makerFeeRateStr = (decimal.Decimal(self.safe_string(params, 'makerFeeRate')) * decimal.Decimal(10000)).quantize(decimal.Decimal(0), rounding=decimal.ROUND_UP)
+
+        builder = zklink_sdk.ContractBuilder(
+            int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
+            sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
+            int(takerFeeRateStr), int(makerFeeRateStr), False)
+
+
+        tx = zklink_sdk.Contract(builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
