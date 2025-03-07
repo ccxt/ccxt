@@ -332,6 +332,7 @@ export default class Exchange {
     tokenBucket = undefined
     throttler = undefined
     enableRateLimit: boolean = undefined;
+    rateLimiterAlgorithm: string = 'leakyBucket';  // rollingWindow or leakyBucket
 
     httpExceptions = undefined
 
@@ -655,7 +656,7 @@ export default class Exchange {
     }
 
     initThrottler () {
-        this.throttler = new Throttler (this.tokenBucket);
+        this.throttler = new Throttler (this.tokenBucket, this.rateLimiterAlgorithm);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -1170,7 +1171,7 @@ export default class Exchange {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
-                'throttler': new Throttler (this.tokenBucket),
+                'throttler': new Throttler (this.tokenBucket, this.rateLimiterAlgorithm),
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,

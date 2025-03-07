@@ -6,7 +6,8 @@ import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 
 class Throttler {
-    constructor (config) {
+    constructor (config, algorithm = 'leakyBucket') {
+        this.rateLimiterAlogorithm = algorithm;
         this.config = {
             'refillRate': 1.0,
             'delay': 0.001,
@@ -14,13 +15,15 @@ class Throttler {
             'maxCapacity': 2000,
             'tokens': 0,
             'cost': 1.0,
+            'windowSize': 60.0,  // 60 seconds
         };
         Object.assign (this.config, config);
         this.queue = [];
         this.running = false;
+        this.timestamps = [];  // Stores request timestamps
     }
 
-    async loop () {
+    async leakyBucketLoop () {
         let lastTimestamp = now ();
         while (this.running) {
             const { resolver, cost } = this.queue[0];
@@ -41,6 +44,43 @@ class Throttler {
                 const tokens = this.config['tokens'] + (this.config['refillRate'] * elapsed);
                 this.config['tokens'] = Math.min (tokens, this.config['capacity']);
             }
+        }
+    }
+
+    async rollingWindowLoop() {
+        while (this.running) {
+            const { resolver, cost } = this.queue[0];
+            const nowTime = now ();
+            // Remove timestamps outside the rolling window
+            this.timestamps = this.timestamps.filter (t => nowTime - t.timestamp < this.config.windowSize);
+            // Calculate the total cost of requests still in the window
+            const totalCost = this.timestamps.reduce ((sum, t) => sum + t.cost, 0);
+            if (totalCost + cost <= this.config.maxCapacity) {
+                // Enough capacity, proceed with request
+                this.timestamps.push ({ timestamp: nowTime, cost });
+                resolver ();
+                this.queue.shift ();
+                await Promise.resolve (); // Yield control to event loop
+                if (this.queue.length === 0) {
+                    this.running = false;
+                }
+            } else {
+                // Calculate the wait time until the oldest request expires
+                const earliestRequestTime = this.timestamps[0].timestamp;
+                const waitTime = (earliestRequestTime + this.config.windowSize) - nowTime;
+                // Ensure waitTime is positive before sleeping
+                if (waitTime > 0) {
+                    await sleep (waitTime * 1000);
+                }
+            }
+        }
+    }    
+
+    async loop () {
+        if (this.rateLimiterAlogorithm === 'leakyBucket') {
+            await this.leakyBucketLoop ();
+        } else {
+            await this.rollingWindowLoop ();
         }
     }
 
