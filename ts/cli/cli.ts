@@ -1,48 +1,15 @@
-#!/usr/bin/env node
-
 import fs from 'fs'
 import path from 'path'
+import ansi from 'ansicolor'
 import asTable from 'as-table'
+import ololog from 'ololog'
 import ccxt from '../ccxt.js'
 import { Agent } from 'https'
 import { add_static_result } from '../../utils/update-static-tests-data.js'
 
 const fsPromises = fs.promises;
-
-
-// ##########################################################
-// ####### adopted from npmjs.com/package/yoctocolors #######
-// ##########################################################
-
-const colorString = () => {
-    const _ = (open, close) => {
-        const o = `\u001B[${open}m`, c = `\u001B[${close}m`;
-        return str => { str = str + ''; return !str.includes(c) ? o + str + c : o + str.replaceAll(c, o) + c; };
-    }
-    return {
-        reset: _(0, 0),
-        bold: _(1, 22), dim: _(2, 22), italic: _(3, 23), underline: _(4, 24), overline: _(53, 55), inverse: _(7, 27), hidden: _(8, 28), strikethrough: _(9, 29),
-        black: _(30, 39), red: _(31, 39), green: _(32, 39), yellow: _(33, 39), blue: _(34, 39), magenta: _(35, 39), cyan: _(36, 39), white: _(37, 39), gray: _(90, 39),
-        bgBlack: _(40, 49), bgRed: _(41, 49), bgGreen: _(42, 49), bgYellow: _(43, 49), bgBlue: _(44, 49), bgMagenta: _(45, 49), bgCyan: _(46, 49), bgWhite: _(47, 49), bgGray: _(100, 49),
-        redBright: _(91, 39), greenBright: _(92, 39), yellowBright: _(93, 39), blueBright: _(94, 39), magentaBright: _(95, 39), cyanBright: _(96, 39), whiteBright: _(97, 39),
-        bgRedBright: _(101, 49), bgGreenBright: _(102, 49), bgYellowBright: _(103, 49), bgBlueBright: _(104, 49), bgMagentaBright: _(105, 49), bgCyanBright: _(106, 49), bgWhiteBright: _(107, 49)
-    }
-};
-for (const [key,value] of Object.entries(colorString())) {
-    // @ts-ignore
-    String.prototype.__defineGetter__(key, function(){
-        // @ts-ignore
-        return value(this);
-    });
-}
-// ##########################################################
-// ##########################################################
-
-
-function log (...args) {
-    console.log (...args);
-}
-
+ansi.nice
+const log = ololog.configure ({ locate: false }).unlimited
 const { ExchangeError , NetworkError} = ccxt
 
 function jsonStringify (obj: any, indent = undefined) {
@@ -101,19 +68,8 @@ if (!raw) {
 
 //-----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  (e: any)=> { log ((e.toString ()).red); log (e.message.red); process.exit (1); });
-process.on ('unhandledRejection', (e: any)=> { log ((e.toString ()).red); log (e.message.red); process.exit (1); });
-
-//-----------------------------------------------------------------------------
-const currentFilePath = process.argv[1];
-// if it's global installation, then show `ccxt` command, otherwise `node ./cli.js`
-const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt' : 'node ' + currentFilePath;
-
-if (!exchangeId) {
-    log (('Error, No exchange id specified!' as any).red);
-    printUsage ();
-    process.exit ();
-}
+process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error ((e as any).message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
 
@@ -121,17 +77,11 @@ if (!exchangeId) {
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-
-let allSettings = {}
-if (fs.existsSync (keysGlobal)) {
-    allSettings = JSON.parse(fs.readFileSync(keysGlobal).toString())
-} else if (fs.existsSync (keysLocal)) {
-    allSettings = JSON.parse(fs.readFileSync(keysLocal).toString())
-} else {
-    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
-}
-
-const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const settingsFile  = fs.readFileSync(keysFile);
+// eslint-disable-next-line import/no-dynamic-require, no-path-concat
+let settings = JSON.parse(settingsFile.toString())
+settings = settings[exchangeId] || {}
 
 
 //-----------------------------------------------------------------------------
@@ -200,7 +150,7 @@ try {
 
 } catch (e) {
 
-    log ((e.toString () as any).red)
+    log.red (e)
     printUsage ()
     process.exit ()
 }
@@ -216,12 +166,12 @@ function createRequestTemplate(exchange, methodName, args, result) {
         'output': exchange.last_request_body ?? undefined
     }
     log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
-    log(('-------------------------------------------' as any).green)
+    log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
-    log(('-------------------------------------------' as any).green)
+    log.green('-------------------------------------------')
     if (foundDescription !== undefined) {
         final.description = foundDescription;
-        log(('auto-saving static result' as any).green)
+        log.green('auto-saving static result');
         add_static_result('request', exchange.id, methodName, final);
     }
 }
@@ -237,12 +187,12 @@ function createResponseTemplate(exchange, methodName, args, result) {
         'parsedResponse': result
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
-    log(('-------------------------------------------' as any).green)
+    log.green('-------------------------------------------')
     log (jsonStringify (final, 2))
-    log(('-------------------------------------------' as any).green)
+    log.green('-------------------------------------------')
     if (foundDescription !== undefined) {
         final.description = foundDescription;
-        log(('auto-saving static result' as any).green)
+        log.green('auto-saving static result');
         add_static_result('response', exchange.id, methodName, final);
     }
 }
@@ -257,11 +207,11 @@ function printSupportedExchanges () {
 
 function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
-    log ('Usage:', commandToShow, ('exchangeid' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
+    log ('Usage: node', process.argv[1], ('id' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
     log ('Examples:')
-    log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m')
-    log (commandToShow, 'bitfinex fetchBalance')
-    log (commandToShow, 'kraken fetchOrderBook ETH/BTC')
+    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
+    log ('node', process.argv[1], 'bitfinex fetchBalance')
+    log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
@@ -345,6 +295,12 @@ const printHumanReadable = (exchange, result) => {
 
 async function run () {
 
+    if (!exchangeId) {
+
+        printUsage ()
+
+    } else {
+
         let args = params
             .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
             .map (s => (() => { 
@@ -389,14 +345,14 @@ async function run () {
 
             exchange.verbose = no_send
             exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
-                log (('-------------------------------------------' as any).dim)
-                log ((exchange.iso8601 (exchange.milliseconds ()) as any).dim)
-                log ((JSON.stringify ({
+                log.dim.noLocate ('-------------------------------------------')
+                log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
+                log.green.unlimited ({
                     url,
                     method,
                     headers,
                     body,
-                }) as any).green)
+                })
             }
         }
 
@@ -436,12 +392,12 @@ async function run () {
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
-                            log (((e.constructor.name + ' ' + e.message) as any).red)
+                            log.red (e.constructor.name, e.message)
                         } else if (e instanceof NetworkError) {
-                            log (((e.constructor.name + ' ' + e.message) as any).yellow)
+                            log.yellow (e.constructor.name, e.message)
                         }
 
-                        log (('---------------------------------------------------' as any).dim)
+                        log.dim ('---------------------------------------------------')
 
                         // rethrow for call-stack // other errors
                         throw e
@@ -467,13 +423,15 @@ async function run () {
                 exchange.close()
 
             } else if (exchange[methodName] === undefined) {
-                log ((exchange.id + '.' + methodName + ': no such property' as any).red)
+                log.red (exchange.id + '.' + methodName + ': no such property')
             } else {
                 printHumanReadable (exchange, exchange[methodName])
             }
         } else {
             log (exchange)
         }
+    }
+
 }
 
 //-----------------------------------------------------------------------------
