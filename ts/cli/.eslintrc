@@ -60,7 +60,7 @@
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 1 }],
     "padding-line-between-statements": ["error",
-      { "blankLine": "never",  "prev":"*", "next": "*" },
+      // { "blankLine": "never",  "prev":"*", "next": "*" },
       { "blankLine": "always", "prev":"import", "next": "*" },
       { "blankLine": "never",  "prev":"import", "next": "import" },
       { "blankLine": "always", "prev":"directive", "next": "*" },

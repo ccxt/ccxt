@@ -244,6 +244,8 @@ function printUsage () {
 }
 
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 /**
  *
  */
@@ -255,6 +257,22 @@ function getCacheDirectory () {
         return path.join (homeDir, 'Library', 'Caches', 'ccxt-cli');
     } else {  // Linux & Others
         return path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
+    }
+}
+
+/**
+ *
+ */
+function checkCache () {
+    const cachePath = getCacheDirectory ();
+    if (!fs.existsSync (cachePath)) {
+        try {
+            fs.mkdirSync (cachePath, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', cachePath);
+        }
     }
 }
 //-----------------------------------------------------------------------------
@@ -315,14 +333,57 @@ const printHumanReadable = (exchange, result) => {
 
 /**
  *
+ * @param exchange
  */
-async function run () {
-    // console.log(getCacheDirectory())
+function setNoSend (exchange: ccxt.Exchange) {
+    exchange.verbose = true;
+    exchange.fetch = function fetch (
+        url,
+        method = 'GET',
+        headers = undefined,
+        body = undefined
+    ) {
+        log.dim.noLocate ('-------------------------------------------');
+        log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()));
+        log.green.unlimited ({
+            url,
+            method,
+            headers,
+            body,
+        });
+    };
+    return exchange;
+}
 
-    if (!exchangeId) {
-        printUsage ();
-        process.exit ();
+//-----------------------------------------------------------------------------
+
+/**
+ *
+ * @param exchange
+ */
+async function handleMarketsLoading (exchange: ccxt.Exchange) {
+    const path = '.cache/' + exchangeId + '-markets.json';
+    try {
+        await fsPromises.access (path, fs.constants.R_OK);
+        exchange.markets = JSON.parse (
+            (await fsPromises.readFile (path)).toString ()
+        );
+    } catch {
+        await exchange.loadMarkets ();
+        if (cache_markets) {
+            await fsPromises.writeFile (path, jsonStringify (exchange.markets));
+        }
     }
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ *
+ * @param exchange
+ * @param params
+ */
+function parseMethodArgs (exchange, params) {
     const args = params
         .map ((s) => (s.match (
             /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g
@@ -337,53 +398,50 @@ async function run () {
                 return s;
             }
         }) ());
+    return args;
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ *
+ */
+async function run () {
+    checkCache ();
+    if (!exchangeId) {
+        printUsage ();
+        process.exit ();
+    }
+    const args = parseMethodArgs (exchange, params);
+
     const www = Array.isArray (exchange.urls.www)
         ? exchange.urls.www[0]
         : exchange.urls.www;
+
     if (cors) {
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
         exchange.origin = exchange.uuid ();
     }
-    no_load_markets = no_send ? true : no_load_markets;
+
     if (debug) {
         exchange.verbose = verbose;
     }
-    const path = '.cache/' + exchangeId + '-markets.json';
+
+    no_load_markets = no_send ? true : no_load_markets;
     if (!no_load_markets) {
-        try {
-            await fsPromises.access (path, fs.constants.R_OK);
-            exchange.markets = JSON.parse (
-                (await fsPromises.readFile (path)).toString ()
-            );
-        } catch {
-            await exchange.loadMarkets ();
-            if (cache_markets) {
-                await fsPromises.writeFile (path, jsonStringify (exchange.markets));
-            }
-        }
+        await handleMarketsLoading (exchange);
     }
+
     if (signIn && exchange.has.signIn) {
         await exchange.signIn ();
     }
+
     exchange.verbose = verbose;
+
     if (no_send) {
-        exchange.verbose = no_send;
-        exchange.fetch = function fetch (
-            url,
-            method = 'GET',
-            headers = undefined,
-            body = undefined
-        ) {
-            log.dim.noLocate ('-------------------------------------------');
-            log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()));
-            log.green.unlimited ({
-                url,
-                method,
-                headers,
-                body,
-            });
-        };
+        exchange = setNoSend (exchange);
     }
+
     if (methodName) {
         if (typeof exchange[methodName] === 'function') {
             if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')');
