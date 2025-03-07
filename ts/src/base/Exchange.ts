@@ -221,6 +221,7 @@ export default class Exchange {
     headers: any = {};
     origin = '*' // CORS origin
     MAX_VALUE: Num = Number.MAX_VALUE;
+    maxCapacity: Num = 1000
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -2764,7 +2765,7 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': this.maxCapacity,
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
