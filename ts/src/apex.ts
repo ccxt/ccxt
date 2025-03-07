@@ -1,5 +1,5 @@
 //  ---------------------------------------------------------------------------
-import { Precise } from 'ccxt';
+import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
