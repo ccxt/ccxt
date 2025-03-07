@@ -301,7 +301,7 @@ Console.WriteLine(ccxt.Exchanges) // check this later
 [ccxt in GO with **PKG**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
 
 ```shell
-go get github.com/ccxt/ccxt/go/v4
+go install github.com/ccxt/ccxt/go/v4@latest
 ```
 
 ```Go
