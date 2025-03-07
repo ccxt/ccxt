@@ -414,10 +414,6 @@ async function run () {
     }
     const args = parseMethodArgs (exchange, params);
 
-    const www = Array.isArray (exchange.urls.www)
-        ? exchange.urls.www[0]
-        : exchange.urls.www;
-
     if (cors) {
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
         exchange.origin = exchange.uuid ();
