@@ -6,6 +6,21 @@ import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 
 class Throttler {
+
+    running: boolean;
+    queue: { resolver: any; cost: number }[];
+    config: {
+        refillRate: number;
+        delay: number;
+        capacity: number;
+        maxCapacity: number;
+        tokens: number;
+        cost: number;
+        windowSize: number;
+    };
+    rateLimiterAlogorithm: string;
+    timestamps: { timestamp: number; cost: number }[];
+
     constructor (config, algorithm = 'leakyBucket', windowSize = 60.0) {
         this.rateLimiterAlogorithm = algorithm;
         this.config = {
@@ -20,7 +35,7 @@ class Throttler {
         Object.assign (this.config, config);
         this.queue = [];
         this.running = false;
-        this.timestamps = [];  // Stores request timestamps
+        this.timestamps = [];
     }
 
     async leakyBucketLoop () {
@@ -51,10 +66,8 @@ class Throttler {
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             const nowTime = now ();
-            // Remove timestamps outside the rolling window
-            this.timestamps = this.timestamps.filter (t => nowTime - t.timestamp < this.config.windowSize);
-            // Calculate the total cost of requests still in the window
-            const totalCost = this.timestamps.reduce ((sum, t) => sum + t.cost, 0);
+            this.timestamps = this.timestamps.filter (t => nowTime - t.timestamp < this.config.windowSize);     // Remove timestamps outside the rolling window
+            const totalCost = this.timestamps.reduce ((sum, t) => sum + t.cost, 0);     // Calculate the total cost of requests still in the window
             if (totalCost + cost <= this.config.maxCapacity) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });
