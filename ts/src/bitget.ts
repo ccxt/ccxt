@@ -4851,9 +4851,8 @@ export default class bitget extends Exchange {
                 request['marginCoin'] = market['settleId'];
                 request['size'] = this.amountToPrecision (symbol, amount);
                 if (price !== undefined) {
-                    
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
                 }
-                request['executePrice'] = this.priceToPrecision (symbol, price);
                 if (isStopLossOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 } else if (isTakeProfitOrder) {
