@@ -221,7 +221,6 @@ export default class Exchange {
     headers: any = {};
     origin = '*' // CORS origin
     MAX_VALUE: Num = Number.MAX_VALUE;
-    maxCapacity: Num = 1000
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -333,7 +332,11 @@ export default class Exchange {
     tokenBucket = undefined
     throttler = undefined
     enableRateLimit: boolean = undefined;
+
+    // rate limiter properties
     rateLimiterAlgorithm: string = 'leakyBucket';  // rollingWindow or leakyBucket
+    rateLimiterWindowSize: Int = 60;  // rollingWindow or leakyBucket
+    maxCapacity: Num = 1000
 
     httpExceptions = undefined
 
@@ -657,7 +660,7 @@ export default class Exchange {
     }
 
     initThrottler () {
-        this.throttler = new Throttler (this.tokenBucket, this.rateLimiterAlgorithm);
+        this.throttler = new Throttler (this.tokenBucket, this.rateLimiterAlgorithm, this.rateLimiterWindowSize);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {

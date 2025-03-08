@@ -6,7 +6,7 @@ import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 
 class Throttler {
-    constructor (config, algorithm = 'leakyBucket') {
+    constructor (config, algorithm = 'leakyBucket', windowSize = 60.0) {
         this.rateLimiterAlogorithm = algorithm;
         this.config = {
             'refillRate': 1.0,
@@ -15,7 +15,7 @@ class Throttler {
             'maxCapacity': 2000,
             'tokens': 0,
             'cost': 1.0,
-            'windowSize': 60.0,  // 60 seconds
+            'windowSize': windowSize,  // in seconds
         };
         Object.assign (this.config, config);
         this.queue = [];
