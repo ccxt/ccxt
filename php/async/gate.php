@@ -2008,13 +2008,18 @@ class gate extends Exchange {
              *
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
              *
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            list($request, $query) = $this->prepare_request(null, 'swap', $params);
+            $market = null;
+            if ($symbols !== null) {
+                $firstSymbol = $this->safe_string($symbols, 0);
+                $market = $this->market($firstSymbol);
+            }
+            list($request, $query) = $this->prepare_request($market, 'swap', $params);
             $response = Async\await($this->publicFuturesGetSettleContracts ($this->extend($request, $query)));
             //
             //    array(
