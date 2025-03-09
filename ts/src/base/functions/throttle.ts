@@ -16,16 +16,14 @@ class Throttler {
         maxLimiterRequests: number;
         tokens: number;
         cost: number;
-        rollingWindow: {
-            windowSize: number;
-            weightLimit: number;
-        };
+        algorithm: string;
+        rateLimit: number;
+        windowSize: number;
+        maxWeight: number;
     };
-    rateLimiterAlogorithm: string;
     timestamps: { timestamp: number; cost: number }[];
 
-    constructor (config, algorithm = 'leakyBucket', windowSize = 60000.0, weightLimit = 0.0) {
-        this.rateLimiterAlogorithm = algorithm;
+    constructor (config) {
         this.config = {
             'refillRate': 1.0,
             'delay': 0.001,
@@ -33,10 +31,9 @@ class Throttler {
             'maxLimiterRequests': 2000,
             'tokens': 0,
             'cost': 1.0,
-            'rollingWindow': {
-                'windowSize': windowSize,    // in seconds
-                'weightLimit': weightLimit,  // must be set for each exchange
-            }
+            'algorithm': 'leakyBucket',
+            'windowSize': 60000.0,
+            // maxWeight should be set in config parameter for rolling window algorithm
         };
         Object.assign (this.config, config);
         this.queue = [];
@@ -72,9 +69,9 @@ class Throttler {
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             const nowTime = now ();
-            this.timestamps = this.timestamps.filter (t => nowTime - t.timestamp < this.config.rollingWindow.windowSize);     // Remove timestamps outside the rolling window
+            this.timestamps = this.timestamps.filter (t => nowTime - t.timestamp < this.config.windowSize);     // Remove timestamps outside the rolling window
             const totalCost = this.timestamps.reduce ((sum, t) => sum + t.cost, 0);     // Calculate the total cost of requests still in the window
-            if (totalCost + cost <= this.config.rollingWindow.weightLimit) {
+            if (totalCost + cost <= this.config.maxWeight) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });
                 resolver ();
@@ -86,7 +83,7 @@ class Throttler {
             } else {
                 // Calculate the wait time until the oldest request expires
                 const earliestRequestTime = this.timestamps[0].timestamp;
-                const waitTime = (earliestRequestTime + this.config.rollingWindow.windowSize) - nowTime;
+                const waitTime = (earliestRequestTime + this.config.windowSize) - nowTime;
                 // Ensure waitTime is positive before sleeping
                 if (waitTime > 0) {
                     await sleep (waitTime);
