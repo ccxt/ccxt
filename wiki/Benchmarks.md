@@ -1,4 +1,4 @@
-# CCXT.Pro Stability Monitoring
+# Benchmarks
 
 As part of our beta testing, CCXT.Pro is continuously running benchmarks against various cryptocurrency exchanges to ensure stability and proper functionality. We maintain a real-time monitoring dashboard that tracks:
 
@@ -9,7 +9,7 @@ As part of our beta testing, CCXT.Pro is continuously running benchmarks against
 - System resource usage
 
 ## Live Dashboard
-<iframe src="http://188.245.226.105:3001/public-dashboards/ce891e09573b4576a151fd7b980742ff?orgId=1" width="100%" height="800" frameborder="0"></iframe>
+<iframe src="http://188.245.226.105:3001/public-dashboards/b3fcc6e3021b4ba8bcb57324d595319e" width="100%" height="800" frameborder="0"></iframe>
 
 The dashboard provides insights into ccxt.pro performance across different exchanges and helps us maintain high reliability standards.
 
