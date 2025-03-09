@@ -46,6 +46,7 @@ class gate(ccxt.async_support.gate):
                 'fetchOpenOrdersWs': True,
                 'fetchClosedOrdersWs': True,
                 'watchOrderBook': True,
+                'watchBidsAsks': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
