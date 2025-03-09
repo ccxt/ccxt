@@ -35,7 +35,7 @@ class Stream:
 
         message = Message(payload, error, self, topic, index)
 
-        if len(messages) >= self.max_messages_per_topic:
+        if len(messages) > self.max_messages_per_topic:
             messages.pop(0)
 
         if self.max_messages_per_topic != 0:

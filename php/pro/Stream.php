@@ -54,7 +54,7 @@ class Stream {
         $index = $this->get_last_index($topic) + 1;
         $message = new Message($payload, $error, $this, $topic, $index);
 
-        if (count($messages) >= $this->max_messages_per_topic) {
+        if (count($messages) > $this->max_messages_per_topic) {
             array_shift($messages);
         }
         if ($this->max_messages_per_topic !== 0) {

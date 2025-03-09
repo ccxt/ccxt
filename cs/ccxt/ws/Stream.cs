@@ -54,11 +54,10 @@ public class Stream : IBaseStream
             },
         };
 
-        if (messages.Count >= maxMessagesPerTopic)
+        if (messages.Count > maxMessagesPerTopic)
         {
             messages.RemoveAt(0);
         }
-
         if (maxMessagesPerTopic != 0)
         {
             messages.Add(message);

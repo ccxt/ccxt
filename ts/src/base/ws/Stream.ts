@@ -45,7 +45,7 @@ export class Stream implements BaseStream {
             },
         };
 
-        if (messages.length >= this.maxMessagesPerTopic) {
+        if (messages.length > this.maxMessagesPerTopic) {
             messages.shift ();
         }
 
