@@ -109,7 +109,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ env.NPM_VERSION }}
         run: |
-
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
