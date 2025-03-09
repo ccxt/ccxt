@@ -2187,28 +2187,24 @@ class okx(Exchange):
             if (stopLossTriggerPrice is None) and (takeProfitTriggerPrice is None):
                 raise BadRequest(self.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order')
             if stopLossTriggerPrice is not None:
-                if stopLossPrice is None:
-                    raise BadRequest(self.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order')
                 request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlOrdPx'] = '-1' if stopLossPrice is None else self.price_to_precision(symbol, stopLossPrice)
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType
                 is_limit = False
             if takeProfitTriggerPrice is not None:
-                if takeProfitPrice is None:
-                    raise BadRequest(self.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order')
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpOrdPx'] = '-1' if takeProfitPrice is None else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
                 is_limit = False
         else:
             if stopLossTriggerPrice is not None:
                 request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlOrdPx'] = '-1' if stopLossPrice is None else self.price_to_precision(symbol, stopLossPrice)
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType
                 is_limit = False
             if takeProfitTriggerPrice is not None:
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpOrdPx'] = '-1' if takeProfitPrice is None else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
                 is_limit = False
             if stopLossDefined:
@@ -2216,7 +2212,7 @@ class okx(Exchange):
                 stopLossPrice = self.safe_value(stopLoss, 'price')
                 stopLossType = self.safe_string(stopLoss, 'type')
                 request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlOrdPx'] = '-1' if stopLossPrice is None else self.price_to_precision(symbol, stopLossPrice)
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType
                 is_limit = False
             if takeProfitDefined:
@@ -2225,7 +2221,7 @@ class okx(Exchange):
                 takeProfitType = self.safe_string(takeProfit, 'type')
                 request['newTpOrdKind'] = takeProfitType if (takeProfitType == 'limit') else 'condition'
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpOrdPx'] = '-1' if stopLossPrice is None else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
                 is_limit = False
         if amount is not None:
