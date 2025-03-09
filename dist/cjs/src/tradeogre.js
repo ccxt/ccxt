@@ -68,7 +68,7 @@ class tradeogre extends tradeogre$1 {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -86,7 +86,7 @@ class tradeogre extends tradeogre$1 {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -128,6 +128,7 @@ class tradeogre extends tradeogre$1 {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                     },
                 },
                 'private': {
@@ -154,6 +155,14 @@ class tradeogre extends tradeogre$1 {
                     'Insufficient funds': errors.InsufficientFunds,
                     'Order not found': errors.BadRequest,
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {},
             'features': {
@@ -330,18 +339,75 @@ class tradeogre extends tradeogre$1 {
         //
         return this.parseTicker(response, market);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {};
+        const response = await this.publicGetMarkets(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "AAVE-USDT": {
+        //                 "initialprice": "177.20325711",
+        //                 "price": "177.20325711",
+        //                 "high": "177.20325711",
+        //                 "low": "177.20325711",
+        //                 "volume": "0.00000000",
+        //                 "bid": "160.72768581",
+        //                 "ask": "348.99999999",
+        //                 "basename": "Aave"
+        //             }
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketIdArray = Object.keys(entry);
+            const marketId = this.safeString(marketIdArray, 0);
+            const market = this.safeMarket(marketId);
+            const data = entry[marketId];
+            const ticker = this.parseTicker(data, market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
     parseTicker(ticker, market = undefined) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     {
+        //         "initialprice": "177.20325711",
+        //         "price": "177.20325711",
+        //         "high": "177.20325711",
+        //         "low": "177.20325711",
+        //         "volume": "0.00000000",
+        //         "bid": "160.72768581",
+        //         "ask": "348.99999999",
+        //         "basename": "Aave"
+        //     },
+        //     ...
         //
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
@@ -365,6 +431,65 @@ class tradeogre extends tradeogre$1 {
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
+    }
+    /**
+     * @method
+     * @name tradeogre#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
+        };
+        if (since === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchOHLCV requires a since argument');
+        }
+        else {
+            request['timestamp'] = since;
+        }
+        const response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
+        //
+        //     [
+        //         [
+        //             1729130040,
+        //             67581.47235999,
+        //             67581.47235999,
+        //             67338.01,
+        //             67338.01,
+        //             6.72168016
+        //         ],
+        //     ]
+        //
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //     [
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     ]
+        //
+        return [
+            this.safeTimestamp(ohlcv, 0),
+            this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 3),
+            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 2),
+            this.safeNumber(ohlcv, 5),
+        ];
     }
     /**
      * @method
