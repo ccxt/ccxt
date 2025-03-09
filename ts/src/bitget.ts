@@ -1529,6 +1529,7 @@ export default class bitget extends Exchange {
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
+            'rollingWindowSize': 1000,
             'features': {
                 'spot': {
                     'sandbox': true,
