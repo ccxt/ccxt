@@ -159,8 +159,6 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
-import totp from './functions/totp.js';
-import { wrapExchangeMethods } from './telemetry.js'
 import {OrderBook as Ob} from './ws/OrderBook.js';
 
 import totp from './functions/totp.js';
@@ -616,9 +614,6 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-
-        // initialize telemetry
-        wrapExchangeMethods(this);
 
         this.afterConstruct ();
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
