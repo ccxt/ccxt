@@ -60,7 +60,7 @@ class Exchange(BaseExchange):
     synchronous = False
     streaming = {
         'maxPingPongMisses': 2,
-        'maxMessagesPerTopic': 100,
+        'maxMessagesPerTopic': 0,
         'keepAlive': 30000
     }
     ping = None

@@ -250,7 +250,7 @@ Subscribe functions allow you to listen for updates from a specific stream and u
 
 ### Subscribe Parameters
 You can change the parameters in exchange.streaming.
-- `maxMessagesPerTopic`: By default 100, it is the maximum number of messages stored in memory for each topic. A higher number allows to access a larger history and buffer in memory, however ocuppies more memory.
+- `maxMessagesPerTopic`: By default 0, it is the maximum number of messages stored in memory for each topic. A higher number allows to access a larger history and buffer in memory, however ocuppies more memory.
 - Example:
     ```python
     exchange = ccxt.pro.binance({
@@ -264,7 +264,7 @@ You can change the parameters in exchange.streaming.
 When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
 
 #### Accessing Metadata and Message History
-Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily.
+Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily. To activate the history you must set `maxMessagesPerTopic` to a value higher than 0.
 
 ```typescript
 export interface Message {
@@ -274,7 +274,7 @@ export interface Message {
         stream: BaseStream // reference to the exchange stream
         topic: Topic // string identifying the topic of the stream
         index: number // index of the message being consumed
-        history: Message []; // reference to the history of the topic
+        history: Message []; // reference to the history of the topic. To show messages, maxMessagesPerTopic must be higher than 0.
     }
 }
 ```
