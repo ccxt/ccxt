@@ -29,7 +29,7 @@ public partial class Exchange
         if (client.error)
         {
             // what do we do here?
-            this.streamProduce("erros", null, client.error);
+            this.streamProduce("errors", null, client.error);
         }
         else
         {
