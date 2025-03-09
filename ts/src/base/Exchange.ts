@@ -336,13 +336,7 @@ export default class Exchange {
     // rate limiter properties
     rateLimiterAlgorithm: string = 'leakyBucket';  // rollingWindow or leakyBucket
     maxLimiterRequests: Num = 1000;
-    rollingWindow: {
-        windowSize: Num,
-        weightLimit: Num,
-    } = {
-        windowSize: 60.0,
-        weightLimit: 0.0,
-    };
+    rollingWindowSize: Num = 60000;
 
     httpExceptions = undefined
 
@@ -666,7 +660,7 @@ export default class Exchange {
     }
 
     initThrottler () {
-        this.throttler = new Throttler (this.tokenBucket, this.rateLimiterAlgorithm, this.rollingWindow.windowSize, this.rollingWindow.weightLimit);
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -1181,7 +1175,7 @@ export default class Exchange {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
-                'throttler': new Throttler (this.tokenBucket, this.rateLimiterAlgorithm, this.rollingWindow.weightLimit),
+                'throttler': new Throttler (this.tokenBucket),
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
@@ -2776,6 +2770,9 @@ export default class Exchange {
             'cost': 1,
             'maxLimiterRequests': this.maxLimiterRequests,
             'refillRate': refillRate,
+            'algorithm': this.rateLimiterAlgorithm,
+            'windowSize': this.rollingWindowSize,
+            'maxWeight': this.rollingWindowSize / this.rateLimit,   // ms_of_window / ms_of_rate_limit
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
