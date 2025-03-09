@@ -134,6 +134,8 @@ export default class whitebit extends whitebitRest {
             }
             const ohlcv = this.ohlcvs[symbol]['unknown'];
             ohlcv.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, undefined, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (ohlcv, messageHash);
         }
         return message;
@@ -233,6 +235,7 @@ export default class whitebit extends whitebitRest {
             this.handleDeltas (orderbook['bids'], bids);
         }
         const messageHash = 'orderbook' + ':' + symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -327,6 +330,7 @@ export default class whitebit extends whitebitRest {
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
         // watchTicker
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const messageHashes = Object.keys (client.futures);
@@ -412,6 +416,7 @@ export default class whitebit extends whitebitRest {
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
+            this.streamProduce ('trades', parsedTrades[j]);
         }
         const messageHash = 'trades:' + market['symbol'];
         client.resolve (stored, messageHash);
@@ -470,6 +475,7 @@ export default class whitebit extends whitebitRest {
         const stored = this.myTrades;
         const parsed = this.parseWsTrade (trade);
         stored.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'myTrades:' + symbol;
         client.resolve (stored, messageHash);
@@ -585,6 +591,7 @@ export default class whitebit extends whitebitRest {
         const status = this.safeInteger (params, 0);
         const parsed = this.parseWsOrder (this.extend (data, { 'status': status }));
         stored.append (parsed);
+        this.streamProduce ('orders', parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'orders:' + symbol;
         client.resolve (this.orders, messageHash);
@@ -758,6 +765,7 @@ export default class whitebit extends whitebitRest {
         } else {
             messageHash += 'margin';
         }
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -906,6 +914,7 @@ export default class whitebit extends whitebitRest {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
             }
         } catch (e) {
+            this.streamProduce ('errors', undefined, e);
             if (e instanceof AuthenticationError) {
                 client.reject (e, 'authenticated');
                 if ('authenticated' in client.subscriptions) {
@@ -913,6 +922,7 @@ export default class whitebit extends whitebitRest {
                 }
                 return false;
             }
+            client.reject (e);
         }
         return message;
     }
@@ -925,6 +935,7 @@ export default class whitebit extends whitebitRest {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
