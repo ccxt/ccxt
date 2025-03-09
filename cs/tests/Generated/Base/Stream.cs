@@ -8,7 +8,7 @@ public partial class BaseTest
         // Test case for producing a message
         public void testProduce()
         {
-            var stream = new ccxt.pro.Stream();
+            var stream = new ccxt.pro.Stream(5);
             string topic = "topic1";
             object payload = "Hello, world!";
             object error = null;
