@@ -3,6 +3,12 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchMarkets": {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchMarkets",
+            "url": "https://tradeogre.com/api/v1/markets",
+            "input": []
+        },
         "fetchTicker": [
             {
                 "description": "fetch ticker",
