@@ -711,8 +711,7 @@ export default class binance extends binanceRest {
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
-        const messageHashesLength = subMessageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, 0);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -725,6 +724,7 @@ export default class binance extends binanceRest {
             'symbols': symbols,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
+            'streamHash': streamHash,
             'topic': 'orderbook',
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
@@ -1051,6 +1051,39 @@ export default class binance extends binanceRest {
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
+        this.cleanNumSubscriptionsByStream (subscription);
+    }
+
+    cleanNumSubscriptionsByStream (subscription: Dict) {
+        const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash');
+        if (streamBySubscriptionsHash === undefined) {
+            return;
+        }
+        const streamHash = this.safeString (subscription, 'streamHash');
+        const stream = this.safeString (streamBySubscriptionsHash, streamHash);
+        if (stream === undefined) {
+            return;
+        }
+        const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
+        const topic = this.safeString (subscription, 'topic');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        let newNumSubscriptions = subscriptionsByStream;
+        if (topic === 'ohlcv') {
+            newNumSubscriptions = newNumSubscriptions - 1;
+        } else if (symbolsLength > 0) {
+            if (topic === 'trades') {
+                newNumSubscriptions = newNumSubscriptions - symbolsLength;
+            } else if (topic === 'orderbook') {
+                newNumSubscriptions = newNumSubscriptions - symbolsLength;
+            } else if (topic === 'ticker') {
+                newNumSubscriptions = newNumSubscriptions - 1;
+            }
+        }
+        if (newNumSubscriptions < 0) {
+            newNumSubscriptions = 0;
+        }
+        this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
     }
 
     /**
@@ -1161,8 +1194,7 @@ export default class binance extends binanceRest {
             subParams.push (rawHash);
         }
         const query = this.omit (params, 'type');
-        const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, 0);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -1174,6 +1206,7 @@ export default class binance extends binanceRest {
             'id': requestId.toString (),
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
+            'streamHash': streamHash,
             'symbols': symbols,
             'topic': 'trades',
         };
@@ -1540,7 +1573,7 @@ export default class binance extends binanceRest {
             subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV', 0);
         const requestId = this.requestId (url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1554,6 +1587,7 @@ export default class binance extends binanceRest {
             'symbolsAndTimeframes': symbolsAndTimeframes,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
+            'streamHash': 'multipleOHLCV',
             'topic': 'ohlcv',
         };
         params = this.omit (params, 'callerMethodName');
@@ -1941,7 +1975,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash, 0);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -1953,6 +1987,7 @@ export default class binance extends binanceRest {
             'id': requestId.toString (),
             'subMessageHashes': subMessageHashes,
             'messageHashes': subMessageHashes,
+            'streamHash': streamHash,
             'symbols': symbols,
             'topic': 'ticker',
         };
