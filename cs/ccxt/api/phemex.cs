@@ -121,6 +121,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("v2GetPublicProducts",parameters);
     }
 
+    public async Task<object> v2GetPublicProductsPlus (object parameters = null)
+    {
+        return await this.callAsync ("v2GetPublicProductsPlus",parameters);
+    }
+
     public async Task<object> v2GetMdV2Orderbook (object parameters = null)
     {
         return await this.callAsync ("v2GetMdV2Orderbook",parameters);

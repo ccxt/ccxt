@@ -10,18 +10,13 @@ public partial class bitmart
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-balance-change"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -205,6 +200,18 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#private-position-channel"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
@@ -268,6 +275,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.speed</term>
+    /// <description>
+    /// string : *futures only* '100ms' or '200ms'
     /// </description>
     /// </item>
     /// </list>

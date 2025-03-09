@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
@@ -52,7 +52,10 @@ class bitrue extends bitrue$1 {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -92,7 +95,7 @@ class bitrue extends bitrue$1 {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
+                'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
                     'spot': 'https://www.bitrue.com/api',
                     'fapi': 'https://fapi.bitrue.com/fapi',
@@ -436,7 +439,96 @@ class bitrue extends bitrue$1 {
                 'MIM': 'MIM Swarm',
             },
             'precisionMode': number.TICK_SIZE,
-            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                    'fetchClosedOrders': undefined,
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'System is under maintenance.': errors.OnMaintenance,
@@ -508,6 +600,7 @@ class bitrue extends bitrue$1 {
                     '-4051': errors.InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': errors.InsufficientFunds,
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -517,15 +610,15 @@ class bitrue extends bitrue$1 {
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
+    /**
+     * @method
+     * @name bitrue#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         const response = await this.spotV1PublicGetPing(params);
         //
         // empty means working status.
@@ -543,15 +636,15 @@ class bitrue extends bitrue$1 {
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name bitrue#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.spotV1PublicGetTime(params);
         //
         //     {
@@ -560,14 +653,14 @@ class bitrue extends bitrue$1 {
         //
         return this.safeInteger(response, 'serverTime');
     }
+    /**
+     * @method
+     * @name bitrue#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const response = await this.spotV1PublicGetExchangeInfo(params);
         //
         //     {
@@ -616,7 +709,7 @@ class bitrue extends bitrue$1 {
         //     }
         //
         const result = {};
-        const coins = this.safeValue(response, 'coins', []);
+        const coins = this.safeList(response, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const currency = coins[i];
             const id = this.safeString(currency, 'coin');
@@ -627,15 +720,15 @@ class bitrue extends bitrue$1 {
             let minWithdrawString = undefined;
             let maxWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
-            const networkDetails = this.safeValue(currency, 'chainDetail', []);
+            const networkDetails = this.safeList(currency, 'chainDetail', []);
             const networks = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString(entry, 'chain');
                 const network = this.networkIdToCode(networkId, code);
-                const enableDeposit = this.safeValue(entry, 'enableDeposit');
+                const enableDeposit = this.safeBool(entry, 'enableDeposit');
                 deposit = (enableDeposit) ? enableDeposit : deposit;
-                const enableWithdraw = this.safeValue(entry, 'enableWithdraw');
+                const enableWithdraw = this.safeBool(entry, 'enableWithdraw');
                 withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
                 const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
                 if (networkWithdrawFeeString !== undefined) {
@@ -688,17 +781,17 @@ class bitrue extends bitrue$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name bitrue#fetchMarkets
+     * @description retrieves data on all markets for bitrue
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @see https://www.bitrue.com/api-docs#current-open-contract
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchMarkets
-         * @description retrieves data on all markets for bitrue
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-         * @see https://www.bitrue.com/api-docs#current-open-contract
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const promisesRaw = [];
         const fetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
         for (let i = 0; i < fetchMarkets.length; i++) {
@@ -830,11 +923,11 @@ class bitrue extends bitrue$1 {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
-        const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-        const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+        const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
         const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
         const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
@@ -964,19 +1057,19 @@ class bitrue extends bitrue$1 {
         result['datetime'] = this.iso8601(timestamp);
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name bitrue#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+     * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
+     * @param {string} [params.subType] 'linear', 'inverse'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
-         * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
-         * @param {string} [params.subType] 'linear', 'inverse'
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
@@ -987,7 +1080,7 @@ class bitrue extends bitrue$1 {
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 // {
                 //         "code":"0",
@@ -1021,7 +1114,7 @@ class bitrue extends bitrue$1 {
             }
             else {
                 response = await this.fapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 //     {
                 //         "code":"0",
@@ -1077,19 +1170,19 @@ class bitrue extends bitrue$1 {
         }
         return this.parseBalance(result);
     }
+    /**
+     * @method
+     * @name bitrue#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+     * @see https://www.bitrue.com/api-docs#order-book
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
-         * @see https://www.bitrue.com/api-docs#order-book
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
@@ -1224,18 +1317,18 @@ class bitrue extends bitrue$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-         * @see https://www.bitrue.com/api-docs#ticker
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
@@ -1257,7 +1350,7 @@ class bitrue extends bitrue$1 {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = this.safeValue(response, 0, {});
+            data = this.safeDict(response, 0, {});
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTicker only support spot & swap markets');
@@ -1302,28 +1395,28 @@ class bitrue extends bitrue$1 {
         //
         return this.parseTicker(data, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-         * @see https://www.bitrue.com/api-docs#kline-candlestick-data
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const timeframesFuture = this.safeValue(timeframes, 'future', {});
+            const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
                 // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1341,7 +1434,7 @@ class bitrue extends bitrue$1 {
             data = response;
         }
         else if (market['spot']) {
-            const timeframesSpot = this.safeValue(timeframes, 'spot', {});
+            const timeframesSpot = this.safeDict(timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
                 // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1350,11 +1443,13 @@ class bitrue extends bitrue$1 {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            if (since !== undefined) {
-                request['fromIdx'] = since;
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['fromIdx'] = until;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOHLCV only support spot & swap markets');
@@ -1431,18 +1526,18 @@ class bitrue extends bitrue$1 {
             this.safeNumber2(ohlcv, 'v', 'vol'),
         ];
     }
+    /**
+     * @method
+     * @name bitrue#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchBidsAsks
-         * @description fetches the bid and ask price and volume for multiple markets
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
-         * @see https://www.bitrue.com/api-docs#ticker
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const first = this.safeString(symbols, 0);
@@ -1496,18 +1591,18 @@ class bitrue extends bitrue$1 {
         data[market['id']] = response;
         return this.parseTickers(data, symbols);
     }
+    /**
+     * @method
+     * @name bitrue#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-         * @see https://www.bitrue.com/api-docs#ticker
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let response = undefined;
@@ -1579,7 +1674,7 @@ class bitrue extends bitrue$1 {
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeValue(data, i, {});
+            const ticker = this.safeDict(data, i, {});
             const market = this.market(this.safeValue(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
@@ -1642,8 +1737,8 @@ class bitrue extends bitrue$1 {
         const orderId = this.safeString(trade, 'orderId');
         const id = this.safeString2(trade, 'id', 'tradeId');
         let side = undefined;
-        const buyerMaker = this.safeValue(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
-        const isBuyer = this.safeValue(trade, 'isBuyer');
+        const buyerMaker = this.safeBool(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
+        const isBuyer = this.safeBool(trade, 'isBuyer');
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy';
         }
@@ -1658,7 +1753,7 @@ class bitrue extends bitrue$1 {
             };
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeValue(trade, 'isMaker');
+        const isMaker = this.safeBool(trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1678,18 +1773,18 @@ class bitrue extends bitrue$1 {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
@@ -1823,15 +1918,14 @@ class bitrue extends bitrue$1 {
         const id = this.safeString(order, 'orderId');
         let type = this.safeStringLower(order, 'type');
         const side = this.safeStringLower(order, 'side');
-        const fills = this.safeValue(order, 'fills', []);
+        const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX') || (type === 'post_only');
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        const triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice')));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1845,8 +1939,7 @@ class bitrue extends bitrue$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1857,18 +1950,18 @@ class bitrue extends bitrue$1 {
             'trades': fills,
         }, market);
     }
+    /**
+     * @method
+     * @name bitrue#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        /**
-         * @method
-         * @name bitrue#createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -1877,32 +1970,31 @@ class bitrue extends bitrue$1 {
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
+    /**
+     * @method
+     * @name bitrue#createOrder
+     * @description create a trade order
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+     * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+     * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
+     * @param {bool} [params.postOnly] default false
+     * @param {bool} [params.reduceOnly] default false
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {decimal} [params.icebergQty]
+     * @param {long} [params.recvWindow]
+     * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#createOrder
-         * @description create a trade order
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
-         * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
-         * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
-         * @param {bool} [params.postOnly] default false
-         * @param {bool} [params.reduceOnly] default false
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {decimal} [params.icebergQty]
-         * @param {long} [params.recvWindow]
-         * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
@@ -1970,7 +2062,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1984,10 +2076,10 @@ class bitrue extends bitrue$1 {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice !== undefined) {
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder(this.extend(request, params));
             data = response;
@@ -2018,19 +2110,18 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-         * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
-         * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2060,7 +2151,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['orderId'] = id; // spot market id is mandatory
@@ -2116,18 +2207,18 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -2174,20 +2265,19 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name bitrue#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-         * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -2204,7 +2294,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2262,19 +2352,19 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name bitrue#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+     * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#cancelOrder
-         * @description cancels an open order
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
-         * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2304,7 +2394,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2336,18 +2426,18 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name bitrue#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#cancelAllOrders
-         * @description cancel all open orders in a market
-         * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-         * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
@@ -2362,7 +2452,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' cancelAllOrders only support future markets');
@@ -2378,20 +2468,19 @@ class bitrue extends bitrue$1 {
         //
         return this.parseOrders(data, market);
     }
+    /**
+     * @method
+     * @name bitrue#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-         * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -2417,7 +2506,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2474,18 +2563,18 @@ class bitrue extends bitrue$1 {
         //
         return this.parseTrades(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name bitrue#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a code argument');
         }
@@ -2546,18 +2635,18 @@ class bitrue extends bitrue$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
+    /**
+     * @method
+     * @name bitrue#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a code argument');
         }
@@ -2617,7 +2706,7 @@ class bitrue extends bitrue$1 {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2746,19 +2835,19 @@ class bitrue extends bitrue$1 {
             'fee': fee,
         };
     }
+    /**
+     * @method
+     * @name bitrue#withdraw
+     * @description make a withdrawal
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#withdraw
-         * @description make a withdrawal
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
@@ -2808,7 +2897,7 @@ class bitrue extends bitrue$1 {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeValue(fee, 'chainDetail', []);
+        const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result = {
             'info': fee,
@@ -2840,16 +2929,16 @@ class bitrue extends bitrue$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name bitrue#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
         const coins = this.safeList(response, 'coins');
@@ -2892,21 +2981,21 @@ class bitrue extends bitrue$1 {
             'status': 'ok',
         };
     }
+    /**
+     * @method
+     * @name bitrue#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
+     * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchTransfers
-         * @description fetch a history of internal transfers made on an account
-         * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for
-         * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-         */
         await this.loadMarkets();
         const type = this.safeString2(params, 'type', 'transferType');
         const request = {
@@ -2948,23 +3037,23 @@ class bitrue extends bitrue$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTransfers(data, currency, since, limit);
     }
+    /**
+     * @method
+     * @name bitrue#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name bitrue#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountTypes = this.safeValue(this.options, 'accountsByType', {});
+        const accountTypes = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
         const toId = this.safeString(accountTypes, toAccount, toAccount);
         const request = {
@@ -2983,18 +3072,18 @@ class bitrue extends bitrue$1 {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
+    /**
+     * @method
+     * @name bitrue#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3042,18 +3131,18 @@ class bitrue extends bitrue$1 {
             'datetime': undefined,
         };
     }
+    /**
+     * @method
+     * @name bitrue#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     */
     async setMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name bitrue#setMargin
-         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-         * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
-         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
-         * @param {string} symbol unified market symbol of the market to set margin in
-         * @param {float} amount the amount to set the margin to
-         * @param {object} [params] parameters specific to the exchange API endpoint
-         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -3084,7 +3173,7 @@ class bitrue extends bitrue$1 {
         const version = this.safeString(api, 1);
         const access = this.safeString(api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0)) {
             url = this.urls['api'][type];
         }
         else {
@@ -3095,7 +3184,7 @@ class bitrue extends bitrue$1 {
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,

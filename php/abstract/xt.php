@@ -11,10 +11,10 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_depth($params = array()) {
-        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.05));
+        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_spot_get_kline($params = array()) {
-        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_symbol($params = array()) {
         return $this->request('symbol', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -35,10 +35,10 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_trade_history($params = array()) {
-        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_trade_recent($params = array()) {
-        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_wallet_support_currency($params = array()) {
         return $this->request('wallet/support/currency', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -200,7 +200,7 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function private_spot_post_withdraw($params = array()) {
-        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_spot_post_balance_transfer($params = array()) {
         return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
@@ -327,6 +327,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function private_linear_post_future_user_v1_user_collection_cancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_linear_post_future_user_v1_position_change_type($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_inverse_get_future_trade_v1_entrust_plan_detail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
@@ -458,10 +461,10 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetDepth($params = array()) {
-        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.05));
+        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicSpotGetKline($params = array()) {
-        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetSymbol($params = array()) {
         return $this->request('symbol', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -482,10 +485,10 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetTradeHistory($params = array()) {
-        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetTradeRecent($params = array()) {
-        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetWalletSupportCurrency($params = array()) {
         return $this->request('wallet/support/currency', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -647,7 +650,7 @@ abstract class xt extends \ccxt\Exchange {
         return $this->request('order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privateSpotPostWithdraw($params = array()) {
-        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function privateSpotPostBalanceTransfer($params = array()) {
         return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
@@ -774,6 +777,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function privateLinearPostFutureUserV1UserCollectionCancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateLinearPostFutureUserV1PositionChangeType($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateInverseGetFutureTradeV1EntrustPlanDetail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));

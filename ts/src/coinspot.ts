@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class coinspot extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -143,6 +143,54 @@ export default class coinspot extends Exchange {
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
         });
     }
@@ -176,15 +224,15 @@ export default class coinspot extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.coinspot.com.au/api#listmybalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name coinspot#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.coinspot.com.au/api#listmybalance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method] (params);
@@ -207,17 +255,17 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.coinspot.com.au/api#listopenorders
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name coinspot#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.coinspot.com.au/api#listopenorders
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -263,22 +311,22 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.coinspot.com.au/api#latestprices
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name coinspot#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.coinspot.com.au/api#latestprices
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.publicGetLatest (params);
         let id = market['id'];
         id = id.toLowerCase ();
-        const prices = this.safeValue (response, 'prices');
+        const prices = this.safeDict (response, 'prices', {});
         //
         //     {
         //         "status":"ok",
@@ -295,37 +343,37 @@ export default class coinspot extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.coinspot.com.au/api#latestprices
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name coinspot#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.coinspot.com.au/api#latestprices
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const response = await this.publicGetLatest (params);
         //
         //    {
         //        "status": "ok",
-        //        "prices": {
-        //        "btc": {
-        //        "bid": "25050",
-        //        "ask": "25370",
-        //        "last": "25234"
-        //        },
-        //        "ltc": {
-        //        "bid": "79.39192993",
-        //        "ask": "87.98",
-        //        "last": "87.95"
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
+        //            }
         //        }
-        //      }
         //    }
         //
         const result: Dict = {};
-        const prices = this.safeValue (response, 'prices');
+        const prices = this.safeDict (response, 'prices', {});
         const ids = Object.keys (prices);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -339,18 +387,18 @@ export default class coinspot extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.coinspot.com.au/api#orderhistory
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name coinspot#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.coinspot.com.au/api#orderhistory
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -369,18 +417,18 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinspot#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.coinspot.com.au/api#rotransaction
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://www.coinspot.com.au/api#rotransaction
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
@@ -392,36 +440,36 @@ export default class coinspot extends Exchange {
         }
         const response = await this.privatePostRoMyTransactions (this.extend (request, params));
         //  {
-        //   "status": "ok",
-        //   "buyorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "ALGO/AUD",
-        //       "amount": 386.95197925,
-        //       "created": "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst": 1.80018002,
-        //       "audGst": 0.180018,
-        //       "audtotal": 200
-        //     },
-        //   ],
-        //   "sellorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "SOLO/ALGO",
-        //       "amount": 154.52345614,
-        //       "total": 115.78858204658796,
-        //       "created": "2022-04-16T09:36:43.698Z",
-        //       "audfeeExGst": 1.08995731,
-        //       "audGst": 0.10899573,
-        //       "audtotal": 118.7
-        //     },
-        //   ]
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
         // }
-        const buyTrades = this.safeValue (response, 'buyorders', []);
+        const buyTrades = this.safeList (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeValue (response, 'sellorders', []);
+        const sellTrades = this.safeList (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }
@@ -499,20 +547,20 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinspot#createOrder
+     * @description create a trade order
+     * @see https://www.coinspot.com.au/api#placebuyorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#createOrder
-         * @description create a trade order
-         * @see https://www.coinspot.com.au/api#placebuyorder
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market') {
@@ -527,18 +575,18 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name coinspot#cancelOrder
+     * @description cancels an open order
+     * @see https://www.coinspot.com.au/api#cancelbuyorder
+     * @see https://www.coinspot.com.au/api#cancelsellorder
+     * @param {string} id order id
+     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#cancelOrder
-         * @description cancels an open order
-         * @see https://www.coinspot.com.au/api#cancelbuyorder
-         * @see https://www.coinspot.com.au/api#cancelsellorder
-         * @param {string} id order id
-         * @param {string} symbol not used by coinspot cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const side = this.safeString (params, 'side');
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');

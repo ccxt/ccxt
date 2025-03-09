@@ -42,6 +42,8 @@ public partial class deribit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingRate", true },
@@ -182,6 +184,7 @@ public partial class deribit : Exchange
                         { "enable_api_key", 1 },
                         { "get_access_log", 1 },
                         { "get_account_summary", 1 },
+                        { "get_account_summaries", 1 },
                         { "get_affiliate_program_info", 1 },
                         { "get_email_language", 1 },
                         { "get_new_announcements", 1 },
@@ -246,6 +249,91 @@ public partial class deribit : Exchange
                         { "submit_transfer_to_subaccount", 1 },
                         { "submit_transfer_to_user", 1 },
                         { "withdraw", 1 },
+                    } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
                     } },
                 } },
             } },
@@ -369,9 +457,6 @@ public partial class deribit : Exchange
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "code", "BTC" },
                 } },
-                { "fetchPositions", new Dictionary<string, object>() {
-                    { "code", "BTC" },
-                } },
                 { "transfer", new Dictionary<string, object>() {
                     { "method", "privateGetSubmitTransferToSubaccount" },
                 } },
@@ -476,16 +561,16 @@ public partial class deribit : Exchange
         return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.deribit.com/#public-get_time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.deribit.com/#public-get_time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetGetTime(parameters);
         //
@@ -501,16 +586,16 @@ public partial class deribit : Exchange
         return this.safeInteger(response, "result");
     }
 
+    /**
+     * @method
+     * @name deribit#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.deribit.com/#public-get_currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.deribit.com/#public-get_currencies
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetGetCurrencies(parameters);
         //
@@ -582,16 +667,16 @@ public partial class deribit : Exchange
         return this.safeValue(parameters, "code", code);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.deribit.com/#public-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.deribit.com/#public-status
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetStatus(parameters);
         //
@@ -618,16 +703,16 @@ public partial class deribit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://docs.deribit.com/#private-get_subaccounts
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetGetSubaccounts(parameters);
@@ -689,21 +774,21 @@ public partial class deribit : Exchange
             { "info", account },
             { "id", this.safeString(account, "id") },
             { "type", this.safeString(account, "type") },
-            { "code", this.safeCurrencyCode(null, currency) },
+            { "code", null },
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchMarkets
+     * @description retrieves data on all markets for deribit
+     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/#public-get_instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchMarkets
-        * @description retrieves data on all markets for deribit
-        * @see https://docs.deribit.com/#public-get_currencies
-        * @see https://docs.deribit.com/#public-get_instruments
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object instrumentsResponses = new List<object>() {};
         object result = new List<object>() {};
@@ -862,6 +947,8 @@ public partial class deribit : Exchange
                 {
                     type = "spot";
                 }
+                object inverse = null;
+                object linear = null;
                 if (isTrue(isSpot))
                 {
                     symbol = add(add(bs, "/"), quote);
@@ -879,6 +966,8 @@ public partial class deribit : Exchange
                             symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                         }
                     }
+                    inverse = (!isEqual(quote, settle));
+                    linear = (isEqual(settle, quote));
                 }
                 object parsedMarketValue = this.safeValue(parsedMarkets, symbol);
                 if (isTrue(parsedMarketValue))
@@ -905,8 +994,8 @@ public partial class deribit : Exchange
                     { "option", option },
                     { "active", this.safeValue(market, "is_active") },
                     { "contract", !isTrue(isSpot) },
-                    { "linear", (isEqual(settle, quote)) },
-                    { "inverse", (!isEqual(settle, quote)) },
+                    { "linear", linear },
+                    { "inverse", inverse },
                     { "taker", this.safeNumber(market, "taker_commission") },
                     { "maker", this.safeNumber(market, "maker_commission") },
                     { "contractSize", this.safeNumber(market, "contract_size") },
@@ -949,34 +1038,57 @@ public partial class deribit : Exchange
         object result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        object currencyId = this.safeString(balance, "currency");
-        object currencyCode = this.safeCurrencyCode(currencyId);
-        object account = this.account();
-        ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_funds");
-        ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "maintenance_margin");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "equity");
-        ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+        object summaries = new List<object>() {};
+        if (isTrue(inOp(balance, "summaries")))
+        {
+            summaries = this.safeList(balance, "summaries");
+        } else
+        {
+            summaries = new List<object>() {balance};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(summaries)); postFixIncrement(ref i))
+        {
+            object data = getValue(summaries, i);
+            object currencyId = this.safeString(data, "currency");
+            object currencyCode = this.safeCurrencyCode(currencyId);
+            object account = this.account();
+            ((IDictionary<string,object>)account)["free"] = this.safeString(data, "available_funds");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(data, "maintenance_margin");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(data, "equity");
+            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+        }
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.deribit.com/#private-get_account_summary
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object code = this.codeFromOptions("fetchBalance", parameters);
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object response = await this.privateGetGetAccountSummary(this.extend(request, parameters));
+        object code = this.safeString(parameters, "code");
+        parameters = this.omit(parameters, "code");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)request)["currency"] = this.currencyId(code);
+        }
+        object response = null;
+        if (isTrue(isEqual(code, null)))
+        {
+            response = await this.privateGetGetAccountSummaries(parameters);
+        } else
+        {
+            response = await this.privateGetGetAccountSummary(this.extend(request, parameters));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1019,21 +1131,21 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseBalance(result);
     }
 
+    /**
+     * @method
+     * @name deribit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://docs.deribit.com/#private-create_deposit_address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1064,17 +1176,17 @@ public partial class deribit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.deribit.com/#private-get_current_deposit_address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1103,11 +1215,11 @@ public partial class deribit : Exchange
         object address = this.safeString(result, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1190,17 +1302,17 @@ public partial class deribit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.deribit.com/#public-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.deribit.com/#public-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1240,18 +1352,18 @@ public partial class deribit : Exchange
         return this.parseTicker(result, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1307,22 +1419,22 @@ public partial class deribit : Exchange
         return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+     * @param {int} [params.until] the latest time in ms to fetch ohlcv for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.deribit.com/#public-get_tradingview_chart_data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
-        * @param {int} [params.until] the latest time in ms to fetch ohlcv for
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1486,21 +1598,21 @@ public partial class deribit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTrades
+     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @description get the list of most recent trades for a particular symbol.
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTrades
-        * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-        * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
-        * @description get the list of most recent trades for a particular symbol.
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch trades for
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1560,16 +1672,16 @@ public partial class deribit : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.deribit.com/#private-get_account_summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.deribit.com/#private-get_account_summary
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object code = this.codeFromOptions("fetchTradingFees", parameters);
@@ -1688,18 +1800,18 @@ public partial class deribit : Exchange
         return parsedFees;
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.deribit.com/#public-get_order_book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.deribit.com/#public-get_order_book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1836,7 +1948,7 @@ public partial class deribit : Exchange
         object filledString = this.safeString(order, "filled_amount");
         object amount = this.safeString(order, "amount");
         object cost = Precise.stringMul(filledString, averageString);
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(this.safeBool(market, "inverse")))
         {
             if (isTrue(!isEqual(averageString, "0")))
             {
@@ -1869,7 +1981,6 @@ public partial class deribit : Exchange
         // injected in createOrder
         object trades = this.safeValue(order, "trades");
         object timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
-        object stopPrice = this.safeValue(order, "stop_price");
         object postOnly = this.safeValue(order, "post_only");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1884,8 +1995,7 @@ public partial class deribit : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", priceString },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeValue(order, "stop_price") },
             { "amount", amount },
             { "cost", cost },
             { "average", averageString },
@@ -1897,17 +2007,18 @@ public partial class deribit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.deribit.com/#private-get_order_state
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.deribit.com/#private-get_order_state
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1951,24 +2062,24 @@ public partial class deribit : Exchange
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name deribit#createOrder
+     * @description create a trade order
+     * @see https://docs.deribit.com/#private-buy
+     * @see https://docs.deribit.com/#private-sell
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#createOrder
-        * @description create a trade order
-        * @see https://docs.deribit.com/#private-buy
-        * @see https://docs.deribit.com/#private-sell
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
-        * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2135,23 +2246,23 @@ public partial class deribit : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name deribit#editOrder
+     * @description edit a trade order
+     * @see https://docs.deribit.com/#private-edit
+     * @param {string} id edit order id
+     * @param {string} [symbol] unified symbol of the market to edit an order in
+     * @param {string} [type] 'market' or 'limit'
+     * @param {string} [side] 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#editOrder
-        * @description edit a trade order
-        * @see https://docs.deribit.com/#private-edit
-        * @param {string} id edit order id
-        * @param {string} [symbol] unified symbol of the market to edit an order in
-        * @param {string} [type] 'market' or 'limit'
-        * @param {string} [side] 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))
         {
@@ -2181,18 +2292,18 @@ public partial class deribit : Exchange
         return this.parseOrder(order);
     }
 
+    /**
+     * @method
+     * @name deribit#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.deribit.com/#private-cancel
+     * @param {string} id order id
+     * @param {string} symbol not used by deribit cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.deribit.com/#private-cancel
-        * @param {string} id order id
-        * @param {string} symbol not used by deribit cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2203,18 +2314,18 @@ public partial class deribit : Exchange
         return this.parseOrder(result);
     }
 
+    /**
+     * @method
+     * @name deribit#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.deribit.com/#private-cancel_all
+     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://docs.deribit.com/#private-cancel_all
-        * @see https://docs.deribit.com/#private-cancel_all_by_instrument
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2243,20 +2354,20 @@ public partial class deribit : Exchange
 })};
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-        * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2278,20 +2389,20 @@ public partial class deribit : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.deribit.com/#private-get_order_history_by_currency
+     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.deribit.com/#private-get_order_history_by_currency
-        * @see https://docs.deribit.com/#private-get_order_history_by_instrument
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2313,20 +2424,20 @@ public partial class deribit : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.deribit.com/#private-get_user_trades_by_order
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2370,22 +2481,22 @@ public partial class deribit : Exchange
         return this.parseTrades(result, null, since, limit);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-        * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-        * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-        * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2461,19 +2572,19 @@ public partial class deribit : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.deribit.com/#private-get_deposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.deribit.com/#private-get_deposits
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
         {
@@ -2514,19 +2625,19 @@ public partial class deribit : Exchange
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.deribit.com/#private-get_withdrawals
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
         {
@@ -2720,17 +2831,17 @@ public partial class deribit : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name deribit#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://docs.deribit.com/#private-get_position
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://docs.deribit.com/#private-get_position
-        * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2768,51 +2879,29 @@ public partial class deribit : Exchange
         return this.parsePosition(result);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.deribit.com/#private-get_positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
+     * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.deribit.com/#private-get_positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object kind = this.safeString(parameters, "kind");
-        object code = null;
-        if (isTrue(isEqual(symbols, null)))
+        object code = this.safeString(parameters, "currency");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
         {
-            code = this.codeFromOptions("fetchPositions", parameters);
-        } else if (isTrue((symbols is string)))
-        {
-            code = symbols;
-            symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
-        } else
-        {
-            if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-            {
-                object length = getArrayLength(symbols);
-                if (isTrue(!isEqual(length, 1)))
-                {
-                    throw new BadRequest ((string)add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                object market = this.market(getValue(symbols, 0));
-                object settle = getValue(market, "settle");
-                code = ((bool) isTrue((!isEqual(settle, null)))) ? settle : getValue(market, "base");
-                kind = getValue(getValue(market, "info"), "kind");
-            }
-        }
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        if (isTrue(!isEqual(kind, null)))
-        {
-            ((IDictionary<string,object>)request)["kind"] = kind;
+            parameters = this.omit(parameters, "currency");
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         object response = await this.privateGetGetPositions(this.extend(request, parameters));
         //
@@ -2848,17 +2937,17 @@ public partial class deribit : Exchange
         return this.parsePositions(result, symbols);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchVolatilityHistory
+     * @description fetch the historical volatility of an option market based on an underlying asset
+     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+     */
     public async virtual Task<object> fetchVolatilityHistory(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchVolatilityHistory
-        * @description fetch the historical volatility of an option market based on an underlying asset
-        * @see https://docs.deribit.com/#public-get_historical_volatility
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2915,19 +3004,19 @@ public partial class deribit : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name deribit#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.deribit.com/#private-get_transfers
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchTransfers
-        * @description fetch a history of internal transfers made on an account
-        * @see https://docs.deribit.com/#private-get_transfers
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of  transfers structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
         {
@@ -2981,21 +3070,21 @@ public partial class deribit : Exchange
         return this.parseTransfers(transfers, currency, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name deribit#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.deribit.com/#private-submit_transfer_to_user
+     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://docs.deribit.com/#private-submit_transfer_to_user
-        * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3084,20 +3173,20 @@ public partial class deribit : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name deribit#withdraw
+     * @description make a withdrawal
+     * @see https://docs.deribit.com/#private-withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#withdraw
-        * @description make a withdrawal
-        * @see https://docs.deribit.com/#private-withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -3146,17 +3235,17 @@ public partial class deribit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.deribit.com/#public-get_currencies
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://docs.deribit.com/#public-get_currencies
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetGetCurrencies(parameters);
@@ -3186,19 +3275,19 @@ public partial class deribit : Exchange
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 
+    /**
+     * @method
+     * @name deribit#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
+     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.deribit.com/#public-get_funding_rate_value
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
-        * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3222,19 +3311,21 @@ public partial class deribit : Exchange
         return this.parseFundingRate(response, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchFundingRateHistory
+     * @description fetch the current funding rate
+     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding rate history for
+     * @param {int} [limit] the maximum number of entries to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchFundingRateHistory
-        * @description fetch the current funding rate
-        * @see https://docs.deribit.com/#public-get_funding_rate_history
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3242,21 +3333,44 @@ public partial class deribit : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
+        object maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        object eachItemDuration = "1h";
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.extend(parameters, new Dictionary<string, object>() {
+                { "isDeribitPaginationCall", true },
+            }), maxEntriesPerRequest);
         }
+        object duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();
         object month = multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000);
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(time, month);
+        } else
+        {
+            time = add(since, month);
         }
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(since, 1) },
-            { "end_timestamp", time },
         };
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        } else
+        {
+            ((IDictionary<string,object>)request)["end_timestamp"] = time;
+        }
+        if (isTrue(inOp(parameters, "isDeribitPaginationCall")))
+        {
+            parameters = this.omit(parameters, "isDeribitPaginationCall");
+            object maxUntil = this.sum(since, multiply(limit, duration));
+            ((IDictionary<string,object>)request)["end_timestamp"] = mathMin(getValue(request, "end_timestamp"), maxUntil);
+        }
         object response = await this.publicGetGetFundingRateHistory(this.extend(request, parameters));
         //
         //    {
@@ -3329,20 +3443,20 @@ public partial class deribit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the deribit api endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchLiquidations
-        * @description retrieves the public liquidations of a trading pair
-        * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the deribit api endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3420,19 +3534,19 @@ public partial class deribit : Exchange
         return data;
     }
 
+    /**
+     * @method
+     * @name deribit#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the deribit api endpoint
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchMyLiquidations
-        * @description retrieves the users liquidated positions
-        * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the deribit api endpoint
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3514,17 +3628,17 @@ public partial class deribit : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name deribit#fetchGreeks
+     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.deribit.com/#public-ticker
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchGreeks
-        * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        * @see https://docs.deribit.com/#public-ticker
-        * @param {string} symbol unified symbol of the market to fetch greeks for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3650,17 +3764,17 @@ public partial class deribit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOption
+     * @description fetches option data that is commonly found in an option chain
+     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     */
     public async override Task<object> fetchOption(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOption
-        * @description fetches option data that is commonly found in an option chain
-        * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3705,17 +3819,17 @@ public partial class deribit : Exchange
         return this.parseOption(chain, null, market);
     }
 
+    /**
+     * @method
+     * @name deribit#fetchOptionChain
+     * @description fetches data for an underlying asset that is commonly found in an option chain
+     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @param {string} code base currency to fetch an option chain for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     */
     public async override Task<object> fetchOptionChain(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name deribit#fetchOptionChain
-        * @description fetches data for an underlying asset that is commonly found in an option chain
-        * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-        * @param {string} currency base currency to fetch an option chain for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);

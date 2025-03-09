@@ -252,7 +252,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=100",
+                "url": "https://api.coinbase.com/v2/accounts?limit=250",
                 "input": [
                     {
                         "type": "spot"
@@ -272,7 +272,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=100",
+                "url": "https://api.coinbase.com/v2/accounts?limit=250",
                 "input": [
                     {
                         "type": "swap"
@@ -618,6 +618,15 @@
                 "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
                 "input": []
             }
+        ],
+        "fetchDepositsWithdrawals": [{
+            "description": "spot",
+            "method": "fetchDepositsWithdrawals",
+            "url": "https://api.coinbase.com/v2/accounts/myAccount/transactions",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }

@@ -17,5 +17,6 @@ function test_fetch_trading_fee($exchange, $skipped_properties, $symbol) {
         $fee = Async\await($exchange->fetch_trading_fee($symbol));
         assert(is_array($fee), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($fee));
         test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fee);
+        return true;
     }) ();
 }

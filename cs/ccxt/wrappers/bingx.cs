@@ -70,7 +70,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -330,6 +330,26 @@ public partial class bingx
         return new Tickers(res);
     }
     /// <summary>
+    /// fetches mark prices for the market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
     /// fetches mark prices for multiple markets
     /// </summary>
     /// <remarks>
@@ -377,6 +397,46 @@ public partial class bingx
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// fetch all open positions
@@ -517,6 +577,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -642,6 +703,12 @@ public partial class bingx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// boolean : *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -657,6 +724,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -761,11 +829,18 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap order
     /// </description>
     /// </item>
     /// </list>
@@ -780,7 +855,8 @@ public partial class bingx
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -829,6 +905,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -846,6 +923,12 @@ public partial class bingx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap open orders
     /// </description>
     /// </item>
     /// </list>
@@ -964,6 +1047,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -999,6 +1083,12 @@ public partial class bingx
     /// <term>params.standard</term>
     /// <description>
     /// boolean : whether to fetch standard contract orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap orders
     /// </description>
     /// </item>
     /// </list>
@@ -1086,10 +1176,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1112,10 +1202,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -1292,6 +1382,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1358,12 +1449,12 @@ public partial class bingx
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :          * @param {object} [params] extra parameters specific to the exchange API endpoint
+    /// string :      * @param {object} [params] extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1487,7 +1578,7 @@ public partial class bingx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// string : Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
     /// </description>

@@ -1116,9 +1116,9 @@
                         "network": "BTC"
                     },
                     "currency": "BTC",
+                    "network": "BTC",
                     "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-                    "tag": null,
-                    "network": "BTC"
+                    "tag": null
                 }
             }
         ],

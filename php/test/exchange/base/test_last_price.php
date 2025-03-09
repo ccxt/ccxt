@@ -18,7 +18,7 @@ function test_last_price($exchange, $skipped_properties, $method, $entry, $symbo
         'price' => $exchange->parse_number('1.234'),
         'side' => 'buy',
     );
-    $empty_allowed_for = ['timestamp', 'datetime', 'side'];
+    $empty_allowed_for = ['timestamp', 'datetime', 'side', 'price']; // binance sometimes provides empty prices for old pairs
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     //

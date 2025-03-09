@@ -45,8 +45,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -84,6 +84,7 @@ export interface MarketInterface {
         cost?: MinMax;
         leverage?: MinMax;
         price?: MinMax;
+        market?: MinMax;
     };
     created: Int;
     info: any;
@@ -138,6 +139,8 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+}
+export interface OrderBooks extends Dictionary<OrderBook> {
 }
 export interface Ticker {
     symbol: string;
@@ -239,10 +242,11 @@ export interface Balances extends Dictionary<Balance> {
     datetime?: any;
 }
 export interface DepositAddress {
-    currency: Str;
-    address: string;
-    status: Str;
     info: any;
+    currency: string;
+    network?: string;
+    address: string;
+    tag?: Str;
 }
 export interface WithdrawalResponse {
     info: any;
@@ -307,18 +311,19 @@ export interface Position {
     percentage?: number;
 }
 export interface BorrowInterest {
-    account?: Str;
+    info: any;
+    symbol?: Str;
     currency?: Str;
     interest?: number;
     interestRate?: number;
     amountBorrowed?: number;
     marginMode?: Str;
-    timestamp?: number;
+    timestamp?: Int;
     datetime?: Str;
-    info: any;
 }
 export interface LeverageTier {
     tier?: number;
+    symbol?: Str;
     currency?: Str;
     minNotional?: number;
     maxNotional?: number;
@@ -399,6 +404,8 @@ export interface OpenInterest {
     timestamp?: number;
     datetime?: Str;
     info: any;
+}
+export interface OpenInterests extends Dictionary<OpenInterest> {
 }
 export interface Liquidation {
     info: any;
@@ -502,6 +509,14 @@ export interface Leverage {
     marginMode: 'isolated' | 'cross' | Str;
     longLeverage: number;
     shortLeverage: number;
+}
+export interface LongShortRatio {
+    info: any;
+    symbol: string;
+    timestamp?: number;
+    datetime?: string;
+    timeframe?: string;
+    longShortRatio: number;
 }
 export interface MarginModification {
     'info': any;

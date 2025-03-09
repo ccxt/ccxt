@@ -27,6 +27,7 @@ interface kucoin {
     publicGetMarkPriceSymbolCurrent (params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceAllSymbols (params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig (params?: {}): Promise<implicitReturnType>;
+    publicGetAnnouncements (params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic (params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo (params?: {}): Promise<implicitReturnType>;
     privateGetAccounts (params?: {}): Promise<implicitReturnType>;
@@ -55,6 +56,7 @@ interface kucoin {
     privateGetMarketOrderbookLevelLevel (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel2 (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel3 (params?: {}): Promise<implicitReturnType>;
+    privateGetHfAccountsOpened (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActiveSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrderActiveSymbols (params?: {}): Promise<implicitReturnType>;
@@ -130,6 +132,7 @@ interface kucoin {
     privatePostLendPurchaseUpdate (params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
     privatePostPositionUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddressCreate (params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;
@@ -226,6 +229,7 @@ interface kucoin {
     futuresPrivateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteCancelTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteOrdersMultiCancel (params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
     webExchangeGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;

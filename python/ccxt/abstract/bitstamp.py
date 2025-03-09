@@ -25,6 +25,7 @@ class ImplicitAPI:
     private_post_user_transactions = privatePostUserTransactions = Entry('user_transactions/', 'private', 'POST', {'cost': 1})
     private_post_user_transactions_pair = privatePostUserTransactionsPair = Entry('user_transactions/{pair}/', 'private', 'POST', {'cost': 1})
     private_post_crypto_transactions = privatePostCryptoTransactions = Entry('crypto-transactions/', 'private', 'POST', {'cost': 1})
+    private_post_open_order = privatePostOpenOrder = Entry('open_order', 'private', 'POST', {'cost': 1})
     private_post_open_orders_all = privatePostOpenOrdersAll = Entry('open_orders/all/', 'private', 'POST', {'cost': 1})
     private_post_open_orders_pair = privatePostOpenOrdersPair = Entry('open_orders/{pair}/', 'private', 'POST', {'cost': 1})
     private_post_order_status = privatePostOrderStatus = Entry('order_status/', 'private', 'POST', {'cost': 1})

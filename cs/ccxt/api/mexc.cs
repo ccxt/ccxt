@@ -101,6 +101,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetMyTrades",parameters);
     }
 
+    public async Task<object> spotPrivateGetTradeFee (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetTradeFee",parameters);
+    }
+
     public async Task<object> spotPrivateGetSubAccountList (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetSubAccountList",parameters);
@@ -279,6 +284,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivateGetUserDataStream (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivateGetSelfSymbols (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetSelfSymbols",parameters);
     }
 
     public async Task<object> spotPrivatePostOrder (object parameters = null)

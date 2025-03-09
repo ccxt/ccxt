@@ -6,6 +6,11 @@ namespace ccxt.pro;
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
 public partial class upbit
 {
+    public async Task<Dictionary<string, object>> WatchPublicMultiple(List<String> symbols, object channel, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPublicMultiple(symbols, channel, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
@@ -25,6 +30,26 @@ public partial class upbit
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://global-docs.upbit.com/reference/websocket-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol

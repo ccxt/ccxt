@@ -12,7 +12,6 @@ public partial class testMainClass
     public bool requestTests = false;
     public bool wsTests = false;
     public bool responseTests = false;
-    public bool staticTests = false;
     public bool info = false;
     public bool verbose = false;
     public bool debug = false;
@@ -32,9 +31,9 @@ public partial class testMainClass
 
     public virtual void parseCliArgsAndProps()
     {
-        this.responseTests = getCliArgValue("--responseTests");
+        this.responseTests = isTrue(getCliArgValue("--responseTests")) || isTrue(getCliArgValue("--response"));
         this.idTests = getCliArgValue("--idTests");
-        this.requestTests = getCliArgValue("--requestTests");
+        this.requestTests = isTrue(getCliArgValue("--requestTests")) || isTrue(getCliArgValue("--request"));
         this.info = getCliArgValue("--info");
         this.verbose = getCliArgValue("--verbose");
         this.debug = getCliArgValue("--debug");
@@ -47,29 +46,29 @@ public partial class testMainClass
         this.ext = getExt();
     }
 
-    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
+    public async virtual Task<object> init(object exchangeId, object symbolArgv, object methodArgv)
     {
         this.parseCliArgsAndProps();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
         {
             await this.runStaticRequestTests(exchangeId, symbolArgv);
             await this.runStaticResponseTests(exchangeId, symbolArgv);
-            return;
+            return true;
         }
         if (isTrue(this.responseTests))
         {
             await this.runStaticResponseTests(exchangeId, symbolArgv);
-            return;
+            return true;
         }
         if (isTrue(this.requestTests))
         {
             await this.runStaticRequestTests(exchangeId, symbolArgv); // symbol here is the testname
-            return;
+            return true;
         }
         if (isTrue(this.idTests))
         {
             await this.runBrokerIdTests();
-            return;
+            return true;
         }
         object newLine = "\n";
         dump(add(add(add(add(newLine, ""), newLine), ""), "[INFO] TESTING "), this.ext, new Dictionary<string, object>() {
@@ -77,6 +76,7 @@ public partial class testMainClass
             { "symbol", symbolArgv },
             { "method", methodArgv },
             { "isWs", this.wsTests },
+            { "useProxy", getCliArgValue("--useProxy") },
         }, newLine);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
@@ -95,6 +95,7 @@ public partial class testMainClass
         this.checkIfSpecificTestIsChosen(methodArgv);
         await this.startTest(exchange, symbolArgv);
         exitScript(0); // needed to be explicitly finished for WS tests
+        return true;  // required for c#
     }
 
     public virtual void checkIfSpecificTestIsChosen(object methodArgv)
@@ -122,7 +123,7 @@ public partial class testMainClass
         }
     }
 
-    public async virtual Task importFiles(Exchange exchange)
+    public async virtual Task<object> importFiles(Exchange exchange)
     {
         object properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         ((IList<object>)properties).Add("loadMarkets");
@@ -133,6 +134,7 @@ public partial class testMainClass
         {
             this.testFiles = await getTestFiles(properties, this.wsTests);
         }
+        return true;
     }
 
     public virtual void loadCredentialsFromEnv(Exchange exchange)
@@ -165,8 +167,16 @@ public partial class testMainClass
         object keysLocal = add(getRootDir(), "keys.local.json");
         object keysGlobalExists = ioFileExists(keysGlobal);
         object keysLocalExists = ioFileExists(keysLocal);
-        object globalSettings = ((bool) isTrue(keysGlobalExists)) ? ioFileRead(keysGlobal) : new Dictionary<string, object>() {};
-        object localSettings = ((bool) isTrue(keysLocalExists)) ? ioFileRead(keysLocal) : new Dictionary<string, object>() {};
+        object globalSettings = new Dictionary<string, object>() {};
+        if (isTrue(keysGlobalExists))
+        {
+            globalSettings = ioFileRead(keysGlobal);
+        }
+        object localSettings = new Dictionary<string, object>() {};
+        if (isTrue(keysLocalExists))
+        {
+            localSettings = ioFileRead(keysLocal);
+        }
         object allSettings = exchange.deepExtend(globalSettings, localSettings);
         object exchangeSettings = exchange.safeValue(allSettings, exchangeId, new Dictionary<string, object>() {});
         if (isTrue(exchangeSettings))
@@ -233,7 +243,7 @@ public partial class testMainClass
         return add(message, res);
     }
 
-    public async virtual Task testMethod(object methodName, Exchange exchange, object args, object isPublic)
+    public async virtual Task<object> testMethod(object methodName, Exchange exchange, object args, object isPublic)
     {
         // todo: temporary skip for c#
         if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(methodName, "OrderBook"), 0)) && isTrue(isEqual(this.ext, "cs"))))
@@ -243,23 +253,24 @@ public partial class testMainClass
         // todo: temporary skip for php
         if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(methodName, "OrderBook"), 0)) && isTrue(isEqual(this.ext, "php"))))
         {
-            return;
+            return true;
         }
         object skippedPropertiesForMethod = this.getSkips(exchange, methodName);
         object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
         object isFetchCurrencies = (isEqual(methodName, "fetchCurrencies"));
         object isProxyTest = (isEqual(methodName, this.proxyTestFileName));
+        object isFeatureTest = (isEqual(methodName, "features"));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (isTrue(isTrue(!isTrue(isPublic) && isTrue((inOp(this.checkedPublicTests, methodName)))) && !isTrue(isFetchCurrencies)))
         {
-            return;
+            return true;
         }
         object skipMessage = null;
         object supportedByExchange = isTrue((inOp(exchange.has, methodName))) && isTrue(getValue(exchange.has, methodName));
         if (isTrue(!isTrue(isLoadMarkets) && isTrue((isTrue(isGreaterThan(getArrayLength(this.onlySpecificTests), 0)) && !isTrue(exchange.inArray(methodName, this.onlySpecificTests))))))
         {
             skipMessage = "[INFO] IGNORED_TEST";
-        } else if (isTrue(isTrue(!isTrue(isLoadMarkets) && !isTrue(supportedByExchange)) && !isTrue(isProxyTest)))
+        } else if (isTrue(isTrue(isTrue(!isTrue(isLoadMarkets) && !isTrue(supportedByExchange)) && !isTrue(isProxyTest)) && !isTrue(isFeatureTest)))
         {
             skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
         } else if (isTrue((skippedPropertiesForMethod is string)))
@@ -281,7 +292,7 @@ public partial class testMainClass
             {
                 dump(this.addPadding(skipMessage, 25), name, methodName);
             }
-            return;
+            return true;
         }
         if (isTrue(this.info))
         {
@@ -304,7 +315,7 @@ public partial class testMainClass
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
         }
-        return;
+        return true;
     }
 
     public virtual object getSkips(Exchange exchange, object methodName)
@@ -403,11 +414,11 @@ public partial class testMainClass
                         object isOnMaintenance = (e is OnMaintenance);
                         object isExchangeNotAvailable = (e is ExchangeNotAvailable);
                         object shouldFail = null;
-                        object returnSuccess = null;
+                        object retSuccess = null;
                         if (isTrue(isLoadMarkets))
                         {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
-                            returnSuccess = false;
+                            retSuccess = false;
                             // we might not break exchange tests, if exchange is on maintenance at this moment
                             if (isTrue(isOnMaintenance))
                             {
@@ -423,24 +434,23 @@ public partial class testMainClass
                             {
                                 // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
                                 shouldFail = true;
-                                returnSuccess = false;
+                                retSuccess = false;
                             } else
                             {
                                 // in all other cases of OperationFailed, show Warning, but don't mark test as failed
                                 shouldFail = false;
-                                returnSuccess = true;
+                                retSuccess = true;
                             }
                         }
                         // output the message
                         object failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                         dump(failType, "Method could not be tested due to a repeated Network/Availability issues", " | ", exchange.id, methodName, argsStringified, exceptionMessage(e));
-                        return returnSuccess;
+                        return retSuccess;
                     } else
                     {
                         // wait and retry again
                         // (increase wait time on every retry)
                         await exchange.sleep(multiply((add(i, 1)), 1000));
-                        continue;
                     }
                 } else
                 {
@@ -479,9 +489,10 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task runPublicTests(Exchange exchange, object symbol)
+    public async virtual Task<object> runPublicTests(Exchange exchange, object symbol)
     {
         object tests = new Dictionary<string, object>() {
+            { "features", new List<object>() {} },
             { "fetchCurrencies", new List<object>() {} },
             { "fetchTicker", new List<object>() {symbol} },
             { "fetchTickers", new List<object>() {symbol} },
@@ -528,9 +539,10 @@ public partial class testMainClass
         }
         this.publicTests = tests;
         await this.runTests(exchange, tests, true);
+        return true;
     }
 
-    public async virtual Task runTests(Exchange exchange, object tests, object isPublicTest)
+    public async virtual Task<object> runTests(Exchange exchange, object tests, object isPublicTest)
     {
         object testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         object promises = new List<object>() {};
@@ -564,6 +576,7 @@ public partial class testMainClass
         {
             dump(this.addPadding(add(add(add("[INFO] END ", testPrefixString), " "), exchange.id), 25));
         }
+        return true;
     }
 
     public async virtual Task<object> loadExchange(Exchange exchange)
@@ -698,7 +711,7 @@ public partial class testMainClass
         return symbol;
     }
 
-    public async virtual Task testExchange(Exchange exchange, object providedSymbol = null)
+    public async virtual Task<object> testExchange(Exchange exchange, object providedSymbol = null)
     {
         object spotSymbol = null;
         object swapSymbol = null;
@@ -766,14 +779,15 @@ public partial class testMainClass
                 await this.runPrivateTests(exchange, swapSymbol);
             }
         }
+        return true;
     }
 
-    public async virtual Task runPrivateTests(Exchange exchange, object symbol)
+    public async virtual Task<object> runPrivateTests(Exchange exchange, object symbol)
     {
         if (!isTrue(exchange.checkRequiredCredentials(false)))
         {
             dump("[INFO] Skipping private tests", "Keys not found");
-            return;
+            return true;
         }
         object code = this.getExchangeCode(exchange);
         // if (exchange.deepExtendedTest) {
@@ -811,6 +825,10 @@ public partial class testMainClass
             { "fetchBorrowRateHistory", new List<object>() {code} },
             { "fetchLedgerEntry", new List<object>() {code} },
         };
+        if (isTrue(getCliArgValue("--fundedTests")))
+        {
+            ((IDictionary<string,object>)tests)["createOrder"] = new List<object>() {symbol};
+        }
         if (isTrue(this.wsTests))
         {
             tests = new Dictionary<string, object>() {
@@ -843,16 +861,17 @@ public partial class testMainClass
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
         await this.runTests(exchange, tests, false);
+        return true;  // required in c#
     }
 
-    public async virtual Task testProxies(Exchange exchange)
+    public async virtual Task<object> testProxies(Exchange exchange)
     {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         object proxyTestName = this.proxyTestFileName;
         // todo: temporary skip for sync py
         if (isTrue(isTrue(isEqual(this.ext, "py")) && isTrue(isSync())))
         {
-            return;
+            return true;
         }
         // try proxy several times
         object maxRetries = 3;
@@ -862,7 +881,7 @@ public partial class testMainClass
             try
             {
                 await this.testMethod(proxyTestName, exchange, new List<object>() {}, true);
-                return;  // if successfull, then end the test
+                return true;  // if successfull, then end the test
             } catch(Exception e)
             {
                 exception = e;
@@ -875,17 +894,34 @@ public partial class testMainClass
             object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump(add("[TEST_WARNING]", ((object)errorMessage).ToString()));
+            dump(add("[TEST_WARNING]", errorMessage));
+        }
+        return true;
+    }
+
+    public virtual void checkConstructor(Exchange exchange)
+    {
+        // todo: this might be moved in base tests later
+        if (isTrue(isEqual(exchange.id, "binance")))
+        {
+            assert(isEqual(exchange.hostname, null), "binance.com hostname should be empty");
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), add("https://api.binance.com/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
+            assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), add("SAPI should contain the endpoint lending/union/account, ", jsonStringify(getValue(getValue(exchange.api, "sapi"), "get"))));
+        } else if (isTrue(isEqual(exchange.id, "binanceus")))
+        {
+            assert(isEqual(exchange.hostname, "binance.us"), add("binance.us hostname does not match ", exchange.hostname));
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.us/api/v3"), add("https://api.binance.us/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
         }
     }
 
-    public async virtual Task startTest(Exchange exchange, object symbol)
+    public async virtual Task<object> startTest(Exchange exchange, object symbol)
     {
         // we do not need to test aliases
         if (isTrue(exchange.alias))
         {
-            return;
+            return true;
         }
+        this.checkConstructor(exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);
@@ -899,7 +935,7 @@ public partial class testMainClass
                 {
                     await close(exchange);
                 }
-                return;
+                return true;
             }
             // if (exchange.id === 'binance') {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
@@ -918,6 +954,7 @@ public partial class testMainClass
             }
             throw e;
         }
+        return true;  // required in c#
     }
 
     public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
@@ -927,11 +964,12 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
-        object errorMessage = add(add(add(add(message, " computed "), storedString), " stored: "), calculatedString);
+        object errorMessage = message;
         if (isTrue(!isEqual(key, null)))
         {
-            errorMessage = add(add(add(add(add(add(" | ", key), " | "), "computed value: "), storedString), " stored value: "), calculatedString);
+            errorMessage = add(add("[", key), "]");
         }
+        errorMessage = add(errorMessage, add(add(add(" computed: ", storedString), " stored: "), calculatedString));
         assert(cond, errorMessage);
     }
 
@@ -1032,7 +1070,7 @@ public partial class testMainClass
         return result;
     }
 
-    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutputInner(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         if (isTrue(isTrue(isNullValue(newOutput)) && isTrue(isNullValue(storedOutput))))
@@ -1092,9 +1130,17 @@ public partial class testMainClass
                 this.assertStaticError(isEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
             } else
             {
-                object isBoolean = isTrue(((sanitizedNewOutput is bool))) || isTrue(((sanitizedStoredOutput is bool)));
-                object isString = isTrue(((sanitizedNewOutput is string))) || isTrue(((sanitizedStoredOutput is string)));
-                object isUndefined = isTrue((isEqual(sanitizedNewOutput, null))) || isTrue((isEqual(sanitizedStoredOutput, null))); // undefined is a perfetly valid value
+                object isComputedBool = ((sanitizedNewOutput is bool));
+                object isStoredBool = ((sanitizedStoredOutput is bool));
+                object isComputedString = ((sanitizedNewOutput is string));
+                object isStoredString = ((sanitizedStoredOutput is string));
+                object isComputedUndefined = (isEqual(sanitizedNewOutput, null));
+                object isStoredUndefined = (isEqual(sanitizedStoredOutput, null));
+                object shouldBeSame = isTrue(isTrue((isEqual(isComputedBool, isStoredBool))) && isTrue((isEqual(isComputedString, isStoredString)))) && isTrue((isEqual(isComputedUndefined, isStoredUndefined)));
+                this.assertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, assertingKey);
+                object isBoolean = isTrue(isComputedBool) || isTrue(isStoredBool);
+                object isString = isTrue(isComputedString) || isTrue(isStoredString);
+                object isUndefined = isTrue(isComputedUndefined) || isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
                 {
                     if (isTrue(isEqual(this.lang, "C#")))
@@ -1143,7 +1189,42 @@ public partial class testMainClass
         return true;  // c# requ
     }
 
-    public virtual void assertStaticRequestOutput(Exchange exchange, object type, object skipKeys, object storedUrl, object requestUrl, object storedOutput, object newOutput)
+    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    {
+        strictTypeCheck ??= true;
+        object res = true;
+        try
+        {
+            res = this.assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+        } catch(Exception e)
+        {
+            if (isTrue(this.info))
+            {
+                object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
+                dump(add("[TEST_FAILURE_DETAIL]", errorMessage));
+            }
+            throw e;
+        }
+        return res;
+    }
+
+    public virtual object varToString(object obj = null)
+    {
+        object newString = null;
+        if (isTrue(isEqual(obj, null)))
+        {
+            newString = "undefined";
+        } else if (isTrue(isNullValue(obj)))
+        {
+            newString = "null";
+        } else
+        {
+            newString = jsonStringify(obj);
+        }
+        return newString;
+    }
+
+    public virtual object assertStaticRequestOutput(Exchange exchange, object type, object skipKeys, object storedUrl, object requestUrl, object storedOutput, object newOutput)
     {
         if (isTrue(!isEqual(storedUrl, requestUrl)))
         {
@@ -1166,12 +1247,12 @@ public partial class testMainClass
                 {
                     // might be a get request without any query parameters
                     // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
-                    return;
+                    return true;
                 }
                 object storedUrlParams = this.urlencodedToDict(storedUrlQuery);
                 object newUrlParams = this.urlencodedToDict(newUrlQuery);
                 this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
-                return;
+                return true;
             }
         }
         if (isTrue(isTrue(isTrue(isEqual(type, "json")) && isTrue((!isEqual(storedOutput, null)))) && isTrue((!isEqual(newOutput, null)))))
@@ -1201,6 +1282,7 @@ public partial class testMainClass
             }
         }
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
+        return true;
     }
 
     public virtual void assertStaticResponseOutput(Exchange exchange, object skipKeys, object computedResult, object storedResult)
@@ -1230,7 +1312,7 @@ public partial class testMainClass
         return newInput;
     }
 
-    public async virtual Task testRequestStatically(Exchange exchange, object method, object data, object type, object skipKeys)
+    public async virtual Task<object> testRequestStatically(Exchange exchange, object method, object data, object type, object skipKeys)
     {
         object output = null;
         object requestUrl = null;
@@ -1259,12 +1341,13 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
+        return true;
     }
 
-    public async virtual Task testResponseStatically(Exchange exchange, object method, object skipKeys, object data)
+    public async virtual Task<object> testResponseStatically(Exchange exchange, object method, object skipKeys, object data)
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
@@ -1282,10 +1365,11 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
+        return true;
     }
 
     public virtual Exchange initOfflineExchange(object exchangeName)
@@ -1306,6 +1390,7 @@ public partial class testMainClass
             { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
+            { "login", "login" },
             { "accountId", "accountId" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
@@ -1322,7 +1407,8 @@ public partial class testMainClass
                 { "leverageBrackets", new Dictionary<string, object>() {} },
             } },
         });
-        exchange.currencies = currencies; // not working in python if assigned  in the config dict
+        exchange.currencies = currencies;
+        // not working in python if assigned  in the config dict
         return exchange;
     }
 
@@ -1355,6 +1441,11 @@ public partial class testMainClass
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
+        }
+        object accounts = exchange.safeList(exchangeData, "accounts");
+        if (isTrue(accounts))
+        {
+            exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
@@ -1391,12 +1482,16 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledGo = exchange.safeBool(result, "disabledGO", false);
+                if (isTrue(isTrue(isDisabledGo) && isTrue((isEqual(this.lang, "GO")))))
+                {
+                    continue;
+                }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
-                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
+                exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
         if (!isTrue(isSync()))
@@ -1470,6 +1565,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledGO = exchange.safeBool(result, "disabledGO", false);
+                if (isTrue(isTrue(isDisabledGO) && isTrue((isEqual(this.lang, "GO")))))
+                {
+                    continue;
+                }
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
@@ -1503,18 +1603,19 @@ public partial class testMainClass
         return sum;
     }
 
-    public async virtual Task runStaticRequestTests(object targetExchange = null, object testName = null)
+    public async virtual Task<object> runStaticRequestTests(object targetExchange = null, object testName = null)
     {
         await this.runStaticTests("request", targetExchange, testName);
+        return true;
     }
 
-    public async virtual Task runStaticTests(object type, object targetExchange = null, object testName = null)
+    public async virtual Task<object> runStaticTests(object type, object targetExchange = null, object testName = null)
     {
         object folder = add(add(add(getRootDir(), "./ts/src/test/static/"), type), "/");
         object staticData = this.loadStaticData(folder, targetExchange);
         if (isTrue(isEqual(staticData, null)))
         {
-            return;
+            return true;
         }
         object exchanges = new List<object>(((IDictionary<string,object>)staticData).Keys);
         Exchange exchange = initExchange("Exchange", new Dictionary<string, object>() {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
@@ -1542,7 +1643,21 @@ public partial class testMainClass
                 ((IList<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
         }
-        await promiseAll(promises);
+        try
+        {
+            await promiseAll(promises);
+        } catch(Exception e)
+        {
+            if (isTrue(isEqual(type, "request")))
+            {
+                this.requestTestsFailed = true;
+            } else
+            {
+                this.responseTestsFailed = true;
+            }
+            object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
+            dump(add("[TEST_FAILURE]", errorMessage));
+        }
         if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
         {
             exitScript(1);
@@ -1552,26 +1667,29 @@ public partial class testMainClass
             object successMessage = add(add(add(add(add(add(add(add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
             dump(add("[INFO]", successMessage));
         }
+        return true;  // required in c#
     }
 
-    public async virtual Task runStaticResponseTests(object exchangeName = null, object test = null)
+    public async virtual Task<object> runStaticResponseTests(object exchangeName = null, object test = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         await this.runStaticTests("response", exchangeName, test);
+        return true;
     }
 
-    public async virtual Task runBrokerIdTests()
+    public async virtual Task<object> runBrokerIdTests()
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
         exitScript(0);
+        return true;
     }
 
     public async virtual Task<object> testBinance()
@@ -1915,7 +2033,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task testBingx()
+    public async virtual Task<object> testBingx()
     {
         Exchange exchange = this.initOfflineExchange("bingx");
         object reqHeaders = null;
@@ -1934,9 +2052,10 @@ public partial class testMainClass
         {
             await close(exchange);
         }
+        return true;
     }
 
-    public async virtual Task testPhemex()
+    public async virtual Task<object> testPhemex()
     {
         Exchange exchange = this.initOfflineExchange("phemex");
         object id = "CCXT123456";
@@ -1955,9 +2074,10 @@ public partial class testMainClass
         {
             await close(exchange);
         }
+        return true;
     }
 
-    public async virtual Task testBlofin()
+    public async virtual Task<object> testBlofin()
     {
         Exchange exchange = this.initOfflineExchange("blofin");
         object id = "ec6dd3a7dd982d0b";
@@ -1976,9 +2096,10 @@ public partial class testMainClass
         {
             await close(exchange);
         }
+        return true;
     }
 
-    public async virtual Task testHyperliquid()
+    public async virtual Task<object> testHyperliquid()
     {
         Exchange exchange = this.initOfflineExchange("hyperliquid");
         object id = "1";
@@ -1996,6 +2117,7 @@ public partial class testMainClass
         {
             await close(exchange);
         }
+        return true;
     }
 
     public async virtual Task<object> testCoinbaseinternational()
@@ -2211,6 +2333,48 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testCoincatch()
+    {
+        Exchange exchange = this.initOfflineExchange("coincatch");
+        object reqHeaders = null;
+        object id = "47cfy";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testDefx()
+    {
+        Exchange exchange = this.initOfflineExchange("defx");
+        object reqHeaders = null;
+        try
+        {
+            await exchange.createOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        object id = "ccxt";
+        assert(isEqual(getValue(reqHeaders, "X-DEFX-SOURCE"), id), add(add("defx - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);
