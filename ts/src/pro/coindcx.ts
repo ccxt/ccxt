@@ -22,7 +22,7 @@ export default class coindcx extends coindcxRest {
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchMyTrades': false,
                 'watchTicker': false,
                 'watchTickers': false, // todo if any endpoint supports it
@@ -122,7 +122,6 @@ export default class coindcx extends coindcxRest {
         //
         const data = this.safeDict (message, 'data');
         const event = this.safeString (message, 'event');
-        const timestamp = this.safeInteger (data, 'T');
         let marketId = this.safeString (data, 's');
         const marketType = this.safeString (data, 'pr');
         if (marketType === 'spot') {
@@ -132,7 +131,7 @@ export default class coindcx extends coindcxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = event + ':' + symbol;
-        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
+        const trade = this.parseWsTrade (data, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -168,23 +167,27 @@ export default class coindcx extends coindcxRest {
         //         x: 'filled'
         //     }
         //
-        const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (undefined, market); // define market in handleTrade and handleMyTrades
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
         const timestamp = this.safeInteger (trade, 'T');
-        const makerOrTakerIndex = this.safeString (trade, 'm');
         let takerOrMaker = 'taker';
-        if (makerOrTakerIndex === '1') {
-            takerOrMaker = 'maker';
+        const x = this.safeString (trade, 'x');
+        const isMyTrades = x !== undefined;
+        if (isMyTrades) {
+            const isMaker = this.safeBool (trade, 'm');
+            if (isMaker) {
+                takerOrMaker = 'maker';
+            }
+        } else {
+            const isMaker = this.safeInteger (trade, 'm');
+            if (isMaker === 1) {
+                takerOrMaker = 'maker';
+            }
         }
-        const fee = {
-            'cost': this.safeString (trade, 'fee_amount'),
-            'currency': undefined,
-        };
         return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
+            'id': this.safeString (trade, 't'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -195,7 +198,7 @@ export default class coindcx extends coindcxRest {
             'order': undefined,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': fee,
+            'fee': undefined,
             'info': trade,
         }, market);
     }
@@ -683,7 +686,10 @@ export default class coindcx extends coindcxRest {
         const stored = this.myTrades;
         const symbols: Dict = {};
         for (let j = 0; j < data.length; j++) {
-            const trade = this.parseWsTrade (data[j]);
+            const rawTrade = this.safeValue (data, j);
+            const marketId = this.safeString (rawTrade, 's');
+            const market = this.safeMarket (marketId);
+            const trade = this.parseWsTrade (rawTrade, market);
             stored.append (trade);
             newTrades.push (trade);
             const symbol = trade['symbol'];
