@@ -1,6 +1,11 @@
 {
     "exchange": "coinmate",
-    "skipKeys": [],
+    "skipKeys": [
+        "clientId",
+        "nonce",
+        "publicKey",
+        "signature"
+    ],
     "outputType": "json",
     "methods": {
         "fetchTicker": [
@@ -18,6 +23,14 @@
                 "description": "fetchTickers",
                 "method": "fetchTickers",
                 "url": "https://coinmate.io/api/tickerAll",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://coinmate.io/api/balances",
                 "input": []
             }
         ]
