@@ -5,7 +5,7 @@ include_once('./ccxt.php');
 use ccxt\pro\Stream;
 
 function test_produce() {
-    $stream = new Stream();
+    $stream = new Stream(5);
     $topic = 'topic1';
     $payload = 'Hello, world!';
     $error = null;
