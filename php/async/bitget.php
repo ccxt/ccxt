@@ -2378,18 +2378,18 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $params, 'idLessThan', 'idLessThan', null, 100));
             }
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a `$code` argument');
-            }
-            $currency = $this->currency($code);
             if ($since === null) {
                 $since = $this->milliseconds() - 7776000000; // 90 days
             }
             $request = array(
-                'coin' => $currency['id'],
                 'startTime' => $since,
                 'endTime' => $this->milliseconds(),
             );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -2419,7 +2419,7 @@ class bitget extends Exchange {
             //     }
             //
             $rawTransactions = $this->safe_list($response, 'data', array());
-            return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+            return $this->parse_transactions($rawTransactions, null, $since, $limit);
         }) ();
     }
 
@@ -9439,7 +9439,8 @@ class bitget extends Exchange {
             }
         }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode && ($path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if ($headers === null) {
                 $headers = array();
             }

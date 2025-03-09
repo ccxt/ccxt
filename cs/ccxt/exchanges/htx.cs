@@ -7599,12 +7599,19 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "fetchFundingRates", new Dictionary<string, object>() {});
-        object defaultSubType = this.safeString(this.options, "defaultSubType", "inverse");
-        object subType = this.safeString(options, "subType", defaultSubType);
-        subType = this.safeString(parameters, "subType", subType);
+        object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+        object subType = null;
+        var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            object market = this.market(firstSymbol);
+            object isLinear = getValue(market, "linear");
+            subType = ((bool) isTrue(isLinear)) ? "linear" : "inverse";
+        }
         object request = new Dictionary<string, object>() {};
-        parameters = this.omit(parameters, "subType");
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {

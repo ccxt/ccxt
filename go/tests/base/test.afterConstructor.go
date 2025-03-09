@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func HelperTestInitThrottler()  {
-    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.DerivedExchange = exchange; exchange.InitParent(map[string]interface{} {
         "id": "sampleexchange",
         "rateLimit": 10.8,
     }, map[string]interface{}{}, exchange)
@@ -48,7 +48,7 @@ func HelperTestInitSandbox()  {
     //
     // CASE A: when sandbox is not enabled
     //
-    exchange3 := ccxt.NewExchange().(*ccxt.Exchange); exchange3.InitParent(opts, map[string]interface{}{}, exchange3)
+    exchange3 := ccxt.NewExchange().(*ccxt.Exchange); exchange3.DerivedExchange = exchange3; exchange3.InitParent(opts, map[string]interface{}{}, exchange3)
     HelperTestSandboxState(exchange3, false)
     exchange3.SetSandboxMode(true)
     HelperTestSandboxState(exchange3, true)
@@ -56,7 +56,7 @@ func HelperTestInitSandbox()  {
     // CASE B: when sandbox is enabled
     //
     AddElementToObject(GetValue(opts, "options"), "sandbox", true)
-    exchange4 := ccxt.NewExchange().(*ccxt.Exchange); exchange4.InitParent(opts, map[string]interface{}{}, exchange4)
+    exchange4 := ccxt.NewExchange().(*ccxt.Exchange); exchange4.DerivedExchange = exchange4; exchange4.InitParent(opts, map[string]interface{}{}, exchange4)
     HelperTestSandboxState(exchange4, true)
     exchange4.SetSandboxMode(false)
     HelperTestSandboxState(exchange4, false)
@@ -73,7 +73,7 @@ func HelperTestInitMarket()  {
         "type": "spot",
         "spot": true,
     }
-    exchange2 := ccxt.NewExchange().(*ccxt.Exchange); exchange2.InitParent(map[string]interface{} {
+    exchange2 := ccxt.NewExchange().(*ccxt.Exchange); exchange2.DerivedExchange = exchange2; exchange2.InitParent(map[string]interface{} {
         "id": "sampleexchange",
         "markets": map[string]interface{} {
             "BTC/USD": sampleMarket,

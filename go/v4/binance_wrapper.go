@@ -576,6 +576,34 @@ func (this *Binance) EditOrder(id string, symbol string, typeVar string, side st
 }
 /**
  * @method
+ * @name binance#editOrders
+ * @description edit a list of trade orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Binance) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
+}
+/**
+ * @method
  * @name binance#createOrders
  * @description *contract only* create a list of trade orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders

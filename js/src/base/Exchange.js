@@ -49,6 +49,7 @@ export default class Exchange {
         };
         this.headers = {};
         this.origin = '*'; // CORS origin
+        this.MAX_VALUE = Number.MAX_VALUE;
         //
         this.agent = undefined; // maintained for backwards compatibility
         this.nodeHttpModuleLoaded = false;
@@ -341,18 +342,8 @@ export default class Exchange {
         if (this.api) {
             this.defineRestApi(this.api, 'request');
         }
-        // init the request rate limiter
-        this.initRestRateLimiter();
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets(this.markets);
-        }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
-        const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode(isSandbox);
-        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -382,21 +373,11 @@ export default class Exchange {
         }
         return result;
     }
-    initRestRateLimiter() {
-        if (this.rateLimit === undefined) {
-            throw new Error(this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler(this.tokenBucket);
-    }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
+    }
+    initThrottler() {
+        this.throttler = new Throttler(this.tokenBucket);
     }
     defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split(/[^a-zA-Z0-9]/);
@@ -1225,6 +1206,9 @@ export default class Exchange {
     createSafeDictionary() {
         return {};
     }
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
     randomBytes(length) {
         const rng = new SecureRandom();
         const x = [];
@@ -1238,6 +1222,9 @@ export default class Exchange {
             number += Math.floor(Math.random() * 10);
         }
         return parseInt(number, 10);
+    }
+    binaryLength(binary) {
+        return binary.length;
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1359,6 +1346,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2321,8 +2309,39 @@ export default class Exchange {
         return timestamp;
     }
     afterConstruct() {
+        // networks
         this.createNetworksByIdObject();
         this.featuresGenerator();
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets(this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter();
+        // sanbox mode
+        const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode(isSandbox);
+        }
+    }
+    initRestRateLimiter() {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
+            throw new ExchangeError(this.id + '.rateLimit property is not configured');
+        }
+        let refillRate = this.MAX_VALUE;
+        if (this.rateLimit > 0) {
+            refillRate = 1 / this.rateLimit;
+        }
+        const defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend(defaultBucket, existingBucket);
+        this.initThrottler();
     }
     featuresGenerator() {
         //
@@ -2483,6 +2502,9 @@ export default class Exchange {
     }
     safeCurrencyStructure(currency) {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const currencyDeposit = this.safeBool(currency, 'deposit');
+        const currencyWithdraw = this.safeBool(currency, 'withdraw');
+        const currencyActive = this.safeBool(currency, 'active');
         const networks = this.safeDict(currency, 'networks', {});
         const keys = Object.keys(networks);
         const length = keys.length;
@@ -2490,15 +2512,15 @@ export default class Exchange {
             for (let i = 0; i < length; i++) {
                 const network = networks[keys[i]];
                 const deposit = this.safeBool(network, 'deposit');
-                if (currency['deposit'] === undefined || deposit) {
+                if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
-                if (currency['withdraw'] === undefined || withdraw) {
+                if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
                 const active = this.safeBool(network, 'active');
-                if (currency['active'] === undefined || active) {
+                if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
@@ -3866,7 +3888,10 @@ export default class Exchange {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode(currencyCode);
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
+                if (defaultNetworkId in indexedNetworkEntries) {
+                    return defaultNetworkId;
+                }
+                throw new NotSupported(this.id + ' - can not determine the default network, please pass param["network"] one from : ' + availableNetworkIds.join(', '));
             }
         }
         return chosenNetworkId;
@@ -4593,24 +4618,34 @@ export default class Exchange {
          * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @returns {[string, object]} the market type and params with type and defaultType omitted
          */
-        const defaultType = this.safeString2(this.options, 'defaultType', 'type', 'spot');
-        if (defaultValue === undefined) { // defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType;
+        // type from param
+        const type = this.safeString2(params, 'defaultType', 'type');
+        if (type !== undefined) {
+            params = this.omit(params, ['defaultType', 'type']);
+            return [type, params];
+        }
+        // type from market
+        if (market !== undefined) {
+            return [market['type'], params];
+        }
+        // type from default-argument
+        if (defaultValue !== undefined) {
+            return [defaultValue, params];
         }
         const methodOptions = this.safeDict(this.options, methodName);
-        let methodType = defaultValue;
-        if (methodOptions !== undefined) { // user defined methodType takes precedence over defaultValue
+        if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
+                return [methodOptions, params];
             }
             else {
-                methodType = this.safeString2(methodOptions, 'defaultType', 'type', methodType);
+                const typeFromMethod = this.safeString2(methodOptions, 'defaultType', 'type');
+                if (typeFromMethod !== undefined) {
+                    return [typeFromMethod, params];
+                }
             }
         }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2(params, 'defaultType', 'type', marketType);
-        params = this.omit(params, ['defaultType', 'type']);
-        return [type, params];
+        const defaultType = this.safeString2(this.options, 'defaultType', 'type', 'spot');
+        return [defaultType, params];
     }
     handleSubTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
@@ -5208,6 +5243,9 @@ export default class Exchange {
     }
     async createOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' createOrders() is not supported yet');
+    }
+    async editOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' editOrders() is not supported yet');
     }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrderWs() is not supported yet');

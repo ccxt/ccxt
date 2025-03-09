@@ -1400,6 +1400,7 @@ class bitrue extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1433,8 +1434,10 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            if ($since !== null) {
-                $request['fromIdx'] = $since;
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['fromIdx'] = $until;
             }
             $response = $this->spotV1PublicGetMarketKline ($this->extend($request, $params));
             $data = $this->safe_list($response, 'data', array());

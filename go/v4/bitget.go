@@ -2387,17 +2387,17 @@ func  (this *bitget) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
                     ch <- retRes236419
                     return nil
             }
-            if IsTrue(IsEqual(code, nil)) {
-                panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires a `code` argument")))
-            }
-            var currency interface{} = this.Currency(code)
             if IsTrue(IsEqual(since, nil)) {
                 since = Subtract(this.Milliseconds(), 7776000000) // 90 days
             }
             var request interface{} = map[string]interface{} {
-                "coin": GetValue(currency, "id"),
                 "startTime": since,
                 "endTime": this.Milliseconds(),
+            }
+            var currency interface{} = nil
+            if IsTrue(!IsEqual(code, nil)) {
+                currency = this.Currency(code)
+                AddElementToObject(request, "coin", GetValue(currency, "id"))
             }
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
@@ -2433,7 +2433,7 @@ func  (this *bitget) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             //
             var rawTransactions interface{} = this.SafeList(response, "data", []interface{}{})
         
-            ch <- this.ParseTransactions(rawTransactions, currency, since, limit)
+            ch <- this.ParseTransactions(rawTransactions, nil, since, limit)
             return nil
         
             }()
@@ -10670,7 +10670,8 @@ func  (this *bitget) Sign(path interface{}, optionalArgs ...interface{}) interfa
         }
     }
     var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
-    if IsTrue(sandboxMode) {
+    if IsTrue(IsTrue(sandboxMode) && IsTrue((!IsEqual(path, "v2/public/time")))) {
+        // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
         if IsTrue(IsEqual(headers, nil)) {
             headers = map[string]interface{} {}
         }

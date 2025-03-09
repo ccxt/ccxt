@@ -2373,18 +2373,18 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100);
         }
-        if (code === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchDeposits() requires a `code` argument');
-        }
-        const currency = this.currency(code);
         if (since === undefined) {
             since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds(),
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2414,7 +2414,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList(response, 'data', []);
-        return this.parseTransactions(rawTransactions, currency, since, limit);
+        return this.parseTransactions(rawTransactions, undefined, since, limit);
     }
     /**
      * @method
@@ -9376,7 +9376,8 @@ export default class bitget extends Exchange {
             }
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode && (path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headers === undefined) {
                 headers = {};
             }

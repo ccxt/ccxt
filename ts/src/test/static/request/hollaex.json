@@ -217,6 +217,24 @@
                   "BTC/USDT"
                 ]
               }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch Deposit Withdraw Fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.sandbox.hollaex.com/v2/constants",
+                "input": []
+            },
+            {
+                "description": "fetch Deposit Withdraw Fees with codes argument",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.sandbox.hollaex.com/v2/constants",
+                "input": [
+                  [
+                    "ETH"
+                  ]
+                ]
+            }
         ]
     }
 }

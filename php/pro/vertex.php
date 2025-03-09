@@ -54,6 +54,11 @@ class vertex extends \ccxt\async\vertex {
                 ),
                 'ws' => array(
                     'inflate' => true,
+                    'options' => array(
+                        'headers' => array(
+                            'Sec-WebSocket-Extensions' => 'permessage-deflate', // requires permessage-deflate extension, maybe we can set this in client implementation when $this->inflateis true
+                        ),
+                    ),
                 ),
             ),
             'streaming' => array(

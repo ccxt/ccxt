@@ -132,6 +132,7 @@ class Transpiler {
             [ /\.activeWatchFunctions/g, '.active_watch_functions'],
             [ /\.streamOHLCVS/g, '.stream_ohlcvs'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],

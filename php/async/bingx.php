@@ -4719,14 +4719,13 @@ class bingx extends Exchange {
              * @param {boolean} [$params->twap] if fetching twap $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             $type = null;
             $subType = null;
             $standard = null;
@@ -4738,7 +4737,7 @@ class bingx extends Exchange {
                 $response = Async\await($this->contractV1PrivateGetAllOrders ($this->extend($request, $params)));
             } elseif ($type === 'spot') {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['pageSize'] = $limit;
                 }
                 $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params)));
                 //

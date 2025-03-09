@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.59'
+__version__ = '4.4.66'
 
 # -----------------------------------------------------------------------------
 
@@ -77,8 +77,6 @@ class Exchange(BaseExchange):
         self.cafile = config.get('cafile', certifi.where())
         self.init_stream()
         super(Exchange, self).__init__(config)
-        self.throttle = None
-        self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
@@ -88,11 +86,14 @@ class Exchange(BaseExchange):
         self.stream = Stream(maxMessagesPerTopic, verbose)
         self.setup_stream()
 
-    def init_rest_rate_limiter(self):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
-
     def get_event_loop(self):
         return self.asyncio_loop
+
+    def init_throttler(self, cost=None):
+        self.throttler = Throttler(self.tokenBucket, self.asyncio_loop)
+
+    async def throttle(self, cost=None):
+        return await self.throttler(cost)
 
     def get_session(self):
         return self.session
@@ -115,7 +116,7 @@ class Exchange(BaseExchange):
                 self.asyncio_loop = asyncio.get_running_loop()
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
-            self.throttle.loop = self.asyncio_loop
+            self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
@@ -1742,6 +1743,9 @@ class Exchange(BaseExchange):
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')

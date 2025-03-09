@@ -139,6 +139,7 @@ const VIRTUAL_BASE_METHODS = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "parseConversion": false,
     "sign": false
 }
 
@@ -1149,6 +1150,7 @@ ${caseStatements.join('\n')}
         }
 
         if (transpilingSingleExchange) {
+            this.createDynamicInstanceFile();
             return;
         }
         if (child) {
@@ -1559,7 +1561,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals

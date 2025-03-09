@@ -52,6 +52,7 @@ export default class Exchange {
     userAgents: any;
     headers: any;
     origin: string;
+    MAX_VALUE: Num;
     agent: any;
     nodeHttpModuleLoaded: boolean;
     httpAgent: any;
@@ -312,8 +313,8 @@ export default class Exchange {
     constructor(userConfig?: {});
     encodeURIComponent(...args: any[]): string;
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
-    initRestRateLimiter(): void;
     throttle(cost?: any): any;
+    initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
@@ -379,8 +380,10 @@ export default class Exchange {
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
+    convertToSafeDictionary(dict: any): any;
     randomBytes(length: number): string;
     randNumber(size: number): number;
+    binaryLength(binary: Uint8Array): number;
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -495,6 +498,7 @@ export default class Exchange {
     safeNumberOmitZero(obj: object, key: IndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: IndexType, defaultValue?: Int): Int;
     afterConstruct(): void;
+    initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: any, marketType: Str, subType?: Str): any;
     orderbookChecksumMessage(symbol: Str): string;
@@ -703,6 +707,7 @@ export default class Exchange {
     setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): {};
     createOrderWithTakeProfitAndStopLossWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{}>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<{}>;

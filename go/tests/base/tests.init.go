@@ -19,4 +19,5 @@ func BaseTestsInit()  {
     TestOmit()
     TestGroupBy()
     TestFilterBy()
+    TestHandleMethods()
 }
