@@ -63,7 +63,7 @@ class Exchange extends \ccxt\Exchange {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
-        'maxMessagesPerTopic' => 100,
+        'maxMessagesPerTopic' => 0,
     );
 
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
