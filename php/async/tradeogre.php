@@ -72,7 +72,7 @@ class tradeogre extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -90,7 +90,7 @@ class tradeogre extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
@@ -132,6 +132,7 @@ class tradeogre extends Exchange {
                         'orders/{market}' => 1,
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
+                        'chart/{interval}/{market}/{timestamp}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -159,6 +160,14 @@ class tradeogre extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Order not found' => '\\ccxt\\BadRequest',
                 ),
+            ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '15m' => '15m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '1d' => '1d',
+                '1w' => '1w',
             ),
             'options' => array(
             ),
@@ -341,18 +350,76 @@ class tradeogre extends Exchange {
         }) ();
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $request = array();
+            $response = Async\await($this->publicGetMarkets ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "AAVE-USDT" => array(
+            //                 "initialprice" => "177.20325711",
+            //                 "price" => "177.20325711",
+            //                 "high" => "177.20325711",
+            //                 "low" => "177.20325711",
+            //                 "volume" => "0.00000000",
+            //                 "bid" => "160.72768581",
+            //                 "ask" => "348.99999999",
+            //                 "basename" => "Aave"
+            //             }
+            //         ),
+            //         ...
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $marketIdArray = is_array($entry) ? array_keys($entry) : array();
+                $marketId = $this->safe_string($marketIdArray, 0);
+                $market = $this->safe_market($marketId);
+                $data = $entry[$marketId];
+                $ticker = $this->parse_ticker($data, $market);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        }) ();
+    }
+
     public function parse_ticker($ticker, ?array $market = null) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     array(
+        //         "initialprice" => "177.20325711",
+        //         "price" => "177.20325711",
+        //         "high" => "177.20325711",
+        //         "low" => "177.20325711",
+        //         "volume" => "0.00000000",
+        //         "bid" => "160.72768581",
+        //         "ask" => "348.99999999",
+        //         "basename" => "Aave"
+        //     ),
+        //     ...
         //
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -376,6 +443,66 @@ class tradeogre extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            );
+            if ($since === null) {
+                throw new BadRequest($this->id . ' fetchOHLCV requires a $since argument');
+            } else {
+                $request['timestamp'] = $since;
+            }
+            $response = Async\await($this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             1729130040,
+            //             67581.47235999,
+            //             67581.47235999,
+            //             67338.01,
+            //             67338.01,
+            //             6.72168016
+            //         ),
+            //     )
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
+    }
+
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+        //
+        //     array(
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 5),
+        );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
