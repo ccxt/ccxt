@@ -35,6 +35,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     ports:
       - "9090:9090"
 
@@ -45,5 +46,12 @@ services:
       - "3001:3000"
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+
+# Define named volumes
+volumes:
+  prometheus_data:
+  grafana_data:

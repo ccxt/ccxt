@@ -110,6 +110,7 @@ const sidebar =
 - [API Spec By Method](baseSpec.md)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
+- [Benchmarks](Benchmarks.md)
 - [Awesome](Awesome.md)
 - API Spec by Exchange
 ${exchangeLinks.join('\n')}
