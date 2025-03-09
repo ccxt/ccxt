@@ -131,13 +131,13 @@ export default class tradeogre extends Exchange {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'account/balance': 1,
                         'account/balances': 1,
-                        'chart/{interval}/{market}/{timestamp}': 1,
                         'account/order/{uuid}': 1,
                     },
                     'post': {
@@ -454,7 +454,6 @@ export default class tradeogre extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -466,7 +465,7 @@ export default class tradeogre extends Exchange {
         } else {
             request['timestamp'] = since;
         }
-        const response = await this.privateGetChartIntervalMarketTimestamp (this.extend (request, params));
+        const response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
         //
         //     [
         //         [
