@@ -79,15 +79,33 @@ process.on ('unhandledRejection', (e) => {
 });
 
 //-----------------------------------------------------------------------------
+const currentFilePath = process.argv[1];
+// if it's global installation, then show `ccxt` command, otherwise `node ./cli.js`
+
+const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt-cli' : 'node ' + currentFilePath;
+
+if (!exchangeId) {
+    log (('Error, No exchange id specified!' as any).red);
+    printUsage ();
+    process.exit ();
+}
+//-----------------------------------------------------------------------------
 
 // set up keys and settings, if any
 const keysGlobal = path.resolve ('keys.json');
 const keysLocal = path.resolve ('keys.local.json');
-const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
-const settingsFile = fs.readFileSync (keysFile);
-// eslint-disable-next-line import/no-dynamic-require, no-path-concat
-let settings = JSON.parse (settingsFile.toString ());
-settings = settings[exchangeId] || {};
+
+let allSettings = {};
+if (fs.existsSync (keysGlobal)) {
+    allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
+} else if (fs.existsSync (keysLocal)) {
+    allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
+} else {
+    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
+}
+
+const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
+
 //-----------------------------------------------------------------------------
 const timeout = 30000;
 let exchange = undefined as any;
@@ -218,11 +236,11 @@ function printSupportedExchanges () {
  */
 function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges');
-    log ('Usage: node', process.argv[1], ('id' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue);
+    log ('Usage:', commandToShow, ('id' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue);
     log ('Examples:');
-    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m');
-    log ('node', process.argv[1], 'bitfinex fetchBalance');
-    log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC');
+    log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m');
+    log (commandToShow, 'bitfinex fetchBalance');
+    log (commandToShow, 'kraken fetchOrderBook ETH/BTC');
     printSupportedExchanges ();
     log ('Supported options:');
     log ('--verbose         Print verbose output');
