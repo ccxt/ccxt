@@ -32,7 +32,7 @@ public partial class Exchange
 
     private void initStream()
     {
-        int maxMessagesPerTopic = 100;
+        int maxMessagesPerTopic = 0;
         bool verbose = this.verbose;
 
         // TODO: fix to reference streaming values

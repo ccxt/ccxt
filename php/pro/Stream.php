@@ -37,7 +37,7 @@ class Stream {
     private $consumers = array();
     public $active_watch_functions = array();
 
-    public function __construct($max_messages_per_topic = 10000, $verbose = false) {
+    public function __construct($max_messages_per_topic = 0, $verbose = false) {
         $this->max_messages_per_topic = $max_messages_per_topic;
         $this->verbose = $verbose;
         if ($this->verbose) {
@@ -54,11 +54,13 @@ class Stream {
         $index = $this->get_last_index($topic) + 1;
         $message = new Message($payload, $error, $this, $topic, $index);
 
-        if ($this->max_messages_per_topic !== null && count($messages) >= $this->max_messages_per_topic) {
+        if (count($messages) >= $this->max_messages_per_topic) {
             array_shift($messages);
         }
+        if ($this->max_messages_per_topic !== 0) {
+            array_push($this->topics[$topic], $message);
+        }
 
-        array_push($this->topics[$topic], $message);
         $consumers = $this->consumers[$topic] ?? [];
         $this->send_to_consumers($consumers, $message);
     }

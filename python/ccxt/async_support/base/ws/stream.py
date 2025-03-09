@@ -35,10 +35,11 @@ class Stream:
 
         message = Message(payload, error, self, topic, index)
 
-        if self.max_messages_per_topic and len(messages) >= self.max_messages_per_topic:
+        if len(messages) >= self.max_messages_per_topic:
             messages.pop(0)
 
-        self.topics[topic].append(message)
+        if self.max_messages_per_topic != 0:
+            self.topics[topic].append(message)
         consumers = self.consumers.get(topic, [])
         self.send_to_consumers(consumers, message)
         if self.verbose:

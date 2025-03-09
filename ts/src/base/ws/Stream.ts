@@ -45,11 +45,14 @@ export class Stream implements BaseStream {
             },
         };
 
-        if (this.maxMessagesPerTopic && messages.length >= this.maxMessagesPerTopic) {
+        if (messages.length >= this.maxMessagesPerTopic) {
             messages.shift ();
         }
 
-        this.topics[topic].push (message);
+        if (this.maxMessagesPerTopic !== 0) {
+            this.topics[topic].push (message);
+        }
+
         const consumers = this.consumers[topic] || [];
         this.sendToConsumers (consumers, message);
     }

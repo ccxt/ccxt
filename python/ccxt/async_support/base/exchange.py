@@ -81,7 +81,7 @@ class Exchange(BaseExchange):
         self.reloading_markets = False
 
     def init_stream(self):
-        maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 100)
+        maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 0)
         verbose = self.streaming.get('verbose', self.verbose)
         self.stream = Stream(maxMessagesPerTopic, verbose)
         self.setup_stream()

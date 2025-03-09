@@ -615,7 +615,7 @@ export default class Exchange {
             this.defineRestApi (this.api, 'request')
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-        const maxMessagesPerTopic = this.safeInteger (this.streaming, 'maxMessagesPerTopic', 100);
+        const maxMessagesPerTopic = this.safeInteger (this.streaming, 'maxMessagesPerTopic', 0);
         const verbose = this.safeBool (this.streaming, 'verbose', this.verbose);
         this.stream = new Stream (maxMessagesPerTopic, verbose);
         this.afterConstruct ();
