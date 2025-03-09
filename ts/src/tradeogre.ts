@@ -380,7 +380,8 @@ export default class tradeogre extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const marketId = Object.keys (entry).toString ();
+            const marketIdArray = Object.keys (entry);
+            const marketId = this.safeString (marketIdArray, 0);
             const market = this.safeMarket (marketId);
             const data = entry[marketId];
             const ticker = this.parseTicker (data, market);
