@@ -1259,6 +1259,12 @@ public partial class paradex : Exchange
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
+        object flags = this.safeList(order, "flags", new List<object>() {});
+        object reduceOnly = null;
+        if (isTrue(inOp(flags, "REDUCE_ONLY")))
+        {
+            reduceOnly = true;
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -1271,7 +1277,7 @@ public partial class paradex : Exchange
             { "type", this.parseOrderType(orderType) },
             { "timeInForce", this.parseTimeInForce(this.safeString(order, "instrunction")) },
             { "postOnly", null },
-            { "reduceOnly", null },
+            { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
             { "triggerPrice", this.safeString(order, "trigger_price") },
@@ -1351,6 +1357,8 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1370,10 +1378,14 @@ public partial class paradex : Exchange
             { "market", getValue(market, "id") },
             { "side", orderSide },
             { "type", orderType },
-            { "size", this.amountToPrecision(symbol, amount) },
         };
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object isMarket = isEqual(orderType, "MARKET");
+        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        object isStopLossOrder = (!isEqual(stopLossPrice, null));
+        object isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isTrue(isMarket))
@@ -1386,10 +1398,6 @@ public partial class paradex : Exchange
                 ((IDictionary<string,object>)request)["instruction"] = "IOC";
             }
         }
-        if (isTrue(reduceOnly))
-        {
-            ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
-        }
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1399,18 +1407,62 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
         }
-        if (isTrue(!isEqual(triggerPrice, null)))
+        object sizeString = "0";
+        object stopPrice = null;
+        if (isTrue(isStopOrder))
         {
+            // flags: Reduce_Only must be provided for TPSL orders.
             if (isTrue(isMarket))
             {
-                ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
+                if (isTrue(isStopLossOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LOSS_MARKET";
+                } else if (isTrue(isTakeProfitOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_MARKET";
+                } else
+                {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
+                }
             } else
             {
-                ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
+                if (isTrue(isStopLossOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LOSS_LIMIT";
+                } else if (isTrue(isTakeProfitOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_LIMIT";
+                } else
+                {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
+                }
             }
-            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+        } else
+        {
+            sizeString = this.amountToPrecision(symbol, amount);
         }
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
+        if (isTrue(!isEqual(stopPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["trigger_price"] = stopPrice;
+        }
+        ((IDictionary<string,object>)request)["size"] = sizeString;
+        if (isTrue(reduceOnly))
+        {
+            ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
+        }
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         object account = await this.retrieveAccount();
         object now = this.nonce();
         object orderReq = new Dictionary<string, object>() {

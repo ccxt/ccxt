@@ -1792,6 +1792,33 @@
             "loadMarkets": "linear and inverse values are same"
         }
     },
+    "derive": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currency": "messed",
+                "currencyIdAndCode": "messed"
+            }
+        }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": {
+                "active":"not provided",
+                "precision": "not provided",
+                "limits": "not provided"
+            },
+            "fetchOrderBook": "best ask is not always greater than best bid",
+            "fetchL2OrderBook": "same",
+            "fetchTrades": {
+                "price": "sometimes is not set",
+                "amount": "same",
+                "cost": "same"
+            }
+        }
+    },
     "coindcx": {
         "skipMethods": {
             "fetchTrades": {
@@ -1799,7 +1826,8 @@
             },
             "fetchOHLCV": "index 1 (open price) could be higher than index 2 (high) or lower than index 3 (low)",
             "watchTrades": {
-                "side": "not provided"
+                "side": "not provided",
+                "timestamp": "messed order coming from exchange"
             },
             "watchMyTrades": {
                 "side": "not provided"

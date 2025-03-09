@@ -767,7 +767,7 @@ class bybit(ccxt.async_support.bybit):
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
         for i in range(0, len(data)):
-            parsed = self.parse_ws_ohlcv(data[i])
+            parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
         resolveData = [symbol, timeframe, stored]
@@ -789,13 +789,14 @@ class bybit(ccxt.async_support.bybit):
         #         "timestamp": 1670363219614
         #     }
         #
+        volumeIndex = 'turnover' if (market['inverse']) else 'volume'
         return [
             self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
             self.safe_number(ohlcv, 'close'),
-            self.safe_number_2(ohlcv, 'volume', 'turnover'),
+            self.safe_number(ohlcv, volumeIndex),
         ]
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

@@ -6757,14 +6757,17 @@ class htx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchFundingRates', {})
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+        subType = None
+        subType, params = self.handle_option_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+            isLinear = market['linear']
+            subType = 'linear' if isLinear else 'inverse'
         request: dict = {
             # 'contract_code': market['id'],
         }
-        params = self.omit(params, 'subType')
         response = None
         if subType == 'linear':
             response = await self.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(self.extend(request, params))

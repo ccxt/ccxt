@@ -1537,6 +1537,10 @@ export default class Exchange {
         return {};
     }
 
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
+
     randomBytes (length: number) {
         const rng = new SecureRandom();
         const x:number[] = [];
@@ -1551,6 +1555,10 @@ export default class Exchange {
             number += Math.floor(Math.random() * 10);
         }
         return parseInt(number, 10);
+    }
+
+    binaryLength (binary: Uint8Array) {
+        return binary.length;
     }
 
     /* eslint-enable */
@@ -1813,6 +1821,7 @@ export default class Exchange {
                 'watchOHLCV': undefined,
                 'watchOHLCVForSymbols': undefined,
                 'watchOrderBook': undefined,
+                'watchBidsAsks': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOrders': undefined,
                 'watchOrdersForSymbols': undefined,

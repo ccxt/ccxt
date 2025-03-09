@@ -3,6 +3,29 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://tradeogre.com/api/v1/chart/1m/BTC-USDT/1729180800",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1729180800,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://tradeogre.com/api/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetch ticker",

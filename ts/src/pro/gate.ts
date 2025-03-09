@@ -38,6 +38,7 @@ export default class gate extends gateRest {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -1223,7 +1224,10 @@ export default class gate extends gateRest {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append (position);
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -2069,7 +2073,7 @@ export default class gate extends gateRest {
         };
         if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
             payload['req_header'] = {
-                'x-gate-channel-id': 'ccxt',
+                'X-Gate-Channel-Id': 'ccxt',
             };
         }
         const request: Dict = {

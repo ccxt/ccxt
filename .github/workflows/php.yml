@@ -127,7 +127,7 @@ jobs:
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
-          git pull origin master
+          git pull --rebase --autostash origin master
           git push
 
   live-tests:

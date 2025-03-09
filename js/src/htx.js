@@ -7299,14 +7299,18 @@ export default class htx extends Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString(options, 'subType', defaultSubType);
-        subType = this.safeString(params, 'subType', subType);
+        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request = {
         // 'contract_code': market['id'],
         };
-        params = this.omit(params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));

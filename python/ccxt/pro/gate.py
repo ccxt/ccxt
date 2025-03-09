@@ -46,6 +46,7 @@ class gate(ccxt.async_support.gate):
                 'fetchOpenOrdersWs': True,
                 'fetchClosedOrdersWs': True,
                 'watchOrderBook': True,
+                'watchBidsAsks': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -1128,7 +1129,9 @@ class gate(ccxt.async_support.gate):
         cache = self.positions[type]
         for i in range(0, len(positions)):
             position = positions[i]
-            cache.append(position)
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
         future.resolve(cache)
@@ -1894,7 +1897,7 @@ class gate(ccxt.async_support.gate):
         }
         if (channel == 'spot.order_place') or (channel == 'futures.order_place'):
             payload['req_header'] = {
-                'x-gate-channel-id': 'ccxt',
+                'X-Gate-Channel-Id': 'ccxt',
             }
         request: dict = {
             'id': requestId,
