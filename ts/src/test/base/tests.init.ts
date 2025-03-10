@@ -16,6 +16,7 @@ import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
+import testFetchRetry from './test.fetchRetry.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
@@ -33,6 +34,7 @@ async function baseTestsInit () {
     testGroupBy ();
     testFilterBy ();
     testHandleMethods ();
+    await testFetchRetry ();
 }
 
 export default baseTestsInit;
