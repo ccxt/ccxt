@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import coindcxRest from '../coindcx.js';
-import { AuthenticationError } from '../base/errors.js';
-import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
+import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -16,21 +16,16 @@ export default class coindcx extends coindcxRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTrades': true,
-                'watchTradesForSymbols': false,
+                'watchBalance': false, // described in docs but there are no messages (only swap balance update messages)
+                'watchMyTrades': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': true,
-                'watchMyTrades': false,
-                'watchTicker': false,
-                'watchTickers': false, // todo if any endpoint supports it
-                'watchBalance': false,
-                'createOrderWs': false,
-                'editOrderWs': false,
-                'cancelOrderWs': false,
-                'cancelOrdersWs': false,
+                'watchPositions': true,
+                'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -681,7 +676,7 @@ export default class coindcx extends coindcxRest {
         /**
          * @method
          * @name coindcx#watchMyTrades
-         * @description watches information on multiple trades made by the user
+         * @description watches information on multiple trades made by the user (spot markets only)
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -693,6 +688,11 @@ export default class coindcx extends coindcxRest {
         let subscribeHash = name;
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
+            const market = this.market (symbol);
+            const marketType = market['type'];
+            if (marketType !== 'spot') {
+                throw new NotSupported (this.id + ' watchMyTrades is supported for spot markets only');
+            }
             subscribeHash += '::' + symbol;
         }
         const trades = await this.watchPrivate (subscribeHash);
@@ -749,6 +749,87 @@ export default class coindcx extends coindcxRest {
         }
     }
 
+    /**
+     * @method
+     * @name coindcx#watchPositions
+     * @see https://docs.coindcx.com/#get-position-update
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true, true, false);
+        let messageHash = 'positions';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const newPositions = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
+    }
+
+    handlePosition (client: Client, message) {
+        //
+        //     {
+        //         event: 'df-position-update',
+        //         data: [
+        //             {
+        //                 active_pos: 0.015,
+        //                 avg_price: 2122.67,
+        //                 id: '5265ec86-3455-11ef-93b4-a74b335c160f',
+        //                 inactive_pos_buy: 0,
+        //                 inactive_pos_sell: 0,
+        //                 leverage: 4,
+        //                 liquidation_price: 1602.56,
+        //                 locked_margin: 7.960914624,
+        //                 locked_order_margin: 0,
+        //                 locked_user_margin: 7.9797002535,
+        //                 maintenance_margin: 0.1592729833335,
+        //                 margin_currency_short_name: 'USDT',
+        //                 margin_type: null,
+        //                 mark_price: 2123.63977778,
+        //                 open_order_count_with_tpsl: 0,
+        //                 pair: 'B-ETH_USDT',
+        //                 settlement_currency_avg_price: 1,
+        //                 stop_loss_trigger: 0,
+        //                 take_profit_trigger: 0,
+        //                 updated_at: 1741611334223
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
     async watchPrivate (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         const body = {
@@ -779,6 +860,7 @@ export default class coindcx extends coindcxRest {
             'order-update': this.handleOrder,
             'df-order-update': this.handleOrder,
             'trade-update': this.handleMyTrades,
+            'df-position-update': this.handlePosition,
         };
         if (event in methods) {
             const method = methods[event];
