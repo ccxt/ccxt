@@ -4843,7 +4843,9 @@ class bitget extends Exchange {
             } elseif ($isTakeProfitOrder || $isStopLossOrder) {
                 $request['marginCoin'] = $market['settleId'];
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
                 if ($isStopLossOrder) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } elseif ($isTakeProfitOrder) {
