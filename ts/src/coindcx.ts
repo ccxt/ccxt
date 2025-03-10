@@ -453,7 +453,7 @@ export default class coindcx extends Exchange {
         //
         const markets = this.toArray (responseFromSpot);
         const request: Dict = {
-            'pair': 'B-ETH_USDT',
+            'pair': 'B-ETH_USDT', // there is no unified endpoint for fetching all contract markets
         };
         const responseFromSwap = await this.public1GetExchangeV1DerivativesFuturesDataInstrument (this.extend (request, params)); // todo using it to fetch and test a contract market
         //
@@ -2686,8 +2686,8 @@ export default class coindcx extends Exchange {
         const type = this.safeString (order, 'order_type');
         const status = this.safeString (order, 'status');
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
-        let takeProfitPrice: Str = undefined;
-        let stopLossPrice: Str = undefined;
+        let takeProfitPrice = this.safeString (order, 'take_profit_price');
+        let stopLossPrice = this.safeString (order, 'stop_loss_price');
         if ((triggerPrice !== undefined) && (type !== undefined)) {
             if (type.indexOf ('take_profit') >= 0) {
                 takeProfitPrice = triggerPrice;
