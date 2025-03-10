@@ -17,7 +17,7 @@ import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 
-function baseTestsInit () {
+async function baseTestsInit () {
     testLanguageSpecific ();
     testAfterConstructor ();
     testExtend ();
