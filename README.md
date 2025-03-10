@@ -619,7 +619,10 @@ We are investing a significant amount of time into the development of this libra
 
 ### Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+
+[![Vitality](https://github.com/user-attachments/assets/0981aae2-3e12-4b57-8d2f-c5ae2b3b8b1c)](https://vitalitycrypto.com/)
+
+Support this project by becoming a sponsor.
 
 [[Become a sponsor](https://opencollective.com/ccxt#sponsor)]
 
