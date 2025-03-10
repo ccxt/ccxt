@@ -2664,6 +2664,21 @@ export default class whitebit extends Exchange {
         [ request, params ] = this.handleUntilOption ('endDate', request, params);
         const response = await this.v4PrivatePostCollateralAccountFundingHistory (request);
         //
+        //     {
+        //         "records": [
+        //             {
+        //                 "market": "BTC_PERP",
+        //                 "fundingTime": "1708704000000",
+        //                 "fundingRate": "0.00017674",
+        //                 "fundingAmount": "-0.171053531892",
+        //                 "positionAmount": "0.019",
+        //                 "settlementPrice": "50938.2",
+        //                 "rateCalculatedTime": "1708675200000"
+        //             },
+        //         ],
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
         const data = this.safeList (response, 'records', []);
         return this.parseFundingHistories (data, market, since, limit);
@@ -2671,6 +2686,15 @@ export default class whitebit extends Exchange {
 
     parseFundingHistory (contract, market: Market = undefined) {
         //
+        //     {
+        //         "market": "BTC_PERP",
+        //         "fundingTime": "1708704000000",
+        //         "fundingRate": "0.00017674",
+        //         "fundingAmount": "-0.171053531892",
+        //         "positionAmount": "0.019",
+        //         "settlementPrice": "50938.2",
+        //         "rateCalculatedTime": "1708675200000"
+        //     }
         //
         const marketId = this.safeString (contract, 'market');
         const timestamp = this.safeInteger (contract, 'fundingTime');
