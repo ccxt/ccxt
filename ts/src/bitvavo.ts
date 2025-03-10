@@ -567,7 +567,7 @@ export default class bitvavo extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const networks: Dict = {};
-            const networksArray = this.safeValue (currency, 'networks', []);
+            const networksArray = this.safeList (currency, 'networks', []);
             const networksLength = networksArray.length;
             const isOneNetwork = (networksLength === 1);
             const deposit = (this.safeValue (currency, 'depositStatus') === 'OK');
@@ -861,7 +861,7 @@ export default class bitvavo extends Exchange {
         const id = this.safeString2 (trade, 'id', 'fillId');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const taker = this.safeValue (trade, 'taker');
+        const taker = this.safeBool (trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
@@ -927,7 +927,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     }
         //
-        const feesValue = this.safeValue (fees, 'fees');
+        const feesValue = this.safeDict (fees, 'fees', {});
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
@@ -1696,9 +1696,9 @@ export default class bitvavo extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const rawTrades = this.safeValue (order, 'fills', []);
+        const rawTrades = this.safeList (order, 'fills', []);
         const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = this.safeValue (order, 'postOnly');
+        const postOnly = this.safeBool (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder ({
             'info': order,
