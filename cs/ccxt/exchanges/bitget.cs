@@ -5168,7 +5168,10 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
-                ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                }
                 if (isTrue(isStopLossOrder))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
