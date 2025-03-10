@@ -571,6 +571,7 @@ export default class coindcx extends coindcxRest {
 
     handleOrder (client, message) {
         //
+        // spot
         //     event: 'order-update',
         //     data: [
         //         {
@@ -601,6 +602,49 @@ export default class coindcx extends coindcxRest {
         //             updated_at: 1739840633009
         //         }
         //     ]
+        //
+        // swap
+        //     {
+        //         event: 'df-order-update',
+        //         data: [
+        //             {
+        //                 avg_price: 2102.51,
+        //                 cancelled_quantity: 0,
+        //                 created_at: 1741604982805,
+        //                 display_message: 'ETH market buy order filled!',
+        //                 fee_amount: 0.0186072135,
+        //                 group_id: null,
+        //                 group_status: null,
+        //                 id: 'bf2f3834-e7ac-48c1-b0e5-1110bf4dee0e',
+        //                 ideal_margin: 7.904636019,
+        //                 leverage: 4,
+        //                 liquidation_fee: null,
+        //                 locked_margin: 0,
+        //                 maker_fee: 0.0236,
+        //                 margin_currency_short_name: 'USDT',
+        //                 metatags: null,
+        //                 notification: 'no_notification',
+        //                 order_category: null,
+        //                 order_type: 'market_order',
+        //                 pair: 'B-ETH_USDT',
+        //                 position_margin_type: 'isolated',
+        //                 price: 2102.94,
+        //                 remaining_quantity: 0,
+        //                 settlement_currency_conversion_price: 1,
+        //                 side: 'buy',
+        //                 stage: 'default',
+        //                 status: 'filled',
+        //                 stop_loss_price: null,
+        //                 stop_price: 0,
+        //                 stop_trigger_instruction: 'last_price',
+        //                 take_profit_price: null,
+        //                 taker_fee: 0.059,
+        //                 total_quantity: 0.015,
+        //                 trades: [],
+        //                 updated_at: 1741604983355
+        //             }
+        //         ]
+        //     }
         //
         const orders = this.safeList (message, 'data', []);
         if (orders === undefined) {
@@ -733,6 +777,7 @@ export default class coindcx extends coindcxRest {
             'depth-update': this.handleOrderBookUpdate,
             'balance-update': this.handleBalance,
             'order-update': this.handleOrder,
+            'df-order-update': this.handleOrder,
             'trade-update': this.handleMyTrades,
         };
         if (event in methods) {
