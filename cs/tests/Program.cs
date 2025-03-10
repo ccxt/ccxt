@@ -115,7 +115,7 @@ public class Tests
             }
             else 
             {
-                RestBaseTests().Wait();
+                RestBaseTests();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
