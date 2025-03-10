@@ -969,7 +969,7 @@ An example of `keys.local.json` file:
 
 ```javascript
 {
-    "ftx": {
+    "bybit": {
         "apiKey": "XXX",
         "secret": "YYY"
     },
