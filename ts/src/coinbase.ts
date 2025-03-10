@@ -2860,7 +2860,7 @@ export default class coinbase extends Exchange {
             }
             accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
-                throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
+                throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + ', at first you might try to generate the deposit address in website for that coin');
             }
         }
         const request: Dict = {
