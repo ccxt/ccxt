@@ -115,7 +115,7 @@ public class Tests
             }
             else 
             {
-                RestBaseTests();
+                RestBaseTests().Wait();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
@@ -137,7 +137,8 @@ public class Tests
         tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
         // run auto-transpiled tests (all of them start by 'testFunction')
-        RunAutoTranspiledBaseTests (tests);
+        baseTestsInit().Wait();
+        // RunAutoTranspiledBaseTests (tests);
     }
 
     static void RunAutoTranspiledBaseTests(object testsInstance) {
