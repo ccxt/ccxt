@@ -1206,6 +1206,9 @@ export default class Exchange {
     createSafeDictionary() {
         return {};
     }
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
     randomBytes(length) {
         const rng = new SecureRandom();
         const x = [];
@@ -1480,6 +1483,7 @@ export default class Exchange {
                 'watchOHLCV': undefined,
                 'watchOHLCVForSymbols': undefined,
                 'watchOrderBook': undefined,
+                'watchBidsAsks': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOrders': undefined,
                 'watchOrdersForSymbols': undefined,

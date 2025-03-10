@@ -1586,8 +1586,7 @@ func  (this *testMainClass) TestExchangeRequestStatically(exchangeName interface
                     retRes133416 := (<-this.TestRequestStatically(exchange, method, result, typeVar, skipKeys))
                     PanicOnError(retRes133416)
                     // reset options
-                    // exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, {});)
-                    exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, map[string]interface{} {}))
+                    exchange.SetOptions(exchange.ConvertToSafeDictionary(exchange.DeepExtend(oldExchangeOptions, map[string]interface{} {})))
                 }
             }
             if !IsTrue(IsSync()) {

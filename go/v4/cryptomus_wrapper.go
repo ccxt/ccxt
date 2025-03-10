@@ -193,6 +193,16 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
     }
     return NewOrder(res), nil
 }
+    /**
+     * @method
+     * @name cryptomus#cancelOrder
+     * @description cancels an open limit order
+     * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
 func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
 
     opts := CancelOrderOptionsStruct{}

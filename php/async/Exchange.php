@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.65';
+$version = '4.4.66';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.65';
+    const VERSION = '4.4.66';
 
     public $browser;
     public $marketsLoading = null;
@@ -571,6 +571,7 @@ class Exchange extends \ccxt\Exchange {
                 'watchOHLCV' => null,
                 'watchOHLCVForSymbols' => null,
                 'watchOrderBook' => null,
+                'watchBidsAsks' => null,
                 'watchOrderBookForSymbols' => null,
                 'watchOrders' => null,
                 'watchOrdersForSymbols' => null,

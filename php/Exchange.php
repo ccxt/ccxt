@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.65';
+$version = '4.4.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.65';
+    const VERSION = '4.4.66';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2207,6 +2207,10 @@ class Exchange {
         return array();
     }
 
+    public function convert_to_safe_dictionary($dict) {
+        return $dict;
+    }
+
     public function rand_number($size) {
         $number = '';
         for ($i = 0; $i < $size; $i++) {
@@ -2475,6 +2479,7 @@ class Exchange {
                 'watchOHLCV' => null,
                 'watchOHLCVForSymbols' => null,
                 'watchOrderBook' => null,
+                'watchBidsAsks' => null,
                 'watchOrderBookForSymbols' => null,
                 'watchOrders' => null,
                 'watchOrdersForSymbols' => null,

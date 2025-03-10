@@ -2359,18 +2359,18 @@ class bitget extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $params, 'idLessThan', 'idLessThan', null, 100);
         }
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a `$code` argument');
-        }
-        $currency = $this->currency($code);
         if ($since === null) {
             $since = $this->milliseconds() - 7776000000; // 90 days
         }
         $request = array(
-            'coin' => $currency['id'],
             'startTime' => $since,
             'endTime' => $this->milliseconds(),
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -2400,7 +2400,7 @@ class bitget extends Exchange {
         //     }
         //
         $rawTransactions = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+        return $this->parse_transactions($rawTransactions, null, $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
@@ -4843,7 +4843,9 @@ class bitget extends Exchange {
             } elseif ($isTakeProfitOrder || $isStopLossOrder) {
                 $request['marginCoin'] = $market['settleId'];
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
                 if ($isStopLossOrder) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } elseif ($isTakeProfitOrder) {

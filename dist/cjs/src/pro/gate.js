@@ -35,6 +35,7 @@ class gate extends gate$1 {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,

@@ -43,6 +43,7 @@ class gate extends \ccxt\async\gate {
                 'fetchOpenOrdersWs' => true,
                 'fetchClosedOrdersWs' => true,
                 'watchOrderBook' => true,
+                'watchBidsAsks' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,

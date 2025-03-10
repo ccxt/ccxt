@@ -2370,18 +2370,18 @@ class bitget extends bitget$1 {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100);
         }
-        if (code === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a `code` argument');
-        }
-        const currency = this.currency(code);
         if (since === undefined) {
             since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds(),
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2411,7 +2411,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const rawTransactions = this.safeList(response, 'data', []);
-        return this.parseTransactions(rawTransactions, currency, since, limit);
+        return this.parseTransactions(rawTransactions, undefined, since, limit);
     }
     /**
      * @method
@@ -4900,7 +4900,9 @@ class bitget extends bitget$1 {
             else if (isTakeProfitOrder || isStopLossOrder) {
                 request['marginCoin'] = market['settleId'];
                 request['size'] = this.amountToPrecision(symbol, amount);
-                request['executePrice'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
                 if (isStopLossOrder) {
                     request['triggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
                 }

@@ -6571,7 +6571,8 @@ public partial class binance : Exchange
         // don't handle/omit params here, omitting happens inside createOrderRequest
         object marketType = this.safeString(parameters, "type", getValue(market, "type"));
         object marginMode = this.safeString(parameters, "marginMode");
-        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", false);
+        object porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
+        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -6583,10 +6584,9 @@ public partial class binance : Exchange
         object sor = this.safeBool2(parameters, "sor", "SOR", false);
         object test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, new List<object>() {"sor", "SOR", "test"});
-        if (isTrue(isPortfolioMargin))
-        {
-            ((IDictionary<string,object>)parameters)["portfolioMargin"] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "option")))

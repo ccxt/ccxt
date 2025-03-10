@@ -2387,17 +2387,17 @@ func  (this *bitget) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
                     ch <- retRes236419
                     return nil
             }
-            if IsTrue(IsEqual(code, nil)) {
-                panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires a `code` argument")))
-            }
-            var currency interface{} = this.Currency(code)
             if IsTrue(IsEqual(since, nil)) {
                 since = Subtract(this.Milliseconds(), 7776000000) // 90 days
             }
             var request interface{} = map[string]interface{} {
-                "coin": GetValue(currency, "id"),
                 "startTime": since,
                 "endTime": this.Milliseconds(),
+            }
+            var currency interface{} = nil
+            if IsTrue(!IsEqual(code, nil)) {
+                currency = this.Currency(code)
+                AddElementToObject(request, "coin", GetValue(currency, "id"))
             }
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
@@ -2433,7 +2433,7 @@ func  (this *bitget) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             //
             var rawTransactions interface{} = this.SafeList(response, "data", []interface{}{})
         
-            ch <- this.ParseTransactions(rawTransactions, currency, since, limit)
+            ch <- this.ParseTransactions(rawTransactions, nil, since, limit)
             return nil
         
             }()

@@ -29,7 +29,7 @@ class derive(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 50,
             'certified': False,
-            'pro': False,
+            'pro': True,
             'dex': True,
             'has': {
                 'CORS': None,

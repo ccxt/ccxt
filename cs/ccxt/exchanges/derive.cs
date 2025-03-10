@@ -14,7 +14,7 @@ public partial class derive : Exchange
             { "version", "v1" },
             { "rateLimit", 50 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },

@@ -179,6 +179,21 @@ public partial class cryptomus
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// cancels an open limit order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.cryptomus.com/personal/exchange/limit-order-cancellation"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
