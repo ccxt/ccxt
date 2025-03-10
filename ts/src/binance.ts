@@ -10,6 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -228,6 +229,7 @@ export default class binance extends Exchange {
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                     'papi': 'https://papi.binance.com/papi/v1',
+                    'bpay': 'https://bpay.binanceapi.com',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
@@ -1171,6 +1173,48 @@ export default class binance extends Exchange {
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
                         'listenKey': 0.2,
+                    },
+                },
+                'bpay': {
+                    'post': {
+                        'binancepay/openapi/v3/order': 1,
+                        'binancepay/openapi/v2/order/query': 1,
+                        'binancepay/openapi/order/close': 1,
+                        'binancepay/openapi/order/refund': 1,
+                        'binancepay/openapi/order/refund/query': 1,
+                        'binancepay/openapi/order/payer/verification': 1,
+                        'binancepay/openapi/wallet/transfer': 1,
+                        'binancepay/openapi/wallet/transfer/query': 1,
+                        'binancepay/openapi/submerchant/add': 1,
+                        'binancepay/openapi/submerchant/modify': 1,
+                        'binancepay/openapi/balance': 1,
+                        'binancepay/openapi/v2/balance': 1,
+                        'binancepay/openapi/direct-debit/contract': 1,
+                        'binancepay/openapi/direct-debit/contract/query': 1,
+                        'binancepay/openapi/direct-debit/contract/termination': 1,
+                        'binancepay/openapi/pay/notify': 1,
+                        'binancepay/openapi/pay/apply': 1,
+                        'binancepay/openapi/payout/transfer': 1,
+                        'binancepay/openapi/payout/receiver/check': 1,
+                        'binancepay/openapi/payout/query': 1,
+                        'binancepay/openapi/otc-portal/get-to-selector': 1,
+                        'binancepay/openapi/otc-portal/get-quote': 1,
+                        'binancepay/openapi/otc-portal/execute-quote': 1,
+                        'binancepay/openapi/otc-portal/query-trade-order': 1,
+                        'binancepay/openapi/report/get-file': 1,
+                        'binancepay/openapi/balance-report': 1,
+                        'binancepay/openapi/balance-report/query': 1,
+                        'binancepay/openapi/profitsharing/v1/add-receiver': 1,
+                        'binancepay/openapi/profitsharing/v1/query-receiver': 1,
+                        'binancepay/openapi/profitsharing/v1/del-receiver': 1,
+                        'binancepay/openapi/profitsharing/v1/submit-split': 1,
+                        'binancepay/openapi/profitsharing/v1/query-split': 1,
+                        'binancepay/openapi/profitsharing/v1/return': 1,
+                        'binancepay/openapi/shareinfo/accountId': 1,
+                        'binancepay/openapi/service/provider/create': 1,
+                        'binancepay/openapi/service/provider/record/get': 1,
+                        'binancepay/openapi/service/provider/config/query': 1,
+                        'binancepay/openapi/service/provider/record': 1,
                     },
                 },
             },
@@ -11883,10 +11927,31 @@ export default class binance extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
+    bpaySign (path, method = 'GET', params = {}, headers = undefined, body = undefined) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['bpay'] + '/' + path;
+        body = this.json (params);
+        const timestamp = this.milliseconds ();
+        const nonce = this.numberToString (this.microseconds ()) + this.numberToString (this.microseconds ());
+        const payload = timestamp + '\n' + nonce + '\n' + body + '\n';
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
+        headers = {
+            'content-type': 'application/json',
+            'BinancePay-Timestamp': timestamp,
+            'BinancePay-Nonce': nonce,
+            'BinancePay-Certificate-SN': this.apiKey,
+            'BinancePay-Signature': signature,
+        };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
+        if (api === 'bpay') {
+            return this.bpaySign (path, method, params, headers, body);
         }
         let url = this.urls['api'][api];
         url += '/' + path;
