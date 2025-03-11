@@ -1122,6 +1122,7 @@ export default class derive extends Exchange {
     }
 
     signHash (hash, privateKey) {
+        this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2632,7 +2633,6 @@ export default class derive extends Exchange {
                 'Content-Type': 'application/json',
             };
             if (api === 'private') {
-                this.checkRequiredCredentials ();
                 const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
                 headers['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
