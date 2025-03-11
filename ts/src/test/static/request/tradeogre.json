@@ -7,7 +7,7 @@
             {
                 "description": "OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://tradeogre.com/api/v1/chart/1m/BTC-USDT/1741715552",
+                "url": "https://tradeogre.com/api/v1/chart/1m/BTC-USDT",
                 "input": [
                     "BTC/USDT",
                     "1m"
