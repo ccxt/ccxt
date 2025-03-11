@@ -1391,7 +1391,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1966,6 +1966,46 @@ class testMainClass {
         }
         $id = 'ccxt';
         assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_cryptomus() {
+        $exchange = $this->init_offline_exchange('cryptomus');
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'sell', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $tag = 'ccxt';
+        assert($request['tag'] === $tag, 'cryptomus - tag: ' . $tag . ' not in request.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_derive() {
+        $exchange = $this->init_offline_exchange('derive');
+        $id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+        assert($exchange->options['id'] === $id, 'derive - id: ' . $id . ' not in options');
+        $request = null;
+        try {
+            $params = array(
+                'subaccount_id' => 1234,
+                'max_fee' => 10,
+                'deriveWalletAddress' => '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+            );
+            $exchange->walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+            $exchange->privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5';
+            $exchange->create_order('LBTC/USDC', 'limit', 'sell', 0.01, 3000, $params);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        assert($request['referral_code'] === $id, 'derive - referral_code: ' . $id . ' not in request.');
         if (!is_sync()) {
             close($exchange);
         }
