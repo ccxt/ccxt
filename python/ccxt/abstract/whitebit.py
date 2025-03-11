@@ -40,6 +40,7 @@ class ImplicitAPI:
     v4_private_post_collateral_account_balance = v4PrivatePostCollateralAccountBalance = Entry('collateral-account/balance', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_balance_summary = v4PrivatePostCollateralAccountBalanceSummary = Entry('collateral-account/balance-summary', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_positions_history = v4PrivatePostCollateralAccountPositionsHistory = Entry('collateral-account/positions/history', ['v4', 'private'], 'POST', {})
+    v4_private_post_collateral_account_funding_history = v4PrivatePostCollateralAccountFundingHistory = Entry('collateral-account/funding-history', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_leverage = v4PrivatePostCollateralAccountLeverage = Entry('collateral-account/leverage', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_positions_open = v4PrivatePostCollateralAccountPositionsOpen = Entry('collateral-account/positions/open', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_summary = v4PrivatePostCollateralAccountSummary = Entry('collateral-account/summary', ['v4', 'private'], 'POST', {})
