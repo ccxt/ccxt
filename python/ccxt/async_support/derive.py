@@ -1098,6 +1098,7 @@ class derive(Exchange, ImplicitAPI):
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
     def sign_hash(self, hash, privateKey):
+        self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2520,7 +2521,6 @@ class derive(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
             }
             if api == 'private':
-                self.check_required_credentials()
                 now = str(self.milliseconds())
                 signature = self.sign_message(now, self.privateKey)
                 headers['X-LyraWallet'] = self.safe_string(self.options, 'deriveWalletAddress')
