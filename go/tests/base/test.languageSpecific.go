@@ -1,5 +1,5 @@
 package base
 
-func TestLanguageSpecific() {
-
+func TestLanguageSpecific() <-chan interface{} {
+	return nil
 }

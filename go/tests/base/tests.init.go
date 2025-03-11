@@ -5,7 +5,7 @@ package base
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func BaseTestsInit() <- chan interface{} {
-    TestLanguageSpecific()
+    <-TestLanguageSpecific()
     TestAfterConstructor()
     TestExtend()
     TestDeepExtend()
@@ -20,4 +20,5 @@ func BaseTestsInit() <- chan interface{} {
     TestGroupBy()
     TestFilterBy()
     TestHandleMethods()
+    return nil
 }
