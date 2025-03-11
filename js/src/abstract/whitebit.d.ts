@@ -39,6 +39,7 @@ interface Exchange {
     v4PrivatePostCollateralAccountBalance(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountBalanceSummary(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsHistory(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostCollateralAccountFundingHistory(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountLeverage(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsOpen(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountSummary(params?: {}): Promise<implicitReturnType>;
