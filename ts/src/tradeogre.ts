@@ -131,7 +131,7 @@ export default class tradeogre extends Exchange {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
-                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
@@ -465,10 +465,8 @@ export default class tradeogre extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, 'until');
             request['timestamp'] = until;
-        } else {
-            request['timestamp'] = this.parseToInt ((this.milliseconds () / 1000));
         }
-        const response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
+        const response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         //
         //     [
         //         [
