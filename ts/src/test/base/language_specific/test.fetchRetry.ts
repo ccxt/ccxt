@@ -2,8 +2,8 @@
 // NO-AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
-import ccxt from '../../../ccxt.js';
-import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
+import ccxt from '../../../../ccxt.js';
+import testSharedMethods from '../../Exchange/base/test.sharedMethods.js';
 
 async function testFetchRetry () {
 
