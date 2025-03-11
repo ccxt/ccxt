@@ -467,6 +467,7 @@ export default class tradeogre extends Exchange {
             request['timestamp'] = until;
         } else {
             request['timestamp'] = this.parseToInt ((this.milliseconds () / 1000));
+        }
         const response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
         //
         //     [
