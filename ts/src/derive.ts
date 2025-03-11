@@ -1108,7 +1108,6 @@ export default class derive extends Exchange {
     }
 
     signOrder (order, privateKey) {
-        this.checkRequiredCredentials ();
         const hashOrder = this.hashOrderMessage (order);
         return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
@@ -1123,6 +1122,7 @@ export default class derive extends Exchange {
     }
 
     signHash (hash, privateKey) {
+        this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
