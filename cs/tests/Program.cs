@@ -137,7 +137,7 @@ public class Tests
         tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
         // run auto-transpiled tests (all of them start by 'testFunction')
-        baseTestsInit().Wait();
+        tests.baseTestsInit().Wait();
         // RunAutoTranspiledBaseTests (tests);
     }
 
