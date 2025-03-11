@@ -1108,6 +1108,7 @@ export default class derive extends Exchange {
     }
 
     signOrder (order, privateKey) {
+        this.checkRequiredCredentials ();
         const hashOrder = this.hashOrderMessage (order);
         return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
@@ -2632,7 +2633,6 @@ export default class derive extends Exchange {
                 'Content-Type': 'application/json',
             };
             if (api === 'private') {
-                this.checkRequiredCredentials ();
                 const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
                 headers['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
