@@ -8,7 +8,7 @@ public partial class BaseTest
 {
         async public Task baseTestsInit()
         {
-            testLanguageSpecific();
+            testLanguageSpecific().Wait();
             testAfterConstructor();
             testExtend();
             testDeepExtend();
