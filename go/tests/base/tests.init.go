@@ -8,7 +8,7 @@ func BaseTestsInit() <-chan interface{} {
     ch := make(chan interface{})
     go func() {
         defer close(ch)
-        <-TestLanguageSpecific() // Assuming this returns a channel
+        <-TestLanguageSpecific()
         TestAfterConstructor()
         TestExtend()
         TestDeepExtend()
