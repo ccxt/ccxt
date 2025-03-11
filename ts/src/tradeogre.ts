@@ -451,6 +451,7 @@ export default class tradeogre extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -460,11 +461,12 @@ export default class tradeogre extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchOHLCV requires a since argument');
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['timestamp'] = until;
         } else {
-            request['timestamp'] = since;
-        }
+            request['timestamp'] = this.parseToInt ((this.milliseconds () / 1000));
         const response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
         //
         //     [
