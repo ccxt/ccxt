@@ -9,7 +9,7 @@ import (
 func main() {
 	RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
 	if RUN_BASE_TETS {
-		base.BaseTestsInit()
+		<-base.BaseTestsInit()
 		fmt.Println("Base REST tests passed!")
 		return
 	}
