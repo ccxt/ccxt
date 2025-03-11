@@ -647,18 +647,6 @@
                 }
             }
         ],
-        "fetchOrderTrades": [
-            {
-                "description": "linear",
-                "method": "fetchOrderTrades",
-                "input": [
-                    "420069629655085056",
-                    "BTC/USDT:USDT"
-                ],
-                "httpResponse": [],
-                "parsedResponse": []
-            }
-        ],
         "cancelAllOrders": [
             {
                 "description": "linear",
