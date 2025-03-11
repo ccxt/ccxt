@@ -4695,10 +4695,12 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
-                        continue;
+                    } else {
+                        throw e;
                     }
+                } else {
+                    throw e;
                 }
-                throw e;
             }
         }
         return undefined; // this line is never reached, but exists for c# value return requirement
