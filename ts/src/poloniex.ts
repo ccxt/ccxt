@@ -408,8 +408,13 @@ export default class poloniex extends Exchange {
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 100,
+                        'daysBack': undefined,
                         'daysBackCanceled': 1 / 6,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
                     },
                     'fetchMyTrades': {
                         'limit': 100,
