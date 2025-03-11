@@ -2338,16 +2338,16 @@ class bitget(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a `code` argument')
-        currency = self.currency(code)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
         request: dict = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
         if limit is not None:
             request['limit'] = limit
         request, params = self.handle_until_option('endTime', request, params)
@@ -2376,7 +2376,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         rawTransactions = self.safe_list(response, 'data', [])
-        return self.parse_transactions(rawTransactions, currency, since, limit)
+        return self.parse_transactions(rawTransactions, None, since, limit)
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
@@ -4669,7 +4669,8 @@ class bitget(Exchange, ImplicitAPI):
             elif isTakeProfitOrder or isStopLossOrder:
                 request['marginCoin'] = market['settleId']
                 request['size'] = self.amount_to_precision(symbol, amount)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 if isStopLossOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
                 elif isTakeProfitOrder:

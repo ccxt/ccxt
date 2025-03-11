@@ -2375,20 +2375,20 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, parameters, "idLessThan", "idLessThan", null, 100);
         }
-        if (isTrue(isEqual(code, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires a `code` argument")) ;
-        }
-        object currency = this.currency(code);
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(this.milliseconds(), 7776000000); // 90 days
         }
         object request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
             { "startTime", since },
             { "endTime", this.milliseconds() },
         };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
@@ -2421,7 +2421,7 @@ public partial class bitget : Exchange
         //     }
         //
         object rawTransactions = this.safeList(response, "data", new List<object>() {});
-        return this.parseTransactions(rawTransactions, currency, since, limit);
+        return this.parseTransactions(rawTransactions, null, since, limit);
     }
 
     /**
@@ -5168,7 +5168,10 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
-                ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                }
                 if (isTrue(isStopLossOrder))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);

@@ -1988,7 +1988,13 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        var requestqueryVariable = this.prepareRequest(null, "swap", parameters);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            market = this.market(firstSymbol);
+        }
+        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
         object response = await this.publicFuturesGetSettleContracts(this.extend(request, query));

@@ -453,6 +453,8 @@ class cryptocom extends cryptocom$1 {
                 'exact': {
                     '219': errors.InvalidOrder,
                     '314': errors.InvalidOrder,
+                    '325': errors.InvalidOrder,
+                    '415': errors.InvalidOrder,
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
