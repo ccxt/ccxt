@@ -31,6 +31,7 @@ export default class poloniex extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
@@ -42,8 +43,6 @@ export default class poloniex extends Exchange {
                 'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
                 'createStopOrder': true,
                 'createTriggerOrder': true,
-                'addMargin': true,
-                'reduceMargin': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
@@ -77,8 +76,8 @@ export default class poloniex extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
-                'fetchPositions': true,
                 'fetchPositionMode': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -89,6 +88,7 @@ export default class poloniex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'sandbox': true,
                 'setLeverage': true,
                 'setPositionMode': true,
@@ -749,7 +749,7 @@ export default class poloniex extends Exchange {
 
     async fetchSwapMarkets (params = {}): Promise<Market[]> {
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
-        const response = await this.swapPublicGetV3MarketAllInstruments (params);//
+        const response = await this.swapPublicGetV3MarketAllInstruments (params);
         //
         //    {
         //        "code": "200",
