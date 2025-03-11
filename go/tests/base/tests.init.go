@@ -5,20 +5,25 @@ package base
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func BaseTestsInit() <- chan interface{} {
-    <-TestLanguageSpecific()
-    TestAfterConstructor()
-    TestExtend()
-    TestDeepExtend()
-    TestCryptography()
-    TestDatetime()
-    TestNumber()
-    TestSafeMethods()
-    // testJson ();
-    TestSortBy()
-    TestSum()
-    TestOmit()
-    TestGroupBy()
-    TestFilterBy()
-    TestHandleMethods()
-    return nil
+    ch := make(chan interface{})
+    go func() {
+        defer close(ch)
+        <-TestLanguageSpecific() // Assuming this returns a channel
+        TestAfterConstructor()
+        TestExtend()
+        TestDeepExtend()
+        TestCryptography()
+        TestDatetime()
+        TestNumber()
+        TestSafeMethods()
+        // testJson()
+        TestSortBy()
+        TestSum()
+        TestOmit()
+        TestGroupBy()
+        TestFilterBy()
+        TestHandleMethods()
+        ch <- nil
+    }()
+    return ch
 }
