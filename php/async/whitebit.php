@@ -61,7 +61,7 @@ class whitebit extends Exchange {
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
@@ -2712,6 +2712,93 @@ class whitebit extends Exchange {
             'previousFundingDatetime' => null,
             'interval' => null,
         );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the history of funding payments paid and received on this account
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+             *
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {int} [$since] the starting timestamp in milliseconds
+             * @param {int} [$limit] the number of entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch funding history for
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['startDate'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('endDate', $request, $params);
+            $response = Async\await($this->v4PrivatePostCollateralAccountFundingHistory ($request));
+            //
+            //     {
+            //         "records" => array(
+            //             array(
+            //                 "market" => "BTC_PERP",
+            //                 "fundingTime" => "1708704000000",
+            //                 "fundingRate" => "0.00017674",
+            //                 "fundingAmount" => "-0.171053531892",
+            //                 "positionAmount" => "0.019",
+            //                 "settlementPrice" => "50938.2",
+            //                 "rateCalculatedTime" => "1708675200000"
+            //             ),
+            //         ),
+            //         "limit" => 100,
+            //         "offset" => 0
+            //     }
+            //
+            $data = $this->safe_list($response, 'records', array());
+            return $this->parse_funding_histories($data, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "market" => "BTC_PERP",
+        //         "fundingTime" => "1708704000000",
+        //         "fundingRate" => "0.00017674",
+        //         "fundingAmount" => "-0.171053531892",
+        //         "positionAmount" => "0.019",
+        //         "settlementPrice" => "50938.2",
+        //         "rateCalculatedTime" => "1708675200000"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'market');
+        $timestamp = $this->safe_integer($contract, 'fundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->safe_number($contract, 'fundingAmount'),
+        );
+    }
+
+    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+        $result = array();
+        for ($i = 0; $i < count($contracts); $i++) {
+            $contract = $contracts[$i];
+            $result[] = $this->parse_funding_history($contract, $market);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
