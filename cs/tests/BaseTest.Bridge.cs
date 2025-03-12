@@ -187,7 +187,7 @@ public partial class BaseTest
 
 public partial class BaseTest
 {
-    public async Task testLanguageSpecific()
+    public void testLanguageSpecific()
     {
 
     }
