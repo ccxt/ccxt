@@ -32,6 +32,7 @@ class whitebit extends whitebit$1 {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createConvertTrade': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
@@ -44,6 +45,9 @@ class whitebit extends whitebit$1 {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -190,7 +194,6 @@ class whitebit extends whitebit$1 {
                             'collateral-account/balance',
                             'collateral-account/balance-summary',
                             'collateral-account/positions/history',
-                            'collateral-account/funding-history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
@@ -2778,6 +2781,185 @@ class whitebit extends whitebit$1 {
         //
         const records = this.safeList(response, 'records');
         return this.parseTransactions(records, currency, since, limit);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        await this.loadMarkets();
+        const fromCurrency = this.currency(fromCode);
+        const toCurrency = this.currency(toCode);
+        const request = {
+            'from': fromCode,
+            'to': toCode,
+            'amount': this.numberToString(amount),
+            'direction': 'from',
+        };
+        const response = await this.v4PrivatePostConvertEstimate(this.extend(request, params));
+        //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
+        //
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+    /**
+     * @method
+     * @name whitebit#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        await this.loadMarkets();
+        const fromCurrency = this.currency(fromCode);
+        const toCurrency = this.currency(toCode);
+        const request = {
+            'quoteId': id,
+        };
+        const response = await this.v4PrivatePostConvertConfirm(this.extend(request, params));
+        //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
+        //
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromTicker] the currency that you sold and converted from
+     * @param {string} [params.toTicker] the currency that you bought and converted into
+     * @param {string} [params.quoteId] the quote id of the conversion
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let request = {};
+        if (code !== undefined) {
+            request['fromTicker'] = code;
+        }
+        if (since !== undefined) {
+            const start = this.parseToInt(since / 1000);
+            request['from'] = this.numberToString(start);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('to', request, params, 0.001);
+        const response = await this.v4PrivatePostConvertHistory(this.extend(request, params));
+        //
+        //     {
+        //         "records": [
+        //             {
+        //                 "id": "1741105",
+        //                 "path": [
+        //                     {
+        //                         "from": "USDT",
+        //                         "to": "BTC",
+        //                         "rate": "0.00001193"
+        //                     }
+        //                 ],
+        //                 "date": 1741090757,
+        //                 "give": "4",
+        //                 "receive": "0.00004772",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
+        //
+        const rows = this.safeList(response, 'records', []);
+        return this.parseConversions(rows, code, 'fromCurrency', 'toCurrency', since, limit);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1741105",
+        //         "path": [
+        //             {
+        //                 "from": "USDT",
+        //                 "to": "BTC",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "date": 1741090757,
+        //         "give": "4",
+        //         "receive": "0.00004772",
+        //         "rate": "0.00001193"
+        //     }
+        //
+        const path = this.safeList(conversion, 'path', []);
+        const first = this.safeDict(path, 0, {});
+        const fromPath = this.safeString(first, 'from');
+        const toPath = this.safeString(first, 'to');
+        const timestamp = this.safeTimestamp2(conversion, 'date', 'expireAt');
+        const fromCoin = this.safeString(conversion, 'from', fromPath);
+        const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        const toCoin = this.safeString(conversion, 'to', toPath);
+        const toCode = this.safeCurrencyCode(toCoin, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': this.safeString(conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber2(conversion, 'give', 'finalGive'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber2(conversion, 'receive', 'finalReceive'),
+            'price': this.safeNumber(conversion, 'rate'),
+            'fee': undefined,
+        };
     }
     isFiat(currency) {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
