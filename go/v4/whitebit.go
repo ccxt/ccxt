@@ -3146,7 +3146,7 @@ func  (this *whitebit) FetchFundingHistory(optionalArgs ...interface{}) <- chan 
             request = GetValue(requestparamsVariable,0);
             params = GetValue(requestparamsVariable,1)
         
-            response:= (<-this.callDynamically("v4PrivatePostCollateralAccountFundingHistory", request))
+            response:= (<-this.V4PrivatePostCollateralAccountFundingHistory(request))
             PanicOnError(response)
             //
             //     {

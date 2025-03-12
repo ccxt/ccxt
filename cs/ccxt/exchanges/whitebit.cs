@@ -2752,7 +2752,7 @@ public partial class whitebit : Exchange
         var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await ((Task<object>)callDynamically(this, "v4PrivatePostCollateralAccountFundingHistory", new object[] { request }));
+        object response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
         //
         //     {
         //         "records": [

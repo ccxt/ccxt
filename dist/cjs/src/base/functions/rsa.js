@@ -8,7 +8,6 @@ var encode = require('./encode.js');
 var crypto = require('./crypto.js');
 var p256 = require('../../static_dependencies/noble-curves/p256.js');
 
-// ----------------------------------------------------------------------------
 function rsa(request, secret, hash) {
     const RSA = new JSEncrypt.JSEncrypt();
     const digester = (input) => index.base16.encode(hash(input));
