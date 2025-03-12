@@ -6,9 +6,9 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task baseTestsInit()
+        public void baseTestsInit()
         {
-            testLanguageSpecific().Wait();
+            testLanguageSpecific();
             testAfterConstructor();
             testExtend();
             testDeepExtend();
