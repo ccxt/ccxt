@@ -21,7 +21,7 @@ export default class cryptomus extends Exchange {
             'name': 'Cryptomus',
             'countries': [ 'CA' ],
             'rateLimit': 100, // todo check
-            'version': 'v1',
+            'version': 'v2',
             'certified': false,
             'pro': false,
             'has': {
@@ -141,9 +141,9 @@ export default class cryptomus extends Exchange {
                 'private': {
                     'get': {
                         'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/history': 1,
+                        'v2/user-api/exchange/orders/history': 1, // done
                         'v2/user-api/exchange/account/balance': 1, // done
-                        'v2/user-api/exchange/account/tariffs': 1,
+                        'v2/user-api/exchange/account/tariffs': 1, // done
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
@@ -720,7 +720,6 @@ export default class cryptomus extends Exchange {
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
