@@ -38,6 +38,7 @@ class whitebit extends Exchange {
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'createConvertTrade' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
@@ -50,6 +51,9 @@ class whitebit extends Exchange {
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => false,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -2874,6 +2878,195 @@ class whitebit extends Exchange {
             $records = $this->safe_list($response, 'records');
             return $this->parse_transactions($records, $currency, $since, $limit);
         }) ();
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+             *
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} $amount how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            $request = array(
+                'from' => $fromCode,
+                'to' => $toCode,
+                'amount' => $this->number_to_string($amount),
+                'direction' => 'from',
+            );
+            $response = Async\await($this->v4PrivatePostConvertEstimate ($this->extend($request, $params)));
+            //
+            //     {
+            //         "give" => "4",
+            //         "receive" => "0.00004762",
+            //         "rate" => "0.0000119",
+            //         "id" => "1740889",
+            //         "expireAt" => 1741090147,
+            //         "from" => "USDT",
+            //         "to" => "BTC"
+            //     }
+            //
+            return $this->parse_conversion($response, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency to another
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+             *
+             * @param {string} $id the $id of the trade that you want to make
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            $request = array(
+                'quoteId' => $id,
+            );
+            $response = Async\await($this->v4PrivatePostConvertConfirm ($this->extend($request, $params)));
+            //
+            //     {
+            //         "finalGive" => "4",
+            //         "finalReceive" => "0.00004772"
+            //     }
+            //
+            return $this->parse_conversion($response, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#convert-history
+             *
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve, default 20, max 200
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] the end time in ms
+             * @param {string} [$params->fromTicker] the currency that you sold and converted from
+             * @param {string} [$params->toTicker] the currency that you bought and converted into
+             * @param {string} [$params->quoteId] the quote id of the conversion
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($code !== null) {
+                $request['fromTicker'] = $code;
+            }
+            if ($since !== null) {
+                $start = $this->parse_to_int($since / 1000);
+                $request['from'] = $this->number_to_string($start);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
+            $response = Async\await($this->v4PrivatePostConvertHistory ($this->extend($request, $params)));
+            //
+            //     {
+            //         "records" => array(
+            //             {
+            //                 "id" => "1741105",
+            //                 "path" => array(
+            //                     {
+            //                         "from" => "USDT",
+            //                         "to" => "BTC",
+            //                         "rate" => "0.00001193"
+            //                     }
+            //                 ),
+            //                 "date" => 1741090757,
+            //                 "give" => "4",
+            //                 "receive" => "0.00004772",
+            //                 "rate" => "0.00001193"
+            //             }
+            //         ),
+            //         "total" => 1,
+            //         "limit" => 100,
+            //         "offset" => 0
+            //     }
+            //
+            $rows = $this->safe_list($response, 'records', array());
+            return $this->parse_conversions($rows, $code, 'fromCurrency', 'toCurrency', $since, $limit);
+        }) ();
+    }
+
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "give" => "4",
+        //         "receive" => "0.00004762",
+        //         "rate" => "0.0000119",
+        //         "id" => "1740889",
+        //         "expireAt" => 1741090147,
+        //         "from" => "USDT",
+        //         "to" => "BTC"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "finalGive" => "4",
+        //         "finalReceive" => "0.00004772"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id" => "1741105",
+        //         "path" => array(
+        //             {
+        //                 "from" => "USDT",
+        //                 "to" => "BTC",
+        //                 "rate" => "0.00001193"
+        //             }
+        //         ),
+        //         "date" => 1741090757,
+        //         "give" => "4",
+        //         "receive" => "0.00004772",
+        //         "rate" => "0.00001193"
+        //     }
+        //
+        $path = $this->safe_list($conversion, 'path', array());
+        $first = $this->safe_dict($path, 0, array());
+        $fromPath = $this->safe_string($first, 'from');
+        $toPath = $this->safe_string($first, 'to');
+        $timestamp = $this->safe_timestamp_2($conversion, 'date', 'expireAt');
+        $fromCoin = $this->safe_string($conversion, 'from', $fromPath);
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $toCoin = $this->safe_string($conversion, 'to', $toPath);
+        $toCode = $this->safe_currency_code($toCoin, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($conversion, 'id'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number_2($conversion, 'give', 'finalGive'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number_2($conversion, 'receive', 'finalReceive'),
+            'price' => $this->safe_number($conversion, 'rate'),
+            'fee' => null,
+        );
     }
 
     public function is_fiat(string $currency): bool {
