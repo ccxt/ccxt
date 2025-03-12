@@ -155,7 +155,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             name += ':' + marketId;
         }
         const messageHash = name;
-        const tunnelId = await this.stream (url, messageHash);
+        const tunnelId = await this.streamId (url, messageHash);
         const requestId = this.requestId ();
         const subscribe: Dict = {
             'id': requestId,
@@ -182,7 +182,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         super.onClose (client, error);
     }
 
-    async stream (url, subscriptionHash) {
+    async streamId (url, subscriptionHash) {
         const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -391,6 +391,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -547,6 +548,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = '/contractMarket/tradeOrders';
         const parsed = this.parseWsOrder (data);
         orders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (orders, messageHash);
         return message;
     }
@@ -683,6 +685,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (symbol !== undefined) {
             const ticker = this.parseTicker (data);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -806,6 +809,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             client.resolve (orderBook, messageHash);
         } catch (e) {
             delete this.orderbooks[symbol];
+            this.streamProduce ('orderbooks::' + symbol, undefined, e);
             client.reject (e, messageHash);
         }
     }
@@ -842,6 +846,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         const orderbook = this.orderBook (snapshot);
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -942,6 +947,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const currency = this.currency (currencyId);
         const code = currency['code'];
         this.balance[code] = this.parseWsBalance (data);
+        this.streamProduce ('balances', this.balance[code]);
         client.resolve (this.balance[code], messageHash);
         return message;
     }
@@ -1029,10 +1035,12 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "error"
         //    }
         //
+        this.streamProduce ('errors', undefined, message);
         client.reject (message);
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'welcome': this.handleSystemStatus,
@@ -1063,6 +1071,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
