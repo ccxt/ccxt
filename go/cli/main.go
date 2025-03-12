@@ -10,7 +10,8 @@ import (
 	"strings"
 	"time"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
+	// ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxt "github.com/ccxt/ccxt/go/v5"
 )
 
 var Red = "\033[31m"
@@ -34,7 +35,8 @@ func getRandomKeyFromList(list []string) string {
 }
 
 func benchmarks() {
-	exchange := ccxt.NewBinanceCore()
+	// exchange := ccxt.NewBinanceCore()
+	exchange := ccxt.NewHyperliquidCore()
 	exchange.Init(nil)
 
 	dir := GetRootDir()
@@ -419,10 +421,27 @@ func main() {
 	fmt.Println("Exchange name: ", Green+exchangeName+Reset)
 	fmt.Println("Method: ", Green+method+Reset)
 
-	exchangeFile := GetRootDir() + "exchanges.json"
+	rootDir := GetRootDir()
+	exchangeFile := rootDir + "exchanges.json"
 
 	if !IoFileExists(exchangeFile) {
 		panic(Red + "exchanges.json file not found" + Reset)
+	}
+
+	keyFile := rootDir + "keys.local.json"
+	var settings interface{}
+	if IoFileExists(keyFile) {
+		settings = IoFileRead(keyFile)
+	} else {
+		keyFile = rootDir + "keys.json"
+		if IoFileExists(keyFile) {
+			settings = IoFileRead(keyFile)
+		}
+	}
+	settingsMap := settings.(map[string]interface{})
+	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]interface{})
+	if !hasSettings {
+		exchangeSettings = nil
 	}
 
 	exchangeIds := IoFileRead(exchangeFile, true)
@@ -460,7 +479,7 @@ func main() {
 		}
 	}
 
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, nil)
+	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchangeSettings)
 
 	if !suc {
 		panic(suc)
