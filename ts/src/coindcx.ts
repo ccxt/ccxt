@@ -2548,6 +2548,24 @@ export default class coindcx extends Exchange {
         return this.parseOrder (response);
     }
 
+    priceToPrecision (symbol: string, price: any): string {
+        const market = this.market (symbol);
+        if (market['type'] === 'spot') {
+            return super.priceToPrecision (symbol, price);
+        } else {
+            return price.toString (); // swap markets have no price precision
+        }
+    }
+
+    amountToPrecision (symbol: string, amount: any): string {
+        const market = this.market (symbol);
+        if (market['type'] === 'spot') {
+            return super.amountToPrecision (symbol, amount);
+        } else {
+            return amount.toString (); // swap markets have no amount precision
+        }
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // privatePostExchangeV1OrdersCreate
