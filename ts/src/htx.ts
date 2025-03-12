@@ -893,6 +893,7 @@ export default class htx extends Exchange {
                     '1041': InvalidOrder, // {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds, // {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  // {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061': OrderNotFound, // {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
                     '1051': InvalidOrder, // {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol, // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder, // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
@@ -7442,6 +7443,7 @@ export default class htx extends Exchange {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString (response, 'status');
             if (status === 'error') {
@@ -7459,6 +7461,16 @@ export default class htx extends Exchange {
             const feedback = this.id + ' ' + body;
             const code = this.safeString (response, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict (response, 'data');
+        const errorsList = this.safeList (data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict (errorsList, 0);
+            const errcode = this.safeString (first, 'err_code');
+            const errmessage = this.safeString (first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }

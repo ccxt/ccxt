@@ -5980,6 +5980,6 @@ func  (this *coinex) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
 
 func (this *coinex) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }
