@@ -203,7 +203,6 @@ class whitebit(Exchange, ImplicitAPI):
                             'collateral-account/balance',
                             'collateral-account/balance-summary',
                             'collateral-account/positions/history',
-                            'collateral-account/funding-history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
