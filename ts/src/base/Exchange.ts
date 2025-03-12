@@ -4606,6 +4606,36 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {boolean} isRequired - whether that param is required to be present
+     * @param {string} upperOrLowerCase - (optional_ enforce "uppercase" or "lowercase" for resulted network id
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string, isRequired: boolean, upperOrLowerCase: Str = undefined) {
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            let networkId = this.networkCodeToId (networkCode);
+            // we can have upper/lower case enforcement, to avoid break of existing exchange implementations
+            if (upperOrLowerCase !== undefined) {
+                if (upperOrLowerCase === 'uppercase') {
+                    networkId = networkId.toUpperCase ();
+                } else if (upperOrLowerCase === 'lowercase') {
+                    networkId = networkId.toLowerCase ();
+                } else {
+                    throw new ExchangeError (this.id + ' - ' + upperOrLowerCase + ' should be either "uppercase" or "lowercase"');
+                }
+            }
+            request[exchangeSpecificKey] = networkId;
+        } else if (isRequired) {
+            throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
+        }
+        return [ request, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
