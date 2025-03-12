@@ -5,7 +5,7 @@ var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class upbit extends upbit$1 {
     describe() {

@@ -520,7 +520,7 @@ func  (this *tradeogre) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                 AddElementToObject(request, "timestamp", since)
             }
         
-            response:= (<-this.callDynamically("publicGetChartIntervalMarketTimestamp", this.Extend(request, params)))
+            response:= (<-this.PublicGetChartIntervalMarketTimestamp(this.Extend(request, params)))
             PanicOnError(response)
         
                 //
