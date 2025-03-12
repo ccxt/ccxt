@@ -58,9 +58,37 @@ function helperTestHandleMarketTypeAndParams () {
     assert (params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
 }
 
+function helperTestHandleNetworkRequest () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {},
+    });
+    // no-casing
+    let request1 = {};
+    let params1 = { 'network': 'Xyz' };
+    [ request1, params1 ] = exchange.handleRequestNetwork (params1, request1, 'chain_id', false);
+    assert (!('network' in params1));
+    assert ('chain_id' in request1);
+    assert (request1['chain_id'] === 'Xyz');
+    // uppercase
+    let request2 = {};
+    let params2 = { 'network': 'Xyz' };
+    [ request2, params2 ] = exchange.handleRequestNetwork (params2, request2, 'chain_id', false, 'uppercase');
+    assert (!('network' in params2));
+    assert ('chain_id' in request2);
+    assert (request2['chain_id'] === 'XYZ');
+    // lowercase
+    let request3 = {};
+    let params3 = { 'network': 'Xyz' };
+    [ request3, params3 ] = exchange.handleRequestNetwork (params3, request3, 'chain_id', false, 'lowercase');
+    assert (!('network' in params3));
+    assert ('chain_id' in request3);
+    assert (request3['chain_id'] === 'xyz');
+}
 
 function testHandleMethods () {
     helperTestHandleMarketTypeAndParams ();
+    helperTestHandleNetworkRequest ();
 }
 
 export default testHandleMethods;
