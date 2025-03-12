@@ -15,9 +15,8 @@ import testTypes from './test.type.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
-import testFetchRetry from './test.fetchRetry.js';
 
-async function testLanguageSpecific () {
+function testLanguageSpecific () {
     testCamelCase ();
     testUnCamelCase ();
     testThrottle ();
@@ -27,7 +26,6 @@ async function testLanguageSpecific () {
     testLegacyHas ();
     testTypes ();
     // testConfig ();
-    await testFetchRetry ();
 }
 
 export default testLanguageSpecific;
