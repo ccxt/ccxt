@@ -415,6 +415,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchMarkets
          * @description retrieves data on all markets for coindcx
          * @see https://docs.coindcx.com/#markets-details
+         * @see https://docs.coindcx.com/#get-active-instruments
          * @see https://docs.coindcx.com/#get-instrument-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
@@ -451,64 +452,56 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        const markets = this.toArray (responseFromSpot);
+        const spotMarkets = this.toArray (responseFromSpot);
+        const parsedSpotMarkets = this.parseMarkets (spotMarkets);
+        const responseFromSwapUSDT = await this.public1GetExchangeV1DerivativesFuturesDataActiveInstruments (params);
+        //
+        //
+        const swapMarketsUSDT = this.toArray (responseFromSwapUSDT);
+        const parsedSwapMarketsUSDT = this.parseSwapMarkets (swapMarketsUSDT, 'USDT');
         const request: Dict = {
-            'pair': 'B-ETH_USDT', // there is no unified endpoint for fetching all contract markets
+            'margin_currency_short_name[]': 'INR',
         };
-        const responseFromSwap = await this.public1GetExchangeV1DerivativesFuturesDataInstrument (this.extend (request, params)); // todo using it to fetch and test a contract market
-        //
-        //     {
-        //         "instrument": {
-        //             "settle_currency_short_name": "USDT",
-        //             "quote_currency_short_name": "USDT",
-        //             "position_currency_short_name": "ETH",
-        //             "underlying_currency_short_name": "ETH",
-        //             "status": "active",
-        //             "pair": "B-ETH_USDT",
-        //             "kind": "perpetual",
-        //             "settlement": "never",
-        //             "max_leverage_long": 20.0,
-        //             "max_leverage_short": 20.0,
-        //             "unit_contract_value": 1.0,
-        //             "price_increment": 0.01,
-        //             "quantity_increment": 0.001,
-        //             "min_trade_size": 0.001,
-        //             "min_price": 41.853,
-        //             "max_price": 98898.0,
-        //             "min_quantity": 0.001,
-        //             "max_quantity": 9500.0,
-        //             "min_notional": 24.0,
-        //             "maker_fee": 0.025,
-        //             "taker_fee": 0.075,
-        //             "safety_percentage": 1.5,
-        //             "quanto_to_settle_multiplier": 1.0,
-        //             "is_inverse": false,
-        //             "is_quanto": false,
-        //             "allow_post_only": false,
-        //             "allow_hidden": false,
-        //             "max_market_order_quantity": 2000.0,
-        //             "funding_frequency": 8,
-        //             "max_notional": 20000000.0,
-        //             "expiry_time": 2548162800000,
-        //             "time_in_force_options": [
-        //                 "good_till_cancel",
-        //                 "immediate_or_cancel",
-        //                 "fill_or_kill"
-        //             ],
-        //             "order_types": [
-        //                 "market_order",
-        //                 "limit_order",
-        //                 "stop_limit",
-        //                 "take_profit_limit",
-        //                 "stop_market",
-        //                 "take_profit_market"
-        //             ]
-        //         }
-        //     }
-        //
-        const contractMarket = this.safeDict (responseFromSwap, 'instrument', {});
-        markets.push (contractMarket);
-        return this.parseMarkets (markets);
+        const responseFromSwapINR = await this.public1GetExchangeV1DerivativesFuturesDataActiveInstruments (this.extend (request, params));
+        const swapMarketsINR = this.toArray (responseFromSwapINR);
+        const parsedSwapMarketsINR = this.parseSwapMarkets (swapMarketsINR, 'INR');
+        let allMarkets = this.arrayConcat (parsedSpotMarkets, parsedSwapMarketsUSDT);
+        allMarkets = this.arrayConcat (allMarkets, parsedSwapMarketsINR);
+        return allMarkets;
+    }
+
+    parseSwapMarkets (markets: string[], settle: string): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = this.safeString (markets, i);
+            const cleanId = marketId.replace ('B-', '');
+            const pars = cleanId.split ('_');
+            const baseId = pars[0];
+            const quoteId = pars[1];
+            const settleId = settle;
+            const market = this.safeMarketStructure ({
+                'id': marketId,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'symbol': baseId + '/' + quoteId + ':' + settleId,
+                'base': this.safeCurrencyCode (baseId),
+                'quote': this.safeCurrencyCode (quoteId),
+                'settle': this.safeCurrencyCode (settleId),
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+            });
+            result.push (market);
+        }
+        return result;
     }
 
     parseMarket (market: Dict): Market {
@@ -590,6 +583,7 @@ export default class coindcx extends Exchange {
         //         ]
         //     }
         //
+        // current method could parse swap markets from public1GetExchangeV1DerivativesFuturesDataInstrument
         const marketId = this.safeString2 (market, 'coindcx_name', 'pair');
         const baseId = this.safeString2 (market, 'target_currency_short_name', 'position_currency_short_name');
         const quoteId = this.safeString2 (market, 'base_currency_short_name', 'quote_currency_short_name');
