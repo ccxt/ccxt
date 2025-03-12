@@ -17,7 +17,7 @@ if (isBaseTests) {
         baseTestsInitWs ();
         console.log ('base WS tests passed!');
     } else {
-        await baseTestsInitRest ();
+        baseTestsInitRest ();
         console.log ('base REST tests passed!');
     }
     if (!runAll) {
