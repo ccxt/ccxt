@@ -421,6 +421,8 @@ public partial class cryptocom : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "219", typeof(InvalidOrder) },
                     { "314", typeof(InvalidOrder) },
+                    { "325", typeof(InvalidOrder) },
+                    { "415", typeof(InvalidOrder) },
                     { "10001", typeof(ExchangeError) },
                     { "10002", typeof(PermissionDenied) },
                     { "10003", typeof(PermissionDenied) },

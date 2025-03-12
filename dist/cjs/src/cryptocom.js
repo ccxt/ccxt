@@ -6,7 +6,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class cryptocom
  * @augments Exchange
@@ -453,6 +453,8 @@ class cryptocom extends cryptocom$1 {
                 'exact': {
                     '219': errors.InvalidOrder,
                     '314': errors.InvalidOrder,
+                    '325': errors.InvalidOrder,
+                    '415': errors.InvalidOrder,
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,

@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bybit extends bybit$1 {
     describe() {
@@ -780,7 +780,7 @@ class bybit extends bybit$1 {
         }
         const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseWsOHLCV(data[i]);
+            const parsed = this.parseWsOHLCV(data[i], market);
             stored.append(parsed);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -803,13 +803,14 @@ class bybit extends bybit$1 {
         //         "timestamp": 1670363219614
         //     }
         //
+        const volumeIndex = (market['inverse']) ? 'turnover' : 'volume';
         return [
             this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
             this.safeNumber(ohlcv, 'close'),
-            this.safeNumber2(ohlcv, 'volume', 'turnover'),
+            this.safeNumber(ohlcv, volumeIndex),
         ];
     }
     /**

@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ export default class whitebit extends Exchange {
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
@@ -179,6 +179,7 @@ export default class whitebit extends Exchange {
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
@@ -187,6 +188,7 @@ export default class whitebit extends Exchange {
                             'markets',
                             'futures',
                             'platform/status',
+                            'mining-pool',
                         ],
                     },
                     'private': {
@@ -194,9 +196,11 @@ export default class whitebit extends Exchange {
                             'collateral-account/balance',
                             'collateral-account/balance-summary',
                             'collateral-account/positions/history',
+                            'collateral-account/funding-history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
+                            'collateral-account/funding-history',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -223,6 +227,7 @@ export default class whitebit extends Exchange {
                             'order/collateral/market',
                             'order/collateral/stop-limit',
                             'order/collateral/trigger-market',
+                            'order/collateral/bulk',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -234,6 +239,7 @@ export default class whitebit extends Exchange {
                             'order/kill-switch/status',
                             'order/bulk',
                             'order/modify',
+                            'order/conditional-cancel',
                             'orders',
                             'oco-orders',
                             'order/collateral/oco',
@@ -252,6 +258,17 @@ export default class whitebit extends Exchange {
                             'sub-account/unblock',
                             'sub-account/balances',
                             'sub-account/transfer/history',
+                            'sub-account/api-key/create',
+                            'sub-account/api-key/edit',
+                            'sub-account/api-key/delete',
+                            'sub-account/api-key/list',
+                            'sub-account/api-key/reset',
+                            'sub-account/api-key/ip-address/list',
+                            'sub-account/api-key/ip-address/create',
+                            'sub-account/api-key/ip-address/delete',
+                            'mining/rewards',
+                            'market/fee',
+                            'conditional-orders',
                         ],
                     },
                 },
@@ -2635,6 +2652,91 @@ export default class whitebit extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['startDate'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory (request);
+        //
+        //     {
+        //         "records": [
+        //             {
+        //                 "market": "BTC_PERP",
+        //                 "fundingTime": "1708704000000",
+        //                 "fundingRate": "0.00017674",
+        //                 "fundingAmount": "-0.171053531892",
+        //                 "positionAmount": "0.019",
+        //                 "settlementPrice": "50938.2",
+        //                 "rateCalculatedTime": "1708675200000"
+        //             },
+        //         ],
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
+        //
+        const data = this.safeList (response, 'records', []);
+        return this.parseFundingHistories (data, market, since, limit);
+    }
+
+    parseFundingHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "market": "BTC_PERP",
+        //         "fundingTime": "1708704000000",
+        //         "fundingRate": "0.00017674",
+        //         "fundingAmount": "-0.171053531892",
+        //         "positionAmount": "0.019",
+        //         "settlementPrice": "50938.2",
+        //         "rateCalculatedTime": "1708675200000"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'market');
+        const timestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (contract, 'fundingAmount'),
+        };
+    }
+
+    parseFundingHistories (contracts, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+        const result = [];
+        for (let i = 0; i < contracts.length; i++) {
+            const contract = contracts[i];
+            result.push (this.parseFundingHistory (contract, market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
     }
 
     /**

@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1981,7 +1981,12 @@ class gate extends gate$1 {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const [request, query] = this.prepareRequest(undefined, 'swap', params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            market = this.market(firstSymbol);
+        }
+        const [request, query] = this.prepareRequest(market, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts(this.extend(request, query));
         //
         //    [

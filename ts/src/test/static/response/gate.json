@@ -1299,6 +1299,86 @@
                 },
                 "parsedResponse": 1731448079476
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch inverse market funding rate",
+                "method": "fetchFundingRates",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ],
+                "httpResponse": [{"funding_rate_indicative":"0.0001","mark_price_round":"0.01","funding_offset":0,"in_delisting":false,"risk_limit_base":"100","interest_rate":"0.0003","index_price":"89025.82000000001","order_price_round":"0.1","order_size_min":1,"ref_rebate_rate":"0.2","name":"BTC_USD","ref_discount_rate":"0","order_price_deviate":"0.5","maintenance_rate":"0.005","mark_type":"index","funding_interval":28800,"type":"inverse","risk_limit_step":"100","enable_bonus":false,"enable_credit":true,"leverage_min":"1","funding_rate":"0.0001","last_price":"88811.7","mark_price":"89029.86","order_size_max":1000000,"funding_next_apply":1741363200,"short_users":207,"config_change_time":1732783287,"create_time":1545235200,"trade_size":59939537641,"position_size":11835253,"long_users":486,"quanto_multiplier":"0","funding_impact_value":"0.5","leverage_max":"100","cross_leverage_default":"10","risk_limit_max":"800","maker_fee_rate":"-0.0002","taker_fee_rate":"0.00075","orders_limit":50,"trade_id":46136002,"orderbook_id":4871277879,"funding_cap_ratio":"0.75","voucher_leverage":"0","is_pre_market":false}],
+                "parsedResponse": {
+                  "BTC/USD:BTC": {
+                    "info": {
+                      "funding_rate_indicative": "0.0001",
+                      "mark_price_round": "0.01",
+                      "funding_offset": 0,
+                      "in_delisting": false,
+                      "risk_limit_base": "100",
+                      "interest_rate": "0.0003",
+                      "index_price": "89025.82000000001",
+                      "order_price_round": "0.1",
+                      "order_size_min": 1,
+                      "ref_rebate_rate": "0.2",
+                      "name": "BTC_USD",
+                      "ref_discount_rate": "0",
+                      "order_price_deviate": "0.5",
+                      "maintenance_rate": "0.005",
+                      "mark_type": "index",
+                      "funding_interval": 28800,
+                      "type": "inverse",
+                      "risk_limit_step": "100",
+                      "enable_bonus": false,
+                      "enable_credit": true,
+                      "leverage_min": "1",
+                      "funding_rate": "0.0001",
+                      "last_price": "88811.7",
+                      "mark_price": "89029.86",
+                      "order_size_max": 1000000,
+                      "funding_next_apply": 1741363200,
+                      "short_users": 207,
+                      "config_change_time": 1732783287,
+                      "create_time": 1545235200,
+                      "trade_size": 59939537641,
+                      "position_size": 11835253,
+                      "long_users": 486,
+                      "quanto_multiplier": "0",
+                      "funding_impact_value": "0.5",
+                      "leverage_max": "100",
+                      "cross_leverage_default": "10",
+                      "risk_limit_max": "800",
+                      "maker_fee_rate": "-0.0002",
+                      "taker_fee_rate": "0.00075",
+                      "orders_limit": 50,
+                      "trade_id": 46136002,
+                      "orderbook_id": 4871277879,
+                      "funding_cap_ratio": "0.75",
+                      "voucher_leverage": "0",
+                      "is_pre_market": false
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 89029.86,
+                    "indexPrice": 89025.82,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1741363200000,
+                    "fundingDatetime": "2025-03-07T16:00:00.000Z",
+                    "nextFundingRate": 0.0001,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                  }
+                }
+            }
         ]
     }
 }

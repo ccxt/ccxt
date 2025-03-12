@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, FundingHistory } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -405,6 +405,29 @@ export default class whitebit extends Exchange {
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
+    /**
+     * @method
+     * @name whitebit#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseFundingHistory(contract: any, market?: Market): {
+        info: any;
+        symbol: string;
+        code: any;
+        timestamp: number;
+        datetime: string;
+        id: any;
+        amount: number;
+    };
+    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
     /**
      * @method
      * @name whitebit#fetchDepositsWithdrawals

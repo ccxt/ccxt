@@ -92,19 +92,34 @@ func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
 	return e.base58ToBinary(pt)
 }
 
-func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
-	var first, second []byte
-	if s, ok := a.(string); ok {
-		first = []byte(s)
-	} else {
-		first = a.([]byte)
+// func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
+// 	var first, second []byte
+// 	if s, ok := a.(string); ok {
+// 		first = []byte(s)
+// 	} else {
+// 		first = a.([]byte)
+// 	}
+// 	if s, ok := b.(string); ok {
+// 		second = []byte(s)
+// 	} else {
+// 		second = b.([]byte)
+// 	}
+// 	return append(first, second...)
+// }
+
+func (e *Exchange) BinaryConcat(parts ...interface{}) []byte {
+	var result []byte
+	for _, part := range parts {
+		switch v := part.(type) {
+		case string:
+			result = append(result, []byte(v)...)
+		case []byte:
+			result = append(result, v...)
+		default:
+			panic("BinaryConcat: unsupported type, only string and []byte are allowed")
+		}
 	}
-	if s, ok := b.(string); ok {
-		second = []byte(s)
-	} else {
-		second = b.([]byte)
-	}
-	return append(first, second...)
+	return result
 }
 
 func (e *Exchange) binaryConcatArray(a interface{}) string {

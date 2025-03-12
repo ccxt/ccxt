@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -68,7 +68,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
@@ -186,6 +186,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
@@ -194,6 +195,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'markets',
                             'futures',
                             'platform/status',
+                            'mining-pool',
                         ],
                     },
                     'private': {
@@ -201,9 +203,11 @@ class whitebit(Exchange, ImplicitAPI):
                             'collateral-account/balance',
                             'collateral-account/balance-summary',
                             'collateral-account/positions/history',
+                            'collateral-account/funding-history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
+                            'collateral-account/funding-history',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -230,6 +234,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'order/collateral/market',
                             'order/collateral/stop-limit',
                             'order/collateral/trigger-market',
+                            'order/collateral/bulk',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -241,6 +246,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'order/kill-switch/status',
                             'order/bulk',
                             'order/modify',
+                            'order/conditional-cancel',
                             'orders',
                             'oco-orders',
                             'order/collateral/oco',
@@ -259,6 +265,17 @@ class whitebit(Exchange, ImplicitAPI):
                             'sub-account/unblock',
                             'sub-account/balances',
                             'sub-account/transfer/history',
+                            'sub-account/api-key/create',
+                            'sub-account/api-key/edit',
+                            'sub-account/api-key/delete',
+                            'sub-account/api-key/list',
+                            'sub-account/api-key/reset',
+                            'sub-account/api-key/ip-address/list',
+                            'sub-account/api-key/ip-address/create',
+                            'sub-account/api-key/ip-address/delete',
+                            'mining/rewards',
+                            'market/fee',
+                            'conditional-orders',
                         ],
                     },
                 },
@@ -2514,6 +2531,84 @@ class whitebit(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
             'interval': None,
         }
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://docs.whitebit.com/private/http-trade-v4/#funding-history
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the starting timestamp in milliseconds
+        :param int [limit]: the number of entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch funding history for
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['startDate'] = since
+        if limit is not None:
+            request['limit'] = since
+        request, params = self.handle_until_option('endDate', request, params)
+        response = self.v4PrivatePostCollateralAccountFundingHistory(request)
+        #
+        #     {
+        #         "records": [
+        #             {
+        #                 "market": "BTC_PERP",
+        #                 "fundingTime": "1708704000000",
+        #                 "fundingRate": "0.00017674",
+        #                 "fundingAmount": "-0.171053531892",
+        #                 "positionAmount": "0.019",
+        #                 "settlementPrice": "50938.2",
+        #                 "rateCalculatedTime": "1708675200000"
+        #             },
+        #         ],
+        #         "limit": 100,
+        #         "offset": 0
+        #     }
+        #
+        data = self.safe_list(response, 'records', [])
+        return self.parse_funding_histories(data, market, since, limit)
+
+    def parse_funding_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "market": "BTC_PERP",
+        #         "fundingTime": "1708704000000",
+        #         "fundingRate": "0.00017674",
+        #         "fundingAmount": "-0.171053531892",
+        #         "positionAmount": "0.019",
+        #         "settlementPrice": "50938.2",
+        #         "rateCalculatedTime": "1708675200000"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'market')
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(contract, 'fundingAmount'),
+        }
+
+    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+        result = []
+        for i in range(0, len(contracts)):
+            contract = contracts[i]
+            result.append(self.parse_funding_history(contract, market))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

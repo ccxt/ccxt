@@ -504,6 +504,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/margin-asset-leverage': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
+                        'portfolio/pmloan-history': 5,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -6164,11 +6165,11 @@ class binance(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        # don't handle/omit params here, omitting happens inside createOrderRequest
         marketType = self.safe_string(params, 'type', market['type'])
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
+        marginMode = self.safe_string(params, 'marginMode')
+        porfolioOptionsValue = self.safe_bool_2(self.options, 'papi', 'portfolioMargin', False)
+        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', porfolioOptionsValue)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -6180,8 +6181,9 @@ class binance(Exchange, ImplicitAPI):
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, ['sor', 'SOR', 'test'])
-        if isPortfolioMargin:
-            params['portfolioMargin'] = isPortfolioMargin
+        # if isPortfolioMargin:
+        #     params['portfolioMargin'] = isPortfolioMargin
+        # }
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
         if market['option']:

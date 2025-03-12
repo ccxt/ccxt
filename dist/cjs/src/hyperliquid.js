@@ -8,7 +8,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -51,6 +51,7 @@ class hyperliquid extends hyperliquid$1 {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -1368,7 +1369,7 @@ class hyperliquid extends hyperliquid$1 {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const [order, globalParams] = this.parseCreateOrderArgs(symbol, type, side, amount, price, params);
+        const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders([order], globalParams);
         return orders[0];
     }
@@ -1757,84 +1758,112 @@ class hyperliquid extends hyperliquid$1 {
         //
         return response;
     }
-    editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    editOrdersRequest(orders, params = {}) {
         this.checkRequiredCredentials();
-        if (id === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument');
+        let hasClientOrderId = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+            if (clientOrderId !== undefined) {
+                hasClientOrderId = true;
+            }
         }
-        const market = this.market(symbol);
-        type = type.toUpperCase();
-        const isMarket = (type === 'MARKET');
-        side = side.toUpperCase();
-        const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeString(this.options, 'defaultSlippage');
-        const slippage = this.safeString(params, 'slippage', defaultSlippage);
-        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
-            defaultTimeInForce = 'alo';
+        if (hasClientOrderId) {
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const orderParams = this.safeDict(rawOrder, 'params', {});
+                const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+                if (clientOrderId === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' editOrders() all orders must have clientOrderId if at least one has a clientOrderId');
+                }
+            }
         }
-        let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
-        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
-        params = this.omit(params, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id']);
-        let px = price.toString();
-        if (isMarket) {
-            px = (isBuy) ? Precise["default"].stringMul(price.toString(), Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price.toString(), Precise["default"].stringSub('1', slippage));
-        }
-        else {
-            px = this.priceToPrecision(symbol, price.toString());
-        }
-        const sz = this.amountToPrecision(symbol, amount);
-        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const orderType = {};
-        if (isTrigger) {
-            let isTp = false;
-            if (takeProfitPrice !== undefined) {
-                triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                isTp = true;
+        params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
+        const modifies = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const id = this.safeString(rawOrder, 'id');
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const market = this.market(marketId);
+            const symbol = market['symbol'];
+            const type = this.safeStringUpper(rawOrder, 'type');
+            const isMarket = (type === 'MARKET');
+            const side = this.safeStringUpper(rawOrder, 'side');
+            const isBuy = (side === 'BUY');
+            const amount = this.safeString(rawOrder, 'amount');
+            const price = this.safeString(rawOrder, 'price');
+            let orderParams = this.safeDict(rawOrder, 'params', {});
+            const defaultSlippage = this.safeString(this.options, 'defaultSlippage');
+            const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
+            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            const postOnly = this.safeBool(orderParams, 'postOnly', false);
+            if (postOnly) {
+                defaultTimeInForce = 'alo';
+            }
+            let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            timeInForce = this.capitalize(timeInForce);
+            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+            let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
+            const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeString(orderParams, 'takeProfitPrice');
+            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
+            orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
+            let px = price.toString();
+            if (isMarket) {
+                px = (isBuy) ? Precise["default"].stringMul(price.toString(), Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price.toString(), Precise["default"].stringSub('1', slippage));
             }
             else {
-                triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                px = this.priceToPrecision(symbol, price.toString());
             }
-            orderType['trigger'] = {
-                'isMarket': isMarket,
-                'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
+            const sz = this.amountToPrecision(symbol, amount);
+            const orderType = {};
+            if (isTrigger) {
+                let isTp = false;
+                if (takeProfitPrice !== undefined) {
+                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    isTp = true;
+                }
+                else {
+                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                }
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': triggerPrice,
+                    'tpsl': (isTp) ? 'tp' : 'sl',
+                };
+            }
+            else {
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                };
+            }
+            if (triggerPrice === undefined) {
+                triggerPrice = '0';
+            }
+            const orderReq = {
+                'a': this.parseToInt(market['baseId']),
+                'b': isBuy,
+                'p': px,
+                's': sz,
+                'r': reduceOnly,
+                't': orderType,
+                // 'c': clientOrderId,
             };
-        }
-        else {
-            orderType['limit'] = {
-                'tif': timeInForce,
+            if (clientOrderId !== undefined) {
+                orderReq['c'] = clientOrderId;
+            }
+            const modifyReq = {
+                'oid': this.parseToInt(id),
+                'order': orderReq,
             };
-        }
-        if (triggerPrice === undefined) {
-            triggerPrice = '0';
+            modifies.push(modifyReq);
         }
         const nonce = this.milliseconds();
-        const orderReq = {
-            'a': this.parseToInt(market['baseId']),
-            'b': isBuy,
-            'p': px,
-            's': sz,
-            'r': reduceOnly,
-            't': orderType,
-            // 'c': clientOrderId,
-        };
-        if (clientOrderId !== undefined) {
-            orderReq['c'] = clientOrderId;
-        }
-        const modifyReq = {
-            'oid': this.parseToInt(id),
-            'order': orderReq,
-        };
         const modifyAction = {
             'type': 'batchModify',
-            'modifies': [modifyReq],
+            'modifies': modifies,
         };
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
         const signature = this.signL1Action(modifyAction, nonce, vaultAddress);
@@ -1854,7 +1883,6 @@ class hyperliquid extends hyperliquid$1 {
      * @method
      * @name hyperliquid#editOrder
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -1873,8 +1901,25 @@ class hyperliquid extends hyperliquid$1 {
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        if (id === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument');
+        }
+        const [order, globalParams] = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params);
+        const orders = await this.editOrders([order], globalParams);
+        return orders[0];
+    }
+    /**
+     * @method
+     * @name hyperliquid#editOrders
+     * @description edit a list of trade orders
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const request = this.editOrdersRequest(orders, params);
         const response = await this.privatePostExchange(request);
         //
         //     {
@@ -1914,8 +1959,7 @@ class hyperliquid extends hyperliquid$1 {
         const responseObject = this.safeDict(response, 'response', {});
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
-        const first = this.safeDict(statuses, 0, {});
-        return this.parseOrder(first, market);
+        return this.parseOrders(statuses);
     }
     /**
      * @method
@@ -3535,7 +3579,7 @@ class hyperliquid extends hyperliquid$1 {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    parseCreateOrderArgs(symbol, type, side, amount, price = undefined, params = {}) {
+    parseCreateEditOrderArgs(id, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         const vaultAddress = this.safeString(params, 'vaultAddress');
         params = this.omit(params, 'vaultAddress');
@@ -3551,6 +3595,9 @@ class hyperliquid extends hyperliquid$1 {
         const globalParams = {};
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
+        }
+        if (id !== undefined) {
+            order['id'] = id;
         }
         return [order, globalParams];
     }

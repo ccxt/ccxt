@@ -1947,7 +1947,11 @@ class gate(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request, query = self.prepare_request(None, 'swap', params)
+        market = None
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+        request, query = self.prepare_request(market, 'swap', params)
         response = await self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
         #    [

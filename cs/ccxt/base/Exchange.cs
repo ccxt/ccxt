@@ -397,6 +397,10 @@ public partial class Exchange
         }
         return int.Parse(number);
     }
+    public int binaryLength(object binary)
+    {
+        return getArrayLength(binary);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
@@ -1076,6 +1080,11 @@ public partial class Exchange
         var options = (dict)options2;
         var extended = this.extend(this.options, options);
         this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
+    }
+
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
     public IDictionary<string, object> createSafeDictionary()

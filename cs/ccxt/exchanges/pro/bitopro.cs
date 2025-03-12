@@ -81,7 +81,7 @@ public partial class bitopro : ccxt.bitopro
             endPart = getValue(market, "id");
         } else
         {
-            endPart = add(add(getValue(market, "id"), ":"), limit);
+            endPart = add(add(getValue(market, "id"), ":"), this.numberToString(limit));
         }
         object orderbook = await this.watchPublic("order-books", messageHash, endPart);
         return (orderbook as IOrderBook).limit();

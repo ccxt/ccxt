@@ -6,6 +6,7 @@ class ImplicitAPI:
     public_get_orders_market = publicGetOrdersMarket = Entry('orders/{market}', 'public', 'GET', {'cost': 1})
     public_get_ticker_market = publicGetTickerMarket = Entry('ticker/{market}', 'public', 'GET', {'cost': 1})
     public_get_history_market = publicGetHistoryMarket = Entry('history/{market}', 'public', 'GET', {'cost': 1})
+    public_get_chart_interval_market_timestamp = publicGetChartIntervalMarketTimestamp = Entry('chart/{interval}/{market}/{timestamp}', 'public', 'GET', {'cost': 1})
     private_get_account_balance = privateGetAccountBalance = Entry('account/balance', 'private', 'GET', {'cost': 1})
     private_get_account_balances = privateGetAccountBalances = Entry('account/balances', 'private', 'GET', {'cost': 1})
     private_get_account_order_uuid = privateGetAccountOrderUuid = Entry('account/order/{uuid}', 'private', 'GET', {'cost': 1})

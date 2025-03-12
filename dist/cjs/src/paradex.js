@@ -8,7 +8,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -1184,6 +1184,11 @@ class paradex extends paradex$1 {
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
+        const flags = this.safeList(order, 'flags', []);
+        let reduceOnly = undefined;
+        if ('REDUCE_ONLY' in flags) {
+            reduceOnly = true;
+        }
         return this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1196,7 +1201,7 @@ class paradex extends paradex$1 {
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(this.safeString(order, 'instrunction')),
             'postOnly': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': this.safeString(order, 'trigger_price'),
@@ -1264,6 +1269,8 @@ class paradex extends paradex$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1274,17 +1281,21 @@ class paradex extends paradex$1 {
         await this.authenticateRest();
         await this.loadMarkets();
         const market = this.market(symbol);
-        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+        let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
         const orderSide = side.toUpperCase();
         const request = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType,
-            'size': this.amountToPrecision(symbol, amount),
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const isMarket = orderType === 'MARKET';
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
         if (!isMarket) {
@@ -1295,11 +1306,6 @@ class paradex extends paradex$1 {
                 request['instruction'] = 'IOC';
             }
         }
-        if (reduceOnly) {
-            request['flags'] = [
-                'REDUCE_ONLY',
-            ];
-        }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -1307,16 +1313,58 @@ class paradex extends paradex$1 {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (triggerPrice !== undefined) {
+        let sizeString = '0';
+        let stopPrice = undefined;
+        if (isStopOrder) {
+            // flags: Reduce_Only must be provided for TPSL orders.
             if (isMarket) {
-                request['type'] = 'STOP_MARKET';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_MARKET';
+                }
+                else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_MARKET';
+                }
+                else {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    request['type'] = 'STOP_MARKET';
+                }
             }
             else {
-                request['type'] = 'STOP_LIMIT';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_LIMIT';
+                }
+                else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                }
+                else {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    request['type'] = 'STOP_LIMIT';
+                }
             }
-            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
+        else {
+            sizeString = this.amountToPrecision(symbol, amount);
+        }
+        if (stopPrice !== undefined) {
+            request['trigger_price'] = stopPrice;
+        }
+        request['size'] = sizeString;
+        if (reduceOnly) {
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ];
+        }
+        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         const account = await this.retrieveAccount();
         const now = this.nonce();
         const orderReq = {
