@@ -1037,6 +1037,7 @@ public partial class derive : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
+        this.checkRequiredCredentials();
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
@@ -2677,7 +2678,6 @@ public partial class derive : Exchange
             };
             if (isTrue(isEqual(api, "private")))
             {
-                this.checkRequiredCredentials();
                 object now = ((object)this.milliseconds()).ToString();
                 object signature = this.signMessage(now, this.privateKey);
                 ((IDictionary<string,object>)headers)["X-LyraWallet"] = this.safeString(this.options, "deriveWalletAddress");

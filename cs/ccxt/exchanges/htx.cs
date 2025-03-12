@@ -821,6 +821,7 @@ public partial class htx : Exchange
                     { "1041", typeof(InvalidOrder) },
                     { "1047", typeof(InsufficientFunds) },
                     { "1048", typeof(InsufficientFunds) },
+                    { "1061", typeof(OrderNotFound) },
                     { "1051", typeof(InvalidOrder) },
                     { "1066", typeof(BadSymbol) },
                     { "1067", typeof(InvalidOrder) },
@@ -7963,6 +7964,7 @@ public partial class htx : Exchange
         {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             object status = this.safeString(response, "status");
             if (isTrue(isEqual(status, "error")))
@@ -7982,6 +7984,17 @@ public partial class htx : Exchange
             object feedback = add(add(this.id, " "), body);
             object code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        object data = this.safeDict(response, "data");
+        object errorsList = this.safeList(data, "errors");
+        if (isTrue(!isEqual(errorsList, null)))
+        {
+            object first = this.safeDict(errorsList, 0);
+            object errcode = this.safeString(first, "err_code");
+            object errmessage = this.safeString(first, "err_msg");
+            object feedBack = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
         }
         return null;
     }

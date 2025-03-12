@@ -1483,7 +1483,9 @@ class testMainClass {
             this.testParadex(),
             this.testHashkey(),
             this.testCoincatch(),
-            this.testDefx()
+            this.testDefx(),
+            this.testCryptomus(),
+            this.testDerive(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2038,6 +2040,46 @@ class testMainClass {
         }
         const id = 'ccxt';
         assert(reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testCryptomus() {
+        const exchange = this.initOfflineExchange('cryptomus');
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'sell', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const tag = 'ccxt';
+        assert(request['tag'] === tag, 'cryptomus - tag: ' + tag + ' not in request.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testDerive() {
+        const exchange = this.initOfflineExchange('derive');
+        const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+        assert(exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            const params = {
+                'subaccount_id': 1234,
+                'max_fee': 10,
+                'deriveWalletAddress': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+            };
+            exchange.walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+            exchange.privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5';
+            await exchange.createOrder('LBTC/USDC', 'limit', 'sell', 0.01, 3000, params);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
         if (!isSync()) {
             await close(exchange);
         }

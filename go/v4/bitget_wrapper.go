@@ -934,10 +934,11 @@ func (this *Bitget) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -988,10 +989,11 @@ func (this *Bitget) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -1042,6 +1044,12 @@ func (this *Bitget) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {

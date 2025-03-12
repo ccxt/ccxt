@@ -1146,7 +1146,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1638,6 +1638,40 @@ class testMainClass:
             req_headers = exchange.last_request_headers
         id = 'ccxt'
         assert req_headers['X-DEFX-SOURCE'] == id, 'defx - id: ' + id + ' not in headers.'
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_cryptomus(self):
+        exchange = self.init_offline_exchange('cryptomus')
+        request = None
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'sell', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        tag = 'ccxt'
+        assert request['tag'] == tag, 'cryptomus - tag: ' + tag + ' not in request.'
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_derive(self):
+        exchange = self.init_offline_exchange('derive')
+        id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
+        assert exchange.options['id'] == id, 'derive - id: ' + id + ' not in options'
+        request = None
+        try:
+            params = {
+                'subaccount_id': 1234,
+                'max_fee': 10,
+                'deriveWalletAddress': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+            }
+            exchange.walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
+            exchange.privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5'
+            await exchange.create_order('LBTC/USDC', 'limit', 'sell', 0.01, 3000, params)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        assert request['referral_code'] == id, 'derive - referral_code: ' + id + ' not in request.'
         if not is_sync():
             await close(exchange)
         return True

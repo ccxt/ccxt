@@ -16,7 +16,7 @@ Current feature list:
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
+- works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+ and web browsers
 
 
 ## Sponsored Promotion
@@ -619,7 +619,10 @@ We are investing a significant amount of time into the development of this libra
 
 ### Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+
+[![Vitality](https://github.com/user-attachments/assets/0981aae2-3e12-4b57-8d2f-c5ae2b3b8b1c)](https://vitalitycrypto.com/)
+
+Support this project by becoming a sponsor.
 
 [[Become a sponsor](https://opencollective.com/ccxt#sponsor)]
 
