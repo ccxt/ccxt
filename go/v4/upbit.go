@@ -2539,6 +2539,6 @@ func  (this *upbit) HandleErrors(httpCode interface{}, reason interface{}, url i
 
 func (this *upbit) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }
