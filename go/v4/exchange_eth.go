@@ -208,18 +208,40 @@ func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interfac
 	return byteArray
 }
 
+// func ConvertInt64ToBigInt(data interface{}) interface{} {  // these functions change in place the object, no bueno
+// 	switch v := data.(type) {
+// 	case map[string]interface{}:
+// 		for key, value := range v {
+// 			v[key] = ConvertInt64ToBigInt(value)
+// 		}
+// 		return v
+// 	case []interface{}:
+// 		for i, item := range v {
+// 			v[i] = ConvertInt64ToBigInt(item)
+// 		}
+// 		return v
+// 	case int64:
+// 		return uint8(v)
+// 	default:
+// 		return v // Leave other types unchanged
+// 	}
+//
+// }
+
 func ConvertInt64ToBigInt(data interface{}) interface{} {
 	switch v := data.(type) {
 	case map[string]interface{}:
+		newMap := make(map[string]interface{}, len(v))
 		for key, value := range v {
-			v[key] = ConvertInt64ToBigInt(value)
+			newMap[key] = ConvertInt64ToBigInt(value)
 		}
-		return v
+		return newMap
 	case []interface{}:
+		newSlice := make([]interface{}, len(v))
 		for i, item := range v {
-			v[i] = ConvertInt64ToBigInt(item)
+			newSlice[i] = ConvertInt64ToBigInt(item)
 		}
-		return v
+		return newSlice
 	case int64:
 		return uint8(v)
 	default:
@@ -227,18 +249,39 @@ func ConvertInt64ToBigInt(data interface{}) interface{} {
 	}
 }
 
+// func ConvertInt64ToInt(data interface{}) interface{} { // these functions change in place the object, no bueno
+// 	switch v := data.(type) {
+// 	case map[string]interface{}:
+// 		for key, value := range v {
+// 			v[key] = ConvertInt64ToInt(value)
+// 		}
+// 		return v
+// 	case []interface{}:
+// 		for i, item := range v {
+// 			v[i] = ConvertInt64ToInt(item)
+// 		}
+// 		return v
+// 	case int64:
+// 		return int(v)
+// 	default:
+// 		return v // Leave other types unchanged
+// 	}
+// }
+
 func ConvertInt64ToInt(data interface{}) interface{} {
 	switch v := data.(type) {
 	case map[string]interface{}:
+		newMap := make(map[string]interface{}, len(v))
 		for key, value := range v {
-			v[key] = ConvertInt64ToInt(value)
+			newMap[key] = ConvertInt64ToInt(value)
 		}
-		return v
+		return newMap
 	case []interface{}:
+		newSlice := make([]interface{}, len(v))
 		for i, item := range v {
-			v[i] = ConvertInt64ToInt(item)
+			newSlice[i] = ConvertInt64ToInt(item)
 		}
-		return v
+		return newSlice
 	case int64:
 		return int(v)
 	default:
