@@ -1049,6 +1049,6 @@ func  (this *tradeogre) HandleErrors(code interface{}, reason interface{}, url i
 
 func (this *tradeogre) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

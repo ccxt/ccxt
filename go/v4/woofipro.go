@@ -3493,6 +3493,6 @@ func  (this *woofipro) HandleErrors(httpCode interface{}, reason interface{}, ur
 
 func (this *woofipro) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }
