@@ -10,8 +10,7 @@ import (
 	"strings"
 	"time"
 
-	// ccxt "github.com/ccxt/ccxt/go/v4"
-	ccxt "github.com/ccxt/ccxt/go/v5"
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 var Red = "\033[31m"
@@ -32,8 +31,7 @@ func getRandomKeyFromList(list []string) string {
 }
 
 func benchmarks() {
-	// exchange := ccxt.NewBinanceCore()
-	exchange := ccxt.NewHyperliquidCore()
+	exchange := ccxt.NewBinanceCore()
 	exchange.Init(nil)
 
 	dir := GetRootDir()
