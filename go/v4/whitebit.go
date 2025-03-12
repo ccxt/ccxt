@@ -56,7 +56,7 @@ func  (this *whitebit) Describe() interface{}  {
             "fetchDepositsWithdrawals": true,
             "fetchDepositWithdrawFee": "emulated",
             "fetchDepositWithdrawFees": true,
-            "fetchFundingHistory": false,
+            "fetchFundingHistory": true,
             "fetchFundingRate": true,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": true,
@@ -3099,6 +3099,119 @@ func  (this *whitebit) ParseFundingRate(contract interface{}, optionalArgs ...in
 }
 /**
  * @method
+ * @name whitebit#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the starting timestamp in milliseconds
+ * @param {int} [limit] the number of entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
+func  (this *whitebit) FetchFundingHistory(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
+            _ = symbol
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]interface{} {})
+            _ = params
+        
+            retRes26648 := (<-this.LoadMarkets())
+            PanicOnError(retRes26648)
+            if IsTrue(IsEqual(symbol, nil)) {
+                panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
+            }
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "market": GetValue(market, "id"),
+            }
+            if IsTrue(!IsEqual(since, nil)) {
+                AddElementToObject(request, "startDate", since)
+            }
+            if IsTrue(!IsEqual(limit, nil)) {
+                AddElementToObject(request, "limit", since)
+            }
+            requestparamsVariable := this.HandleUntilOption("endDate", request, params);
+            request = GetValue(requestparamsVariable,0);
+            params = GetValue(requestparamsVariable,1)
+        
+            response:= (<-this.callDynamically("v4PrivatePostCollateralAccountFundingHistory", request))
+            PanicOnError(response)
+            //
+            //     {
+            //         "records": [
+            //             {
+            //                 "market": "BTC_PERP",
+            //                 "fundingTime": "1708704000000",
+            //                 "fundingRate": "0.00017674",
+            //                 "fundingAmount": "-0.171053531892",
+            //                 "positionAmount": "0.019",
+            //                 "settlementPrice": "50938.2",
+            //                 "rateCalculatedTime": "1708675200000"
+            //             },
+            //         ],
+            //         "limit": 100,
+            //         "offset": 0
+            //     }
+            //
+            var data interface{} = this.SafeList(response, "records", []interface{}{})
+        
+            ch <- this.ParseFundingHistories(data, market, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *whitebit) ParseFundingHistory(contract interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     {
+    //         "market": "BTC_PERP",
+    //         "fundingTime": "1708704000000",
+    //         "fundingRate": "0.00017674",
+    //         "fundingAmount": "-0.171053531892",
+    //         "positionAmount": "0.019",
+    //         "settlementPrice": "50938.2",
+    //         "rateCalculatedTime": "1708675200000"
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var marketId interface{} = this.SafeString(contract, "market")
+    var timestamp interface{} = this.SafeInteger(contract, "fundingTime")
+    return map[string]interface{} {
+        "info": contract,
+        "symbol": this.SafeSymbol(marketId, market, nil, "swap"),
+        "code": nil,
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
+        "id": nil,
+        "amount": this.SafeNumber(contract, "fundingAmount"),
+    }
+}
+func  (this *whitebit) ParseFundingHistories(contracts interface{}, optionalArgs ...interface{}) interface{}  {
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    since := GetArg(optionalArgs, 1, nil)
+    _ = since
+    limit := GetArg(optionalArgs, 2, nil)
+    _ = limit
+    var result interface{} = []interface{}{}
+    for i := 0; IsLessThan(i, GetArrayLength(contracts)); i++ {
+        var contract interface{} = GetValue(contracts, i)
+        AppendToArray(&result,this.ParseFundingHistory(contract, market))
+    }
+    var sorted interface{} = this.SortBy(result, "timestamp")
+    return this.FilterBySinceLimit(sorted, since, limit)
+}
+/**
+ * @method
  * @name whitebit#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
@@ -3130,8 +3243,8 @@ func  (this *whitebit) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes26718 := (<-this.LoadMarkets())
-            PanicOnError(retRes26718)
+            retRes27568 := (<-this.LoadMarkets())
+            PanicOnError(retRes27568)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -3288,6 +3401,6 @@ func  (this *whitebit) HandleErrors(code interface{}, reason interface{}, url in
 
 func (this *whitebit) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

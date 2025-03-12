@@ -1061,6 +1061,51 @@ func (this *Whitebit) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
 }
 /**
  * @method
+ * @name whitebit#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the starting timestamp in milliseconds
+ * @param {int} [limit] the number of entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
+func (this *Whitebit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+    opts := FetchFundingHistoryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingHistory(symbol, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewFundingHistoryArray(res), nil
+}
+/**
+ * @method
  * @name whitebit#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history

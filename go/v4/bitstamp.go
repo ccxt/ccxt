@@ -2834,6 +2834,6 @@ func  (this *bitstamp) HandleErrors(httpCode interface{}, reason interface{}, ur
 
 func (this *bitstamp) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }
