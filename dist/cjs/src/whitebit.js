@@ -190,7 +190,6 @@ class whitebit extends whitebit$1 {
                             'collateral-account/balance',
                             'collateral-account/balance-summary',
                             'collateral-account/positions/history',
-                            'collateral-account/funding-history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
