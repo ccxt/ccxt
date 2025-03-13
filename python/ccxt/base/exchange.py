@@ -305,7 +305,7 @@ class Exchange(object):
     bidsasks = None
     base_currencies = None
     quote_currencies = None
-    currencies = None
+    currencies = {}
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
