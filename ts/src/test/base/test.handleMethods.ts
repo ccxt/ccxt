@@ -70,21 +70,15 @@ function helperTestHandleNetworkRequest () {
     exchange.currencies = {};  // todo: initialize in C# base files
     const currencyCode = 'ETH'; // todo: in future with complex cases
     // no-case
-    let request1 = {};
-    let params1 = { 'network': 'XYZ' };
-    [ request1, params1 ] = exchange.handleRequestNetwork (params1, request1, 'chain_id', currencyCode, false);
+    const [ request1, params1 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);
     assert (!('network' in params1));
     assert ('chain_id' in request1);
     assert (request1['chain_id'] === 'Xyz');
     // uppercase
-    let request2 = {};
-    let params2 = { 'network': 'XYZ' };
-    [ request2, params2 ] = exchange.handleRequestNetwork (params2, request2, 'chain_id', currencyCode, false, 'uppercase');
+    const [ request2, params2 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false, 'uppercase');
     assert (request2['chain_id'] === 'XYZ');
     // lowercase
-    let request3 = {};
-    let params3 = { 'network': 'XYZ' };
-    [ request3, params3 ] = exchange.handleRequestNetwork (params3, request3, 'chain_id', currencyCode, false, 'lowercase');
+    const [ request3, params3 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false, 'lowercase');
     assert (request3['chain_id'] === 'xyz');
 }
 
