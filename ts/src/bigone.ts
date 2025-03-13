@@ -16,7 +16,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -982,7 +982,7 @@ export default class bigone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPing (params);
         //
         //     {
@@ -1183,8 +1183,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode = undefined;
-        let takerCurrencyCode = undefined;
+        let makerCurrencyCode: string;
+        let takerCurrencyCode: string;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {

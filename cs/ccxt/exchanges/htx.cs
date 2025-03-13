@@ -821,6 +821,7 @@ public partial class htx : Exchange
                     { "1041", typeof(InvalidOrder) },
                     { "1047", typeof(InsufficientFunds) },
                     { "1048", typeof(InsufficientFunds) },
+                    { "1061", typeof(OrderNotFound) },
                     { "1051", typeof(InvalidOrder) },
                     { "1066", typeof(BadSymbol) },
                     { "1067", typeof(InvalidOrder) },
@@ -7599,12 +7600,19 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "fetchFundingRates", new Dictionary<string, object>() {});
-        object defaultSubType = this.safeString(this.options, "defaultSubType", "inverse");
-        object subType = this.safeString(options, "subType", defaultSubType);
-        subType = this.safeString(parameters, "subType", subType);
+        object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+        object subType = null;
+        var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            object market = this.market(firstSymbol);
+            object isLinear = getValue(market, "linear");
+            subType = ((bool) isTrue(isLinear)) ? "linear" : "inverse";
+        }
         object request = new Dictionary<string, object>() {};
-        parameters = this.omit(parameters, "subType");
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {
@@ -7956,6 +7964,7 @@ public partial class htx : Exchange
         {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             object status = this.safeString(response, "status");
             if (isTrue(isEqual(status, "error")))
@@ -7975,6 +7984,17 @@ public partial class htx : Exchange
             object feedback = add(add(this.id, " "), body);
             object code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        object data = this.safeDict(response, "data");
+        object errorsList = this.safeList(data, "errors");
+        if (isTrue(!isEqual(errorsList, null)))
+        {
+            object first = this.safeDict(errorsList, 0);
+            object errcode = this.safeString(first, "err_code");
+            object errmessage = this.safeString(first, "err_msg");
+            object feedBack = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
         }
         return null;
     }

@@ -15,7 +15,7 @@ import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, Order
  * @augments Exchange
  */
 export default class ascendex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ascendex',
             'name': 'AscendEX',
@@ -793,7 +793,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the ascendex server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const request: Dict = {
             'requestTime': this.milliseconds (),
         };

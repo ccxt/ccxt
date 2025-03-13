@@ -1914,7 +1914,7 @@ class hollaex extends hollaex$1 {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeList(response, 'coins');
+        const coins = this.safeDict(response, 'coins', {});
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {

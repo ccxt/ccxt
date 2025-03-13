@@ -10,13 +10,13 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends \ccxt\async\bybit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -826,7 +826,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         for ($i = 0; $i < count($data); $i++) {
-            $parsed = $this->parse_ws_ohlcv($data[$i]);
+            $parsed = $this->parse_ws_ohlcv($data[$i], $market);
             $stored->append ($parsed);
         }
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
@@ -850,13 +850,14 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp" => 1670363219614
         //     }
         //
+        $volumeIndex = ($market['inverse']) ? 'turnover' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
             $this->safe_number($ohlcv, 'close'),
-            $this->safe_number_2($ohlcv, 'volume', 'turnover'),
+            $this->safe_number($ohlcv, $volumeIndex),
         );
     }
 

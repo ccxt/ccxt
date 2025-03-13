@@ -5,13 +5,18 @@ package base
 
 
 var FunctionsMap = map[string]interface{}{
+    "afterConstructor": TestAfterConstructor,
     "datetime": TestDatetime,
     "deepExtend": TestDeepExtend,
     "extend": TestExtend,
+    "filterBy": TestFilterBy,
     "groupBy": TestGroupBy,
+    "handleMethods": TestHandleMethods,
+    "json": TestJson,
     "number": TestNumber,
     "omit": TestOmit,
     "safeMethods": TestSafeMethods,
+    "sortBy": TestSortBy,
     "sum": TestSum,
     "account": TestAccount,
     "balance": TestBalance,

@@ -472,7 +472,6 @@ func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAl
  * @method
  * @name hyperliquid#editOrder
  * @description edit a trade order
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
@@ -516,6 +515,33 @@ func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, sid
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name hyperliquid#editOrders
+ * @description edit a list of trade orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
 }
 /**
  * @method
@@ -1274,4 +1300,47 @@ func (this *Hyperliquid) FetchOpenInterest(symbol string, options ...FetchOpenIn
         return OpenInterest{}, CreateReturnError(res)
     }
     return NewOpenInterest(res), nil
+}
+/**
+ * @method
+ * @name hyperliquid#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
+func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+    opts := FetchFundingHistoryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingHistory(symbol, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewFundingHistoryArray(res), nil
 }

@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -34,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class bitrue(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitrue, self).describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
@@ -657,7 +657,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1386,6 +1386,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1416,8 +1417,10 @@ class bitrue(Exchange, ImplicitAPI):
             }
             if limit is not None:
                 request['limit'] = limit
-            if since is not None:
-                request['fromIdx'] = since
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['fromIdx'] = until
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
         else:

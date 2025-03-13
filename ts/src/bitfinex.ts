@@ -13,7 +13,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class bitfinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
             'name': 'Bitfinex',

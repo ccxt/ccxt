@@ -19,7 +19,7 @@ func  (this *coinbaseinternational) Describe() interface{}  {
         "id": "coinbaseinternational",
         "name": "Coinbase International",
         "countries": []interface{}{"US"},
-        "certified": true,
+        "certified": false,
         "pro": true,
         "rateLimit": 100,
         "version": "v1",
@@ -2887,6 +2887,6 @@ func  (this *coinbaseinternational) HandleErrors(code interface{}, reason interf
 
 func (this *coinbaseinternational) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

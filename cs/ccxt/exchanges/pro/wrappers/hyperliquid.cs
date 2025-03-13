@@ -99,7 +99,6 @@ public partial class hyperliquid
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order"/>  <br/>
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
     /// <list type="table">
     /// <item>

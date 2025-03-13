@@ -20,7 +20,7 @@ func  (this *coinbase) Describe() interface{}  {
         "name": "Coinbase Advanced",
         "countries": []interface{}{"US"},
         "pro": true,
-        "certified": true,
+        "certified": false,
         "rateLimit": 34,
         "version": "v2",
         "userAgent": GetValue(this.UserAgents, "chrome"),
@@ -6136,6 +6136,6 @@ func  (this *coinbase) HandleErrors(code interface{}, reason interface{}, url in
 
 func (this *coinbase) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

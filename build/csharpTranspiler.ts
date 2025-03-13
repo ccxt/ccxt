@@ -1204,6 +1204,7 @@ class NewTranspiler {
             content = this.regexAll (content, [
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
+                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
             ]).trim ()

@@ -1,0 +1,151 @@
+{
+    "exchange": "cryptomus",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders?market=ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders/history?market=ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.cryptomus.com/v1/exchange/market/order-book/ETH_USDT?level=0",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/markets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.cryptomus.com/v1/exchange/market/assets",
+                "input": []
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "test",
+                "url": "https://api.cryptomus.com/v1/exchange/market/tickers",
+                "input": [
+                    [
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.cryptomus.com/v1/exchange/market/trades/ETH_USDT",
+                "input": [
+                    "ETH/USDT",
+                    1726653796000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.cryptomus.com/v1/exchange/market/trades/ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create limit sell order",
+                "method": "createOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    2000
+                ],
+                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"buy\",\"tag\":\"ccxt\",\"quantity\":\"0.001\",\"price\":2000}"
+            },
+            {
+                "description": "Create market buy order",
+                "method": "createOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders/market",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    1
+                ],
+                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"buy\",\"tag\":\"ccxt\",\"value\":\"5\"}"
+            },
+            {
+                "description": "Create market sell order",
+                "method": "createOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders/market",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005
+                ],
+                "output": "{\"market\":\"ETH_USDT\",\"direction\":\"sell\",\"tag\":\"ccxt\",\"quantity\":\"0.005\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/orders/01JNEC5GG01YCAM77F57SYQX43",
+                "input": [
+                    "01JNEC5GG01YCAM77F57SYQX43"
+                ],
+                "output": "{}"
+            }
+        ]
+    }
+}

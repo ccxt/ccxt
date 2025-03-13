@@ -31,6 +31,9 @@ type IExchange interface {
 	GetLast_request_headers() map[string]interface{}
 	GetHas() map[string]interface{}
 	GetId() string
+	GetHostname() string
+	GetUrls() interface{}
+	GetApi() map[string]interface{}
 	GetOptions() map[string]interface{}
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}
@@ -168,6 +171,9 @@ type IExchange interface {
 	CallInternal(name2 string, args ...interface{}) <-chan interface{}
 	WarmUpCache()
 	GetItf() interface{}
+	ConvertToSafeDictionary(data interface{}) interface{}
+	CreateSafeDictionary() interface{}
+	SetOptions(options interface{})
 }
 
 type IDerivedExchange interface {
@@ -225,4 +231,5 @@ type IDerivedExchange interface {
 	FetchAccounts(optionalArgs ...interface{}) <-chan interface{}
 	SetSandboxMode(enabled interface{})
 	Market(symbol interface{}) interface{}
+	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 }

@@ -867,11 +867,25 @@ class testMainClass {
         return true;
     }
 
+    checkConstructor (exchange) {
+        // todo: this might be moved in base tests later
+        if (exchange.id === 'binance') {
+            assert (exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert (exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
+            assert (('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
+        } else if (exchange.id === 'binanceus') {
+            assert (exchange.hostname === 'binance.us', 'binance.us hostname does not match ' + exchange.hostname);
+            assert (exchange.urls['api']['public'] === 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' + exchange.urls['api']['public']);
+            // todo: assert (!('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should NOT contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
+        }
+    }
+
     async startTest (exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
         }
+        this.checkConstructor (exchange);
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
@@ -1320,8 +1334,8 @@ class testMainClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
-                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
+                exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
+                // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
             }
         }
         if (!isSync ()) {
@@ -1508,7 +1522,9 @@ class testMainClass {
             this.testParadex (),
             this.testHashkey (),
             this.testCoincatch (),
-            this.testDefx ()
+            this.testDefx (),
+            this.testCryptomus (),
+            this.testDerive (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2057,6 +2073,46 @@ class testMainClass {
         }
         const id = 'ccxt';
         assert (reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testCryptomus () {
+        const exchange = this.initOfflineExchange ('cryptomus');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'sell', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const tag = 'ccxt';
+        assert (request['tag'] === tag, 'cryptomus - tag: ' + tag + ' not in request.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testDerive () {
+        const exchange = this.initOfflineExchange ('derive');
+        const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+        assert (exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            const params = {
+                'subaccount_id': 1234,
+                'max_fee': 10,
+                'deriveWalletAddress': '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+            };
+            exchange.walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+            exchange.privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5';
+            await exchange.createOrder ('LBTC/USDC', 'limit', 'sell', 0.01, 3000, params);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        assert (request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
         if (!isSync ()) {
             await close (exchange);
         }

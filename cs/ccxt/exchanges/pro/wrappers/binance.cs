@@ -596,6 +596,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -636,6 +637,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -688,6 +690,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -710,6 +713,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -733,6 +737,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -786,6 +791,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>

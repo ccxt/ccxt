@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.67'
 
 # -----------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InvalidProxySettings
@@ -160,6 +161,7 @@ class Exchange(object):
     symbols = None
     codes = None
     timeframes = {}
+    tokenBucket = None
 
     fees = {
         'trading': {
@@ -188,6 +190,7 @@ class Exchange(object):
     urls = None
     api = None
     parseJsonResponse = True
+    throttler = None
 
     # PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy = None  # for backwards compatibility
@@ -223,6 +226,7 @@ class Exchange(object):
     }
     headers = None
     origin = '*'  # CORS origin
+    MAX_VALUE = float('inf')
     #
     proxies = None
 
@@ -404,14 +408,7 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        if self.markets:
-            self.set_markets(self.markets)
-
         self.after_construct()
-
-        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if is_sandbox:
-            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -431,13 +428,6 @@ class Exchange(object):
                     else:
                         setattr(self, camelcase, attr)
 
-        self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
-            'delay': 0.001,
-            'capacity': 1.0,
-            'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket', {}))
-
         if not self.session and self.synchronous:
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
@@ -455,6 +445,10 @@ class Exchange(object):
 
     def __str__(self):
         return self.name
+
+    def init_throttler(self, cost=None):
+        # stub in sync
+        pass
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -1457,11 +1451,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode('latin-1')
+        return string.encode('utf-8')
 
     @staticmethod
     def decode(string):
-        return string.decode('latin-1')
+        return string.decode('utf-8')
 
     @staticmethod
     def to_array(value):
@@ -1749,8 +1743,14 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def convert_to_safe_dictionary(self, dictionary):
+        return dictionary
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
+    def binary_length(self, binary):
+        return len(binary)
 
     # ########################################################################
     # ########################################################################
@@ -1791,7 +1791,7 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def describe(self):
+    def describe(self) -> Any:
         return {
             'id': None,
             'name': None,
@@ -1871,6 +1871,7 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
+                'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -2007,6 +2008,7 @@ class Exchange(object):
                 'watchOHLCV': None,
                 'watchOHLCVForSymbols': None,
                 'watchOrderBook': None,
+                'watchBidsAsks': None,
                 'watchOrderBookForSymbols': None,
                 'watchOrders': None,
                 'watchOrdersForSymbols': None,
@@ -2744,8 +2746,35 @@ class Exchange(object):
         return timestamp
 
     def after_construct(self):
+        # networks
         self.create_networks_by_id_object()
         self.features_generator()
+        # init predefined markets if any
+        if self.markets:
+            self.set_markets(self.markets)
+        # init the request rate limiter
+        self.init_rest_rate_limiter()
+        # sanbox mode
+        isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if isSandbox:
+            self.set_sandbox_mode(isSandbox)
+
+    def init_rest_rate_limiter(self):
+        if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
+            raise ExchangeError(self.id + '.rateLimit property is not configured')
+        refillRate = self.MAX_VALUE
+        if self.rateLimit > 0:
+            refillRate = 1 / self.rateLimit
+        defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }
+        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
+        self.tokenBucket = self.extend(defaultBucket, existingBucket)
+        self.init_throttler()
 
     def features_generator(self):
         #
@@ -2882,6 +2911,9 @@ class Exchange(object):
 
     def safe_currency_structure(self, currency: object):
         # derive data from networks: deposit, withdraw, active, fee, limits, precision
+        currencyDeposit = self.safe_bool(currency, 'deposit')
+        currencyWithdraw = self.safe_bool(currency, 'withdraw')
+        currencyActive = self.safe_bool(currency, 'active')
         networks = self.safe_dict(currency, 'networks', {})
         keys = list(networks.keys())
         length = len(keys)
@@ -2889,13 +2921,13 @@ class Exchange(object):
             for i in range(0, length):
                 network = networks[keys[i]]
                 deposit = self.safe_bool(network, 'deposit')
-                if currency['deposit'] is None or deposit:
+                if currencyDeposit is None or deposit:
                     currency['deposit'] = deposit
                 withdraw = self.safe_bool(network, 'withdraw')
-                if currency['withdraw'] is None or withdraw:
+                if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
                 active = self.safe_bool(network, 'active')
-                if currency['active'] is None or active:
+                if currencyActive is None or active:
                     currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
@@ -3657,7 +3689,7 @@ class Exchange(object):
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
-        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
+        vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
@@ -4044,7 +4076,9 @@ class Exchange(object):
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 defaultNetworkCode = self.default_network_code(currencyCode)
                 defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
-                chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
+                if defaultNetworkId in indexedNetworkEntries:
+                    return defaultNetworkId
+                raise NotSupported(self.id + ' - can not determine the default network, please pass param["network"] one from : ' + ', '.join(availableNetworkIds))
         return chosenNetworkId
 
     def safe_number_2(self, dictionary: object, key1: IndexType, key2: IndexType, d=None):
@@ -4318,14 +4352,15 @@ class Exchange(object):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
-                if isinstance(e, NetworkError):
+                if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             self.sleep(retryDelay)
-                        # continue  #check self
-                if i >= retries:
+                    else:
+                        raise e
+                else:
                     raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
@@ -4664,20 +4699,27 @@ class Exchange(object):
         :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
         :returns [str, dict]: the market type and params with type and defaultType omitted
         """
-        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
-        if defaultValue is None:  # defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType
+        # type from param
+        type = self.safe_string_2(params, 'defaultType', 'type')
+        if type is not None:
+            params = self.omit(params, ['defaultType', 'type'])
+            return [type, params]
+        # type from market
+        if market is not None:
+            return [market['type'], params]
+        # type from default-argument
+        if defaultValue is not None:
+            return [defaultValue, params]
         methodOptions = self.safe_dict(self.options, methodName)
-        methodType = defaultValue
-        if methodOptions is not None:  # user defined methodType takes precedence over defaultValue
+        if methodOptions is not None:
             if isinstance(methodOptions, str):
-                methodType = methodOptions
+                return [methodOptions, params]
             else:
-                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
-        marketType = methodType if (market is None) else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
-        params = self.omit(params, ['defaultType', 'type'])
-        return [type, params]
+                typeFromMethod = self.safe_string_2(methodOptions, 'defaultType', 'type')
+                if typeFromMethod is not None:
+                    return [typeFromMethod, params]
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        return [defaultType, params]
 
     def handle_sub_type_and_params(self, methodName: str, market=None, params={}, defaultValue=None):
         subType = None
@@ -5177,6 +5219,9 @@ class Exchange(object):
 
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
 
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
@@ -6118,7 +6163,8 @@ class Exchange(object):
             parsed = self.parse_income(entry, market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def get_market_from_symbols(self, symbols: Strings = None):
         if symbols is None:

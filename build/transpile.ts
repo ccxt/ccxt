@@ -129,6 +129,7 @@ class Transpiler {
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
@@ -782,7 +783,7 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: (?:List\[)?Any/,
+            'Any': /(?:->|:) (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
@@ -860,10 +861,6 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
-        }
-
-        if (bodyAsString.match (/-> Any/)) {
-            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -990,13 +987,13 @@ class Transpiler {
                 precisionImports.push ('use ccxt\\Precise;')
             }
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use React\\Async;')
+                libraryImports.push ('use \\React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use React\\Promise;')
+                libraryImports.push ('use \\React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -1449,7 +1446,7 @@ class Transpiler {
     // ========================================================================
 
     addPythonSpacesToDocs(docs) {
-        const fixedDocs = [];
+        const fixedDocs: string[] = [];
         for (let i = 0; i < docs.length; i++) {
             // const previousLine = (i === 0) ? '' : docs[i - 1];
             const currentLine = docs[i];
@@ -1583,8 +1580,8 @@ class Transpiler {
             let phpArgs = ''
             let syncPhpSignature = ''
             let asyncPhpSignature = ''
-            let promiseReturnTypeMatch = null
-            let syncReturnType = null
+            let promiseReturnTypeMatch: RegExpMatchArray | null = null
+            let syncReturnType = ''
 
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
@@ -2219,7 +2216,7 @@ class Transpiler {
             },
         };
         const transpiler = new astTranspiler(parserConfig);
-        let fileConfig = [
+        let fileConfig: Object[] = [
             // {
             //     language: "php",
             //     async: true
@@ -2817,7 +2814,7 @@ class Transpiler {
 
                 let finalPyHeaders = undefined;
                 if (isCcxtPro) {
-                    finalPyHeaders = fileHeaders.pyPro ;
+                    finalPyHeaders = fileHeaders.pyPro.join ('\n');
                 } else {
                     // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
                     if (tsContent.match ('new ccxt.pro')){

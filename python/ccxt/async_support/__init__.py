@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.67'
 
 # -----------------------------------------------------------------------------
 
@@ -114,10 +114,11 @@ from ccxt.async_support.coinone import coinone                                  
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
-from ccxt.async_support.currencycom import currencycom                          # noqa: F401
+from ccxt.async_support.cryptomus import cryptomus                              # noqa: F401
 from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
+from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
@@ -166,7 +167,6 @@ from ccxt.async_support.tradeogre import tradeogre                              
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.vertex import vertex                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
-from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.woofipro import woofipro                                # noqa: F401
@@ -227,10 +227,11 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
-    'currencycom',
+    'cryptomus',
     'defx',
     'delta',
     'deribit',
+    'derive',
     'digifinex',
     'ellipx',
     'exmo',
@@ -279,7 +280,6 @@ exchanges = [
     'upbit',
     'vertex',
     'wavesexchange',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',

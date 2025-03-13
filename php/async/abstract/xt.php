@@ -328,6 +328,9 @@ abstract class xt extends \ccxt\async\Exchange {
     public function private_linear_post_future_user_v1_user_collection_cancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_linear_post_future_user_v1_position_change_type($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_inverse_get_future_trade_v1_entrust_plan_detail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -774,6 +777,9 @@ abstract class xt extends \ccxt\async\Exchange {
     }
     public function privateLinearPostFutureUserV1UserCollectionCancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateLinearPostFutureUserV1PositionChangeType($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateInverseGetFutureTradeV1EntrustPlanDetail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));

@@ -17,7 +17,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -53,6 +53,7 @@ export default class hyperliquid extends Exchange {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -69,7 +70,7 @@ export default class hyperliquid extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -1400,7 +1401,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as any ], globalParams);
         return orders[0];
     }
@@ -1792,81 +1793,109 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrdersRequest (orders, params = {}) {
         this.checkRequiredCredentials ();
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
-        }
-        const market = this.market (symbol);
-        type = type.toUpperCase ();
-        const isMarket = (type === 'MARKET');
-        side = side.toUpperCase ();
-        const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
-        const slippage = this.safeString (params, 'slippage', defaultSlippage);
-        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
-            defaultTimeInForce = 'alo';
-        }
-        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize (timeInForce);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
-        params = this.omit (params, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
-        let px = price.toString ();
-        if (isMarket) {
-            px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
-        } else {
-            px = this.priceToPrecision (symbol, price.toString ());
-        }
-        const sz = this.amountToPrecision (symbol, amount);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const orderType: Dict = {};
-        if (isTrigger) {
-            let isTp = false;
-            if (takeProfitPrice !== undefined) {
-                triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
-                isTp = true;
-            } else {
-                triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+        let hasClientOrderId = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+            if (clientOrderId !== undefined) {
+                hasClientOrderId = true;
             }
-            orderType['trigger'] = {
-                'isMarket': isMarket,
-                'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
-            };
-        } else {
-            orderType['limit'] = {
-                'tif': timeInForce,
-            };
         }
-        if (triggerPrice === undefined) {
-            triggerPrice = '0';
+        if (hasClientOrderId) {
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const orderParams = this.safeDict (rawOrder, 'params', {});
+                const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+                if (clientOrderId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' editOrders() all orders must have clientOrderId if at least one has a clientOrderId');
+                }
+            }
+        }
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
+        const modifies = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const id = this.safeString (rawOrder, 'id');
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const type = this.safeStringUpper (rawOrder, 'type');
+            const isMarket = (type === 'MARKET');
+            const side = this.safeStringUpper (rawOrder, 'side');
+            const isBuy = (side === 'BUY');
+            const amount = this.safeString (rawOrder, 'amount');
+            const price = this.safeString (rawOrder, 'price');
+            let orderParams = this.safeDict (rawOrder, 'params', {});
+            const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+            const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
+            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            const postOnly = this.safeBool (orderParams, 'postOnly', false);
+            if (postOnly) {
+                defaultTimeInForce = 'alo';
+            }
+            let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
+            timeInForce = this.capitalize (timeInForce);
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+            let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
+            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
+            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
+            orderParams = this.omit (orderParams, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ]);
+            let px = price.toString ();
+            if (isMarket) {
+                px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
+            } else {
+                px = this.priceToPrecision (symbol, price.toString ());
+            }
+            const sz = this.amountToPrecision (symbol, amount);
+            const orderType: Dict = {};
+            if (isTrigger) {
+                let isTp = false;
+                if (takeProfitPrice !== undefined) {
+                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    isTp = true;
+                } else {
+                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                }
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': triggerPrice,
+                    'tpsl': (isTp) ? 'tp' : 'sl',
+                };
+            } else {
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                };
+            }
+            if (triggerPrice === undefined) {
+                triggerPrice = '0';
+            }
+            const orderReq: Dict = {
+                'a': this.parseToInt (market['baseId']),
+                'b': isBuy,
+                'p': px,
+                's': sz,
+                'r': reduceOnly,
+                't': orderType,
+                // 'c': clientOrderId,
+            };
+            if (clientOrderId !== undefined) {
+                orderReq['c'] = clientOrderId;
+            }
+            const modifyReq: Dict = {
+                'oid': this.parseToInt (id),
+                'order': orderReq,
+            };
+            modifies.push (modifyReq);
         }
         const nonce = this.milliseconds ();
-        const orderReq: Dict = {
-            'a': this.parseToInt (market['baseId']),
-            'b': isBuy,
-            'p': px,
-            's': sz,
-            'r': reduceOnly,
-            't': orderType,
-            // 'c': clientOrderId,
-        };
-        if (clientOrderId !== undefined) {
-            orderReq['c'] = clientOrderId;
-        }
-        const modifyReq: Dict = {
-            'oid': this.parseToInt (id),
-            'order': orderReq,
-        };
         const modifyAction: Dict = {
             'type': 'batchModify',
-            'modifies': [ modifyReq ],
+            'modifies': modifies,
         };
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
@@ -1887,7 +1916,6 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#editOrder
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -1906,8 +1934,26 @@ export default class hyperliquid extends Exchange {
      */
     async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
+        }
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, amount, price, params);
+        const orders = await this.editOrders ([ order as any ], globalParams);
+        return orders[0];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#editOrders
+     * @description edit a list of trade orders
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const request = this.editOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -1947,8 +1993,7 @@ export default class hyperliquid extends Exchange {
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
         const statuses = this.safeList (dataObject, 'statuses', []);
-        const first = this.safeDict (statuses, 0, {});
-        return this.parseOrder (first, market);
+        return this.parseOrders (statuses);
     }
 
     /**
@@ -3423,6 +3468,93 @@ export default class hyperliquid extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchFundingHistory', params);
+        const request: Dict = {
+            'user': userAddress,
+            'type': 'userFunding',
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "time": 1734026400057,
+        //         "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //         "delta": {
+        //             "type": "funding",
+        //             "coin": "SOL",
+        //             "usdc": "75.635093",
+        //             "szi": "-7375.9",
+        //             "fundingRate": "0.00004381",
+        //             "nSamples": null
+        //         }
+        //     }
+        // ]
+        //
+        return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        // {
+        //     "time": 1734026400057,
+        //     "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //     "delta": {
+        //         "type": "funding",
+        //         "coin": "SOL",
+        //         "usdc": "75.635093",
+        //         "szi": "-7375.9",
+        //         "fundingRate": "0.00004381",
+        //         "nSamples": null
+        //     }
+        // }
+        //
+        const id = this.safeString (income, 'hash');
+        const timestamp = this.safeInteger (income, 'time');
+        const delta = this.safeDict (income, 'delta');
+        const baseId = this.safeString (delta, 'coin');
+        const marketSymbol = baseId + '/USDC:USDC';
+        market = this.safeMarket (marketSymbol);
+        const symbol = market['symbol'];
+        const amount = this.safeString (delta, 'usdc');
+        const code = this.safeCurrencyCode ('USDC');
+        const rate = this.safeNumber (delta, 'fundingRate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': this.parseNumber (amount),
+            'rate': rate,
+        };
+    }
+
     extractTypeFromDelta (data = []) {
         const records = [];
         for (let i = 0; i < data.length; i++) {
@@ -3521,7 +3653,7 @@ export default class hyperliquid extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         params = this.omit (params, 'vaultAddress');
@@ -3537,6 +3669,9 @@ export default class hyperliquid extends Exchange {
         const globalParams = {};
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
+        }
+        if (id !== undefined) {
+            order['id'] = id;
         }
         return [ order, globalParams ];
     }

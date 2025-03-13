@@ -17,7 +17,7 @@ import { Precise } from './base/Precise.js';
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
             'name': 'Kuna',
@@ -474,7 +474,7 @@ export default class kuna extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v4PublicGetPublicTimestamp (params);
         //
         //    {

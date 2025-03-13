@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class bitget extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -1750,7 +1750,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicCommonGetV2PublicTime (params);
         //
         //     {
@@ -2364,18 +2364,18 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `code` argument');
-        }
-        const currency = this.currency (code);
         if (since === undefined) {
             since = this.milliseconds () - 7776000000; // 90 days
         }
         let request: Dict = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds (),
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2405,7 +2405,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        return this.parseTransactions (rawTransactions, currency, since, limit);
+        return this.parseTransactions (rawTransactions, undefined, since, limit);
     }
 
     /**
@@ -4850,7 +4850,9 @@ export default class bitget extends Exchange {
             } else if (isTakeProfitOrder || isStopLossOrder) {
                 request['marginCoin'] = market['settleId'];
                 request['size'] = this.amountToPrecision (symbol, amount);
-                request['executePrice'] = this.priceToPrecision (symbol, price);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
                 if (isStopLossOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 } else if (isTakeProfitOrder) {
@@ -5692,10 +5694,11 @@ export default class bitget extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -5719,10 +5722,11 @@ export default class bitget extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -5746,6 +5750,12 @@ export default class bitget extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5781,7 +5791,7 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, cursorReceived, 'idLessThan') as Order[];
         }
         let response = undefined;
-        const trailing = this.safeValue (params, 'trailing');
+        const trailing = this.safeBool (params, 'trailing');
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -5831,11 +5841,12 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
+            const planTypeDefined = this.safeString (params, 'planType') !== undefined;
             if (trailing) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
-            } else if (trigger) {
+            } else if (trigger || planTypeDefined) {
                 const planType = this.safeString (params, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
@@ -9302,6 +9313,14 @@ export default class bitget extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
+        }
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        if (sandboxMode && (path !== 'v2/public/time')) {
+            // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['PAPTRADING'] = '1';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

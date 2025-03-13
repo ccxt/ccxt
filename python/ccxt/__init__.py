@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.57'
+__version__ = '4.4.67'
 
 # ----------------------------------------------------------------------------
 
@@ -134,10 +134,11 @@ from ccxt.coinone import coinone                                      # noqa: F4
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
-from ccxt.currencycom import currencycom                              # noqa: F401
+from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
+from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
 from ccxt.ellipx import ellipx                                        # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
@@ -186,7 +187,6 @@ from ccxt.tradeogre import tradeogre                                  # noqa: F4
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.vertex import vertex                                        # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
-from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
@@ -247,10 +247,11 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
-    'currencycom',
+    'cryptomus',
     'defx',
     'delta',
     'deribit',
+    'derive',
     'digifinex',
     'ellipx',
     'exmo',
@@ -299,7 +300,6 @@ exchanges = [
     'upbit',
     'vertex',
     'wavesexchange',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',

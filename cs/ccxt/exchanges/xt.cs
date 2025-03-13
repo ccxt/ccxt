@@ -103,7 +103,7 @@ public partial class xt : Exchange
                 { "repayMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "signIn", false },
                 { "transfer", true },
@@ -258,6 +258,7 @@ public partial class xt : Exchange
                             { "future/user/v1/position/margin", 1 },
                             { "future/user/v1/user/collection/add", 1 },
                             { "future/user/v1/user/collection/cancel", 1 },
+                            { "future/user/v1/position/change-type", 1 },
                         } },
                     } },
                     { "inverse", new Dictionary<string, object>() {
@@ -1366,6 +1367,8 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1373,6 +1376,14 @@ public partial class xt : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1385,6 +1396,15 @@ public partial class xt : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["limit"] = 1000;
+        }
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = null;
         if (isTrue(getValue(market, "linear")))
@@ -5158,6 +5178,67 @@ public partial class xt : Exchange
             { "toAccount", null },
             { "status", null },
         };
+    }
+
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(getValue(market, "spot")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+        }
+        marginMode = ((string)marginMode).ToLower();
+        if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
+        {
+            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        if (isTrue(isEqual(marginMode, "cross")))
+        {
+            marginMode = "CROSSED";
+        } else
+        {
+            marginMode = "ISOLATED";
+        }
+        object posSide = this.safeStringUpper(parameters, "positionSide");
+        if (isTrue(isEqual(posSide, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "positionType", marginMode },
+            { "positionSide", posSide },
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response;  // unify return type
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

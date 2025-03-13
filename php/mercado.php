@@ -10,7 +10,7 @@ use ccxt\abstract\mercado as Exchange;
 
 class mercado extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',

@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.57';
+const version = '4.4.67';
 
 (Exchange as any).ccxtVersion = version
 
@@ -97,10 +97,11 @@ import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
-import currencycom from  './src/currencycom.js'
+import cryptomus from  './src/cryptomus.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
+import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
@@ -149,7 +150,6 @@ import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import vertex from  './src/vertex.js'
 import wavesexchange from  './src/wavesexchange.js'
-import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
@@ -193,9 +193,9 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
-import currencycomPro from  './src/pro/currencycom.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
+import derivePro from  './src/pro/derive.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
@@ -230,7 +230,6 @@ import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
 import vertexPro from  './src/pro/vertex.js'
-import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
@@ -288,10 +287,11 @@ const exchanges = {
     'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
-    'currencycom':            currencycom,
+    'cryptomus':              cryptomus,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
+    'derive':                 derive,
     'digifinex':              digifinex,
     'ellipx':                 ellipx,
     'exmo':                   exmo,
@@ -340,7 +340,6 @@ const exchanges = {
     'upbit':                  upbit,
     'vertex':                 vertex,
     'wavesexchange':          wavesexchange,
-    'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
@@ -384,9 +383,9 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
-    'currencycom':            currencycomPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
+    'derive':                 derivePro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
     'gateio':                 gateioPro,
@@ -421,7 +420,6 @@ const pro = {
     'probit':                 probitPro,
     'upbit':                  upbitPro,
     'vertex':                 vertexPro,
-    'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'woofipro':               woofiproPro,
@@ -620,10 +618,11 @@ export {
     coinsph,
     coinspot,
     cryptocom,
-    currencycom,
+    cryptomus,
     defx,
     delta,
     deribit,
+    derive,
     digifinex,
     ellipx,
     exmo,
@@ -672,7 +671,6 @@ export {
     upbit,
     vertex,
     wavesexchange,
-    wazirx,
     whitebit,
     woo,
     woofipro,

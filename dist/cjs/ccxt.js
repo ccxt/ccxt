@@ -63,10 +63,11 @@ var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
-var currencycom = require('./src/currencycom.js');
+var cryptomus = require('./src/cryptomus.js');
 var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
+var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
@@ -115,7 +116,6 @@ var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
 var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
-var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
@@ -156,9 +156,9 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
-var currencycom$1 = require('./src/pro/currencycom.js');
 var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
+var derive$1 = require('./src/pro/derive.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
@@ -193,7 +193,6 @@ var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
-var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
@@ -201,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.57';
+const version = '4.4.67';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -255,10 +254,11 @@ const exchanges = {
     'coinsph': coinsph,
     'coinspot': coinspot,
     'cryptocom': cryptocom,
-    'currencycom': currencycom,
+    'cryptomus': cryptomus,
     'defx': defx,
     'delta': delta,
     'deribit': deribit,
+    'derive': derive,
     'digifinex': digifinex,
     'ellipx': ellipx,
     'exmo': exmo,
@@ -307,7 +307,6 @@ const exchanges = {
     'upbit': upbit,
     'vertex': vertex,
     'wavesexchange': wavesexchange,
-    'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
@@ -350,9 +349,9 @@ const pro = {
     'coinex': coinex$1,
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,
-    'currencycom': currencycom$1,
     'defx': defx$1,
     'deribit': deribit$1,
+    'derive': derive$1,
     'exmo': exmo$1,
     'gate': gate$1,
     'gateio': gateio$1,
@@ -387,7 +386,6 @@ const pro = {
     'probit': probit$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
-    'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
     'woofipro': woofipro$1,
@@ -494,10 +492,11 @@ exports.coinone = coinone;
 exports.coinsph = coinsph;
 exports.coinspot = coinspot;
 exports.cryptocom = cryptocom;
-exports.currencycom = currencycom;
+exports.cryptomus = cryptomus;
 exports.defx = defx;
 exports.delta = delta;
 exports.deribit = deribit;
+exports.derive = derive;
 exports.digifinex = digifinex;
 exports.ellipx = ellipx;
 exports.exmo = exmo;
@@ -546,7 +545,6 @@ exports.tradeogre = tradeogre;
 exports.upbit = upbit;
 exports.vertex = vertex;
 exports.wavesexchange = wavesexchange;
-exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;

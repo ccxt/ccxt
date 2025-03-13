@@ -14,7 +14,7 @@ import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num,
  * @augments Exchange
  */
 export default class coinmetro extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinmetro',
             'name': 'Coinmetro',

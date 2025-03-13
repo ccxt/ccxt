@@ -6,7 +6,6 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -44,6 +43,7 @@ type Exchange struct {
 	Urls                interface{}
 	UserAgents          map[string]interface{}
 	Timeout             int64
+	MAX_VALUE           float64
 	RateLimit           float64
 	TokenBucket         map[string]interface{}
 	Throttler           Throttler
@@ -95,7 +95,7 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	httpClient  *http.Client
+	httpClient *http.Client
 
 	HttpProxy            interface{}
 	HttpsProxy           interface{}
@@ -163,11 +163,12 @@ const PAD_WITH_ZERO int = 6
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
-	// var properties = this.describe()
+	var describeValues = this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
 	}
-	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
+	var extendedProperties = this.DeepExtend(describeValues, exchangeConfig)
+	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
@@ -181,12 +182,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
-	this.InitRestRateLimiter()
 	this.AfterConstruct()
-
-	if (this.Markets != nil) && (len(this.Markets) > 0) {
-		this.SetMarkets(this.Markets, nil)
-	}
 
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
@@ -207,26 +203,6 @@ func NewExchange() IExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
-}
-
-func (this *Exchange) InitRestRateLimiter() {
-	if this.RateLimit == -1 {
-		panic("this.RateLimit is not set")
-	}
-
-	refillRate := math.MaxFloat64
-	if this.RateLimit > 0 {
-		refillRate = 1 / this.RateLimit
-	}
-	this.TokenBucket = map[string]interface{}{
-		"delay":       0.001,
-		"capacity":    1,
-		"cost":        1,
-		"maxCapacity": 1000,
-		"refillRate":  refillRate,
-	}
-
-	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
 func (this *Exchange) WarmUpCache() {
@@ -259,6 +235,10 @@ func (this *Exchange) WarmUpCache() {
 
 		this.methodCache.Store(cacheKey, cacheValue)
 	}
+}
+
+func (this *Exchange) InitThrottler() {
+	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
@@ -422,6 +402,10 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
+func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
+	return ParseInt(data)
+}
+
 // error related functions
 
 type ErrorType string
@@ -522,6 +506,14 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 
 func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
+}
+
+func (this *Exchange) CreateSafeDictionary() interface{} {
+	return map[string]interface{}{}
+}
+
+func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
+	return data
 }
 
 func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
@@ -870,6 +862,26 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
 	return ch
+}
+
+func (this *Exchange) BinaryLength(binary interface{}) int {
+	return this.binaryLength(binary)
+}
+
+func (this *Exchange) binaryLength(binary interface{}) int {
+	var length int
+
+	// Handle different types for the length parameter
+	switch v := binary.(type) {
+	case []byte:
+		length = len(v)
+	case string:
+		length = len(v)
+	default:
+		panic(fmt.Sprintf("unsupported binary: %v", reflect.TypeOf(binary)))
+	}
+
+	return length
 }
 
 func (this *Exchange) RandomBytes(length interface{}) string {

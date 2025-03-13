@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class alpaca(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(alpaca, self).describe(), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -378,7 +378,7 @@ class alpaca(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -991,7 +991,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
         if triggerPrice is not None:
-            newType = None
+            newType: str
             if type.find('limit') >= 0:
                 newType = 'stop_limit'
             else:
@@ -1138,9 +1138,9 @@ class alpaca(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['endTime'] = until
+            request['endTime'] = self.iso8601(until)
         if since is not None:
-            request['after'] = since
+            request['after'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         response = await self.traderPrivateGetV2Orders(self.extend(request, params))
@@ -1374,6 +1374,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
+        :param str [params.page_token]: page_token - used for paging
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -1383,8 +1384,12 @@ class alpaca(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['until'] = self.iso8601(until)
         if since is not None:
-            request['after'] = since
+            request['after'] = self.iso8601(since)
         if limit is not None:
             request['page_size'] = limit
         request, params = self.handle_until_option('until', request, params)

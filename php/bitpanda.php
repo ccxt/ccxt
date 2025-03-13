@@ -10,7 +10,7 @@ use ccxt\abstract\bitpanda as onetrading;
 
 class bitpanda extends onetrading {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitpanda',
             'alias' => true,

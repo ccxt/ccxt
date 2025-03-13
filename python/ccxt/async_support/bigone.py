@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class bigone(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -965,7 +965,7 @@ class bigone(Exchange, ImplicitAPI):
         tickers = self.parse_tickers(data, symbols)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1163,8 +1163,8 @@ class bigone(Exchange, ImplicitAPI):
             'cost': None,
             'info': trade,
         }
-        makerCurrencyCode = None
-        takerCurrencyCode = None
+        makerCurrencyCode: str
+        takerCurrencyCode: str
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':

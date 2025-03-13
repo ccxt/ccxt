@@ -70,6 +70,7 @@ public partial class binance : ccxt.binance
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://testnet.binance.vision/ws-api/v3" },
                             { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
+                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
                     } },
                 } },
@@ -82,6 +83,7 @@ public partial class binance : ccxt.binance
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://ws-api.binance.com:443/ws-api/v3" },
                             { "future", "wss://ws-fapi.binance.com/ws-fapi/v1" },
+                            { "delivery", "wss://ws-dapi.binance.com/ws-dapi/v1" },
                         } },
                         { "papi", "wss://fstream.binance.com/pm/ws" },
                     } },
@@ -2843,6 +2845,7 @@ public partial class binance : ccxt.binance
      * @description fetch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2855,7 +2858,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = this.getMarketType("fetchBalanceWs", null, parameters);
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
+        if (isTrue(isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))) && isTrue(!isEqual(type, "delivery"))))
         {
             throw new BadRequest ((string)add(this.id, " fetchBalanceWs only supports spot or swap markets")) ;
         }
@@ -2978,6 +2981,7 @@ public partial class binance : ccxt.binance
      * @name binance#fetchPositionsWs
      * @description fetch all open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2988,19 +2992,26 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, "swap", true, true, true);
-        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "future");
-        object requestId = this.requestId(url);
-        object messageHash = ((object)requestId).ToString();
         object payload = new Dictionary<string, object>() {};
+        object market = null;
+        symbols = this.marketSymbols(symbols, "swap", true, true, true);
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
-                ((IDictionary<string,object>)payload)["symbol"] = this.marketId(getValue(symbols, 0));
+                market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)payload)["symbol"] = getValue(market, "id");
             }
         }
+        object type = this.getMarketType("fetchPositionsWs", market, parameters);
+        if (isTrue(isTrue(!isEqual(type, "future")) && isTrue(!isEqual(type, "delivery"))))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchPositionsWs only supports swap markets")) ;
+        }
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+        object requestId = this.requestId(url);
+        object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
         returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
@@ -3260,6 +3271,7 @@ public partial class binance : ccxt.binance
      * @description create a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -3276,7 +3288,7 @@ public partial class binance : ccxt.binance
         await this.loadMarkets();
         object market = this.market(symbol);
         object marketType = this.getMarketType("createOrderWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(!isEqual(marketType, "future"))))
+        if (isTrue(isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(!isEqual(marketType, "future"))) && isTrue(!isEqual(marketType, "delivery"))))
         {
             throw new BadRequest ((string)add(this.id, " createOrderWs only supports spot or swap markets")) ;
         }
@@ -3420,6 +3432,7 @@ public partial class binance : ccxt.binance
      * @description edit a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -3435,18 +3448,19 @@ public partial class binance : ccxt.binance
         await this.loadMarkets();
         object market = this.market(symbol);
         object marketType = this.getMarketType("editOrderWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(!isEqual(marketType, "future"))))
+        if (isTrue(isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(!isEqual(marketType, "future"))) && isTrue(!isEqual(marketType, "delivery"))))
         {
             throw new BadRequest ((string)add(this.id, " editOrderWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
         object requestId = this.requestId(url);
         object messageHash = ((object)requestId).ToString();
+        object isSwap = (isTrue(isEqual(marketType, "future")) || isTrue(isEqual(marketType, "delivery")));
         object payload = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
-        } else if (isTrue(isEqual(marketType, "future")))
+        } else if (isTrue(isSwap))
         {
             payload = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         }
@@ -3457,7 +3471,7 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
         object message = new Dictionary<string, object>() {
             { "id", messageHash },
-            { "method", ((bool) isTrue((isEqual(marketType, "future")))) ? "order.modify" : "order.cancelReplace" },
+            { "method", ((bool) isTrue((isSwap))) ? "order.modify" : "order.cancelReplace" },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         object subscription = new Dictionary<string, object>() {
@@ -3586,6 +3600,7 @@ public partial class binance : ccxt.binance
      * @description cancel multiple orders
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3680,6 +3695,7 @@ public partial class binance : ccxt.binance
      * @description fetches information on an order made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3695,7 +3711,7 @@ public partial class binance : ccxt.binance
         }
         object market = this.market(symbol);
         object type = this.getMarketType("fetchOrderWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
+        if (isTrue(isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))) && isTrue(!isEqual(type, "delivery"))))
         {
             throw new BadRequest ((string)add(this.id, " fetchOrderWs only supports spot or swap markets")) ;
         }
