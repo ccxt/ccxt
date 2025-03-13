@@ -66,6 +66,7 @@ function helperTestHandleNetworkRequest () {
                 'Xyz': 'Xyz',
             }
         },
+        'currencies': {}, // todo: initialize in base files
     });
     // no-casing
     let request1 = {};
