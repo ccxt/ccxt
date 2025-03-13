@@ -4352,14 +4352,15 @@ class Exchange(object):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
-                if isinstance(e, NetworkError):
+                if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             self.sleep(retryDelay)
-                        # continue  #check self
-                if i >= retries:
+                    else:
+                        raise e
+                else:
                     raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
