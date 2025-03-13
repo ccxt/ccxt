@@ -4618,8 +4618,7 @@ export default class Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            let networkId = this.networkCodeToId (networkCode, currencyCode);
-            request[exchangeSpecificKey] = networkId;
+            request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
         } else if (isRequired) {
             throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
         }
