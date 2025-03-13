@@ -66,8 +66,8 @@ function helperTestHandleNetworkRequest () {
                 'XYZ': 'Xyz',
             }
         },
-        'currencies': {}, // todo: initialize in base files
     });
+    exchange.currencies = {};  // todo: initialize in C# base files
     const currencyCode = 'ETH'; // todo: in future with complex cases
     // no-case
     let request1 = {};
