@@ -61,25 +61,29 @@ function helperTestHandleMarketTypeAndParams () {
 function helperTestHandleNetworkRequest () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
-        'options': {},
+        'options': {
+            'networks': {
+                'Xyz': 'Xyz',
+            }
+        },
     });
     // no-casing
     let request1 = {};
-    let params1 = { 'network': 'Xyz' };
+    let params1 = { 'network': 'XYZ' };
     [ request1, params1 ] = exchange.handleRequestNetwork (params1, request1, 'chain_id', false);
     assert (!('network' in params1));
     assert ('chain_id' in request1);
     assert (request1['chain_id'] === 'Xyz');
     // uppercase
     let request2 = {};
-    let params2 = { 'network': 'Xyz' };
+    let params2 = { 'network': 'XYZ' };
     [ request2, params2 ] = exchange.handleRequestNetwork (params2, request2, 'chain_id', false, 'uppercase');
     assert (!('network' in params2));
     assert ('chain_id' in request2);
     assert (request2['chain_id'] === 'XYZ');
     // lowercase
     let request3 = {};
-    let params3 = { 'network': 'Xyz' };
+    let params3 = { 'network': 'XYZ' };
     [ request3, params3 ] = exchange.handleRequestNetwork (params3, request3, 'chain_id', false, 'lowercase');
     assert (!('network' in params3));
     assert ('chain_id' in request3);
