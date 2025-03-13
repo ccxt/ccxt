@@ -6,7 +6,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import {
     Account,
     Balances,
-    Currencies,
+    Currencies, Currency,
     Dict,
     FundingRateHistory,
     Int,
@@ -21,7 +21,7 @@ import {
     Strings,
     Ticker,
     Tickers,
-    Trade,
+    Trade, TransferEntry,
 } from './base/types';
 import { ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.js';
 
@@ -200,6 +200,8 @@ export default class apex extends Exchange {
                         'v3/delete-order': 1,
                         'v3/order': 1,
                         'v3/set-initial-margin-rate': 1,
+                        'v3/transfer-out': 1,
+                        'v3/contract-transfer-out': 1,
                     },
                 },
             },
@@ -324,8 +326,9 @@ export default class apex extends Exchange {
     }
 
     parseAccount (account: Dict): Account {
+        this.accountId = this.safeString (account, 'id', '0');
         return {
-            'id': this.safeString (account, 'id'),
+            'id': this.accountId,
             'type': undefined,
             'code': undefined,
             'info': account,
@@ -1298,10 +1301,13 @@ export default class apex extends Exchange {
             clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
         }
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        let accountId = this.safeString (this.options, 'accountId', '0');
-        if (accountId === '0') {
-            const accountData = await this.fetchAccount ();
-            accountId = accountData.id;
+        let accountId = this.accountId;
+        if (accountId === undefined || this.accountId === '0') {
+            accountId = this.safeString (this.options, 'accountId', '0');
+            if (accountId === '0') {
+                const accountData = await this.fetchAccount ();
+                accountId = accountData.id;
+            }
         }
         const orderToSign = {
             'accountId': accountId,
@@ -1335,6 +1341,160 @@ export default class apex extends Exchange {
         const response = await this.privatePostV3Order (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
+     * @name apex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferId] UUID, which is unique across the platform
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const configResponse = await this.publicGetV3Symbols (params);
+        const configData = this.safeDict (configResponse, 'data', {});
+        const contractConfig = this.safeDict (configData, 'contractConfig', {});
+        const contractAssets = this.safeList (contractConfig, 'assets', []);
+        const spotConfig = this.safeDict (configData, 'spotConfig', {});
+        const spotAssets = this.safeList (spotConfig, 'assets', []);
+        const globalConfig = this.safeDict (spotConfig, 'global', {});
+        const receiverAddress = this.safeString (globalConfig, 'contractAssetPoolEthAddress', '');
+        const receiverZkAccountId = this.safeString (globalConfig, 'contractAssetPoolZkAccountId', '');
+        const receiverSubAccountId = this.safeString (globalConfig, 'contractAssetPoolSubAccount', '');
+        const receiverAccountId = this.safeString (globalConfig, 'contractAssetPoolAccountId', '');
+        const accountResponse = await this.privateGetV3Account (params);
+        const accountData = this.safeDict (accountResponse, 'data', {});
+        const spotAccount = this.safeDict (accountData, 'spotAccount', {});
+        const zkAccountId = this.safeString (spotAccount, 'zkAccountId', '');
+        const subAccountId = this.safeString (spotAccount, 'defaultSubAccountId', '0');
+        const subAccounts = this.safeList (spotAccount, 'subAccounts', []);
+        let nonce = '0';
+        if (subAccounts.length > 0) {
+            nonce = this.safeString (subAccounts[0], 'nonce', '0');
+        }
+        const ethAddress = this.safeString (accountData, 'ethereumAddress', '');
+        const accountId = this.safeString (accountData, 'id', '');
+        let currency = {};
+        let assets = [];
+        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+            assets = contractAssets;
+        } else {
+            assets = spotAssets;
+        }
+        for (let i = 0; i < assets.length; i++) {
+            if (this.safeString (assets[i], 'token', '') === code) {
+                currency = assets[i];
+            }
+        }
+        const tokenId = this.safeString (currency, 'tokenId', '');
+        const amountNumber = BigInt (amount * (10 ** this.safeNumber (currency, 'decimals', 0)));
+        const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
+        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
+        }
+        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (clientOrderId), sha256, 'hex'))).toString ();
+            const formattedUint32 = '4294967295';
+            const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
+            const zkNonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+            const expireTime = timestampSeconds + 3600 * 24 * 28;
+            const orderToSign = {
+                'zkAccountId': zkSignAccountId,
+                'receiverAddress': ethAddress,
+                'subAccountId': subAccountId,
+                'receiverSubAccountId': subAccountId,
+                'tokenId': tokenId,
+                'amount': amountNumber.toString (),
+                'fee': '0',
+                'nonce': zkNonce,
+                'timestampSeconds': expireTime,
+            };
+            const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.safeString (this.options, 'seeds')), orderToSign);
+            const request: Dict = {
+                'amount': amount,
+                'expireTime': expireTime,
+                'clientWithdrawId': clientOrderId,
+                'signature': signature,
+                'token': code,
+                'ethAddress': ethAddress,
+            };
+            const response = await this.privatePostV3ContractTransferOut (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            const currentTime = this.milliseconds ();
+            return this.extend (this.parseTransfer (data, this.currency (code)), {
+                'timestamp': currentTime,
+                'datetime': this.iso8601 (currentTime),
+                'amount': this.parseNumber (amount),
+                'fromAccount': 'contract',
+                'toAccount': 'spot',
+            });
+        } else {
+            const orderToSign = {
+                'zkAccountId': zkAccountId,
+                'receiverAddress': receiverAddress,
+                'subAccountId': subAccountId,
+                'receiverSubAccountId': receiverSubAccountId,
+                'tokenId': tokenId,
+                'amount': amountNumber.toString (),
+                'fee': '0',
+                'nonce': nonce,
+                'timestampSeconds': timestampSeconds,
+            };
+            const signature = await this.getZKTransferSignatureObj (this.safeString (this.options, 'seeds').replace ('0x', ''), orderToSign);
+            const request: Dict = {
+                'amount': amount.toString (),
+                'timestamp': timestampSeconds,
+                'clientTransferId': clientOrderId,
+                'signature': signature,
+                'zkAccountId': zkAccountId,
+                'subAccountId': subAccountId,
+                'fee': '0',
+                'token': code,
+                'tokenId': tokenId,
+                'receiverAccountId': receiverAccountId,
+                'receiverZkAccountId': receiverZkAccountId,
+                'receiverSubAccountId': receiverSubAccountId,
+                'receiverAddress': receiverAddress,
+                'nonce': nonce,
+            };
+            const response = await this.privatePostV3TransferOut (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            const currentTime = this.milliseconds ();
+            return this.extend (this.parseTransfer (data, this.currency (code)), {
+                'timestamp': currentTime,
+                'datetime': this.iso8601 (currentTime),
+                'amount': this.parseNumber (amount),
+                'fromAccount': 'spot',
+                'toAccount': 'contract',
+            });
+        }
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const currencyId = this.safeString (transfer, 'coin');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const fromAccount = this.safeString (transfer, 'fromAccount');
+        const toAccount = this.safeString (transfer, 'toAccount');
+        return {
+            'info': transfer,
+            'id': this.safeStringN (transfer, [ 'transferId', 'id' ]),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeString (transfer, 'status'),
+        };
     }
 
     /**

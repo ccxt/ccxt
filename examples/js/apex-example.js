@@ -15,6 +15,10 @@ async function example() {
     exchange.setSandboxMode (true)
     const fetchTime = await exchange.fetchTime();
     console.log(fetchTime);
+    //const transfer = await exchange.transfer('USDT', 1.1);
+    //console.log(transfer);
+    //const transferFromContract = await exchange.transfer('USDT', 1.2, 'contract', 'spot');
+    //console.log(transferFromContract);
     //const fetchCurrencies = await exchange.fetchCurrencies();
     //console.log(fetchCurrencies);
     //const fetchBalance = await exchange.fetchBalance();
