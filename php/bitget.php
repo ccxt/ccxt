@@ -5688,10 +5688,11 @@ class bitget extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of closed $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {string} [$params->planType] *contract stop only* 'normal_plan' => average trigger order, 'profit_loss' => opened tp/sl $orders, 'track_plan' => trailing stop order, default is 'normal_plan'
+         * @param {boolean} [$params->trigger] set to true for fetching trigger $orders
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->isPlan] *swap only* 'plan' for stop $orders and 'profit_loss' for tp/sl $orders, default is 'plan'
-         * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -5715,10 +5716,11 @@ class bitget extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of canceled $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {string} [$params->planType] *contract stop only* 'normal_plan' => average trigger order, 'profit_loss' => opened tp/sl $orders, 'track_plan' => trailing stop order, default is 'normal_plan'
+         * @param {boolean} [$params->trigger] set to true for fetching trigger $orders
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->isPlan] *swap only* 'plan' for stop $orders and 'profit_loss' for tp/sl $orders, default is 'plan'
-         * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -5742,6 +5744,12 @@ class bitget extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {string} [$params->planType] *contract stop only* 'normal_plan' => average $trigger order, 'profit_loss' => opened tp/sl $orders, 'track_plan' => $trailing stop order, default is 'normal_plan'
+         * @param {boolean} [$params->trigger] set to true for fetching $trigger $orders
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->isPlan] *swap only* 'plan' for stop $orders and 'profit_loss' for tp/sl $orders, default is 'plan'
+         * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -5776,7 +5784,7 @@ class bitget extends Exchange {
             return $this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $cursorReceived, 'idLessThan');
         }
         $response = null;
-        $trailing = $this->safe_value($params, 'trailing');
+        $trailing = $this->safe_bool($params, 'trailing');
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
@@ -5826,11 +5834,12 @@ class bitget extends Exchange {
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
+            $planTypeDefined = $this->safe_string($params, 'planType') !== null;
             if ($trailing) {
                 $planType = $this->safe_string($params, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanHistory ($this->extend($request, $params));
-            } elseif ($trigger) {
+            } elseif ($trigger || $planTypeDefined) {
                 $planType = $this->safe_string($params, 'planType', 'normal_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanHistory ($this->extend($request, $params));

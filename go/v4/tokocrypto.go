@@ -3010,6 +3010,6 @@ func  (this *tokocrypto) CalculateRateLimiterCost(api interface{}, method interf
 
 func (this *tokocrypto) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

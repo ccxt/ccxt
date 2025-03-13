@@ -6102,10 +6102,11 @@ public partial class bitget : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -6131,10 +6132,11 @@ public partial class bitget : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -6160,6 +6162,12 @@ public partial class bitget : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -6210,7 +6218,7 @@ public partial class bitget : Exchange
             return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, cursorReceived, "idLessThan");
         }
         object response = null;
-        object trailing = this.safeValue(parameters, "trailing");
+        object trailing = this.safeBool(parameters, "trailing");
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "trailing"});
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
@@ -6279,12 +6287,13 @@ public partial class bitget : Exchange
             productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
+            object planTypeDefined = !isEqual(this.safeString(parameters, "planType"), null);
             if (isTrue(trailing))
             {
                 object planType = this.safeString(parameters, "planType", "track_plan");
                 ((IDictionary<string,object>)request)["planType"] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, parameters));
-            } else if (isTrue(trigger))
+            } else if (isTrue(isTrue(trigger) || isTrue(planTypeDefined)))
             {
                 object planType = this.safeString(parameters, "planType", "normal_plan");
                 ((IDictionary<string,object>)request)["planType"] = planType;

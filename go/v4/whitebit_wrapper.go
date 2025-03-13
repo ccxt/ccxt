@@ -1061,6 +1061,51 @@ func (this *Whitebit) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
 }
 /**
  * @method
+ * @name whitebit#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the starting timestamp in milliseconds
+ * @param {int} [limit] the number of entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ */
+func (this *Whitebit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+    opts := FetchFundingHistoryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingHistory(symbol, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewFundingHistoryArray(res), nil
+}
+/**
+ * @method
  * @name whitebit#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
@@ -1110,4 +1155,121 @@ func (this *Whitebit) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
         return nil, CreateReturnError(res)
     }
     return NewTransactionArray(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchConvertQuote
+ * @description fetch a quote for converting from one currency to another
+ * @see https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+ * @param {string} fromCode the currency that you want to sell and convert from
+ * @param {string} toCode the currency that you want to buy and convert into
+ * @param {float} amount how much you want to trade in units of the from currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
+func (this *Whitebit) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
+
+    opts := FetchConvertQuoteOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchConvertQuote(fromCode, toCode, amount, params)
+    if IsError(res) {
+        return Conversion{}, CreateReturnError(res)
+    }
+    return NewConversion(res), nil
+}
+/**
+ * @method
+ * @name whitebit#createConvertTrade
+ * @description convert from one currency to another
+ * @see https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+ * @param {string} id the id of the trade that you want to make
+ * @param {string} fromCode the currency that you want to sell and convert from
+ * @param {string} toCode the currency that you want to buy and convert into
+ * @param {float} [amount] how much you want to trade in units of the from currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
+func (this *Whitebit) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
+
+    opts := CreateConvertTradeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateConvertTrade(id, fromCode, toCode, amount, params)
+    if IsError(res) {
+        return Conversion{}, CreateReturnError(res)
+    }
+    return NewConversion(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchConvertTradeHistory
+ * @description fetch the users history of conversion trades
+ * @see https://docs.whitebit.com/private/http-trade-v4/#convert-history
+ * @param {string} [code] the unified currency code
+ * @param {int} [since] the earliest time in ms to fetch conversions for
+ * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.until] the end time in ms
+ * @param {string} [params.fromTicker] the currency that you sold and converted from
+ * @param {string} [params.toTicker] the currency that you bought and converted into
+ * @param {string} [params.quoteId] the quote id of the conversion
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ */
+func (this *Whitebit) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
+
+    opts := FetchConvertTradeHistoryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var code interface{} = nil
+    if opts.Code != nil {
+        code = *opts.Code
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchConvertTradeHistory(code, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewConversionArray(res), nil
 }

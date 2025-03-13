@@ -9,7 +9,7 @@ var crypto = require('./base/functions/crypto.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class derive
@@ -1103,6 +1103,7 @@ class derive extends derive$1 {
         return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
+        this.checkRequiredCredentials();
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2595,7 +2596,6 @@ class derive extends derive$1 {
                 'Content-Type': 'application/json',
             };
             if (api === 'private') {
-                this.checkRequiredCredentials();
                 const now = this.milliseconds().toString();
                 const signature = this.signMessage(now, this.privateKey);
                 headers['X-LyraWallet'] = this.safeString(this.options, 'deriveWalletAddress');

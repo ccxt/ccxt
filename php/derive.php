@@ -1115,6 +1115,7 @@ class derive extends Exchange {
     }
 
     public function sign_hash($hash, $privateKey) {
+        $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2625,7 +2626,6 @@ class derive extends Exchange {
                 'Content-Type' => 'application/json',
             );
             if ($api === 'private') {
-                $this->check_required_credentials();
                 $now = (string) $this->milliseconds();
                 $signature = $this->sign_message($now, $this->privateKey);
                 $headers['X-LyraWallet'] = $this->safe_string($this->options, 'deriveWalletAddress');

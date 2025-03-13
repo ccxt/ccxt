@@ -34,6 +34,7 @@ public partial class gate : ccxt.gate
                 { "fetchOpenOrdersWs", true },
                 { "fetchClosedOrdersWs", true },
                 { "watchOrderBook", true },
+                { "watchBidsAsks", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },

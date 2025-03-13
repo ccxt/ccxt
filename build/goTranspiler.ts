@@ -1325,8 +1325,8 @@ ${caseStatements.join('\n')}
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }\n`
         } else {
             initMethod = `
