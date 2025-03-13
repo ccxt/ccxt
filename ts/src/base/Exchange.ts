@@ -4614,7 +4614,7 @@ export default class Exchange {
      * @param {string} upperOrLowerCase - (optional_ enforce "uppercase" or "lowercase" for resulted network id
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string, isRequired: boolean, upperOrLowerCase: Str = undefined) {
+    handleRequestNetwork (params: any, request: any, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean, upperOrLowerCase: Str = undefined) {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
