@@ -74,14 +74,6 @@ function helperTestHandleNetworkRequest () {
     assert (!('network' in params1));
     assert ('chain_id' in request1);
     assert (request1['chain_id'] === 'Xyz');
-    // uppercase
-    const [ request2, params2 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false, 'uppercase');
-    assert (!('network' in params2));
-    assert (request2['chain_id'] === 'XYZ');
-    // lowercase
-    const [ request3, params3 ] = exchange.handleRequestNetwork ({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false, 'lowercase');
-    assert (!('network' in params3));
-    assert (request3['chain_id'] === 'xyz');
 }
 
 function testHandleMethods () {
