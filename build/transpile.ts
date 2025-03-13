@@ -1443,7 +1443,7 @@ class Transpiler {
     // ========================================================================
 
     addPythonSpacesToDocs(docs) {
-        const fixedDocs = [];
+        const fixedDocs: string[] = [];
         for (let i = 0; i < docs.length; i++) {
             // const previousLine = (i === 0) ? '' : docs[i - 1];
             const currentLine = docs[i];
@@ -1577,8 +1577,8 @@ class Transpiler {
             let phpArgs = ''
             let syncPhpSignature = ''
             let asyncPhpSignature = ''
-            let promiseReturnTypeMatch = null
-            let syncReturnType = null
+            let promiseReturnTypeMatch: RegExpMatchArray | null = null
+            let syncReturnType = ''
 
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
@@ -2213,7 +2213,7 @@ class Transpiler {
             },
         };
         const transpiler = new astTranspiler(parserConfig);
-        let fileConfig = [
+        let fileConfig: Object[] = [
             // {
             //     language: "php",
             //     async: true
@@ -2811,7 +2811,7 @@ class Transpiler {
 
                 let finalPyHeaders: string = '';
                 if (isCcxtPro) {
-                    finalPyHeaders = fileHeaders.pyPro ;
+                    finalPyHeaders = fileHeaders.pyPro.join ('\n');
                 } else {
                     // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
                     if (tsContent.match ('new ccxt.pro')){
