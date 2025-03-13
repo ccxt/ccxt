@@ -23,7 +23,7 @@ import * as url from 'node:url';
 import Piscina from 'piscina';
 ansi.nice
 
-declare type dict = { [key: string]: string }
+type dict = { [key: string]: string }
 import { Transpiler as astTranspiler } from 'ast-transpiler';
 
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
