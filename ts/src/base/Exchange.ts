@@ -4609,8 +4609,8 @@ export default class Exchange {
     /**
      * @param {object} params - extra parameters
      * @param {object} request - existing dictionary of request
-     * @param {object} currencyCode - existing dictionary of request
      * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - existing dictionary of request
      * @param {boolean} isRequired - whether that param is required to be present
      * @param {string} upperOrLowerCase - (optional_ enforce "uppercase" or "lowercase" for resulted network id
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
