@@ -4927,13 +4927,13 @@ export default class coinbase extends Exchange {
      * @param {Dict} portfolioData The JSON response containing portfolio details
      * @returns {any[]} List of dictionaries with parsed portfolio position data
      */
-    parsePortfolioDetails (portfolioData: Dict): any[] {
+    parsePortfolioDetails (portfolioData: Dict) {
         const breakdown = portfolioData['breakdown'];
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
         const spotPositions = this.safeList (breakdown, 'spot_positions', []);
-        const parsedPositions: any[] = [];
+        const parsedPositions = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];
             const currencyCode = this.safeString (position, 'asset', 'Unknown');
