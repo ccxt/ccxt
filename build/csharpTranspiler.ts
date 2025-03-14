@@ -3,12 +3,10 @@ import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-// @ts-expect-error
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
-// @ts-expect-error
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import { promisify } from 'util';
@@ -27,7 +25,8 @@ let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
 
 // @ts-expect-error
-let __dirname = new URL('.', import.meta.url).pathname;
+const metaUrl = import.meta.url
+let __dirname = new URL('.', metaUrl).pathname;
 
 let shouldTranspileTests = true
 
@@ -590,12 +589,9 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        // @ts-expect-error
-        const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
-        // @ts-expect-error
+        const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        // @ts-expect-error
-        const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
+        const params = methodWrapper.parameters.map((param: any) => this.safeCsharpName(param.name)).join(', ');
 
         const one = this.inden(1);
         const two = this.inden(2);
@@ -1410,8 +1406,7 @@ class NewTranspiler {
     }
 }
 
-// @ts-expect-error
-if (isMainEntry(import.meta.url)) {
+async function runMain () {
     const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
@@ -1425,14 +1420,17 @@ if (isMainEntry(import.meta.url)) {
     }
     const transpiler = new NewTranspiler ();
     if (ws) {
-        // @ts-expect-error
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
     } else {
-        // @ts-expect-error
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }
+}
+
+if (isMainEntry(metaUrl)) {
+    // @ts-expect-error
+    await runMain();
 }
