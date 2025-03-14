@@ -4126,7 +4126,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
+        # https://github.com/ccxt/ccxt/issues/25484
+        data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
     def fetch_deposit(self, id: str, code: Str = None, params={}):
@@ -4191,7 +4192,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
+        # https://github.com/ccxt/ccxt/issues/25484
+        data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
     def fetch_deposit_method_ids(self, params={}):
