@@ -837,6 +837,14 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 	}
 }
 
+func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} {
+	var result []interface{}
+	for _, orderRequest := range orderRequests {
+		result = append(result, orderRequest)
+	}
+	return result
+}
+
 type LastPrice struct {
 	Symbol    *string
 	Timestamp *int64
