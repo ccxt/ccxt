@@ -5,7 +5,6 @@
 import fs from 'fs'
 import path from 'path'
 import log from 'ololog'
-// @ts-expect-error
 import ansi from 'ansicolor'
 import { promisify } from 'util'
 import errors from "../ts/src/base/errors.js"
@@ -64,13 +63,12 @@ class Transpiler {
     buildPython = true;
     buildPHP = true;
 
-    baseMethodsList = null;
+    baseMethodsList!: any[];
 
     defineImplicitMethodsList () {
-        const exchange = new Exchange();
+        const exchange: any = new Exchange();
         let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
         all = all.concat (Object.getOwnPropertyNames(exchange));
-        // @ts-ignore
         this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
     }
 
@@ -586,14 +584,13 @@ class Transpiler {
     }
 
     getBaseMethods () {
-        const baseExchange = this.getBaseClass ()
+        const baseExchange: any = this.getBaseClass ()
         let object = baseExchange
-        let properties = []
+        let properties: any[] = []
         while (object !== Object.prototype) {
             properties = properties.concat (Object.getOwnPropertyNames (object))
             object = Object.getPrototypeOf (object)
         }
-        // @ts-ignore
         return properties.filter (x => typeof baseExchange[x] === 'function')
     }
 
@@ -710,12 +707,12 @@ class Transpiler {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
-        async = (async ? '.async_support' : '')
+        const asyncString = (async ? '.async_support' : '')
 
         const imports = [
             (baseClass.indexOf ('ccxt.') === 0) ?
-                ('import ccxt' + async + ' as ccxt') :
-                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
+                ('import ccxt' + asyncString + ' as ccxt') :
+                ('from ccxt' + asyncString + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
         ]
         if (className !== 'testMainClass') {
             imports.push ('from ccxt.abstract.' + className + ' import ImplicitAPI')
@@ -744,8 +741,7 @@ class Transpiler {
         methods = methods.concat (baseMethods)
         for (let method of methods) {
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            // @ts-ignore
-            bodyAsString = bodyAsString.replace (regex, (match, p1, p2, p3) => (p1 + '.' + unCamelCase (p2) + p3))
+            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -760,9 +756,6 @@ class Transpiler {
 
     createPythonImports (baseClass: string, bodyAsString: string, className: string, async = false) {
 
-        async = (async ? '.async_support' : '')
-
-
         const pythonStandardLibraries = {
             'hashlib': 'hashlib',
             'math': 'math',
@@ -773,12 +766,11 @@ class Transpiler {
 
         const imports = this.createPythonClassImports (baseClass, className, async)
 
-        const libraries = []
+        const libraries: string[] = []
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\'\\\"a-zA-Z]" + library + "[^\\'\\\"a-zA-Z]")
             if (bodyAsString.match (regex)){
-                // @ts-ignore
                 const importStatement = 'import ' + pythonStandardLibraries[library];
                 if (!libraries.includes(importStatement)) {
                     libraries.push (importStatement)
@@ -1014,7 +1006,6 @@ class Transpiler {
         for (let method of methods) {
             let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                // @ts-ignore
                 (match, p1, p2) => {
                     return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
@@ -1023,7 +1014,6 @@ class Transpiler {
 
             regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                // @ts-ignore
                 (match, p1, p2) => {
                     return ((p2 === '(') ?
                         ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
@@ -1043,7 +1033,6 @@ class Transpiler {
 
     // ========================================================================
 
-    // @ts-ignore
     transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
         // transpile JS → Python 3
@@ -1103,7 +1092,6 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    // @ts-ignore
     transpileJavaScriptToPHP ({ js, variables }, async = false) {
 
         // match all local variables (let, const or var)
@@ -1133,7 +1121,6 @@ class Transpiler {
 
         // match all variables instantiated as function parameters
         let functionParamRegex = /function\s*(\w+)\s*\(([^)]+)\)/g
-        // @ts-ignore
         js = js.replace (functionParamRegex, (match, group1, group2) => 'function ' + unCamelCase (group1) + '(' + group2 + ')')
         let functionParamVariables
         while (functionParamVariables = functionParamRegex.exec (js)) {
@@ -1156,7 +1143,6 @@ class Transpiler {
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
-            // @ts-ignore
             const closure = variables && variables.length ? 'use (' + variables.map (x => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
@@ -1197,7 +1183,6 @@ class Transpiler {
 
         const async = asyncFilePath
         const sync = syncFilePath
-        // @ts-ignore
         log.magenta ('Transpiling ' + async.yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
@@ -1242,7 +1227,6 @@ class Transpiler {
 
         const async = asyncFilePath
         const sync = syncFilePath
-        // @ts-ignore
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
@@ -1272,7 +1256,6 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileClass (contents: string) {
-        // @ts-ignore
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
@@ -1329,13 +1312,9 @@ class Transpiler {
             const phpPath      = phpFolder      ? path.join(phpFolder, phpFilename)         : undefined
             const phpAsyncPath = phpAsyncFolder ? path.join (phpAsyncFolder, phpFilename)   : undefined
 
-            // @ts-ignore
             const python2Mtime: number  = python2Folder  ? (fs.existsSync (python2Path)  ? fs.statSync (python2Path).mtime.getTime ()  : 0) : undefined
-            // @ts-ignore
             const python3Mtime: number  = python3Path    ? (fs.existsSync (python3Path)  ? fs.statSync (python3Path).mtime.getTime ()  : 0) : undefined
-            // @ts-ignore
             const phpAsyncMtime: number = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
-            // @ts-ignore
             const phpMtime: number      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
 
             if (force ||
@@ -1345,11 +1324,9 @@ class Transpiler {
                 (python2Folder  && (tsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
                 if (this.buildPHP && this.buildPython) {
-                    // @ts-ignore
                     log.cyan ('Transpiling from', filename.yellow)
                 } else {
                     const lang = (this.buildPHP) ? '[PHP]' : '[Python]'
-                    // @ts-ignore
                     log.cyan ('Transpiling from', filename.yellow, "to".cyan, lang.yellow )
                 }
 
@@ -1385,13 +1362,11 @@ class Transpiler {
             } else {
 
                 const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents)
-                // @ts-ignore
                 log.green ('Already transpiled', filename.yellow)
                 return { className, baseClass }
             }
 
         } catch (e) {
-            // @ts-ignore
             log.red ('\nFailed to transpile source code from', filename.yellow)
             log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
             throw e // rethrow it
@@ -1407,7 +1382,7 @@ class Transpiler {
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        let ids = undefined;
+        let ids: string[] = [];
         if (tsFolder.indexOf('pro/') > -1) {
             ids = exchangesWsIds;
         } else {
@@ -1419,10 +1394,9 @@ class Transpiler {
         let exchangesToTranspile;
         if (options.exchanges && options.exchanges.length) {
             exchangesToTranspile = options.exchanges.map ((x:any) => x + pattern)
-        } else if (ids !== undefined) {
+        } else if (ids.length) {
             exchangesToTranspile = ids.map(id => id + '.ts');
         } else {
-            // @ts-ignore
             exchangesToTranspile = fs.readdirSync (tsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
         }
 
@@ -1447,7 +1421,6 @@ class Transpiler {
                         !(file.replace (pattern, '') in classes) &&
                         !file.match (/^[A-Z_]/))
                     .map (file => path.join (folder, file))
-                    // @ts-ignore
                     .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
 
@@ -1577,11 +1550,9 @@ class Transpiler {
             }
 
             // async or not
-            // @ts-ignore
             let keyword = matches[1]
 
             // method name
-            // @ts-ignore
             let method = matches[2]
 
             if (process.argv.includes ('--check-parsers')) {
@@ -1593,11 +1564,9 @@ class Transpiler {
             method = unCamelCase (method)
 
             // method arguments
-            // @ts-ignore
             let args = matches[3].trim ()
 
             // return type
-            // @ts-ignore
             let returnType = matches[4]
 
             // extract argument names and local variables
@@ -1795,12 +1764,10 @@ class Transpiler {
     transpileBaseMethods () {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
         const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
-        // @ts-ignore
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
         const jsDelimiter = '// ' + delimiter
         const parts = classBody.split (jsDelimiter)
         if (parts.length > 1) {
-            // @ts-ignore
             log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
             const secondPart = parts[1]
             const methods = secondPart.trim ().split (/\n\s*\n/)
@@ -1832,19 +1799,15 @@ class Transpiler {
             const phpAsyncFile = './php/async/Exchange.php'
 
             if (this.buildPython) {
-                // @ts-ignore
                 log.magenta ('→', python2File.yellow)
                 replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
-                // @ts-ignore
                 log.magenta ('→', python3File.yellow)
                 replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
             }
 
             if (this.buildPHP) {
-                // @ts-ignore
                 log.magenta ('→', phpFile.yellow)
                 replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
-                // @ts-ignore
                 log.magenta ('→', phpAsyncFile.yellow)
                 replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
             }
@@ -1860,7 +1823,6 @@ class Transpiler {
         const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
 
         const classes = {}
-        // @ts-ignore
         classComponents.forEach ( elem => classes[elem[1]] = elem[2] );
 
         return classes
@@ -1869,7 +1831,6 @@ class Transpiler {
     // ========================================================================
 
     exportTypeScriptClassNames (file: string, classes: any) {
-        // @ts-ignore
         log.bright.cyan ('Exporting TypeScript class names →', file.yellow)
 
         const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
@@ -1882,7 +1843,6 @@ class Transpiler {
     }
 
     exportTypeScriptExchangeIds (file: string, classes: any) {
-        // @ts-ignore
         log.bright.cyan ('Exporting TypeScript exchange ids →', file.yellow)
 
         const regex = /\/[\n]{2}    export type ExchangeId =\n(?:        \| \'[a-z0-9_]+\'[\r]?[\n])+/
@@ -1917,9 +1877,7 @@ class Transpiler {
         // properly derived from corresponding parent classes according
         // to the error hierarchy
 
-        // @ts-ignore
         function intellisense (map, parent, generate, classes) {
-            // @ts-ignore
             function* generator(map, parent, generate, classes) {
                 for (const key in map) {
                     yield generate (key, parent, classes)
@@ -1956,7 +1914,6 @@ class Transpiler {
 
             const pythonFilename = './python/ccxt/base/errors.py'
             if (fs.existsSync (pythonFilename)) {
-                // @ts-ignore
                 log.bright.cyan (message, pythonFilename.yellow)
                 fs.writeFileSync (pythonFilename, python3BodyIntellisense)
             }
@@ -1980,7 +1937,6 @@ class Transpiler {
                     '',
                 ].join ("\n")
                 const phpFilename = './php/' + name + '.php'
-                // @ts-ignore
                 log.bright.cyan (message, phpFilename.yellow)
                 fs.writeFileSync (phpFilename, phpBody)
                 return "require_once PATH_TO_CCXT . '" + name + ".php';"
@@ -1989,10 +1945,8 @@ class Transpiler {
             const phpFilename ='./ccxt.php'
 
             if (fs.existsSync (phpFilename)) {
-                // @ts-ignore
                 const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
                 const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-                // @ts-ignore
                 log.bright.cyan (message, phpFilename.yellow)
                 const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
                 replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
@@ -2006,7 +1960,6 @@ class Transpiler {
         const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
         const pyFile = './python/ccxt/test/base/test_cryptography.py'
         const phpFile = './php/test/base/test_cryptography.php'
-        // @ts-ignore
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
 
@@ -2086,13 +2039,11 @@ class Transpiler {
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         if (this.buildPython) {
-            // @ts-ignore
             log.magenta ('→', pyFile.yellow)
             overwriteSafe (pyFile, python)
         }
 
         if (this.buildPHP) {
-            // @ts-ignore
             log.magenta ('→', phpFile.yellow)
             overwriteSafe (phpFile, php)
 
@@ -2431,7 +2382,6 @@ class Transpiler {
             fileConfig.push({"language": "python", "async": true})
         }
 
-        // @ts-ignore
         if (tests.base) {
             fileConfig = []
             if (this.buildPHP) {
@@ -2528,7 +2478,6 @@ class Transpiler {
             }
 
             const usesEqualsFunction = needsEquals[i];
-            // @ts-ignore
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2774,7 +2723,6 @@ class Transpiler {
         }
         // join header arrays into strings
         for (const [key, value] of Object.entries (fileHeaders)) {
-            // @ts-ignore
             fileHeaders[key] = value.join ('\n')
         }
 
@@ -2785,7 +2733,6 @@ class Transpiler {
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
-                // @ts-ignore
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -3064,7 +3011,6 @@ class Transpiler {
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        // @ts-ignore
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (classes === null) {
@@ -3119,7 +3065,6 @@ function parallelizeTranspiling (exchanges: string[], processes = undefined, for
 
 function isMainEntry(metaUrl: any) {
     // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
-    // @ts-ignore
     if (import.meta.url.startsWith('file:')) {
         const modulePath = url.fileURLToPath(metaUrl);
         if (process.argv[1] === modulePath) {
@@ -3134,7 +3079,6 @@ function isMainEntry(metaUrl: any) {
 }
 
 // ============================================================================
-// @ts-ignore
 if (isMainEntry(import.meta.url)) {
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
