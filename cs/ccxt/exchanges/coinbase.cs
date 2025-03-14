@@ -4620,7 +4620,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -4694,7 +4695,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
