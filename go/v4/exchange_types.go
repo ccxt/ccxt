@@ -840,8 +840,17 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} {
 	var result []interface{}
 	for _, orderRequest := range orderRequests {
-		result = append(result, orderRequest)
+		individualOrderRequest := map[string]interface{}{
+			"symbol": orderRequest.Symbol,
+			"type":   orderRequest.Type,
+			"side":   orderRequest.Side,
+			"amount": orderRequest.Amount,
+			"price":  orderRequest.Price,
+			"params": orderRequest.Parameters,
+		}
+		result = append(result, individualOrderRequest)
 	}
+
 	return result
 }
 
