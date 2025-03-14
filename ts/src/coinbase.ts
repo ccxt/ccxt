@@ -4328,7 +4328,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2 (response, 'data', 'transfer', {});
         return this.parseTransaction (data);
     }
 
@@ -4397,7 +4398,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2 (response, 'data', 'transfer', {});
         return this.parseTransaction (data);
     }
 
