@@ -5930,6 +5930,91 @@ func  (this *coinbase) FetchTradingFees(optionalArgs ...interface{}) <- chan int
             }()
             return ch
         }
+/**
+ * @method
+ * @name coinbase#fetchPortfolioDetails
+ * @description Fetch details for a specific portfolio by UUID
+ * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+ * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+ * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+ */
+func  (this *coinbase) FetchPortfolioDetails(portfolioUuid interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes49158 := (<-this.LoadMarkets())
+            PanicOnError(retRes49158)
+            var request interface{} = map[string]interface{} {
+                "portfolio_uuid": portfolioUuid,
+            }
+        
+            response:= (<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params)))
+            PanicOnError(response)
+            var result interface{} = this.ParsePortfolioDetails(response)
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * Parse a Coinbase portfolio JSON object and extract relevant trading information.
+ * @param {Dict} portfolioData The JSON response containing portfolio details
+ * @returns {any[]} List of dictionaries with parsed portfolio position data
+ */
+func  (this *coinbase) ParsePortfolioDetails(portfolioData interface{}) interface{}  {
+    var breakdown interface{} = GetValue(portfolioData, "breakdown")
+    var portfolioInfo interface{} = this.SafeDict(breakdown, "portfolio", map[string]interface{} {})
+    var portfolioName interface{} = this.SafeString(portfolioInfo, "name", "Unknown")
+    var portfolioUuid interface{} = this.SafeString(portfolioInfo, "uuid", "")
+    var spotPositions interface{} = this.SafeList(breakdown, "spot_positions", []interface{}{})
+    var parsedPositions interface{} = []interface{}{}
+    for i := 0; IsLessThan(i, GetArrayLength(spotPositions)); i++ {
+        var position interface{} = GetValue(spotPositions, i)
+        var currencyCode interface{} = this.SafeString(position, "asset", "Unknown")
+        var availableBalanceStr interface{} = this.SafeString(position, "available_to_trade_fiat", "0")
+        var availableBalance interface{} = this.ParseNumber(availableBalanceStr)
+        var totalBalanceFiatStr interface{} = this.SafeString(position, "total_balance_fiat", "0")
+        var totalBalanceFiat interface{} = this.ParseNumber(totalBalanceFiatStr)
+        var holdAmount interface{} = Subtract(totalBalanceFiat, availableBalance)
+        var costBasisDict interface{} = this.SafeDict(position, "cost_basis", map[string]interface{} {})
+        var costBasisStr interface{} = this.SafeString(costBasisDict, "value", "0")
+        var averageEntryPriceDict interface{} = this.SafeDict(position, "average_entry_price", map[string]interface{} {})
+        var averageEntryPriceStr interface{} = this.SafeString(averageEntryPriceDict, "value", "0")
+        var positionData interface{} = map[string]interface{} {
+            "currency": currencyCode,
+            "available_balance": availableBalance,
+            "hold_amount": Ternary(IsTrue(IsGreaterThan(holdAmount, 0)), holdAmount, 0),
+            "wallet_name": portfolioName,
+            "account_id": portfolioUuid,
+            "account_uuid": this.SafeString(position, "account_uuid", ""),
+            "total_balance_fiat": totalBalanceFiat,
+            "total_balance_crypto": this.ParseNumber(this.SafeString(position, "total_balance_crypto", "0")),
+            "available_to_trade_fiat": this.ParseNumber(this.SafeString(position, "available_to_trade_fiat", "0")),
+            "available_to_trade_crypto": this.ParseNumber(this.SafeString(position, "available_to_trade_crypto", "0")),
+            "available_to_transfer_fiat": this.ParseNumber(this.SafeString(position, "available_to_transfer_fiat", "0")),
+            "available_to_transfer_crypto": this.ParseNumber(this.SafeString(position, "available_to_trade_crypto", "0")),
+            "allocation": this.ParseNumber(this.SafeString(position, "allocation", "0")),
+            "cost_basis": this.ParseNumber(costBasisStr),
+            "cost_basis_currency": this.SafeString(costBasisDict, "currency", "USD"),
+            "is_cash": this.SafeBool(position, "is_cash", false),
+            "average_entry_price": this.ParseNumber(averageEntryPriceStr),
+            "average_entry_price_currency": this.SafeString(averageEntryPriceDict, "currency", "USD"),
+            "asset_uuid": this.SafeString(position, "asset_uuid", ""),
+            "unrealized_pnl": this.ParseNumber(this.SafeString(position, "unrealized_pnl", "0")),
+            "asset_color": this.SafeString(position, "asset_color", ""),
+            "account_type": this.SafeString(position, "account_type", ""),
+        }
+        AppendToArray(&parsedPositions,positionData)
+    }
+    return parsedPositions
+}
 func  (this *coinbase) CreateAuthToken(seconds interface{}, optionalArgs ...interface{}) interface{}  {
     // it may not work for v2
     method := GetArg(optionalArgs, 0, nil)
