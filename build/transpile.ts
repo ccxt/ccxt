@@ -11,7 +11,6 @@ import errors from "../ts/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
 import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
-// @ts-expect-error
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
@@ -22,7 +21,16 @@ import * as url from 'node:url';
 import Piscina from 'piscina';
 ansi.nice
 
+// types:
 type dict = { [key: string]: string }
+declare global {
+    interface String {
+        yellow(): string;
+        cyan(): string;
+    }
+}
+
+
 import { Transpiler as astTranspiler } from 'ast-transpiler';
 
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
@@ -38,7 +46,8 @@ let shouldTranspileTests = true
 // let buildPHP = true;
 
 // @ts-expect-error
-let __dirname = new URL('.', import.meta.url).pathname;
+const metaFileUrl = import.meta.url;
+let __dirname = new URL('.', metaFileUrl).pathname;
 
 function overwriteSafe (path: string, content: string) {
     try {
@@ -756,7 +765,7 @@ class Transpiler {
 
     createPythonImports (baseClass: string, bodyAsString: string, className: string, async = false) {
 
-        const pythonStandardLibraries = {
+        const pythonStandardLibraries: dict = {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
@@ -1006,7 +1015,7 @@ class Transpiler {
         for (let method of methods) {
             let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => {
+                (match: any, p1: string, p2: string) => {
                     return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
@@ -1014,7 +1023,7 @@ class Transpiler {
 
             regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => {
+                (match: any, p1: string, p2: string) => {
                     return ((p2 === '(') ?
                         ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
@@ -1033,7 +1042,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
+    transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }: any) {
 
         // transpile JS → Python 3
         let python3Body = this.regexAll (js, this.getPythonRegexes ())
@@ -1092,7 +1101,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileJavaScriptToPHP ({ js, variables }, async = false) {
+    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1121,7 +1130,7 @@ class Transpiler {
 
         // match all variables instantiated as function parameters
         let functionParamRegex = /function\s*(\w+)\s*\(([^)]+)\)/g
-        js = js.replace (functionParamRegex, (match, group1, group2) => 'function ' + unCamelCase (group1) + '(' + group2 + ')')
+        js = js.replace (functionParamRegex, (match: any, group1: any, group2: any) => 'function ' + unCamelCase (group1) + '(' + group2 + ')')
         let functionParamVariables
         while (functionParamVariables = functionParamRegex.exec (js)) {
             const match = functionParamVariables[2]
@@ -1143,7 +1152,7 @@ class Transpiler {
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables && variables.length ? 'use (' + variables.map (x => '$' + x).join (', ') + ')': '';
+            const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
 
@@ -1256,7 +1265,7 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileClass (contents: string) {
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
@@ -1307,15 +1316,15 @@ class Transpiler {
             let tsMtime = fs.statSync (tsPath).mtime.getTime ();
             tsMtime = tsMtime - tsMtime % 1000;
 
-            const python2Path  = python2Folder  ? path.join (python2Folder, pythonFilename) : undefined
-            const python3Path  = python3Folder  ? path.join (python3Folder, pythonFilename) : undefined
-            const phpPath      = phpFolder      ? path.join(phpFolder, phpFilename)         : undefined
-            const phpAsyncPath = phpAsyncFolder ? path.join (phpAsyncFolder, phpFilename)   : undefined
+            const python2Path  = python2Folder  ? path.join (python2Folder, pythonFilename) : ''
+            const python3Path  = python3Folder  ? path.join (python3Folder, pythonFilename) : ''
+            const phpPath      = phpFolder      ? path.join(phpFolder, phpFilename)    : ''
+            const phpAsyncPath = phpAsyncFolder ? path.join (phpAsyncFolder, phpFilename)    : ''
 
-            const python2Mtime: number  = python2Folder  ? (fs.existsSync (python2Path)  ? fs.statSync (python2Path).mtime.getTime ()  : 0) : undefined
-            const python3Mtime: number  = python3Path    ? (fs.existsSync (python3Path)  ? fs.statSync (python3Path).mtime.getTime ()  : 0) : undefined
-            const phpAsyncMtime: number = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
-            const phpMtime: number      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
+            const python2Mtime: number  = python2Folder  ? (fs.existsSync (python2Path)  ? fs.statSync (python2Path).mtime.getTime ()  : 0) : 0
+            const python3Mtime: number  = python3Path    ? (fs.existsSync (python3Path)  ? fs.statSync (python3Path).mtime.getTime ()  : 0) : 0
+            const phpAsyncMtime: number = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : 0
+            const phpMtime: number      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : 0
 
             if (force ||
                 (python3Folder  && (tsMtime > python3Mtime))  ||
@@ -1361,7 +1370,7 @@ class Transpiler {
 
             } else {
 
-                const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents)
+                const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents) as any
                 log.green ('Already transpiled', filename.yellow)
                 return { className, baseClass }
             }
@@ -1550,10 +1559,10 @@ class Transpiler {
             }
 
             // async or not
-            let keyword = matches[1]
+            let keyword = matches?.[1] as string
 
             // method name
-            let method = matches[2]
+            let method = matches?.[2] as string
 
             if (process.argv.includes ('--check-parsers')) {
                 this.checkIfMethodLacksParser (className, method, part)
@@ -1564,16 +1573,16 @@ class Transpiler {
             method = unCamelCase (method)
 
             // method arguments
-            let args = matches[3].trim ()
+            const args = (matches?.[3] as string).trim ()
 
             // return type
-            let returnType = matches[4]
+            let returnType = matches?.[4] as string
 
             // extract argument names and local variables
-            args = args.length ? args.split (',').map (x => x.trim ()) : []
+            const argsArray = args.length ? args.split (',').map (x => x.trim ()) : []
 
             // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
+            let variables = argsArray.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
 
             let phpArgs = ''
             let syncPhpSignature = ''
@@ -1627,7 +1636,7 @@ class Transpiler {
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
 
-                phpArgs = args.map (x => {
+                phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
                     if (parts.length === 1) {
                         return '$' + x
@@ -1683,7 +1692,7 @@ class Transpiler {
 
             if (this.buildPython) {
                 // remove excessive spacing from argument defaults in Python method signature
-                pythonArgs = args.map (x => {
+                pythonArgs = argsArray.map (x => {
                     if (x.includes (':')) {
                         const parts = x.split(':')
                         let typeParts = parts[1].trim ().split (' ')
@@ -1764,7 +1773,7 @@ class Transpiler {
     transpileBaseMethods () {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
         const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
         const jsDelimiter = '// ' + delimiter
         const parts = classBody.split (jsDelimiter)
         if (parts.length > 1) {
@@ -1820,9 +1829,9 @@ class Transpiler {
         const files = fs.readdirSync (folder).filter (file => ids.includes (basename (file, extension)))
         const promiseReadFile = promisify (fs.readFile);
         const fileArray = await Promise.all (files.map (file => promiseReadFile (path.join (folder, file), 'utf8')));
-        const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
+        const classComponents: any[] = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
 
-        const classes = {}
+        const classes: any = {}
         classComponents.forEach ( elem => classes[elem[1]] = elem[2] );
 
         return classes
@@ -1877,8 +1886,8 @@ class Transpiler {
         // properly derived from corresponding parent classes according
         // to the error hierarchy
 
-        function intellisense (map, parent, generate, classes) {
-            function* generator(map, parent, generate, classes) {
+        function intellisense (map: any, parent: any, generate: any, classes: any = undefined) {
+            function* generator(map: any, parent: any, generate: any, classes: any): any {
                 for (const key in map) {
                     yield generate (key, parent, classes)
                     yield* generator (map[key], key, generate, classes)
@@ -2382,6 +2391,7 @@ class Transpiler {
             fileConfig.push({"language": "python", "async": true})
         }
 
+        // @ts-expect-error
         if (tests.base) {
             fileConfig = []
             if (this.buildPHP) {
@@ -2478,6 +2488,7 @@ class Transpiler {
             }
 
             const usesEqualsFunction = needsEquals[i];
+            // @ts-expect-error
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2723,7 +2734,7 @@ class Transpiler {
         }
         // join header arrays into strings
         for (const [key, value] of Object.entries (fileHeaders)) {
-            fileHeaders[key] = value.join ('\n')
+            fileHeaders[key] = (value as any).join ('\n')
         }
 
         // start iteration through examples folder
@@ -2807,7 +2818,7 @@ class Transpiler {
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch: string, innerMatch: string){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
                 }
 
-                let finalPyHeaders = undefined;
+                let finalPyHeaders = '';
                 if (isCcxtPro) {
                     finalPyHeaders = fileHeaders.pyPro.join ('\n');
                 } else {
@@ -3011,7 +3022,7 @@ class Transpiler {
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -3065,7 +3076,7 @@ function parallelizeTranspiling (exchanges: string[], processes = undefined, for
 
 function isMainEntry(metaUrl: any) {
     // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
-    if (import.meta.url.startsWith('file:')) {
+    if (metaFileUrl.startsWith('file:')) {
         const modulePath = url.fileURLToPath(metaUrl);
         if (process.argv[1] === modulePath) {
             return true;
@@ -3079,7 +3090,7 @@ function isMainEntry(metaUrl: any) {
 }
 
 // ============================================================================
-if (isMainEntry(import.meta.url)) {
+if (isMainEntry(metaFileUrl)) {
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
