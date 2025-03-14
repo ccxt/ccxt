@@ -128,7 +128,7 @@ class tradeogre extends tradeogre$1 {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
-                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
@@ -441,6 +441,7 @@ class tradeogre extends tradeogre$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -450,13 +451,12 @@ class tradeogre extends tradeogre$1 {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since === undefined) {
-            throw new errors.BadRequest(this.id + ' fetchOHLCV requires a since argument');
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['timestamp'] = until;
         }
-        else {
-            request['timestamp'] = since;
-        }
-        const response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
+        const response = await this.publicGetChartIntervalMarket(this.extend(request, params));
         //
         //     [
         //         [

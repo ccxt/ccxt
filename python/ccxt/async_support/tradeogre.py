@@ -134,7 +134,7 @@ class tradeogre(Exchange, ImplicitAPI):
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
-                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
@@ -442,6 +442,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp of the latest candle in ms
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -450,11 +451,11 @@ class tradeogre(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is None:
-            raise BadRequest(self.id + ' fetchOHLCV requires a since argument')
-        else:
-            request['timestamp'] = since
-        response = await self.publicGetChartIntervalMarketTimestamp(self.extend(request, params))
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['timestamp'] = until
+        response = await self.publicGetChartIntervalMarket(self.extend(request, params))
         #
         #     [
         #         [

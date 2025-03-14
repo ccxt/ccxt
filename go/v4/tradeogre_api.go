@@ -71,7 +71,7 @@ func (this *tradeogre) PublicGetHistoryMarket (args ...interface{}) <-chan inter
    return ch
 }
 
-func (this *tradeogre) PublicGetChartIntervalMarketTimestamp (args ...interface{}) <-chan interface{} {
+func (this *tradeogre) PublicGetChartIntervalMarket (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
    go func() {
@@ -81,7 +81,7 @@ func (this *tradeogre) PublicGetChartIntervalMarketTimestamp (args ...interface{
                ch <- "panic:" + ToString(r)
            }
        }()
-       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarketTimestamp", parameters))
+       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarket", parameters))
        PanicOnError(ch)
    }()
    return ch
