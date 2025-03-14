@@ -768,7 +768,15 @@ class NewTranspiler {
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        let params = methodWrapper.parameters.map((param: any) => this.safeGoName(param.name)).join(', ');
+        let params = methodWrapper.parameters.map((param: any) => {
+            let parsedParam = this.safeGoName(param.name)
+
+            if (methodName === 'createOrders' && param.name === 'orders') {
+                parsedParam = 'ConvertOrderRequestListToArray(orders)' // quick fix, check this later
+            }
+
+            return parsedParam
+        }).join(', ');
 
         const one = this.inden(0);
         const two = this.inden(1);
