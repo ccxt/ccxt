@@ -1675,7 +1675,7 @@ class bitrue extends bitrue$1 {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.market(this.safeValue(ticker, 'symbol'));
+            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);
