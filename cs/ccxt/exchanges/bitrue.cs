@@ -1627,7 +1627,7 @@ public partial class bitrue : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object market = this.market(this.safeValue(ticker, "symbol"));
+            object market = this.safeMarket(this.safeString(ticker, "symbol"));
             ((IDictionary<string,object>)tickers)[(string)getValue(market, "id")] = ticker;
         }
         return this.parseTickers(tickers, symbols);
