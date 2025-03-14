@@ -10856,7 +10856,7 @@ func  (this *bybit) HandleErrors(httpCode interface{}, reason interface{}, url i
         } else {
             feedback = Add(Add(this.Id, " "), body)
         }
-        if IsTrue(GetIndexOf(body, "Withdraw address chain or destination tag are not equal")) {
+        if IsTrue(IsGreaterThan(GetIndexOf(body, "Withdraw address chain or destination tag are not equal"), OpNeg(1))) {
             feedback = Add(feedback, "; You might also need to ensure the address is whitelisted")
         }
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
