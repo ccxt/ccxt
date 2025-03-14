@@ -11,6 +11,7 @@ import errors from "../ts/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
 import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
+// @ts-expect-error
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
