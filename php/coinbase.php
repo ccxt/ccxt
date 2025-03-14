@@ -4322,7 +4322,8 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        // https://github.com/ccxt/ccxt/issues/25484
+        $data = $this->safe_dict_2($response, 'data', 'transfer', array());
         return $this->parse_transaction($data);
     }
 
@@ -4391,7 +4392,8 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        // https://github.com/ccxt/ccxt/issues/25484
+        $data = $this->safe_dict_2($response, 'data', 'transfer', array());
         return $this->parse_transaction($data);
     }
 
