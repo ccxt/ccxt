@@ -4267,6 +4267,7 @@ class coinbase extends coinbase$1 {
             'amount': this.numberToString(amount),
             'currency': code.toUpperCase(),
             'payment_method': id,
+            'commit': true, // otheriwse the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, params));
         //
