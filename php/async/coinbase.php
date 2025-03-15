@@ -4384,6 +4384,7 @@ class coinbase extends Exchange {
                 'amount' => $this->number_to_string($amount),
                 'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
                 'payment_method' => $id,
+                'commit' => true, // otheriwse the deposit does not go through
             );
             $response = Async\await($this->v2PrivatePostAccountsAccountIdDeposits ($this->extend($request, $params)));
             //
