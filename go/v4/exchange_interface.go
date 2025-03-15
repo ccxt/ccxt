@@ -174,6 +174,7 @@ type IExchange interface {
 	ConvertToSafeDictionary(data interface{}) interface{}
 	CreateSafeDictionary() interface{}
 	SetOptions(options interface{})
+	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
