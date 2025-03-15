@@ -3047,7 +3047,7 @@ export default class whitebit extends Exchange {
         //     ]
         //
         const positions = this.parsePositions (response);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit) as Position[];
     }
 
     /**
@@ -3084,7 +3084,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        return this.parsePositions (response, symbols) as Position[];
     }
 
     /**
@@ -3125,10 +3125,10 @@ export default class whitebit extends Exchange {
         //     ]
         //
         const data = this.safeDict (response, 0, {});
-        return this.parsePosition (data, market);
+        return this.parsePosition (data, market) as Position;
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // fetchPosition, fetchPositions
         //
