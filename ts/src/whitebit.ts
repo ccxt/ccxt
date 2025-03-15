@@ -79,8 +79,8 @@ export default class whitebit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
-                'fetchPositions': true,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -3047,7 +3047,7 @@ export default class whitebit extends Exchange {
         //     ]
         //
         const positions = this.parsePositions (response);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit) as Position[];
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     /**
@@ -3084,7 +3084,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols) as Position[];
+        return this.parsePositions (response, symbols);
     }
 
     /**
@@ -3125,7 +3125,7 @@ export default class whitebit extends Exchange {
         //     ]
         //
         const data = this.safeDict (response, 0, {});
-        return this.parsePosition (data, market) as Position;
+        return this.parsePosition (data, market);
     }
 
     parsePosition (position: Dict, market: Market = undefined): Position {
@@ -3176,7 +3176,7 @@ export default class whitebit extends Exchange {
         const timestamp = this.safeTimestamp (position, 'openDate');
         const tpsl = this.safeDict (position, 'tpsl', {});
         const orderDetail = this.safeDict (position, 'orderDetail', {});
-        return this.safePosition ({
+        return {
             'info': position,
             'id': this.safeString (position, 'positionId'),
             'symbol': this.safeSymbol (marketId, market),
@@ -3188,7 +3188,7 @@ export default class whitebit extends Exchange {
             'realizedPnl': this.safeNumber (orderDetail, 'realizedPnl'),
             'percentage': this.safeNumber (position, 'pnlPercent'),
             'contracts': undefined,
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': undefined,
@@ -3205,7 +3205,7 @@ export default class whitebit extends Exchange {
             'marginRatio': undefined,
             'stopLossPrice': this.safeNumber (tpsl, 'stopLoss'),
             'takeProfitPrice': this.safeNumber (tpsl, 'takeProfit'),
-        }) as Position;
+        } as Position;
     }
 
     isFiat (currency: string): boolean {
