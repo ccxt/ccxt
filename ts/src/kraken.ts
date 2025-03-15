@@ -227,13 +227,13 @@ export default class kraken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                // about X & Z prefixes and .S & .M suffixes, see comment under fetchCurrencies
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
-                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
             },
             'options': {
@@ -779,9 +779,48 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "BCH": {
+        //             "ATOM": {
         //                 "aclass": "currency",
-        //                 "altname": "BCH",
+        //                 "altname": "ATOM",
+        //                 "collateral_value": "0.7",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "ATOM.S": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM.S",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "status": "enabled",
+        //             },
+        //             "XXBT": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5,
+        //                 "margin_rate": 0.01,
+        //                 "status": "enabled",
+        //             },
+        //             "XETH": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "XBT.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
+        //             "ETH.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH.M",
         //                 "decimals": 10,
         //                 "display_decimals": 5
         //                 "status": "enabled",
@@ -800,13 +839,36 @@ export default class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.safeCurrencyCode (id);
+            //
+            // Notes about abbreviations:
+            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+            //
+            const altName = this.safeString (currency, 'altname');
+            let unifiedCode = '';
+            // handle cases like XBT.M
+            if (id.indexOf ('.') > 0) {
+                // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+                const parts = id.split ('.');
+                const firstPart = this.safeString (parts, 0);
+                const secondPart = this.safeString (parts, 1);
+                const firstPartUnified = this.safeCurrencyCode (firstPart);
+                unifiedCode = firstPartUnified + '.' + secondPart;
+            } else {
+                unifiedCode = this.safeCurrencyCode (id);
+                // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
+                if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
+                    unifiedCode = this.safeCurrencyCode (altName);
+                    // also, add map in commonCurrencies:
+                    this.commonCurrencies[id] = unifiedCode;
+                }
+            }
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString (currency, 'status') === 'enabled';
-            result[code] = {
+            result[unifiedCode] = {
                 'id': id,
-                'code': code,
+                'code': unifiedCode,
                 'info': currency,
                 'name': this.safeString (currency, 'altname'),
                 'active': active,
@@ -1484,14 +1546,39 @@ export default class kraken extends Exchange {
             'datetime': undefined,
         };
         const currencyIds = Object.keys (balances);
+        // see all details in fetchBalance comments
+        const earningSuffix = '.F';
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            account['info'] = balance;
+            account['info']['originalId'] = currencyId;
+            // now handle the key
+            let unifiedCode = undefined;
+            const endsWithF = currencyId.endsWith (earningSuffix);
+            if (endsWithF) {
+                // map e.g. XBT.F to XXBT
+                const sourceCurrencyId = currencyId.replace (earningSuffix, '');
+                unifiedCode = this.commonCurrencyCode (sourceCurrencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = result[unifiedCode];
+                }
+                result[unifiedCode] = account;
+            } else {
+                unifiedCode = this.commonCurrencyCode (currencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = account;
+                } else {
+                    result[unifiedCode] = account;
+                }
+            }
         }
         return this.safeBalance (result);
     }
@@ -1511,16 +1598,30 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "ZUSD": {
-        //                 "balance": 25435.21,
-        //                 "hold_trade": 8249.76
+        //             "SOL": {
+        //                 "balance": "1.2340000000",
+        //                 "hold_trade": "0.0000000000"
         //             },
-        //             "XXBT": {
-        //                 "balance": 1.2435,
-        //                 "hold_trade": 0.8423
-        //             }
         //         }
         //     }
+        //
+        // if "earning(rewards)" activated (see https://github.com/ccxt/ccxt/issues/24663), then some coins get .F suffix (such suffixed coins are not provided in fetchCurrencies response, unlike .M suffixed coins)
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "SOL": {
+        //                 "balance": "0.0000000000",
+        //                 "hold_trade": "0.0000000000"
+        //             },
+        //             "SOL.F": {
+        //                 "balance": "1.2340000000",
+        //                 "hold_trade": "0.0000000000"
+        //             },
+        //         }
+        //     }
+        //
+        // for more info, about prefix and suffix parts, see comments in "fetchCurrencies"
         //
         return this.parseBalance (response);
     }
