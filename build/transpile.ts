@@ -823,7 +823,7 @@ class Transpiler {
             'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
-            'Position': /-> Position:/,
+            'Position': /-> (?:List\[)?Position/,
             'Str': /: (?:List\[)?Str =/,
             'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
