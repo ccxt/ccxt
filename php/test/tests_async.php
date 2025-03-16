@@ -1468,6 +1468,30 @@ class testMainClass {
             assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
+            $create_orders_request = null;
+            try {
+                $orders = [array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'limit',
+    'side' => 'sell',
+    'amount' => 1,
+    'price' => 100000,
+), array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'market',
+    'side' => 'buy',
+    'amount' => 1,
+)];
+                Async\await($exchange->create_orders($orders));
+            } catch(\Throwable $e) {
+                $create_orders_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $batch_orders = $create_orders_request['batchOrders'];
+            for ($i = 0; $i < count($batch_orders); $i++) {
+                $current = $batch_orders[$i];
+                $current_client_order_id = $current['newClientOrderId'];
+                assert(str_starts_with($current_client_order_id, $swap_id_string), 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+            }
             if (!is_sync()) {
                 Async\await(close($exchange));
             }
