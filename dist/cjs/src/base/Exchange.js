@@ -4231,7 +4231,7 @@ class Exchange {
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
-                if (e instanceof errors.NetworkError) {
+                if (e instanceof errors.OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log('Request failed with the error: ' + e.toString() + ', retrying ' + (i + 1).toString() + ' of ' + retries.toString() + '...');
@@ -4239,10 +4239,12 @@ class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep(retryDelay);
                         }
-                        // continue; //check this
+                    }
+                    else {
+                        throw e;
                     }
                 }
-                if (i >= retries) {
+                else {
                     throw e;
                 }
             }

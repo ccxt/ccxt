@@ -1710,7 +1710,7 @@ func  (this *bitrue) FetchTickers(optionalArgs ...interface{}) <- chan interface
             var tickers interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var ticker interface{} = this.SafeDict(data, i, map[string]interface{} {})
-                var market interface{} = this.Market(this.SafeValue(ticker, "symbol"))
+                var market interface{} = this.SafeMarket(this.SafeString(ticker, "symbol"))
                 AddElementToObject(tickers, GetValue(market, "id"), ticker)
             }
         
@@ -3713,6 +3713,6 @@ func  (this *bitrue) CalculateRateLimiterCost(api interface{}, method interface{
 
 func (this *bitrue) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

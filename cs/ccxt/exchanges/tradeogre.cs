@@ -123,7 +123,7 @@ public partial class tradeogre : Exchange
                         { "orders/{market}", 1 },
                         { "ticker/{market}", 1 },
                         { "history/{market}", 1 },
-                        { "chart/{interval}/{market}/{timestamp}", 1 },
+                        { "chart/{interval}/{market}", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -450,6 +450,7 @@ public partial class tradeogre : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -462,14 +463,13 @@ public partial class tradeogre : Exchange
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(isEqual(since, null)))
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOHLCV requires a since argument")) ;
-        } else
-        {
-            ((IDictionary<string,object>)request)["timestamp"] = since;
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["timestamp"] = until;
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetChartIntervalMarketTimestamp", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
         //
         //     [
         //         [
