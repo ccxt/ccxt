@@ -115,7 +115,7 @@ export default class paradex extends Exchange {
                 'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -2235,6 +2235,31 @@ export default class paradex extends Exchange {
 
     /**
      * @method
+     * @name paradex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] the rate of leverage
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let leverage: Str = undefined;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+    }
+
+    /**
+     * @method
      * @name paradex#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
@@ -2292,10 +2317,10 @@ export default class paradex extends Exchange {
      * @name paradex#setLeverage
      * @description set the level of leverage for a market
      * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
-     * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+     * @param {float} leverage the rate of leverage
      * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
