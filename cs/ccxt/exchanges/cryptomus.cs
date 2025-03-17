@@ -1101,7 +1101,7 @@ public partial class cryptomus : Exchange
 
     /**
      * @method
-     * @name coinlist#fetchTradingFees
+     * @name cryptomus#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
