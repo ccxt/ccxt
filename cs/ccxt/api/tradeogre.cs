@@ -31,6 +31,11 @@ public partial class tradeogre : Exchange
         return await this.callAsync ("publicGetHistoryMarket",parameters);
     }
 
+    public async Task<object> publicGetChartIntervalMarket (object parameters = null)
+    {
+        return await this.callAsync ("publicGetChartIntervalMarket",parameters);
+    }
+
     public async Task<object> privateGetAccountBalance (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBalance",parameters);

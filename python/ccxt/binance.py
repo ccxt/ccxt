@@ -6167,7 +6167,8 @@ class binance(Exchange, ImplicitAPI):
         # don't handle/omit params here, omitting happens inside createOrderRequest
         marketType = self.safe_string(params, 'type', market['type'])
         marginMode = self.safe_string(params, 'marginMode')
-        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', False)
+        porfolioOptionsValue = self.safe_bool_2(self.options, 'papi', 'portfolioMargin', False)
+        isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', porfolioOptionsValue)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -6179,8 +6180,9 @@ class binance(Exchange, ImplicitAPI):
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, ['sor', 'SOR', 'test'])
-        if isPortfolioMargin:
-            params['portfolioMargin'] = isPortfolioMargin
+        # if isPortfolioMargin:
+        #     params['portfolioMargin'] = isPortfolioMargin
+        # }
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
         if market['option']:
@@ -11323,8 +11325,22 @@ class binance(Exchange, ImplicitAPI):
             query = None
             # handle batchOrders
             if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
-                batchOrders = self.safe_value(params, 'batchOrders')
-                queryBatch = (self.json(batchOrders))
+                batchOrders = self.safe_list(params, 'batchOrders')
+                checkedBatchOrders = batchOrders
+                if method == 'POST' and api == 'fapiPrivate':
+                    # check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                    checkedBatchOrders = []
+                    for i in range(0, len(batchOrders)):
+                        batchOrder = batchOrders[i]
+                        newClientOrderId = self.safe_string(batchOrder, 'newClientOrderId')
+                        if newClientOrderId is None:
+                            defaultId = 'x-xcKtGhcu'  # batchOrders can not be spot or margin
+                            broker = self.safe_dict(self.options, 'broker', {})
+                            brokerId = self.safe_string(broker, 'future', defaultId)
+                            newClientOrderId = brokerId + self.uuid22()
+                            batchOrder['newClientOrderId'] = newClientOrderId
+                        checkedBatchOrders.append(batchOrder)
+                queryBatch = (self.json(checkedBatchOrders))
                 params['batchOrders'] = queryBatch
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({

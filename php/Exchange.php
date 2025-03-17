@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.65';
+$version = '4.4.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.65';
+    const VERSION = '4.4.68';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -388,6 +388,7 @@ class Exchange {
         'coinsph',
         'coinspot',
         'cryptocom',
+        'cryptomus',
         'defx',
         'delta',
         'deribit',
@@ -2206,6 +2207,10 @@ class Exchange {
         return array();
     }
 
+    public function convert_to_safe_dictionary($dict) {
+        return $dict;
+    }
+
     public function rand_number($size) {
         $number = '';
         for ($i = 0; $i < $size; $i++) {
@@ -2474,6 +2479,7 @@ class Exchange {
                 'watchOHLCV' => null,
                 'watchOHLCVForSymbols' => null,
                 'watchOrderBook' => null,
+                'watchBidsAsks' => null,
                 'watchOrderBookForSymbols' => null,
                 'watchOrders' => null,
                 'watchOrdersForSymbols' => null,
@@ -5321,7 +5327,7 @@ class Exchange {
             try {
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
             } catch (Exception $e) {
-                if ($e instanceof NetworkError) {
+                if ($e instanceof OperationFailed) {
                     if ($i < $retries) {
                         if ($this->verbose) {
                             $this->log('Request failed with the error => ' . (string) $e . ', retrying ' . ($i . (string) 1) . ' of ' . (string) $retries . '...');
@@ -5329,10 +5335,10 @@ class Exchange {
                         if (($retryDelay !== null) && ($retryDelay !== 0)) {
                             $this->sleep($retryDelay);
                         }
-                        // continue; //check this
+                    } else {
+                        throw $e;
                     }
-                }
-                if ($i >= $retries) {
+                } else {
                     throw $e;
                 }
             }

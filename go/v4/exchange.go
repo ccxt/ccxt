@@ -508,6 +508,14 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
+func (this *Exchange) CreateSafeDictionary() interface{} {
+	return map[string]interface{}{}
+}
+
+func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
+	return data
+}
+
 func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
 	return this.callInternal(name2.(string), args...)
 }

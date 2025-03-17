@@ -3,24 +3,102 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1729180800,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1729130040,
+                        67581.47235999,
+                        67581.47235999,
+                        67338.01,
+                        67338.01,
+                        6.72168016
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1729130040000,
+                        67581.47235999,
+                        67338.01,
+                        67338.01,
+                        67581.47235999,
+                        6.72168016
+                    ]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "BTC-USDT": {
+                            "initialprice": "88922.25193499",
+                            "price" :"87009.58925465",
+                            "high":"88922.25193499",
+                            "low":"85000.00000000",
+                            "volume":"153873.51750094",
+                            "bid":"85466.85230678",
+                            "ask":"86949.55219244",
+                            "basename":"Bitcoin"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 88922.25193499,
+                        "low": 85000,
+                        "bid": 85466.85230678,
+                        "bidVolume": null,
+                        "ask": 86949.55219244,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 153873.51750094,
+                        "quoteVolume": null,
+                        "info": {
+                            "initialprice": "88922.25193499",
+                            "price": "87009.58925465",
+                            "high": "88922.25193499",
+                            "low": "85000.00000000",
+                            "volume": "153873.51750094",
+                            "bid": "85466.85230678",
+                            "ask": "86949.55219244",
+                            "basename": "Bitcoin"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetch order",
                 "method": "fetchOrder",
                 "input": [
-                  "fb3545c8-837a-4245-bdfa-79e857230d82"
+                    "fb3545c8-837a-4245-bdfa-79e857230d82"
                 ],
                 "httpResponse": {
-                  "success": true,
-                  "date": "1710696146",
-                  "type": "sell",
-                  "market": "LTC-USDT",
-                  "price": "87.00000000",
-                  "quantity": "0.10000000",
-                  "fulfilled": "0.00000000"
-                },
-                "parsedResponse": {
-                  "info": {
                     "success": true,
                     "date": "1710696146",
                     "type": "sell",
@@ -28,84 +106,62 @@
                     "price": "87.00000000",
                     "quantity": "0.10000000",
                     "fulfilled": "0.00000000"
-                  },
-                  "id": null,
-                  "clientOrderId": null,
-                  "timestamp": 1710696146000,
-                  "datetime": "2024-03-17T17:22:26.000Z",
-                  "lastTradeTimestamp": null,
-                  "symbol": "LTC/USDT",
-                  "type": null,
-                  "timeInForce": null,
-                  "postOnly": null,
-                  "side": "sell",
-                  "price": 87,
-                  "stopPrice": null,
-                  "amount": 0.1,
-                  "cost": 0,
-                  "average": null,
-                  "filled": 0,
-                  "remaining": 0.1,
-                  "status": null,
-                  "fee": {
-                    "currency": null,
-                    "cost": null
-                  },
-                  "trades": [],
-                  "fees": [
-                    {
-                      "currency": null,
-                      "cost": null
-                    }
-                  ],
-                  "lastUpdateTimestamp": null,
-                  "reduceOnly": null,
-                  "triggerPrice": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "date": "1710696146",
+                        "type": "sell",
+                        "market": "LTC-USDT",
+                        "price": "87.00000000",
+                        "quantity": "0.10000000",
+                        "fulfilled": "0.00000000"
+                    },
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": 1710696146000,
+                    "datetime": "2024-03-17T17:22:26.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 87,
+                    "stopPrice": null,
+                    "amount": 0.1,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.1,
+                    "status": null,
+                    "fee": {
+                            "currency": null,
+                            "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
-              }
+            }
         ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ],
                 "httpResponse": {
-                  "success": true,
-                  "initialprice": "68244.43002928",
-                  "price": "68392.46369987",
-                  "high": "68486.46918063",
-                  "low": "64690.69000000",
-                  "volume": "434035.66968030",
-                  "bid": "68128.17000000",
-                  "ask": "68392.46369986"
-                },
-                "parsedResponse": {
-                  "symbol": "BTC/USDT",
-                  "timestamp": null,
-                  "datetime": null,
-                  "high": 68486.46918063,
-                  "low": 64690.69,
-                  "bid": 68128.17,
-                  "bidVolume": null,
-                  "ask": 68392.46369986,
-                  "askVolume": null,
-                  "vwap": null,
-                  "open": null,
-                  "close": null,
-                  "last": null,
-                  "previousClose": null,
-                  "change": null,
-                  "percentage": null,
-                  "average": null,
-                  "baseVolume": 434035.6696803,
-                  "quoteVolume": null,
-                  "markPrice":  null,
-                  "indexPrice": null,
-                  "info": {
                     "success": true,
                     "initialprice": "68244.43002928",
                     "price": "68392.46369987",
@@ -114,51 +170,83 @@
                     "volume": "434035.66968030",
                     "bid": "68128.17000000",
                     "ask": "68392.46369986"
-                  }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 68486.46918063,
+                    "low": 64690.69,
+                    "bid": 68128.17,
+                    "bidVolume": null,
+                    "ask": 68392.46369986,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 434035.6696803,
+                    "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
+                    "info": {
+                        "success": true,
+                        "initialprice": "68244.43002928",
+                        "price": "68392.46369987",
+                        "high": "68486.46918063",
+                        "low": "64690.69000000",
+                        "volume": "434035.66968030",
+                        "bid": "68128.17000000",
+                        "ask": "68392.46369986"
+                    }
                 }
-              } 
+            }
         ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
                 "input": [
-                  "LTC/USDT",
-                  null,
-                  1
+                    "LTC/USDT",
+                    null,
+                    1
                 ],
                 "httpResponse": [
-                  {
-                    "date": "1710696332",
-                    "type": "sell",
-                    "price": "86.60000000",
-                    "quantity": "0.15001808"
-                  }
+                    {
+                        "date": "1710696332",
+                        "type": "sell",
+                        "price": "86.60000000",
+                        "quantity": "0.15001808"
+                    }
                 ],
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "date": "1710696332",
-                      "type": "sell",
-                      "price": "86.60000000",
-                      "quantity": "0.15001808"
-                    },
-                    "id": null,
-                    "timestamp": 1710696332000,
-                    "datetime": "2024-03-17T17:25:32.000Z",
-                    "symbol": "LTC/USDT",
-                    "order": null,
-                    "type": null,
-                    "side": "sell",
-                    "takerOrMaker": null,
-                    "price": 86.6,
-                    "amount": 0.15001808,
-                    "cost": 12.991565728,
-                    "fee": {"cost": null, "currency": null },
-                    "fees": []
-                  }
+                    {
+                        "info": {
+                            "date": "1710696332",
+                            "type": "sell",
+                            "price": "86.60000000",
+                            "quantity": "0.15001808"
+                        },
+                        "id": null,
+                        "timestamp": 1710696332000,
+                        "datetime": "2024-03-17T17:25:32.000Z",
+                        "symbol": "LTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 86.6,
+                        "amount": 0.15001808,
+                        "cost": 12.991565728,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
                 ]
-              }
+            }
         ]
     }
 }

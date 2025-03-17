@@ -142,6 +142,103 @@
                     ]
                 ]
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "Fetch a conversion quote",
+                "method": "fetchConvertQuote",
+                "input": [
+                  "USDT",
+                  "BTC",
+                  4
+                ],
+                "httpResponse": {"give":"4","receive":"0.0000477","rate":"0.00001192","id":"1740959","expireAt":1741090372,"from":"USDT","to":"BTC"},
+                "parsedResponse": {
+                  "info": {
+                    "give": "4",
+                    "receive": "0.0000477",
+                    "rate": "0.00001192",
+                    "id": "1740959",
+                    "expireAt": 1741090372,
+                    "from": "USDT",
+                    "to": "BTC"
+                  },
+                  "timestamp": 1741090372000,
+                  "datetime": "2025-03-04T12:12:52.000Z",
+                  "id": "1740959",
+                  "fromCurrency": "USDT",
+                  "fromAmount": 4,
+                  "toCurrency": "BTC",
+                  "toAmount": 0.0000477,
+                  "price": 0.00001192,
+                  "fee": null
+                }
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "createConvertTrade",
+                "input": [
+                  "1741105",
+                  "USDT",
+                  "BTC",
+                  4
+                ],
+                "httpResponse": {"finalGive":"4","finalReceive":"0.00004772"},
+                "parsedResponse": {
+                  "info": {
+                    "finalGive": "4",
+                    "finalReceive": "0.00004772"
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "id": null,
+                  "fromCurrency": "USDT",
+                  "fromAmount": 4,
+                  "toCurrency": "BTC",
+                  "toAmount": 0.00004772,
+                  "price": null,
+                  "fee": null
+                }
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchConvertTradeHistory",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {"records":[{"id":"1741105","path":[{"from":"USDT","to":"BTC","rate":"0.00001193"}],"date":1741090757,"give":"4","receive":"0.00004772","rate":"0.00001193"}],"total":1,"limit":100,"offset":0},
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "1741105",
+                      "path": [
+                        {
+                          "from": "USDT",
+                          "to": "BTC",
+                          "rate": "0.00001193"
+                        }
+                      ],
+                      "date": 1741090757,
+                      "give": "4",
+                      "receive": "0.00004772",
+                      "rate": "0.00001193"
+                    },
+                    "timestamp": 1741090757000,
+                    "datetime": "2025-03-04T12:19:17.000Z",
+                    "id": "1741105",
+                    "fromCurrency": "USDT",
+                    "fromAmount": 4,
+                    "toCurrency": "BTC",
+                    "toAmount": 0.00004772,
+                    "price": 0.00001193,
+                    "fee": null
+                  }
+                ]
+            }
         ]
     }
 }

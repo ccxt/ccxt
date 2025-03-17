@@ -888,6 +888,7 @@ class htx extends Exchange {
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
+                    '1061' => '\\ccxt\\OrderNotFound', // array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
                     '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
@@ -7111,27 +7112,31 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
          *
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $options = $this->safe_value($this->options, 'fetchFundingRates', array());
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
+        $subType = null;
+        list($subType, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
+        if ($symbols !== null) {
+            $firstSymbol = $this->safe_string($symbols, 0);
+            $market = $this->market($firstSymbol);
+            $isLinear = $market['linear'];
+            $subType = $isLinear ? 'linear' : 'inverse';
+        }
         $request = array(
-            // 'contract_code' => market['id'],
+            // 'contract_code' => $market['id'],
         );
-        $params = $this->omit($params, 'subType');
         $response = null;
         if ($subType === 'linear') {
             $response = $this->contractPublicGetLinearSwapApiV1SwapBatchFundingRate ($this->extend($request, $params));
         } elseif ($subType === 'inverse') {
             $response = $this->contractPublicGetSwapApiV1SwapBatchFundingRate ($this->extend($request, $params));
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
+            throw new NotSupported($this->id . ' fetchFundingRates() not support this $market type');
         }
         //
         //     {
@@ -7421,6 +7426,7 @@ class htx extends Exchange {
         if (is_array($response) && array_key_exists('status', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
@@ -7438,6 +7444,16 @@ class htx extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $code = $this->safe_string($response, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
+        $data = $this->safe_dict($response, 'data');
+        $errorsList = $this->safe_list($data, 'errors');
+        if ($errorsList !== null) {
+            $first = $this->safe_dict($errorsList, 0);
+            $errcode = $this->safe_string($first, 'err_code');
+            $errmessage = $this->safe_string($first, 'err_msg');
+            $feedBack = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errcode, $feedBack);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errmessage, $feedBack);
         }
         return null;
     }

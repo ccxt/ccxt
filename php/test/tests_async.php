@@ -1263,8 +1263,7 @@ class testMainClass {
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                     Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
                     // reset options
-                    // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                    $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, array()));
+                    $exchange->options = $exchange->convert_to_safe_dictionary($exchange->deep_extend($old_exchange_options, array()));
                 }
             }
             if (!is_sync()) {
@@ -1429,7 +1428,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1469,6 +1468,30 @@ class testMainClass {
             assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
+            $create_orders_request = null;
+            try {
+                $orders = [array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'limit',
+    'side' => 'sell',
+    'amount' => 1,
+    'price' => 100000,
+), array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'market',
+    'side' => 'buy',
+    'amount' => 1,
+)];
+                Async\await($exchange->create_orders($orders));
+            } catch(\Throwable $e) {
+                $create_orders_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $batch_orders = $create_orders_request['batchOrders'];
+            for ($i = 0; $i < count($batch_orders); $i++) {
+                $current = $batch_orders[$i];
+                $current_client_order_id = $current['newClientOrderId'];
+                assert(str_starts_with($current_client_order_id, $swap_id_string), 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+            }
             if (!is_sync()) {
                 Async\await(close($exchange));
             }
@@ -2056,6 +2079,50 @@ class testMainClass {
             }
             $id = 'ccxt';
             assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_cryptomus() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('cryptomus');
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'sell', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $tag = 'ccxt';
+            assert($request['tag'] === $tag, 'cryptomus - tag: ' . $tag . ' not in request.');
+            if (!is_sync()) {
+                Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_derive() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('derive');
+            $id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+            assert($exchange->options['id'] === $id, 'derive - id: ' . $id . ' not in options');
+            $request = null;
+            try {
+                $params = array(
+                    'subaccount_id' => 1234,
+                    'max_fee' => 10,
+                    'deriveWalletAddress' => '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+                );
+                $exchange->walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+                $exchange->privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5';
+                Async\await($exchange->create_order('LBTC/USDC', 'limit', 'sell', 0.01, 3000, $params));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['referral_code'] === $id, 'derive - referral_code: ' . $id . ' not in request.');
             if (!is_sync()) {
                 Async\await(close($exchange));
             }

@@ -224,6 +224,7 @@ public partial class Exchange
                 { "watchOHLCV", null },
                 { "watchOHLCVForSymbols", null },
                 { "watchOrderBook", null },
+                { "watchBidsAsks", null },
                 { "watchOrderBookForSymbols", null },
                 { "watchOrders", null },
                 { "watchOrdersForSymbols", null },
@@ -3774,7 +3775,7 @@ public partial class Exchange
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
-                if (isTrue(e is NetworkError))
+                if (isTrue(e is OperationFailed))
                 {
                     if (isTrue(isLessThan(i, retries)))
                     {
@@ -3786,9 +3787,11 @@ public partial class Exchange
                         {
                             await this.sleep(retryDelay);
                         }
+                    } else
+                    {
+                        throw e;
                     }
-                }
-                if (isTrue(isGreaterThanOrEqual(i, retries)))
+                } else
                 {
                     throw e;
                 }

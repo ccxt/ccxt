@@ -524,6 +524,26 @@
                 "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
             },
             {
+                "description": "swap portfolioMargin postOnly order using options",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order",
+                "options": {
+                    "portfolioMargin": true
+                },
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.41,
+                  50,
+                  {
+                    "postOnly": true,
+                    "positionSide": "LONG"
+                  }
+                ],
+                "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
+            },
+            {
                 "description": "swap limit bbo order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",

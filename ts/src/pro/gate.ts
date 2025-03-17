@@ -38,6 +38,7 @@ export default class gate extends gateRest {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,

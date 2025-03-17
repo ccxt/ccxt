@@ -1869,6 +1869,18 @@
                 "url": "https://api.gateio.ws/api/v4/spot/time",
                 "input": []
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch inverse market funding rate",
+                "method": "fetchFundingRates",
+                "url": "https://api.gateio.ws/api/v4/futures/btc/contracts?contract=BTC_USD",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ]
+            }
         ]
     }
 }

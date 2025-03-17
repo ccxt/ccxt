@@ -3311,6 +3311,6 @@ func  (this *krakenfutures) Sign(path interface{}, optionalArgs ...interface{}) 
 
 func (this *krakenfutures) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

@@ -6571,7 +6571,8 @@ public partial class binance : Exchange
         // don't handle/omit params here, omitting happens inside createOrderRequest
         object marketType = this.safeString(parameters, "type", getValue(market, "type"));
         object marginMode = this.safeString(parameters, "marginMode");
-        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", false);
+        object porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
+        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -6583,10 +6584,9 @@ public partial class binance : Exchange
         object sor = this.safeBool2(parameters, "sor", "SOR", false);
         object test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, new List<object>() {"sor", "SOR", "test"});
-        if (isTrue(isPortfolioMargin))
-        {
-            ((IDictionary<string,object>)parameters)["portfolioMargin"] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "option")))
@@ -12600,8 +12600,28 @@ public partial class binance : Exchange
             // handle batchOrders
             if (isTrue(isTrue((isEqual(path, "batchOrders"))) && isTrue((isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))))))
             {
-                object batchOrders = this.safeValue(parameters, "batchOrders");
-                object queryBatch = (this.json(batchOrders));
+                object batchOrders = this.safeList(parameters, "batchOrders");
+                object checkedBatchOrders = batchOrders;
+                if (isTrue(isTrue(isEqual(method, "POST")) && isTrue(isEqual(api, "fapiPrivate"))))
+                {
+                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                    checkedBatchOrders = new List<object>() {};
+                    for (object i = 0; isLessThan(i, getArrayLength(batchOrders)); postFixIncrement(ref i))
+                    {
+                        object batchOrder = getValue(batchOrders, i);
+                        object newClientOrderId = this.safeString(batchOrder, "newClientOrderId");
+                        if (isTrue(isEqual(newClientOrderId, null)))
+                        {
+                            object defaultId = "x-xcKtGhcu"; // batchOrders can not be spot or margin
+                            object broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
+                            object brokerId = this.safeString(broker, "future", defaultId);
+                            newClientOrderId = add(brokerId, this.uuid22());
+                            ((IDictionary<string,object>)batchOrder)["newClientOrderId"] = newClientOrderId;
+                        }
+                        ((IList<object>)checkedBatchOrders).Add(batchOrder);
+                    }
+                }
+                object queryBatch = (this.json(checkedBatchOrders));
                 ((IDictionary<string,object>)parameters)["batchOrders"] = queryBatch;
             }
             object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");

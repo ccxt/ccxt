@@ -2409,6 +2409,6 @@ func  (this *coinbaseexchange) Request(path interface{}, optionalArgs ...interfa
 
 func (this *coinbaseexchange) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

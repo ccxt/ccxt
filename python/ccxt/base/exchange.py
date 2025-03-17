@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.65'
+__version__ = '4.4.68'
 
 # -----------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InvalidProxySettings
@@ -1742,6 +1743,9 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def convert_to_safe_dictionary(self, dictionary):
+        return dictionary
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
@@ -2004,6 +2008,7 @@ class Exchange(object):
                 'watchOHLCV': None,
                 'watchOHLCVForSymbols': None,
                 'watchOrderBook': None,
+                'watchBidsAsks': None,
                 'watchOrderBookForSymbols': None,
                 'watchOrders': None,
                 'watchOrdersForSymbols': None,
@@ -4347,14 +4352,15 @@ class Exchange(object):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
-                if isinstance(e, NetworkError):
+                if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             self.sleep(retryDelay)
-                        # continue  #check self
-                if i >= retries:
+                    else:
+                        raise e
+                else:
                     raise e
         return None  # self line is never reached, but exists for c# value return requirement
 

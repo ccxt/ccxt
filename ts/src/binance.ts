@@ -6339,7 +6339,8 @@ export default class binance extends Exchange {
         // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString (params, 'type', market['type']);
         const marginMode = this.safeString (params, 'marginMode');
-        const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', false);
+        const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -6351,9 +6352,9 @@ export default class binance extends Exchange {
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, [ 'sor', 'SOR', 'test' ]);
-        if (isPortfolioMargin) {
-            params['portfolioMargin'] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['option']) {
@@ -11929,8 +11930,25 @@ export default class binance extends Exchange {
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeValue (params, 'batchOrders');
-                const queryBatch = (this.json (batchOrders));
+                const batchOrders = this.safeList (params, 'batchOrders');
+                let checkedBatchOrders = batchOrders;
+                if (method === 'POST' && api === 'fapiPrivate') {
+                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                    checkedBatchOrders = [];
+                    for (let i = 0; i < batchOrders.length; i++) {
+                        const batchOrder = batchOrders[i];
+                        let newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
+                        if (newClientOrderId === undefined) {
+                            const defaultId = 'x-xcKtGhcu'; // batchOrders can not be spot or margin
+                            const broker = this.safeDict (this.options, 'broker', {});
+                            const brokerId = this.safeString (broker, 'future', defaultId);
+                            newClientOrderId = brokerId + this.uuid22 ();
+                            batchOrder['newClientOrderId'] = newClientOrderId;
+                        }
+                        checkedBatchOrders.push (batchOrder);
+                    }
+                }
+                const queryBatch = (this.json (checkedBatchOrders));
                 params['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');

@@ -214,6 +214,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         cryptocomItf := &cryptocom{}
         cryptocomItf.Init(exchangeArgs)
         return cryptocomItf, true
+    case "cryptomus":
+        cryptomusItf := &cryptomus{}
+        cryptomusItf.Init(exchangeArgs)
+        return cryptomusItf, true
     case "defx":
         defxItf := &defx{}
         defxItf.Init(exchangeArgs)
@@ -226,6 +230,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         deribitItf := &deribit{}
         deribitItf.Init(exchangeArgs)
         return deribitItf, true
+    case "derive":
+        deriveItf := &derive{}
+        deriveItf.Init(exchangeArgs)
+        return deriveItf, true
     case "digifinex":
         digifinexItf := &digifinex{}
         digifinexItf.Init(exchangeArgs)
