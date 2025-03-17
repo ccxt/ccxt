@@ -380,6 +380,40 @@
                 "url": "https://api.testnet.paradex.trade/v1/transfers?",
                 "input": []
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": ["SOL/USD:USDC"]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetchMarginMode",
+                "method": "fetchMarginMode",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": ["SOL/USD:USDC"]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
+                "input": [10, "SOL/USD:USDC", {"marginMode":"cross"}],
+                "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "fetchMarginMode",
+                "method": "fetchMarginMode",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
+                "input": ["cross", "SOL/USD:USDC", {"leverage":10}],
+                "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            }
         ]
     }
 }
