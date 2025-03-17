@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -77,10 +77,10 @@ export default class paradex extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
-                'fetchMarginMode': undefined,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -114,8 +114,8 @@ export default class paradex extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
-                'setMarginMode': false,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -157,12 +157,23 @@ export default class paradex extends Exchange {
                         'system/state': 1,
                         'system/time': 1,
                         'trades': 1,
+                        'vaults': 1,
+                        'vaults/balance': 1,
+                        'vaults/config': 1,
+                        'vaults/history': 1,
+                        'vaults/positions': 1,
+                        'vaults/summary': 1,
+                        'vaults/transfers': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'account': 1,
+                        'account/info': 1,
+                        'account/history': 1,
+                        'account/margin': 1,
                         'account/profile': 1,
+                        'account/subaccounts': 1,
                         'balance': 1,
                         'fills': 1,
                         'funding/payments': 1,
@@ -175,20 +186,34 @@ export default class paradex extends Exchange {
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
                         'points_data/{market}/{program}': 1,
+                        'referrals/qr-code': 1,
                         'referrals/summary': 1,
                         'transfers': 1,
+                        'algo/orders': 1,
+                        'algo/orders-history': 1,
+                        'algo/orders/{algo_id}': 1,
+                        'vaults/account-summary': 1,
                     },
                     'post': {
+                        'account/margin/{market}': 1,
+                        'account/profile/max_slippage': 1,
                         'account/profile/referral_code': 1,
                         'account/profile/username': 1,
                         'auth': 1,
                         'onboarding': 1,
                         'orders': 1,
+                        'orders/batch': 1,
+                        'algo/orders': 1,
+                        'vaults': 1,
+                    },
+                    'put': {
+                        'orders/{order_id}': 1,
                     },
                     'delete': {
                         'orders': 1,
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
+                        'algo/orders/{algo_id}': 1,
                     },
                 },
             },
@@ -2162,6 +2187,156 @@ export default class paradex extends Exchange {
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseMarginMode (this.safeDict (configs, 0), market);
+    }
+
+    parseMarginMode (rawMarginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (rawMarginMode, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
+        return {
+            'info': rawMarginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+        } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name paradex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] the rate of leverage
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let leverage: Str = undefined;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseLeverage (this.safeDict (configs, 0), market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (leverage, 'margin_type');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
+    }
+
+    encodeMarginMode (mode) {
+        const modes = {
+            'cross': 'CROSS',
+            'isolated': 'ISOLATED',
+        };
+        return this.safeString (modes, mode, mode);
+    }
+
+    /**
+     * @method
+     * @name paradex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {float} leverage the rate of leverage
+     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
