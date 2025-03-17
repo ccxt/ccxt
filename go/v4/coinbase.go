@@ -5966,11 +5966,6 @@ func  (this *coinbase) FetchPortfolioDetails(portfolioUuid interface{}, optional
             }()
             return ch
         }
-/**
- * Parse a Coinbase portfolio JSON object and extract relevant trading information.
- * @param {Dict} portfolioData The JSON response containing portfolio details
- * @returns {any[]} List of dictionaries with parsed portfolio position data
- */
 func  (this *coinbase) ParsePortfolioDetails(portfolioData interface{}) interface{}  {
     var breakdown interface{} = GetValue(portfolioData, "breakdown")
     var portfolioInfo interface{} = this.SafeDict(breakdown, "portfolio", map[string]interface{} {})
