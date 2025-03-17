@@ -128,6 +128,7 @@ class tradeogre extends tradeogre$1 {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                         'chart/{interval}/{market}': 1,
                     },
                 },
@@ -451,12 +452,16 @@ class tradeogre extends tradeogre$1 {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        let response = undefined;
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, 'until');
-            request['timestamp'] = until;
+            request['timestamp'] = this.parseToInt(until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
         }
-        const response = await this.publicGetChartIntervalMarket(this.extend(request, params));
+        else {
+            response = await this.publicGetChartIntervalMarket(this.extend(request, params));
+        }
         //
         //     [
         //         [
