@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Conversion, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Conversion, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -38,7 +38,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': True,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'cancelAllOrders': True,
@@ -88,7 +88,10 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositionHistory': True,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -2858,6 +2861,211 @@ class whitebit(Exchange, ImplicitAPI):
             'price': self.safe_number(conversion, 'rate'),
             'fee': None,
         }
+
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+
+        https://docs.whitebit.com/private/http-trade-v4/#positions-history
+
+        :param str symbol: unified contract symbol
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum amount of records to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param int [params.positionId]: the id of the requested position
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['startDate'] = since
+        if limit is not None:
+            request['limit'] = since
+        request, params = self.handle_until_option('endDate', request, params)
+        response = self.v4PrivatePostCollateralAccountPositionsHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.309887,
+        #             "modifyDate": 1741941025.309887,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "realizedFunding": "0",
+        #             "liquidationPrice": "0",
+        #             "liquidationState": null,
+        #             "orderDetail": {
+        #                 "id": 1224727949521,
+        #                 "tradeAmount": "0.001",
+        #                 "price": "82498.7",
+        #                 "tradeFee": "0.028874545",
+        #                 "fundingFee": "0",
+        #                 "realizedPnl": "-0.028874545"
+        #             }
+        #         }
+        #     ]
+        #
+        positions = self.parse_positions(response)
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+        """
+        fetch all open positions
+
+        https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v4PrivatePostCollateralAccountPositionsOpen(params)
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.3098869,
+        #             "modifyDate": 1741941025.3098869,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "liquidationPrice": "70177.2",
+        #             "pnl": "0",
+        #             "pnlPercent": "0.00",
+        #             "margin": "4.2",
+        #             "freeMargin": "9.9",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0",
+        #             "liquidationState": null,
+        #             "tpsl": null
+        #         }
+        #     ]
+        #
+        return self.parse_positions(response, symbols)
+
+    def fetch_position(self, symbol: str, params={}) -> Position:
+        """
+        fetch data on a single open contract trade position
+
+        https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.v4PrivatePostCollateralAccountPositionsOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.3098869,
+        #             "modifyDate": 1741941025.3098869,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "liquidationPrice": "70177.2",
+        #             "pnl": "0",
+        #             "pnlPercent": "0.00",
+        #             "margin": "4.2",
+        #             "freeMargin": "9.9",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0",
+        #             "liquidationState": null,
+        #             "tpsl": null
+        #         }
+        #     ]
+        #
+        data = self.safe_dict(response, 0, {})
+        return self.parse_position(data, market)
+
+    def parse_position(self, position: dict, market: Market = None) -> Position:
+        #
+        # fetchPosition, fetchPositions
+        #
+        #     {
+        #         "positionId": 479975679,
+        #         "market": "BTC_PERP",
+        #         "openDate": 1741941025.3098869,
+        #         "modifyDate": 1741941025.3098869,
+        #         "amount": "0.001",
+        #         "basePrice": "82498.7",
+        #         "liquidationPrice": "70177.2",
+        #         "pnl": "0",
+        #         "pnlPercent": "0.00",
+        #         "margin": "4.2",
+        #         "freeMargin": "9.9",
+        #         "funding": "0",
+        #         "unrealizedFunding": "0",
+        #         "liquidationState": null,
+        #         "tpsl": null
+        #     }
+        #
+        # fetchPositionHistory
+        #
+        #     {
+        #         "positionId": 479975679,
+        #         "market": "BTC_PERP",
+        #         "openDate": 1741941025.309887,
+        #         "modifyDate": 1741941025.309887,
+        #         "amount": "0.001",
+        #         "basePrice": "82498.7",
+        #         "realizedFunding": "0",
+        #         "liquidationPrice": "0",
+        #         "liquidationState": null,
+        #         "orderDetail": {
+        #             "id": 1224727949521,
+        #             "tradeAmount": "0.001",
+        #             "price": "82498.7",
+        #             "tradeFee": "0.028874545",
+        #             "fundingFee": "0",
+        #             "realizedPnl": "-0.028874545"
+        #         }
+        #     }
+        #
+        marketId = self.safe_string(position, 'market')
+        timestamp = self.safe_timestamp(position, 'openDate')
+        tpsl = self.safe_dict(position, 'tpsl', {})
+        orderDetail = self.safe_dict(position, 'orderDetail', {})
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string(position, 'positionId'),
+            'symbol': self.safe_symbol(marketId, market),
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'entryPrice': self.safe_number(position, 'basePrice'),
+            'unrealizedPnl': self.safe_number(position, 'pnl'),
+            'realizedPnl': self.safe_number(orderDetail, 'realizedPnl'),
+            'percentage': self.safe_number(position, 'pnlPercent'),
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'lastPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_timestamp(position, 'modifyDate'),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': self.safe_number(position, 'margin'),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+            'stopLossPrice': self.safe_number(tpsl, 'stopLoss'),
+            'takeProfitPrice': self.safe_number(tpsl, 'takeProfit'),
+        })
 
     def is_fiat(self, currency: str) -> bool:
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
