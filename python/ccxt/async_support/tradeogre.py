@@ -134,6 +134,7 @@ class tradeogre(Exchange, ImplicitAPI):
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                         'chart/{interval}/{market}': 1,
                     },
                 },
@@ -451,11 +452,14 @@ class tradeogre(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        response = None
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['timestamp'] = until
-        response = await self.publicGetChartIntervalMarket(self.extend(request, params))
+            request['timestamp'] = self.parse_to_int(until / 1000)
+            response = await self.publicGetChartIntervalMarketTimestamp(self.extend(request, params))
+        else:
+            response = await self.publicGetChartIntervalMarket(self.extend(request, params))
         #
         #     [
         #         [
