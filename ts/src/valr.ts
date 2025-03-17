@@ -248,6 +248,7 @@ export default class valr extends Exchange {
                         '{pair}/trades', // fetchTrades
                         'futures/funding/history', // TODO fetchFundingRateHistory
                         'futures/info', // fetchFundingRates
+                        'loans/info',
                         'time', // fetchTime
                         'status', // fetchStatus
                     ],
@@ -308,6 +309,7 @@ export default class valr extends Exchange {
                         'positions/history',
                         'positions/funding/history',
                         'borrows/{currency}/history', // fetchBorrowInterest
+                        'loans/info',
                         'loans/rates', // fetchCrossBorrowRates
                         'loans/open',
                         'loans/credit-history',

@@ -22,6 +22,7 @@ interface Exchange {
     publicGetPairTrades (params?: {}): Promise<implicitReturnType>;
     publicGetFuturesFundingHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFuturesInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetLoansInfo (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetStatus (params?: {}): Promise<implicitReturnType>;
     privateGetAccountApiKeysCurrent (params?: {}): Promise<implicitReturnType>;
@@ -78,6 +79,7 @@ interface Exchange {
     privateGetPositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetPositionsFundingHistory (params?: {}): Promise<implicitReturnType>;
     privateGetBorrowsCurrencyHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansInfo (params?: {}): Promise<implicitReturnType>;
     privateGetLoansRates (params?: {}): Promise<implicitReturnType>;
     privateGetLoansOpen (params?: {}): Promise<implicitReturnType>;
     privateGetLoansCreditHistory (params?: {}): Promise<implicitReturnType>;
