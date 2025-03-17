@@ -2821,7 +2821,7 @@ class Transpiler {
 
                 let finalPyHeaders = '';
                 if (isCcxtPro) {
-                    finalPyHeaders = fileHeaders.pyPro.join ('\n');
+                    finalPyHeaders = fileHeaders.pyPro;
                 } else {
                     // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
                     if (tsContent.match ('new ccxt.pro')){
