@@ -19,6 +19,9 @@ abstract class tradeogre extends \ccxt\Exchange {
     public function public_get_history_market($params = array()) {
         return $this->request('history/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_chart_interval_market_timestamp($params = array()) {
+        return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_chart_interval_market($params = array()) {
         return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -57,6 +60,9 @@ abstract class tradeogre extends \ccxt\Exchange {
     }
     public function publicGetHistoryMarket($params = array()) {
         return $this->request('history/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetChartIntervalMarketTimestamp($params = array()) {
+        return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetChartIntervalMarket($params = array()) {
         return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
