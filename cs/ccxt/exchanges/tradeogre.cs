@@ -123,6 +123,7 @@ public partial class tradeogre : Exchange
                         { "orders/{market}", 1 },
                         { "ticker/{market}", 1 },
                         { "history/{market}", 1 },
+                        { "chart/{interval}/{market}/{timestamp}", 1 },
                         { "chart/{interval}/{market}", 1 },
                     } },
                 } },
@@ -463,13 +464,17 @@ public partial class tradeogre : Exchange
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
+        object response = null;
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["timestamp"] = until;
+            ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(until, 1000));
+            response = await ((Task<object>)callDynamically(this, "publicGetChartIntervalMarketTimestamp", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
         }
-        object response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
         //
         //     [
         //         [
