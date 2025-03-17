@@ -131,6 +131,7 @@ export default class tradeogre extends Exchange {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                         'chart/{interval}/{market}': 1,
                     },
                 },
@@ -429,15 +430,15 @@ export default class tradeogre extends Exchange {
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': undefined,
+            'open': this.safeString (ticker, 'initialprice'),
+            'close': this.safeString (ticker, 'price'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
         }, market);
     }
@@ -461,12 +462,15 @@ export default class tradeogre extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        let response = undefined;
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
-            request['timestamp'] = until;
+            request['timestamp'] = this.parseToInt (until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
+        } else {
+            response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         }
-        const response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         //
         //     [
         //         [

@@ -5271,11 +5271,6 @@ public partial class coinbase : Exchange
         return result;
     }
 
-    /**
-     * Parse a Coinbase portfolio JSON object and extract relevant trading information.
-     * @param {Dict} portfolioData The JSON response containing portfolio details
-     * @returns {any[]} List of dictionaries with parsed portfolio position data
-     */
     public virtual object parsePortfolioDetails(object portfolioData)
     {
         object breakdown = getValue(portfolioData, "breakdown");

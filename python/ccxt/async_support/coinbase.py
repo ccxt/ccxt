@@ -4692,11 +4692,6 @@ class coinbase(Exchange, ImplicitAPI):
         return result
 
     def parse_portfolio_details(self, portfolioData: dict):
-        """
- Parse a Coinbase portfolio JSON object and extract relevant trading information.
-        :param Dict portfolioData: The JSON response containing portfolio details
-        :returns any[]: List of dictionaries with parsed portfolio position data
-        """
         breakdown = portfolioData['breakdown']
         portfolioInfo = self.safe_dict(breakdown, 'portfolio', {})
         portfolioName = self.safe_string(portfolioInfo, 'name', 'Unknown')

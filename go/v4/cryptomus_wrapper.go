@@ -307,6 +307,14 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
     }
     return NewOrderArray(res), nil
 }
+/**
+ * @method
+ * @name cryptomus#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ */
 func (this *Cryptomus) FetchTradingFees(params ...interface{}) (TradingFees, error) {
     res := <- this.Core.FetchTradingFees(params...)
     if IsError(res) {

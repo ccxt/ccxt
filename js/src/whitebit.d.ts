@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -490,6 +490,40 @@ export default class whitebit extends Exchange {
      */
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    /**
+     * @method
+     * @name whitebit#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#positions-history
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.positionId] the id of the requested position
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    /**
+     * @method
+     * @name whitebit#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    /**
+     * @method
+     * @name whitebit#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    parsePosition(position: Dict, market?: Market): Position;
     isFiat(currency: string): boolean;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

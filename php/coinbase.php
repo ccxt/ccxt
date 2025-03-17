@@ -4920,11 +4920,6 @@ class coinbase extends Exchange {
     }
 
     public function parse_portfolio_details(array $portfolioData) {
-        /**
-         * Parse a Coinbase portfolio JSON object and extract relevant trading information.
-         * @param {Dict} $portfolioData The JSON response containing portfolio details
-         * @return {any[]} List of dictionaries with parsed portfolio $position data
-         */
         $breakdown = $portfolioData['breakdown'];
         $portfolioInfo = $this->safe_dict($breakdown, 'portfolio', array());
         $portfolioName = $this->safe_string($portfolioInfo, 'name', 'Unknown');

@@ -18,7 +18,7 @@ public partial class whitebit : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", true },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "cancelAllOrders", true },
@@ -68,7 +68,10 @@ public partial class whitebit : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", true },
+                { "fetchPositionHistory", true },
                 { "fetchPositionMode", false },
+                { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -3082,6 +3085,228 @@ public partial class whitebit : Exchange
             { "price", this.safeNumber(conversion, "rate") },
             { "fee", null },
         };
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#positions-history
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.positionId] the id of the requested position
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.309887,
+        //             "modifyDate": 1741941025.309887,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "realizedFunding": "0",
+        //             "liquidationPrice": "0",
+        //             "liquidationState": null,
+        //             "orderDetail": {
+        //                 "id": 1224727949521,
+        //                 "tradeAmount": "0.001",
+        //                 "price": "82498.7",
+        //                 "tradeFee": "0.028874545",
+        //                 "fundingFee": "0",
+        //                 "realizedPnl": "-0.028874545"
+        //             }
+        //         }
+        //     ]
+        //
+        object positions = this.parsePositions(response);
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        return this.parsePositions(response, symbols);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        return this.parsePosition(data, market);
+    }
+
+    public override object parsePosition(object position, object market = null)
+    {
+        //
+        // fetchPosition, fetchPositions
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.3098869,
+        //         "modifyDate": 1741941025.3098869,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "liquidationPrice": "70177.2",
+        //         "pnl": "0",
+        //         "pnlPercent": "0.00",
+        //         "margin": "4.2",
+        //         "freeMargin": "9.9",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0",
+        //         "liquidationState": null,
+        //         "tpsl": null
+        //     }
+        //
+        // fetchPositionHistory
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.309887,
+        //         "modifyDate": 1741941025.309887,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "realizedFunding": "0",
+        //         "liquidationPrice": "0",
+        //         "liquidationState": null,
+        //         "orderDetail": {
+        //             "id": 1224727949521,
+        //             "tradeAmount": "0.001",
+        //             "price": "82498.7",
+        //             "tradeFee": "0.028874545",
+        //             "fundingFee": "0",
+        //             "realizedPnl": "-0.028874545"
+        //         }
+        //     }
+        //
+        object marketId = this.safeString(position, "market");
+        object timestamp = this.safeTimestamp(position, "openDate");
+        object tpsl = this.safeDict(position, "tpsl", new Dictionary<string, object>() {});
+        object orderDetail = this.safeDict(position, "orderDetail", new Dictionary<string, object>() {});
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", this.safeString(position, "positionId") },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "notional", null },
+            { "marginMode", null },
+            { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
+            { "entryPrice", this.safeNumber(position, "basePrice") },
+            { "unrealizedPnl", this.safeNumber(position, "pnl") },
+            { "realizedPnl", this.safeNumber(orderDetail, "realizedPnl") },
+            { "percentage", this.safeNumber(position, "pnlPercent") },
+            { "contracts", null },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "lastPrice", null },
+            { "side", null },
+            { "hedged", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", this.safeTimestamp(position, "modifyDate") },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", this.safeNumber(position, "margin") },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", null },
+            { "marginRatio", null },
+            { "stopLossPrice", this.safeNumber(tpsl, "stopLoss") },
+            { "takeProfitPrice", this.safeNumber(tpsl, "takeProfit") },
+        });
     }
 
     public virtual object isFiat(object currency)

@@ -127,6 +127,7 @@ class tradeogre extends Exchange {
                         'orders/{market}' => 1,
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
+                        'chart/{interval}/{market}/{timestamp}' => 1,
                         'chart/{interval}/{market}' => 1,
                     ),
                 ),
@@ -421,15 +422,15 @@ class tradeogre extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
-            'close' => null,
+            'open' => $this->safe_string($ticker, 'initialprice'),
+            'close' => $this->safe_string($ticker, 'price'),
             'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -451,12 +452,15 @@ class tradeogre extends Exchange {
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
+        $response = null;
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
-            $request['timestamp'] = $until;
+            $request['timestamp'] = $this->parse_to_int($until / 1000);
+            $response = $this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetChartIntervalMarket ($this->extend($request, $params));
         }
-        $response = $this->publicGetChartIntervalMarket ($this->extend($request, $params));
         //
         //     array(
         //         array(

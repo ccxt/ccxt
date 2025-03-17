@@ -615,11 +615,6 @@ export default class coinbase extends Exchange {
      * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
-    /**
-     * Parse a Coinbase portfolio JSON object and extract relevant trading information.
-     * @param {Dict} portfolioData The JSON response containing portfolio details
-     * @returns {any[]} List of dictionaries with parsed portfolio position data
-     */
     parsePortfolioDetails(portfolioData: Dict): any[];
     createAuthToken(seconds: Int, method?: Str, url?: Str): string;
     nonce(): number;
