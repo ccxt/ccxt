@@ -4891,11 +4891,6 @@ export default class coinbase extends Exchange {
         const result = this.parsePortfolioDetails(response);
         return result;
     }
-    /**
-     * Parse a Coinbase portfolio JSON object and extract relevant trading information.
-     * @param {Dict} portfolioData The JSON response containing portfolio details
-     * @returns {any[]} List of dictionaries with parsed portfolio position data
-     */
     parsePortfolioDetails(portfolioData) {
         const breakdown = portfolioData['breakdown'];
         const portfolioInfo = this.safeDict(breakdown, 'portfolio', {});
