@@ -2245,6 +2245,7 @@ export default class paradex extends Exchange {
      * @returns {object} response from the exchange
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
@@ -2324,6 +2325,7 @@ export default class paradex extends Exchange {
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
