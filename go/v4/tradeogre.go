@@ -561,7 +561,7 @@ func  (this *tradeogre) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    return []interface{}{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
+    return []interface{}{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 }
 /**
  * @method
