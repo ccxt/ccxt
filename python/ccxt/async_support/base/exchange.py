@@ -13,7 +13,6 @@ import certifi
 import aiohttp
 import ssl
 import sys
-
 import yarl
 import math
 from typing import Any, List
