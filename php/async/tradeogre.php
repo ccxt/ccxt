@@ -503,9 +503,9 @@ class tradeogre extends Exchange {
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 5),
         );
     }
