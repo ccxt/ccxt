@@ -500,9 +500,9 @@ export default class tradeogre extends Exchange {
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 5),
         ];
     }
