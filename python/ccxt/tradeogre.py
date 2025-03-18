@@ -488,9 +488,9 @@ class tradeogre(Exchange, ImplicitAPI):
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 5),
         ]
 
