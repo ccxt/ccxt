@@ -531,7 +531,7 @@
                 "input": [
                     null,
                     {
-                        "code": "USDT",
+                        "code": "USD",
                         "method": "privateGetAccountsPositions"
                     }
                 ]
