@@ -837,7 +837,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': response,
             'USDC': {
                 'total': self.safe_number(data, 'accountValue'),
-                'free': self.safe_number(response, 'withdrawable'),
+                'used': self.safe_number(data, 'totalMarginUsed'),
             },
         }
         timestamp = self.safe_integer(response, 'time')
