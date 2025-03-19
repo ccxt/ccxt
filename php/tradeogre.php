@@ -128,6 +128,7 @@ class tradeogre extends Exchange {
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
                         'chart/{interval}/{market}/{timestamp}' => 1,
+                        'chart/{interval}/{market}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -421,15 +422,15 @@ class tradeogre extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
-            'close' => null,
+            'open' => $this->safe_string($ticker, 'initialprice'),
+            'close' => $this->safe_string($ticker, 'price'),
             'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -442,6 +443,7 @@ class tradeogre extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp of the latest candle in ms
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -450,12 +452,15 @@ class tradeogre extends Exchange {
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since === null) {
-            throw new BadRequest($this->id . ' fetchOHLCV requires a $since argument');
+        $response = null;
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['timestamp'] = $this->parse_to_int($until / 1000);
+            $response = $this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params));
         } else {
-            $request['timestamp'] = $since;
+            $response = $this->publicGetChartIntervalMarket ($this->extend($request, $params));
         }
-        $response = $this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -485,9 +490,9 @@ class tradeogre extends Exchange {
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 5),
         );
     }

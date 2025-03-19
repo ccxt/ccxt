@@ -1177,6 +1177,28 @@ class testMainClass:
         assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(swap_id_string), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + swap_id_string
+        create_orders_request = None
+        try:
+            orders = [{
+    'symbol': 'BTC/USDT:USDT',
+    'type': 'limit',
+    'side': 'sell',
+    'amount': 1,
+    'price': 100000,
+}, {
+    'symbol': 'BTC/USDT:USDT',
+    'type': 'market',
+    'side': 'buy',
+    'amount': 1,
+}]
+            exchange.create_orders(orders)
+        except Exception as e:
+            create_orders_request = self.urlencoded_to_dict(exchange.last_request_body)
+        batch_orders = create_orders_request['batchOrders']
+        for i in range(0, len(batch_orders)):
+            current = batch_orders[i]
+            current_client_order_id = current['newClientOrderId']
+            assert current_client_order_id.startswith(swap_id_string), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id_string
         if not is_sync():
             close(exchange)
         return True

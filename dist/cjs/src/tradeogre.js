@@ -129,6 +129,7 @@ class tradeogre extends tradeogre$1 {
                         'ticker/{market}': 1,
                         'history/{market}': 1,
                         'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
@@ -420,15 +421,15 @@ class tradeogre extends tradeogre$1 {
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
-            'close': undefined,
+            'open': this.safeString(ticker, 'initialprice'),
+            'close': this.safeString(ticker, 'price'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString(ticker, 'volume'),
             'info': ticker,
         }, market);
     }
@@ -441,6 +442,7 @@ class tradeogre extends tradeogre$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -450,13 +452,16 @@ class tradeogre extends tradeogre$1 {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since === undefined) {
-            throw new errors.BadRequest(this.id + ' fetchOHLCV requires a since argument');
+        let response = undefined;
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['timestamp'] = this.parseToInt(until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
         }
         else {
-            request['timestamp'] = since;
+            response = await this.publicGetChartIntervalMarket(this.extend(request, params));
         }
-        const response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
         //
         //     [
         //         [
@@ -485,9 +490,9 @@ class tradeogre extends tradeogre$1 {
         return [
             this.safeTimestamp(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 3),
             this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 5),
         ];
     }

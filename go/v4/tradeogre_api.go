@@ -87,6 +87,22 @@ func (this *tradeogre) PublicGetChartIntervalMarketTimestamp (args ...interface{
    return ch
 }
 
+func (this *tradeogre) PublicGetChartIntervalMarket (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarket", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *tradeogre) PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})

@@ -12064,8 +12064,25 @@ class binance extends Exchange {
             $query = null;
             // handle $batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
-                $batchOrders = $this->safe_value($params, 'batchOrders');
-                $queryBatch = ($this->json($batchOrders));
+                $batchOrders = $this->safe_list($params, 'batchOrders');
+                $checkedBatchOrders = $batchOrders;
+                if ($method === 'POST' && $api === 'fapiPrivate') {
+                    // check $broker id if $batchOrders are called with fapiPrivatePostBatchOrders
+                    $checkedBatchOrders = array();
+                    for ($i = 0; $i < count($batchOrders); $i++) {
+                        $batchOrder = $batchOrders[$i];
+                        $newClientOrderId = $this->safe_string($batchOrder, 'newClientOrderId');
+                        if ($newClientOrderId === null) {
+                            $defaultId = 'x-xcKtGhcu'; // $batchOrders can not be spot or margin
+                            $broker = $this->safe_dict($this->options, 'broker', array());
+                            $brokerId = $this->safe_string($broker, 'future', $defaultId);
+                            $newClientOrderId = $brokerId . $this->uuid22();
+                            $batchOrder['newClientOrderId'] = $newClientOrderId;
+                        }
+                        $checkedBatchOrders[] = $batchOrder;
+                    }
+                }
+                $queryBatch = ($this->json($checkedBatchOrders));
                 $params['batchOrders'] = $queryBatch;
             }
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');

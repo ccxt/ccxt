@@ -12116,8 +12116,25 @@ class binance extends binance$1 {
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeValue(params, 'batchOrders');
-                const queryBatch = (this.json(batchOrders));
+                const batchOrders = this.safeList(params, 'batchOrders');
+                let checkedBatchOrders = batchOrders;
+                if (method === 'POST' && api === 'fapiPrivate') {
+                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                    checkedBatchOrders = [];
+                    for (let i = 0; i < batchOrders.length; i++) {
+                        const batchOrder = batchOrders[i];
+                        let newClientOrderId = this.safeString(batchOrder, 'newClientOrderId');
+                        if (newClientOrderId === undefined) {
+                            const defaultId = 'x-xcKtGhcu'; // batchOrders can not be spot or margin
+                            const broker = this.safeDict(this.options, 'broker', {});
+                            const brokerId = this.safeString(broker, 'future', defaultId);
+                            newClientOrderId = brokerId + this.uuid22();
+                            batchOrder['newClientOrderId'] = newClientOrderId;
+                        }
+                        checkedBatchOrders.push(batchOrder);
+                    }
+                }
+                const queryBatch = (this.json(checkedBatchOrders));
                 params['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');

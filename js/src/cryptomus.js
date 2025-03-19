@@ -16,7 +16,7 @@ export default class cryptomus extends Exchange {
             'name': 'Cryptomus',
             'countries': ['CA'],
             'rateLimit': 100,
-            'version': 'v1',
+            'version': 'v2',
             'certified': false,
             'pro': false,
             'has': {
@@ -98,7 +98,7 @@ export default class cryptomus extends Exchange {
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
@@ -221,15 +221,15 @@ export default class cryptomus extends Exchange {
             'features': {},
         });
     }
+    /**
+     * @method
+     * @name cryptomus#fetchMarkets
+     * @description retrieves data on all markets for the exchange
+     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchMarkets
-         * @description retrieves data on all markets for the exchange
-         * @see https://doc.cryptomus.com/personal/market-cap/tickers
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetV2UserApiExchangeMarkets(params);
         //
         //     {
@@ -331,15 +331,15 @@ export default class cryptomus extends Exchange {
             'info': market,
         });
     }
+    /**
+     * @method
+     * @name cryptomus#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://doc.cryptomus.com/personal/market-cap/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://doc.cryptomus.com/personal/market-cap/assets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const response = await this.publicGetV1ExchangeMarketAssets(params);
         //
         //     {
@@ -471,16 +471,16 @@ export default class cryptomus extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name cryptomus#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://doc.cryptomus.com/personal/market-cap/tickers
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetV1ExchangeMarketTickers(params);
@@ -535,18 +535,18 @@ export default class cryptomus extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name cryptomus#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://doc.cryptomus.com/personal/market-cap/orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -579,18 +579,18 @@ export default class cryptomus extends Exchange {
         const timestamp = this.safeTimestamp(data, 'timestamp');
         return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
+    /**
+     * @method
+     * @name cryptomus#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.cryptomus.com/personal/market-cap/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://doc.cryptomus.com/personal/market-cap/trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -645,15 +645,15 @@ export default class cryptomus extends Exchange {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name cryptomus#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://doc.cryptomus.com/personal/converts/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://doc.cryptomus.com/personal/converts/balance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const request = {};
         const response = await this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, params));
@@ -693,24 +693,23 @@ export default class cryptomus extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name cryptomus#createOrder
+     * @description create a trade order
+     * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+     * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or for spot
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#createOrder
-         * @description create a trade order
-         * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-         * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or for spot
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -769,17 +768,17 @@ export default class cryptomus extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name cryptomus#cancelOrder
+     * @description cancels an open limit order
+     * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#cancelOrder
-         * @description cancels an open limit order
-         * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         request['orderId'] = id;
@@ -791,23 +790,23 @@ export default class cryptomus extends Exchange {
         //
         return response;
     }
+    /**
+     * @method
+     * @name cryptomus#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
+     * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
+     * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.direction] order direction 'buy' or 'sell'
+     * @param {string} [params.order_id] order id
+     * @param {string} [params.client_order_id] client order id
+     * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+     * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
-         * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
-         * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
-         * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.direction] order direction 'buy' or 'sell'
-         * @param {string} [params.order_id] order id
-         * @param {string} [params.client_order_id] client order id
-         * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-         * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -866,23 +865,23 @@ export default class cryptomus extends Exchange {
         }
         return orders;
     }
+    /**
+     * @method
+     * @name cryptomus#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.direction] order direction 'buy' or 'sell'
+     * @param {string} [params.order_id] order id
+     * @param {string} [params.client_order_id] client order id
+     * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+     * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.direction] order direction 'buy' or 'sell'
-         * @param {string} [params.order_id] order id
-         * @param {string} [params.client_order_id] client order id
-         * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-         * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1034,6 +1033,105 @@ export default class cryptomus extends Exchange {
             'failed': 'failed',
         };
         return this.safeString(statuses, status, status);
+    }
+    /**
+     * @method
+     * @name cryptomus#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees(params = {}) {
+        const response = await this.privateGetV2UserApiExchangeAccountTariffs(params);
+        //
+        //     {
+        //         result: {
+        //             equivalent_currency_code: 'USD',
+        //             current_tariff_step: {
+        //                 step: '0',
+        //                 from_turnover: '0.00000000',
+        //                 maker_percent: '0.08',
+        //                 taker_percent: '0.1'
+        //             },
+        //             tariff_steps: [
+        //                 {
+        //                     step: '0',
+        //                     from_turnover: '0.00000000',
+        //                     maker_percent: '0.08',
+        //                     taker_percent: '0.1'
+        //                 },
+        //                 {
+        //                     step: '1',
+        //                     from_turnover: '100001.00000000',
+        //                     maker_percent: '0.06',
+        //                     taker_percent: '0.095'
+        //                 },
+        //                 {
+        //                     step: '2',
+        //                     from_turnover: '250001.00000000',
+        //                     maker_percent: '0.055',
+        //                     taker_percent: '0.085'
+        //                 },
+        //                 {
+        //                     step: '3',
+        //                     from_turnover: '500001.00000000',
+        //                     maker_percent: '0.05',
+        //                     taker_percent: '0.075'
+        //                 },
+        //                 {
+        //                     step: '4',
+        //                     from_turnover: '2500001.00000000',
+        //                     maker_percent: '0.04',
+        //                     taker_percent: '0.07'
+        //                 }
+        //             ],
+        //             daily_turnover: '0.00000000',
+        //             monthly_turnover: '77.52062617',
+        //             circulation_funds: '25.48900443'
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'result', {});
+        const currentFeeTier = this.safeDict(data, 'current_tariff_step', {});
+        let makerFee = this.safeString(currentFeeTier, 'maker_percent');
+        let takerFee = this.safeString(currentFeeTier, 'taker_percent');
+        makerFee = Precise.stringDiv(makerFee, '100');
+        takerFee = Precise.stringDiv(takerFee, '100');
+        const feeTiers = this.safeList(data, 'tariff_steps', []);
+        const result = {};
+        const tiers = this.parseFeeTiers(feeTiers);
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber(makerFee),
+                'taker': this.parseNumber(takerFee),
+                'percentage': true,
+                'tierBased': true,
+                'tiers': tiers,
+            };
+        }
+        return result;
+    }
+    parseFeeTiers(feeTiers, market = undefined) {
+        const takerFees = [];
+        const makerFees = [];
+        for (let i = 0; i < feeTiers.length; i++) {
+            const tier = feeTiers[i];
+            const turnover = this.safeNumber(tier, 'from_turnover');
+            let taker = this.safeString(tier, 'taker_percent');
+            let maker = this.safeString(tier, 'maker_percent');
+            maker = Precise.stringDiv(maker, '100');
+            taker = Precise.stringDiv(taker, '100');
+            makerFees.push([turnover, this.parseNumber(maker)]);
+            takerFees.push([turnover, this.parseNumber(taker)]);
+        }
+        return {
+            'maker': makerFees,
+            'taker': takerFees,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams(path, params);

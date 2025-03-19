@@ -10053,7 +10053,7 @@ public partial class bybit : Exchange
             {
                 feedback = add(add(this.id, " "), body);
             }
-            if (isTrue(getIndexOf(body, "Withdraw address chain or destination tag are not equal")))
+            if (isTrue(isGreaterThan(getIndexOf(body, "Withdraw address chain or destination tag are not equal"), -1)))
             {
                 feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
             }

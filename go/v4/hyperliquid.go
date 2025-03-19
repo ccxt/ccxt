@@ -902,7 +902,7 @@ func  (this *hyperliquid) FetchBalance(optionalArgs ...interface{}) <- chan inte
                 "info": response,
                 "USDC": map[string]interface{} {
                     "total": this.SafeNumber(data, "accountValue"),
-                    "free": this.SafeNumber(response, "withdrawable"),
+                    "used": this.SafeNumber(data, "totalMarginUsed"),
                 },
             }
             var timestamp interface{} = this.SafeInteger(response, "time")

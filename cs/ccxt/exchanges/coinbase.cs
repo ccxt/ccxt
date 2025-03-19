@@ -4582,6 +4582,7 @@ public partial class coinbase : Exchange
             { "amount", this.numberToString(amount) },
             { "currency", ((string)code).ToUpper() },
             { "payment_method", id },
+            { "commit", true },
         };
         object response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, parameters));
         //
@@ -4620,7 +4621,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -4694,7 +4696,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -5245,6 +5248,77 @@ public partial class coinbase : Exchange
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    public async virtual Task<object> fetchPortfolioDetails(object portfolioUuid, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "portfolio_uuid", portfolioUuid },
+        };
+        object response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters));
+        object result = this.parsePortfolioDetails(response);
+        return result;
+    }
+
+    public virtual object parsePortfolioDetails(object portfolioData)
+    {
+        object breakdown = getValue(portfolioData, "breakdown");
+        object portfolioInfo = this.safeDict(breakdown, "portfolio", new Dictionary<string, object>() {});
+        object portfolioName = this.safeString(portfolioInfo, "name", "Unknown");
+        object portfolioUuid = this.safeString(portfolioInfo, "uuid", "");
+        object spotPositions = this.safeList(breakdown, "spot_positions", new List<object>() {});
+        object parsedPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(spotPositions)); postFixIncrement(ref i))
+        {
+            object position = getValue(spotPositions, i);
+            object currencyCode = this.safeString(position, "asset", "Unknown");
+            object availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
+            object availableBalance = this.parseNumber(availableBalanceStr);
+            object totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
+            object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            object holdAmount = subtract(totalBalanceFiat, availableBalance);
+            object costBasisDict = this.safeDict(position, "cost_basis", new Dictionary<string, object>() {});
+            object costBasisStr = this.safeString(costBasisDict, "value", "0");
+            object averageEntryPriceDict = this.safeDict(position, "average_entry_price", new Dictionary<string, object>() {});
+            object averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
+            object positionData = new Dictionary<string, object>() {
+                { "currency", currencyCode },
+                { "available_balance", availableBalance },
+                { "hold_amount", ((bool) isTrue(isGreaterThan(holdAmount, 0))) ? holdAmount : 0 },
+                { "wallet_name", portfolioName },
+                { "account_id", portfolioUuid },
+                { "account_uuid", this.safeString(position, "account_uuid", "") },
+                { "total_balance_fiat", totalBalanceFiat },
+                { "total_balance_crypto", this.parseNumber(this.safeString(position, "total_balance_crypto", "0")) },
+                { "available_to_trade_fiat", this.parseNumber(this.safeString(position, "available_to_trade_fiat", "0")) },
+                { "available_to_trade_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "available_to_transfer_fiat", this.parseNumber(this.safeString(position, "available_to_transfer_fiat", "0")) },
+                { "available_to_transfer_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "allocation", this.parseNumber(this.safeString(position, "allocation", "0")) },
+                { "cost_basis", this.parseNumber(costBasisStr) },
+                { "cost_basis_currency", this.safeString(costBasisDict, "currency", "USD") },
+                { "is_cash", this.safeBool(position, "is_cash", false) },
+                { "average_entry_price", this.parseNumber(averageEntryPriceStr) },
+                { "average_entry_price_currency", this.safeString(averageEntryPriceDict, "currency", "USD") },
+                { "asset_uuid", this.safeString(position, "asset_uuid", "") },
+                { "unrealized_pnl", this.parseNumber(this.safeString(position, "unrealized_pnl", "0")) },
+                { "asset_color", this.safeString(position, "asset_color", "") },
+                { "account_type", this.safeString(position, "account_type", "") },
+            };
+            ((IList<object>)parsedPositions).Add(positionData);
+        }
+        return parsedPositions;
     }
 
     public virtual object createAuthToken(object seconds, object method = null, object url = null)

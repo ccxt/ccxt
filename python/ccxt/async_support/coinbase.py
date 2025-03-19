@@ -4089,6 +4089,7 @@ class coinbase(Exchange, ImplicitAPI):
             'amount': self.number_to_string(amount),
             'currency': code.upper(),  # need to use code in case depositing USD etc.
             'payment_method': id,
+            'commit': True,  # otheriwse the deposit does not go through
         }
         response = await self.v2PrivatePostAccountsAccountIdDeposits(self.extend(request, params))
         #
@@ -4127,7 +4128,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
+        # https://github.com/ccxt/ccxt/issues/25484
+        data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
     async def fetch_deposit(self, id: str, code: Str = None, params={}):
@@ -4192,7 +4194,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
+        # https://github.com/ccxt/ccxt/issues/25484
+        data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
     async def fetch_deposit_method_ids(self, params={}):
@@ -4669,6 +4672,70 @@ class coinbase(Exchange, ImplicitAPI):
                     'percentage': True,
                 }
         return result
+
+    async def fetch_portfolio_details(self, portfolioUuid: str, params={}) -> List[Any]:
+        """
+        Fetch details for a specific portfolio by UUID
+
+        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+
+        :param str portfolioUuid: The unique identifier of the portfolio to fetch
+        :param Dict [params]: Extra parameters specific to the exchange API endpoint
+        :returns any[]: An account structure <https://docs.ccxt.com/#/?id=account-structure>
+        """
+        await self.load_markets()
+        request = {
+            'portfolio_uuid': portfolioUuid,
+        }
+        response = await self.v3PrivateGetBrokeragePortfoliosPortfolioUuid(self.extend(request, params))
+        result = self.parse_portfolio_details(response)
+        return result
+
+    def parse_portfolio_details(self, portfolioData: dict):
+        breakdown = portfolioData['breakdown']
+        portfolioInfo = self.safe_dict(breakdown, 'portfolio', {})
+        portfolioName = self.safe_string(portfolioInfo, 'name', 'Unknown')
+        portfolioUuid = self.safe_string(portfolioInfo, 'uuid', '')
+        spotPositions = self.safe_list(breakdown, 'spot_positions', [])
+        parsedPositions = []
+        for i in range(0, len(spotPositions)):
+            position: dict = spotPositions[i]
+            currencyCode = self.safe_string(position, 'asset', 'Unknown')
+            availableBalanceStr = self.safe_string(position, 'available_to_trade_fiat', '0')
+            availableBalance = self.parse_number(availableBalanceStr)
+            totalBalanceFiatStr = self.safe_string(position, 'total_balance_fiat', '0')
+            totalBalanceFiat = self.parse_number(totalBalanceFiatStr)
+            holdAmount = totalBalanceFiat - availableBalance
+            costBasisDict = self.safe_dict(position, 'cost_basis', {})
+            costBasisStr = self.safe_string(costBasisDict, 'value', '0')
+            averageEntryPriceDict = self.safe_dict(position, 'average_entry_price', {})
+            averageEntryPriceStr = self.safe_string(averageEntryPriceDict, 'value', '0')
+            positionData: dict = {
+                'currency': currencyCode,
+                'available_balance': availableBalance,
+                'hold_amount': holdAmount > holdAmount if 0 else 0,
+                'wallet_name': portfolioName,
+                'account_id': portfolioUuid,
+                'account_uuid': self.safe_string(position, 'account_uuid', ''),
+                'total_balance_fiat': totalBalanceFiat,
+                'total_balance_crypto': self.parse_number(self.safe_string(position, 'total_balance_crypto', '0')),
+                'available_to_trade_fiat': self.parse_number(self.safe_string(position, 'available_to_trade_fiat', '0')),
+                'available_to_trade_crypto': self.parse_number(self.safe_string(position, 'available_to_trade_crypto', '0')),
+                'available_to_transfer_fiat': self.parse_number(self.safe_string(position, 'available_to_transfer_fiat', '0')),
+                'available_to_transfer_crypto': self.parse_number(self.safe_string(position, 'available_to_trade_crypto', '0')),
+                'allocation': self.parse_number(self.safe_string(position, 'allocation', '0')),
+                'cost_basis': self.parse_number(costBasisStr),
+                'cost_basis_currency': self.safe_string(costBasisDict, 'currency', 'USD'),
+                'is_cash': self.safe_bool(position, 'is_cash', False),
+                'average_entry_price': self.parse_number(averageEntryPriceStr),
+                'average_entry_price_currency': self.safe_string(averageEntryPriceDict, 'currency', 'USD'),
+                'asset_uuid': self.safe_string(position, 'asset_uuid', ''),
+                'unrealized_pnl': self.parse_number(self.safe_string(position, 'unrealized_pnl', '0')),
+                'asset_color': self.safe_string(position, 'asset_color', ''),
+                'account_type': self.safe_string(position, 'account_type', ''),
+            }
+            parsedPositions.append(positionData)
+        return parsedPositions
 
     def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None):
         # it may not work for v2

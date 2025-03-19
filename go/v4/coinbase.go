@@ -5141,6 +5141,7 @@ func  (this *coinbase) Deposit(code interface{}, amount interface{}, id interfac
                 "amount": this.NumberToString(amount),
                 "currency": ToUpper(code),
                 "payment_method": id,
+                "commit": true,
             }
         
             response:= (<-this.V2PrivatePostAccountsAccountIdDeposits(this.Extend(request, params)))
@@ -5181,7 +5182,8 @@ func  (this *coinbase) Deposit(code interface{}, amount interface{}, id interfac
             //         }
             //     }
             //
-            var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
+            // https://github.com/ccxt/ccxt/issues/25484
+            var data interface{} = this.SafeDict2(response, "data", "transfer", map[string]interface{} {})
         
             ch <- this.ParseTransaction(data)
             return nil
@@ -5210,8 +5212,8 @@ func  (this *coinbase) FetchDeposit(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes43468 := (<-this.LoadMarkets())
-            PanicOnError(retRes43468)
+            retRes43488 := (<-this.LoadMarkets())
+            PanicOnError(retRes43488)
             var accountId interface{} = this.SafeString2(params, "account_id", "accountId")
             params = this.Omit(params, []interface{}{"account_id", "accountId"})
             if IsTrue(IsEqual(accountId, nil)) {
@@ -5268,7 +5270,8 @@ func  (this *coinbase) FetchDeposit(id interface{}, optionalArgs ...interface{})
             //         }
             //     }
             //
-            var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
+            // https://github.com/ccxt/ccxt/issues/25484
+            var data interface{} = this.SafeDict2(response, "data", "transfer", map[string]interface{} {})
         
             ch <- this.ParseTransaction(data)
             return nil
@@ -5292,8 +5295,8 @@ func  (this *coinbase) FetchDepositMethodIds(optionalArgs ...interface{}) <- cha
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes44128 := (<-this.LoadMarkets())
-            PanicOnError(retRes44128)
+            retRes44158 := (<-this.LoadMarkets())
+            PanicOnError(retRes44158)
         
             response:= (<-this.V3PrivateGetBrokeragePaymentMethods(params))
             PanicOnError(response)
@@ -5341,8 +5344,8 @@ func  (this *coinbase) FetchDepositMethodId(id interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes44478 := (<-this.LoadMarkets())
-            PanicOnError(retRes44478)
+            retRes44508 := (<-this.LoadMarkets())
+            PanicOnError(retRes44508)
             var request interface{} = map[string]interface{} {
                 "payment_method_id": id,
             }
@@ -5417,8 +5420,8 @@ func  (this *coinbase) FetchConvertQuote(fromCode interface{}, toCode interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes45078 := (<-this.LoadMarkets())
-            PanicOnError(retRes45078)
+            retRes45108 := (<-this.LoadMarkets())
+            PanicOnError(retRes45108)
             var request interface{} = map[string]interface{} {
                 "from_account": fromCode,
                 "to_account": toCode,
@@ -5457,8 +5460,8 @@ func  (this *coinbase) CreateConvertTrade(id interface{}, fromCode interface{}, 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes45318 := (<-this.LoadMarkets())
-            PanicOnError(retRes45318)
+            retRes45348 := (<-this.LoadMarkets())
+            PanicOnError(retRes45348)
             var request interface{} = map[string]interface{} {
                 "trade_id": id,
                 "from_account": fromCode,
@@ -5496,8 +5499,8 @@ func  (this *coinbase) FetchConvertTrade(id interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes45548 := (<-this.LoadMarkets())
-            PanicOnError(retRes45548)
+            retRes45578 := (<-this.LoadMarkets())
+            PanicOnError(retRes45578)
             if IsTrue(IsEqual(code, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchConvertTrade() requires a code argument")))
             }
@@ -5569,8 +5572,8 @@ func  (this *coinbase) ClosePosition(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes46088 := (<-this.LoadMarkets())
-            PanicOnError(retRes46088)
+            retRes46118 := (<-this.LoadMarkets())
+            PanicOnError(retRes46118)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "future")) {
                 panic(NotSupported(Add(this.Id, " closePosition() only supported for futures markets")))
@@ -5616,8 +5619,8 @@ func  (this *coinbase) FetchPositions(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes46398 := (<-this.LoadMarkets())
-            PanicOnError(retRes46398)
+            retRes46428 := (<-this.LoadMarkets())
+            PanicOnError(retRes46428)
             symbols = this.MarketSymbols(symbols)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
@@ -5675,8 +5678,8 @@ func  (this *coinbase) FetchPosition(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes46788 := (<-this.LoadMarkets())
-            PanicOnError(retRes46788)
+            retRes46818 := (<-this.LoadMarkets())
+            PanicOnError(retRes46818)
             var market interface{} = this.Market(symbol)
             var response interface{} = nil
             if IsTrue(GetValue(market, "future")) {
@@ -5869,8 +5872,8 @@ func  (this *coinbase) FetchTradingFees(optionalArgs ...interface{}) <- chan int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes48538 := (<-this.LoadMarkets())
-            PanicOnError(retRes48538)
+            retRes48568 := (<-this.LoadMarkets())
+            PanicOnError(retRes48568)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -5930,6 +5933,86 @@ func  (this *coinbase) FetchTradingFees(optionalArgs ...interface{}) <- chan int
             }()
             return ch
         }
+/**
+ * @method
+ * @name coinbase#fetchPortfolioDetails
+ * @description Fetch details for a specific portfolio by UUID
+ * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+ * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+ * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+ */
+func  (this *coinbase) FetchPortfolioDetails(portfolioUuid interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes49188 := (<-this.LoadMarkets())
+            PanicOnError(retRes49188)
+            var request interface{} = map[string]interface{} {
+                "portfolio_uuid": portfolioUuid,
+            }
+        
+            response:= (<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params)))
+            PanicOnError(response)
+            var result interface{} = this.ParsePortfolioDetails(response)
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *coinbase) ParsePortfolioDetails(portfolioData interface{}) interface{}  {
+    var breakdown interface{} = GetValue(portfolioData, "breakdown")
+    var portfolioInfo interface{} = this.SafeDict(breakdown, "portfolio", map[string]interface{} {})
+    var portfolioName interface{} = this.SafeString(portfolioInfo, "name", "Unknown")
+    var portfolioUuid interface{} = this.SafeString(portfolioInfo, "uuid", "")
+    var spotPositions interface{} = this.SafeList(breakdown, "spot_positions", []interface{}{})
+    var parsedPositions interface{} = []interface{}{}
+    for i := 0; IsLessThan(i, GetArrayLength(spotPositions)); i++ {
+        var position interface{} = GetValue(spotPositions, i)
+        var currencyCode interface{} = this.SafeString(position, "asset", "Unknown")
+        var availableBalanceStr interface{} = this.SafeString(position, "available_to_trade_fiat", "0")
+        var availableBalance interface{} = this.ParseNumber(availableBalanceStr)
+        var totalBalanceFiatStr interface{} = this.SafeString(position, "total_balance_fiat", "0")
+        var totalBalanceFiat interface{} = this.ParseNumber(totalBalanceFiatStr)
+        var holdAmount interface{} = Subtract(totalBalanceFiat, availableBalance)
+        var costBasisDict interface{} = this.SafeDict(position, "cost_basis", map[string]interface{} {})
+        var costBasisStr interface{} = this.SafeString(costBasisDict, "value", "0")
+        var averageEntryPriceDict interface{} = this.SafeDict(position, "average_entry_price", map[string]interface{} {})
+        var averageEntryPriceStr interface{} = this.SafeString(averageEntryPriceDict, "value", "0")
+        var positionData interface{} = map[string]interface{} {
+            "currency": currencyCode,
+            "available_balance": availableBalance,
+            "hold_amount": Ternary(IsTrue(IsGreaterThan(holdAmount, 0)), holdAmount, 0),
+            "wallet_name": portfolioName,
+            "account_id": portfolioUuid,
+            "account_uuid": this.SafeString(position, "account_uuid", ""),
+            "total_balance_fiat": totalBalanceFiat,
+            "total_balance_crypto": this.ParseNumber(this.SafeString(position, "total_balance_crypto", "0")),
+            "available_to_trade_fiat": this.ParseNumber(this.SafeString(position, "available_to_trade_fiat", "0")),
+            "available_to_trade_crypto": this.ParseNumber(this.SafeString(position, "available_to_trade_crypto", "0")),
+            "available_to_transfer_fiat": this.ParseNumber(this.SafeString(position, "available_to_transfer_fiat", "0")),
+            "available_to_transfer_crypto": this.ParseNumber(this.SafeString(position, "available_to_trade_crypto", "0")),
+            "allocation": this.ParseNumber(this.SafeString(position, "allocation", "0")),
+            "cost_basis": this.ParseNumber(costBasisStr),
+            "cost_basis_currency": this.SafeString(costBasisDict, "currency", "USD"),
+            "is_cash": this.SafeBool(position, "is_cash", false),
+            "average_entry_price": this.ParseNumber(averageEntryPriceStr),
+            "average_entry_price_currency": this.SafeString(averageEntryPriceDict, "currency", "USD"),
+            "asset_uuid": this.SafeString(position, "asset_uuid", ""),
+            "unrealized_pnl": this.ParseNumber(this.SafeString(position, "unrealized_pnl", "0")),
+            "asset_color": this.SafeString(position, "asset_color", ""),
+            "account_type": this.SafeString(position, "account_type", ""),
+        }
+        AppendToArray(&parsedPositions,positionData)
+    }
+    return parsedPositions
+}
 func  (this *coinbase) CreateAuthToken(seconds interface{}, optionalArgs ...interface{}) interface{}  {
     // it may not work for v2
     method := GetArg(optionalArgs, 0, nil)

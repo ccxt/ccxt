@@ -5,14 +5,12 @@
     "methods": {
         "fetchOHLCV": [
             {
-                "description": "Fetch OHLCV",
+                "description": "OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://tradeogre.com/api/v1/chart/1m/BTC-USDT/1729180800",
+                "url": "https://tradeogre.com/api/v1/chart/1m/BTC-USDT",
                 "input": [
                     "BTC/USDT",
-                    "1m",
-                    1729180800,
-                    1
+                    "1m"
                 ],
                 "output": null
             }

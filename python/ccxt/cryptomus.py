@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptomus import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +23,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'name': 'Cryptomus',
             'countries': ['CA'],
             'rateLimit': 100,  # todo check
-            'version': 'v1',
+            'version': 'v2',
             'certified': False,
             'pro': False,
             'has': {
@@ -105,7 +105,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
@@ -143,9 +143,9 @@ class cryptomus(Exchange, ImplicitAPI):
                 'private': {
                     'get': {
                         'v2/user-api/exchange/orders': 1,  # done
-                        'v2/user-api/exchange/orders/history': 1,
+                        'v2/user-api/exchange/orders/history': 1,  # done
                         'v2/user-api/exchange/account/balance': 1,  # done
-                        'v2/user-api/exchange/account/tariffs': 1,
+                        'v2/user-api/exchange/account/tariffs': 1,  # done
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
@@ -231,7 +231,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for the exchange
+
         https://doc.cryptomus.com/personal/market-cap/tickers
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -339,7 +341,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
         https://doc.cryptomus.com/personal/market-cap/assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -466,7 +470,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
         https://doc.cryptomus.com/personal/market-cap/tickers
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -528,7 +534,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
         https://doc.cryptomus.com/personal/market-cap/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -570,7 +578,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
         https://doc.cryptomus.com/personal/market-cap/trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
@@ -634,7 +644,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+
         https://doc.cryptomus.com/personal/converts/balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -679,8 +691,10 @@ class cryptomus(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
+
         https://doc.cryptomus.com/personal/exchange/market-order-creation
         https://doc.cryptomus.com/personal/exchange/limit-order-creation
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or for spot
         :param str side: 'buy' or 'sell'
@@ -688,7 +702,6 @@ class cryptomus(Exchange, ImplicitAPI):
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders(only for limit orders)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -742,7 +755,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open limit order
+
         https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in(not used in cryptomus)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -762,7 +777,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
+
         https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+
         :param str symbol: unified market symbol of the market orders were made in(not used in cryptomus)
         :param int [since]: the earliest time in ms to fetch orders for(not used in cryptomus)
         :param int [limit]: the maximum number of order structures to retrieve(not used in cryptomus)
@@ -832,7 +849,9 @@ class cryptomus(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+
         https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for(not used in cryptomus)
         :param int [limit]: the maximum number of  open orders structures to retrieve(not used in cryptomus)
@@ -992,6 +1011,103 @@ class cryptomus(Exchange, ImplicitAPI):
             'failed': 'failed',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        """
+        response = self.privateGetV2UserApiExchangeAccountTariffs(params)
+        #
+        #     {
+        #         result: {
+        #             equivalent_currency_code: 'USD',
+        #             current_tariff_step: {
+        #                 step: '0',
+        #                 from_turnover: '0.00000000',
+        #                 maker_percent: '0.08',
+        #                 taker_percent: '0.1'
+        #             },
+        #             tariff_steps: [
+        #                 {
+        #                     step: '0',
+        #                     from_turnover: '0.00000000',
+        #                     maker_percent: '0.08',
+        #                     taker_percent: '0.1'
+        #                 },
+        #                 {
+        #                     step: '1',
+        #                     from_turnover: '100001.00000000',
+        #                     maker_percent: '0.06',
+        #                     taker_percent: '0.095'
+        #                 },
+        #                 {
+        #                     step: '2',
+        #                     from_turnover: '250001.00000000',
+        #                     maker_percent: '0.055',
+        #                     taker_percent: '0.085'
+        #                 },
+        #                 {
+        #                     step: '3',
+        #                     from_turnover: '500001.00000000',
+        #                     maker_percent: '0.05',
+        #                     taker_percent: '0.075'
+        #                 },
+        #                 {
+        #                     step: '4',
+        #                     from_turnover: '2500001.00000000',
+        #                     maker_percent: '0.04',
+        #                     taker_percent: '0.07'
+        #                 }
+        #             ],
+        #             daily_turnover: '0.00000000',
+        #             monthly_turnover: '77.52062617',
+        #             circulation_funds: '25.48900443'
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'result', {})
+        currentFeeTier = self.safe_dict(data, 'current_tariff_step', {})
+        makerFee = self.safe_string(currentFeeTier, 'maker_percent')
+        takerFee = self.safe_string(currentFeeTier, 'taker_percent')
+        makerFee = Precise.string_div(makerFee, '100')
+        takerFee = Precise.string_div(takerFee, '100')
+        feeTiers = self.safe_list(data, 'tariff_steps', [])
+        result: dict = {}
+        tiers = self.parse_fee_tiers(feeTiers)
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.parse_number(makerFee),
+                'taker': self.parse_number(takerFee),
+                'percentage': True,
+                'tierBased': True,
+                'tiers': tiers,
+            }
+        return result
+
+    def parse_fee_tiers(self, feeTiers, market: Market = None):
+        takerFees = []
+        makerFees = []
+        for i in range(0, len(feeTiers)):
+            tier = feeTiers[i]
+            turnover = self.safe_number(tier, 'from_turnover')
+            taker = self.safe_string(tier, 'taker_percent')
+            maker = self.safe_string(tier, 'maker_percent')
+            maker = Precise.string_div(maker, '100')
+            taker = Precise.string_div(taker, '100')
+            makerFees.append([turnover, self.parse_number(maker)])
+            takerFees.append([turnover, self.parse_number(taker)])
+        return {
+            'maker': makerFees,
+            'taker': takerFees,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = self.implode_params(path, params)

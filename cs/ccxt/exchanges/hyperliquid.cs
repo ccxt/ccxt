@@ -868,7 +868,7 @@ public partial class hyperliquid : Exchange
             { "info", response },
             { "USDC", new Dictionary<string, object>() {
                 { "total", this.safeNumber(data, "accountValue") },
-                { "free", this.safeNumber(response, "withdrawable") },
+                { "used", this.safeNumber(data, "totalMarginUsed") },
             } },
         };
         object timestamp = this.safeInteger(response, "time");

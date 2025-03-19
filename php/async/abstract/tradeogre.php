@@ -22,6 +22,9 @@ abstract class tradeogre extends \ccxt\async\Exchange {
     public function public_get_chart_interval_market_timestamp($params = array()) {
         return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_chart_interval_market($params = array()) {
+        return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -60,6 +63,9 @@ abstract class tradeogre extends \ccxt\async\Exchange {
     }
     public function publicGetChartIntervalMarketTimestamp($params = array()) {
         return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetChartIntervalMarket($params = array()) {
+        return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));

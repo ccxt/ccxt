@@ -861,7 +861,7 @@ class hyperliquid extends Exchange {
                 'info' => $response,
                 'USDC' => array(
                     'total' => $this->safe_number($data, 'accountValue'),
-                    'free' => $this->safe_number($response, 'withdrawable'),
+                    'used' => $this->safe_number($data, 'totalMarginUsed'),
                 ),
             );
             $timestamp = $this->safe_integer($response, 'time');
