@@ -2728,7 +2728,7 @@ func  (this *paradex) FetchMarginMode(symbol interface{}, optionalArgs ...interf
                 "market": GetValue(market, "id"),
             }
         
-            response:= (<-this.callDynamically("privateGetAccountMargin", this.Extend(request, params)))
+            response:= (<-this.PrivateGetAccountMargin(this.Extend(request, params)))
             PanicOnError(response)
             //
             // {
@@ -2800,7 +2800,7 @@ func  (this *paradex) SetMarginMode(marginMode interface{}, optionalArgs ...inte
                 "margin_type": this.EncodeMarginMode(marginMode),
             }
         
-                retRes225815 :=  (<-this.callDynamically("privatePostAccountMarginMarket", this.Extend(request, params)))
+                retRes225815 :=  (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params)))
                 PanicOnError(retRes225815)
                 ch <- retRes225815
                 return nil
@@ -2835,7 +2835,7 @@ func  (this *paradex) FetchLeverage(symbol interface{}, optionalArgs ...interfac
                 "market": GetValue(market, "id"),
             }
         
-            response:= (<-this.callDynamically("privateGetAccountMargin", this.Extend(request, params)))
+            response:= (<-this.PrivateGetAccountMargin(this.Extend(request, params)))
             PanicOnError(response)
             //
             // {
@@ -2916,7 +2916,7 @@ func  (this *paradex) SetLeverage(leverage interface{}, optionalArgs ...interfac
                 "margin_type": this.EncodeMarginMode(marginMode),
             }
         
-                retRes233815 :=  (<-this.callDynamically("privatePostAccountMarginMarket", this.Extend(request, params)))
+                retRes233815 :=  (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params)))
                 PanicOnError(retRes233815)
                 ch <- retRes233815
                 return nil

@@ -2372,7 +2372,7 @@ public partial class paradex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountMargin", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetAccountMargin(this.extend(request, parameters));
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2428,7 +2428,7 @@ public partial class paradex : Exchange
             { "leverage", leverage },
             { "margin_type", this.encodeMarginMode(marginMode) },
         };
-        return await ((Task<object>)callDynamically(this, "privatePostAccountMarginMarket", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostAccountMarginMarket(this.extend(request, parameters));
     }
 
     /**
@@ -2449,7 +2449,7 @@ public partial class paradex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountMargin", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetAccountMargin(this.extend(request, parameters));
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2516,7 +2516,7 @@ public partial class paradex : Exchange
             { "leverage", leverage },
             { "margin_type", this.encodeMarginMode(marginMode) },
         };
-        return await ((Task<object>)callDynamically(this, "privatePostAccountMarginMarket", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostAccountMarginMarket(this.extend(request, parameters));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

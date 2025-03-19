@@ -470,7 +470,7 @@ public partial class tradeogre : Exchange
         {
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(until, 1000));
-            response = await ((Task<object>)callDynamically(this, "publicGetChartIntervalMarketTimestamp", new object[] { this.extend(request, parameters) }));
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, parameters));
         } else
         {
             response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
