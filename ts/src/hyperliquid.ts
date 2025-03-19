@@ -853,7 +853,7 @@ export default class hyperliquid extends Exchange {
             'info': response,
             'USDC': {
                 'total': this.safeNumber (data, 'accountValue'),
-                'free': this.safeNumber (response, 'withdrawable'),
+                'used': this.safeNumber (data, 'totalMarginUsed'),
             },
         };
         const timestamp = this.safeInteger (response, 'time');
