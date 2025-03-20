@@ -767,11 +767,11 @@ export default class tradeogre extends Exchange {
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
             'triggerPrice': undefined,
-            'amount': this.safeString(order, 'quantity'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString(order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,
