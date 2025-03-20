@@ -170,7 +170,7 @@ export default class okx extends Exchange {
                 '1M': '1M',
                 '3M': '3M',
             },
-            'create': 'www.okx.com', // or aws.okx.com
+            'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',
                 'api': {
