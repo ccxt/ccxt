@@ -794,11 +794,11 @@ class tradeogre extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
-            'amount' => $this->safe_string($order, 'quantity'),
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($order, 'fulfilled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
             'status' => null,
             'fee' => array(
                 'currency' => null,

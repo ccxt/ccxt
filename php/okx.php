@@ -3149,6 +3149,7 @@ class okx extends Exchange {
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
          * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
