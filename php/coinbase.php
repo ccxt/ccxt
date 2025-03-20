@@ -321,6 +321,7 @@ class coinbase extends Exchange {
                     'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
                     'PERMISSION_DENIED' => '\\ccxt\\PermissionDenied',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
@@ -5114,18 +5115,37 @@ class coinbase extends Exchange {
         //      )
         //    }
         // or
-        //   {
+        // {
+        //     "success" => false,
+        //     "error_response" => array(
         //       "error" => "UNKNOWN_FAILURE_REASON",
         //       "message" => "",
         //       "error_details" => "",
-        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
-        //   }
+        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     ),
+        //     "order_configuration" => {
+        //       "stop_limit_stop_limit_gtc" => {
+        //         "base_size" => "0.0001",
+        //         "limit_price" => "2000",
+        //         "stop_price" => "2005",
+        //         "stop_direction" => "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only" => false
+        //       }
+        //     }
+        // }
         //
         $errorCode = $this->safe_string($response, 'error');
         if ($errorCode !== null) {
-            $errorMessage = $this->safe_string_2($response, 'error_description', 'preview_failure_reason');
+            $errorMessage = $this->safe_string_2($response, 'error_description', 'error');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback);
+        }
+        $errorResponse = $this->safe_dict($response, 'error_response');
+        if ($errorResponse !== null) {
+            $errorMessageInner = $this->safe_string_2($errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessageInner, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessageInner, $feedback);
             throw new ExchangeError($feedback);
         }
         $errors = $this->safe_list($response, 'errors');
