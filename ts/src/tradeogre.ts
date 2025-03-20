@@ -611,11 +611,28 @@ export default class tradeogre extends Exchange {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        let response = undefined;
+        const currency = this.safeString (params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance (params);
+            const singleCurrencyresult: Dict = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode (currency);
+            const account = {
+                'total': this.safeNumber (response, 'balance'),
+                'free': this.safeNumber (response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance (singleCurrencyresult);
+        } else {
+            response = await this.privateGetAccountBalances (params);
+        }
         const result = this.safeDict (response, 'balances', {});
         return this.parseBalance (result);
     }
