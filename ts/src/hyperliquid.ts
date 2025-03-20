@@ -2367,6 +2367,11 @@ export default class hyperliquid extends Exchange {
         }
         const totalAmount = this.safeString2 (entry, 'origSz', 'totalSz');
         const remaining = this.safeString (entry, 'sz');
+        const tif = this.safeStringUpper (entry, 'tif');
+        let postOnly = undefined;
+        if (tif !== undefined) {
+            postOnly = (tif === 'ALO');
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -2377,8 +2382,8 @@ export default class hyperliquid extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType (this.safeStringLower (entry, 'orderType')),
-            'timeInForce': this.safeStringUpper (entry, 'tif'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString (entry, 'limitPx'),
