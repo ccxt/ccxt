@@ -5149,9 +5149,9 @@ export default class coinbase extends Exchange {
         }
         const errorResponse = this.safeDict (response, 'error_response');
         if (errorResponse !== undefined) {
-            const errorMessage = this.safeString2 (response, 'preview_failure_reason', 'preview_failure_reason');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            const errorMessageInner = this.safeString2 (errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessageInner, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessageInner, feedback);
             throw new ExchangeError (feedback);
         }
         const errors = this.safeList (response, 'errors');
