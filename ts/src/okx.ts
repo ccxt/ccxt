@@ -170,7 +170,7 @@ export default class okx extends Exchange {
                 '1M': '1M',
                 '3M': '3M',
             },
-            'hostname': 'www.okx.com', // or aws.okx.com
+            'create': 'www.okx.com', // or aws.okx.com
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',
                 'api': {
@@ -3149,6 +3149,7 @@ export default class okx extends Exchange {
      * @param {string} [params.trailingPercent] the percent to trail away from the current market price
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+     * @param {string} [params.marginMode] *spot margin* 'cross' or 'isolated', the default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
