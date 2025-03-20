@@ -812,11 +812,11 @@ public partial class tradeogre : Exchange
             { "side", this.safeString(order, "type") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
-            { "amount", this.safeString(order, "quantity") },
+            { "amount", null },
             { "cost", null },
             { "average", null },
             { "filled", this.safeString(order, "fulfilled") },
-            { "remaining", null },
+            { "remaining", this.safeString(order, "quantity") },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", null },
