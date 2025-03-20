@@ -325,6 +325,7 @@ class coinbase extends coinbase$1 {
                     'INSUFFICIENT_FUND': errors.BadRequest,
                     'PERMISSION_DENIED': errors.PermissionDenied,
                     'INVALID_ARGUMENT': errors.BadRequest,
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': errors.InvalidOrder,
                 },
                 'broad': {
                     'request timestamp expired': errors.InvalidNonce,
@@ -5083,18 +5084,37 @@ class coinbase extends coinbase$1 {
         //      ]
         //    }
         // or
-        //   {
+        // {
+        //     "success": false,
+        //     "error_response": {
         //       "error": "UNKNOWN_FAILURE_REASON",
         //       "message": "",
         //       "error_details": "",
-        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
-        //   }
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         let errorCode = this.safeString(response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString2(response, 'error_description', 'preview_failure_reason');
+            const errorMessage = this.safeString2(response, 'error_description', 'error');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+            throw new errors.ExchangeError(feedback);
+        }
+        const errorResponse = this.safeDict(response, 'error_response');
+        if (errorResponse !== undefined) {
+            const errorMessageInner = this.safeString2(errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorMessageInner, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessageInner, feedback);
             throw new errors.ExchangeError(feedback);
         }
         const errors$1 = this.safeList(response, 'errors');
