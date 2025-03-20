@@ -137,7 +137,6 @@ export default class tradeogre extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -147,6 +146,7 @@ export default class tradeogre extends Exchange {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
