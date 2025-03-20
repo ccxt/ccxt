@@ -2346,6 +2346,11 @@ class hyperliquid extends Exchange {
         }
         $totalAmount = $this->safe_string_2($entry, 'origSz', 'totalSz');
         $remaining = $this->safe_string($entry, 'sz');
+        $tif = $this->safe_string_upper($entry, 'tif');
+        $postOnly = null;
+        if ($tif !== null) {
+            $postOnly = ($tif === 'ALO');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -2356,8 +2361,8 @@ class hyperliquid extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($order, 'statusTimestamp'),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
-            'timeInForce' => $this->safe_string_upper($entry, 'tif'),
-            'postOnly' => null,
+            'timeInForce' => $tif,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
