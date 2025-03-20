@@ -376,7 +376,31 @@
                     "80972193016",
                     "HYPE/USDC:USDC"
                 ],
-                "httpResponse": "{\"status\":\"order\",\"order\":{\"order\":{\"coin\":\"HYPE\",\"side\":\"B\",\"limitPx\":\"13.5\",\"sz\":\"2.0\",\"oid\":80972193016,\"timestamp\":1742488072039,\"triggerCondition\":\"N/A\",\"isTrigger\":false,\"triggerPx\":\"0.0\",\"children\":[],\"isPositionTpsl\":false,\"reduceOnly\":false,\"orderType\":\"Limit\",\"origSz\":\"2.0\",\"tif\":\"Alo\",\"cloid\":null},\"status\":\"open\",\"statusTimestamp\":1742488072039}}",
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "B",
+                            "limitPx": "13.5",
+                            "sz": "2.0",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "2.0",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1742488072039
+                    }
+                },
                 "parsedResponse": {
                     "info": {
                         "order": {
