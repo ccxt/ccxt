@@ -744,11 +744,11 @@ class tradeogre(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
-            'amount': self.safe_string(order, 'quantity'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(order, 'fulfilled'),
-            'remaining': None,
+            'remaining': self.safe_string(order, 'quantity'),
             'status': None,
             'fee': {
                 'currency': None,
