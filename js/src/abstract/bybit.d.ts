@@ -55,6 +55,7 @@ interface Exchange {
     publicGetV5CryptoLoanLoanableData(params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanProductInfos(params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanEnsureTokensConvert(params?: {}): Promise<implicitReturnType>;
+    publicGetV5EarnProduct(params?: {}): Promise<implicitReturnType>;
     privateGetV5MarketInstrumentsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateWalletFundRecords(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV3PrivateOrder(params?: {}): Promise<implicitReturnType>;
@@ -191,6 +192,8 @@ interface Exchange {
     privateGetV5BrokerEarningsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAssetQuerySubMemberDepositRecord(params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnPosition(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrders(params?: {}): Promise<implicitReturnType>;
@@ -306,6 +309,7 @@ interface Exchange {
     privatePostV5BrokerAwardInfo(params?: {}): Promise<implicitReturnType>;
     privatePostV5BrokerAwardDistributeAward(params?: {}): Promise<implicitReturnType>;
     privatePostV5BrokerAwardDistributionRecord(params?: {}): Promise<implicitReturnType>;
+    privatePostV5EarnPlaceOrder(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }
