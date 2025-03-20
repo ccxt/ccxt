@@ -408,8 +408,8 @@
                             "side": "B",
                             "limitPx": "13.5",
                             "sz": "2.0",
-                            "oid": "80972193016",
-                            "timestamp": "1742488072039",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
                             "triggerCondition": "N/A",
                             "isTrigger": false,
                             "triggerPx": "0.0",
@@ -422,7 +422,7 @@
                             "cloid": null
                         },
                         "status": "open",
-                        "statusTimestamp": "1742488072039"
+                        "statusTimestamp": 1742488072039
                     },
                     "id": "80972193016",
                     "clientOrderId": null,
