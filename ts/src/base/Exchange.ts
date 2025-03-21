@@ -4889,7 +4889,7 @@ export default class Exchange {
         if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
-        let code = undefined;
+        let code = currencyId;
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode (currencyId.toUpperCase ());
         }
