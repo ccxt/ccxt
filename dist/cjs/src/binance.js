@@ -9,7 +9,7 @@ var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
@@ -8795,7 +8795,7 @@ class binance extends binance$1 {
         const internalInteger = this.safeInteger(transaction, 'transferType');
         let internal = undefined;
         if (internalInteger !== undefined) {
-            internal = internalInteger ? true : false;
+            internal = (internalInteger !== 0) ? true : false;
         }
         const network = this.safeString(transaction, 'network');
         return {

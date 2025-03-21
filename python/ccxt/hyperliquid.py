@@ -2242,6 +2242,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             side = 'sell' if (side == 'A') else 'buy'
         totalAmount = self.safe_string_2(entry, 'origSz', 'totalSz')
         remaining = self.safe_string(entry, 'sz')
+        tif = self.safe_string_upper(entry, 'tif')
+        postOnly = None
+        if tif is not None:
+            postOnly = (tif == 'ALO')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(entry, 'oid'),
@@ -2252,8 +2256,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': self.parse_order_type(self.safe_string_lower(entry, 'orderType')),
-            'timeInForce': self.safe_string_upper(entry, 'tif'),
-            'postOnly': None,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(entry, 'reduceOnly'),
             'side': side,
             'price': self.safe_string(entry, 'limitPx'),
@@ -2371,6 +2375,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         if side is not None:
             side = 'sell' if (side == 'A') else 'buy'
         fee = self.safe_string(trade, 'fee')
+        takerOrMaker = None
+        crossed = self.safe_bool(trade, 'crossed')
+        if crossed is not None:
+            takerOrMaker = 'taker' if crossed else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2380,7 +2388,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'oid'),
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -2927,7 +2935,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'tagTo': None,
             'tagFrom': None,
             'type': None,
-            'amount': self.safe_integer(delta, 'usdc'),
+            'amount': self.safe_number(delta, 'usdc'),
             'currency': None,
             'status': self.safe_string(transaction, 'status'),
             'updated': None,

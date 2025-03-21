@@ -2537,6 +2537,12 @@ public partial class hyperliquid : Exchange
         }
         object totalAmount = this.safeString2(entry, "origSz", "totalSz");
         object remaining = this.safeString(entry, "sz");
+        object tif = this.safeStringUpper(entry, "tif");
+        object postOnly = null;
+        if (isTrue(!isEqual(tif, null)))
+        {
+            postOnly = (isEqual(tif, "ALO"));
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(entry, "oid") },
@@ -2547,8 +2553,8 @@ public partial class hyperliquid : Exchange
             { "lastUpdateTimestamp", this.safeInteger(order, "statusTimestamp") },
             { "symbol", symbol },
             { "type", this.parseOrderType(this.safeStringLower(entry, "orderType")) },
-            { "timeInForce", this.safeStringUpper(entry, "tif") },
-            { "postOnly", null },
+            { "timeInForce", tif },
+            { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(entry, "reduceOnly") },
             { "side", side },
             { "price", this.safeString(entry, "limitPx") },
@@ -2684,6 +2690,12 @@ public partial class hyperliquid : Exchange
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";
         }
         object fee = this.safeString(trade, "fee");
+        object takerOrMaker = null;
+        object crossed = this.safeBool(trade, "crossed");
+        if (isTrue(!isEqual(crossed, null)))
+        {
+            takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -2693,7 +2705,7 @@ public partial class hyperliquid : Exchange
             { "order", this.safeString(trade, "oid") },
             { "type", null },
             { "side", side },
-            { "takerOrMaker", null },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", null },
@@ -3323,7 +3335,7 @@ public partial class hyperliquid : Exchange
             { "tagTo", null },
             { "tagFrom", null },
             { "type", null },
-            { "amount", this.safeInteger(delta, "usdc") },
+            { "amount", this.safeNumber(delta, "usdc") },
             { "currency", null },
             { "status", this.safeString(transaction, "status") },
             { "updated", null },

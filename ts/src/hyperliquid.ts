@@ -2367,6 +2367,11 @@ export default class hyperliquid extends Exchange {
         }
         const totalAmount = this.safeString2 (entry, 'origSz', 'totalSz');
         const remaining = this.safeString (entry, 'sz');
+        const tif = this.safeStringUpper (entry, 'tif');
+        let postOnly = undefined;
+        if (tif !== undefined) {
+            postOnly = (tif === 'ALO');
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -2377,8 +2382,8 @@ export default class hyperliquid extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType (this.safeStringLower (entry, 'orderType')),
-            'timeInForce': this.safeStringUpper (entry, 'tif'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString (entry, 'limitPx'),
@@ -2503,6 +2508,11 @@ export default class hyperliquid extends Exchange {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         const fee = this.safeString (trade, 'fee');
+        let takerOrMaker = undefined;
+        const crossed = this.safeBool (trade, 'crossed');
+        if (crossed !== undefined) {
+            takerOrMaker = crossed ? 'taker' : 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -2512,7 +2522,7 @@ export default class hyperliquid extends Exchange {
             'order': this.safeString (trade, 'oid'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -3098,7 +3108,7 @@ export default class hyperliquid extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeInteger (delta, 'usdc'),
+            'amount': this.safeNumber (delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString (transaction, 'status'),
             'updated': undefined,

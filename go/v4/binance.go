@@ -9322,7 +9322,7 @@ func  (this *binance) ParseTransaction(transaction interface{}, optionalArgs ...
     var internalInteger interface{} = this.SafeInteger(transaction, "transferType")
     var internal interface{} = nil
     if IsTrue(!IsEqual(internalInteger, nil)) {
-        internal = Ternary(IsTrue(internalInteger), true, false)
+        internal = Ternary(IsTrue((!IsEqual(internalInteger, 0))), true, false)
     }
     var network interface{} = this.SafeString(transaction, "network")
     return map[string]interface{} {

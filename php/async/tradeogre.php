@@ -138,7 +138,6 @@ class tradeogre extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balance' => 1,
                         'account/balances' => 1,
                         'account/order/{uuid}' => 1,
                     ),
@@ -148,6 +147,7 @@ class tradeogre extends Exchange {
                         'order/cancel' => 1,
                         'orders' => 1,
                         'account/orders' => 1,
+                        'account/balance' => 1,
                     ),
                 ),
             ),
@@ -614,10 +614,27 @@ class tradeogre extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->currency] $currency to fetch the balance for
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountBalances ($params));
+            $response = null;
+            $currency = $this->safe_string($params, 'currency');
+            if ($currency !== null) {
+                $response = Async\await($this->privatePostAccountBalance ($params));
+                $singleCurrencyresult = array(
+                    'info' => $response,
+                );
+                $code = $this->safe_currency_code($currency);
+                $account = array(
+                    'total' => $this->safe_number($response, 'balance'),
+                    'free' => $this->safe_number($response, 'available'),
+                );
+                $singleCurrencyresult[$code] = $account;
+                return $this->safe_balance($singleCurrencyresult);
+            } else {
+                $response = Async\await($this->privateGetAccountBalances ($params));
+            }
             $result = $this->safe_dict($response, 'balances', array());
             return $this->parse_balance($result);
         }) ();
@@ -794,11 +811,11 @@ class tradeogre extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
-            'amount' => $this->safe_string($order, 'quantity'),
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($order, 'fulfilled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
             'status' => null,
             'fee' => array(
                 'currency' => null,

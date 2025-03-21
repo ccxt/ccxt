@@ -315,7 +315,6 @@ public partial class Exchange
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "XBT", "BTC" },
-                { "BCC", "BCH" },
                 { "BCHSV", "BSV" },
             } },
             { "precisionMode", TICK_SIZE },

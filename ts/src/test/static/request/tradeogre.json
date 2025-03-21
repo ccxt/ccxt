@@ -106,6 +106,17 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch single currency balance",
+                "method": "fetchBalance",
+                "url": "https://tradeogre.com/api/v1/account/balance",
+                "input": [
+                    {
+                        "currency": "USDT"
+                    }
+                ],
+                "output": "currency=USDT"
+            },
+            {
                 "description": "fetch balance",
                 "method": "fetchBalance",
                 "url": "https://tradeogre.com/api/v1/account/balances",

@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
@@ -1165,7 +1165,7 @@ class bitget extends bitget$1 {
         else {
             [instType, params] = this.getInstType(market, params);
         }
-        if (type === 'spot') {
+        if (type === 'spot' && (symbol !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
         if (isTrigger) {

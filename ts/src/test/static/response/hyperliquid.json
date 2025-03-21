@@ -59,7 +59,7 @@
                         "order": "6928122855",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": null,
+                        "takerOrMaker": "taker",
                         "price": 132.31,
                         "amount": 0.5,
                         "cost": 66.155,
@@ -127,7 +127,7 @@
                         "order": "13981880088",
                         "type": null,
                         "side": "sell",
-                        "takerOrMaker": null,
+                        "takerOrMaker": "taker",
                         "price": 0.9641,
                         "amount": 49.0,
                         "cost": 47.2409,
@@ -369,6 +369,89 @@
             }
         ],
     "fetchOrder": [
+            {
+                "description": "fetch postOnly order",
+                "method": "fetchOrder",
+                "input": [
+                    "80972193016",
+                    "HYPE/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "B",
+                            "limitPx": "13.5",
+                            "sz": "2.0",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "2.0",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1742488072039
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "B",
+                            "limitPx": "13.5",
+                            "sz": "2.0",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "2.0",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1742488072039
+                    },
+                    "id": "80972193016",
+                    "clientOrderId": null,
+                    "timestamp": 1742488072039,
+                    "datetime": "2025-03-20T16:27:52.039Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1742488072039,
+                    "symbol": "HYPE/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "ALO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 13.5,
+                    "triggerPrice": null,
+                    "amount": 2,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 2,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
             {
                 "description": "fetchOrder with both ts",
                 "method": "fetchOrder",
