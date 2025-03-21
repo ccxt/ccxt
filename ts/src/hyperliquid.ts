@@ -3103,7 +3103,7 @@ export default class hyperliquid extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeInteger (delta, 'usdc'),
+            'amount': this.safeNumber (delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString (transaction, 'status'),
             'updated': undefined,
