@@ -4893,18 +4893,20 @@ export default class Exchange {
         let code = undefined;
         if (currencyId !== undefined) {
             code = currencyId.toUpperCase ();
-            let hasBothCommonCurrencies = false;
-            const commonCurrency = this.commonCurrencyCode (code);
-            const entries = Object.keys (this.currencies_by_id);
-            for (let i = 0; i < entries.length; i++) {
-                const entry = entries[i];
-                const currentCurrency = this.currencies_by_id[entry];
-                if (currentCurrency['code'] === commonCurrency) {
-                    hasBothCommonCurrencies = true;
+            if (this.currencies_by_id !== undefined) {
+                let hasCommonCurrency = false;
+                const commonCurrency = this.commonCurrencyCode (code);
+                const entries = Object.keys (this.currencies_by_id);
+                for (let i = 0; i < entries.length; i++) {
+                    const entry = entries[i];
+                    const currentCurrency = this.currencies_by_id[entry];
+                    if (currentCurrency['code'] === commonCurrency) {
+                        hasCommonCurrency = true;
+                    }
                 }
-            }
-            if (!hasBothCommonCurrencies) {
-                code = commonCurrency;
+                if (!hasCommonCurrency) {
+                    code = commonCurrency;
+                }
             }
         }
         return this.safeCurrencyStructure ({
