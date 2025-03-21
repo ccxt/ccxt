@@ -2465,6 +2465,11 @@ class hyperliquid extends hyperliquid$1 {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         const fee = this.safeString(trade, 'fee');
+        let takerOrMaker = undefined;
+        const crossed = this.safeBool(trade, 'crossed');
+        if (crossed !== undefined) {
+            takerOrMaker = crossed ? 'taker' : 'maker';
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -2474,7 +2479,7 @@ class hyperliquid extends hyperliquid$1 {
             'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
