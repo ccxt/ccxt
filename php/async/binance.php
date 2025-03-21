@@ -8728,7 +8728,7 @@ class binance extends Exchange {
         $internalInteger = $this->safe_integer($transaction, 'transferType');
         $internal = null;
         if ($internalInteger !== null) {
-            $internal = $internalInteger ? true : false;
+            $internal = ($internalInteger !== 0) ? true : false;
         }
         $network = $this->safe_string($transaction, 'network');
         return array(

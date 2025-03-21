@@ -933,8 +933,8 @@ class testMainClass {
             }
         } else {
             // built-in types like strings, numbers, booleans
-            $sanitized_new_output = (!$new_output) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
-            $sanitized_stored_output = (!$stored_output) ? null : $stored_output;
+            $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
+            $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
             $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
             $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
@@ -955,7 +955,7 @@ class testMainClass {
                 $is_string = $is_computed_string || $is_stored_string;
                 $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
-                    if ($this->lang === 'C#') {
+                    if (($this->lang === 'C#') || ($this->lang === 'GO')) {
                         // tmp c# number comparsion
                         $is_number = false;
                         try {

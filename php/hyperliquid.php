@@ -3078,7 +3078,7 @@ class hyperliquid extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => null,
-            'amount' => $this->safe_integer($delta, 'usdc'),
+            'amount' => $this->safe_number($delta, 'usdc'),
             'currency' => null,
             'status' => $this->safe_string($transaction, 'status'),
             'updated' => null,
