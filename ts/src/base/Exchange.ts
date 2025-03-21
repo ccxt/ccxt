@@ -1912,7 +1912,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -4892,22 +4891,7 @@ export default class Exchange {
         }
         let code = undefined;
         if (currencyId !== undefined) {
-            code = currencyId.toUpperCase ();
-            if (this.currencies_by_id !== undefined) {
-                let hasCommonCurrency = false;
-                const commonCurrency = this.commonCurrencyCode (code);
-                const entries = Object.keys (this.currencies_by_id);
-                for (let i = 0; i < entries.length; i++) {
-                    const entry = entries[i];
-                    const currentCurrency = this.currencies_by_id[entry];
-                    if (currentCurrency['code'] === commonCurrency) {
-                        hasCommonCurrency = true;
-                    }
-                }
-                if (!hasCommonCurrency) {
-                    code = commonCurrency;
-                }
-            }
+            code = this.commonCurrencyCode (currencyId.toUpperCase ());
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
