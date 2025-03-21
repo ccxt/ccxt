@@ -2690,6 +2690,12 @@ public partial class hyperliquid : Exchange
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";
         }
         object fee = this.safeString(trade, "fee");
+        object takerOrMaker = null;
+        object crossed = this.safeBool(trade, "crossed");
+        if (isTrue(!isEqual(crossed, null)))
+        {
+            takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -2699,7 +2705,7 @@ public partial class hyperliquid : Exchange
             { "order", this.safeString(trade, "oid") },
             { "type", null },
             { "side", side },
-            { "takerOrMaker", null },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", null },
