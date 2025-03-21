@@ -2547,6 +2547,11 @@ class hyperliquid extends Exchange {
             $side = ($side === 'A') ? 'sell' : 'buy';
         }
         $fee = $this->safe_string($trade, 'fee');
+        $takerOrMaker = null;
+        $crossed = $this->safe_bool($trade, 'crossed');
+        if ($crossed !== null) {
+            $takerOrMaker = $crossed ? 'taker' : 'maker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2556,7 +2561,7 @@ class hyperliquid extends Exchange {
             'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
