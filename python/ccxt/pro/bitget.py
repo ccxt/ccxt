@@ -1125,7 +1125,7 @@ class bitget(ccxt.async_support.bitget):
             instType = 'SPOT'
         else:
             instType, params = self.get_inst_type(market, params)
-        if type == 'spot':
+        if type == 'spot' and (symbol is not None):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
