@@ -642,6 +642,7 @@
         "fetchPositions": [
             {
                 "description": "Linear position",
+                "disabledGO": true,
                 "method": "fetchPositions",
                 "input": [
                     [
