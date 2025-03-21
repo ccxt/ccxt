@@ -2375,6 +2375,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         if side is not None:
             side = 'sell' if (side == 'A') else 'buy'
         fee = self.safe_string(trade, 'fee')
+        takerOrMaker = None
+        crossed = self.safe_bool(trade, 'crossed')
+        if crossed is not None:
+            takerOrMaker = 'taker' if crossed else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2384,7 +2388,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'oid'),
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
