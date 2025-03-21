@@ -1167,8 +1167,8 @@ func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchang
         }
     } else {
         // built-in types like strings, numbers, booleans
-        var sanitizedNewOutput interface{} = Ternary(IsTrue((!IsTrue(newOutput))), nil, newOutput) // we store undefined as nulls in the json file so we need to convert it back
-        var sanitizedStoredOutput interface{} = Ternary(IsTrue((!IsTrue(storedOutput))), nil, storedOutput)
+        var sanitizedNewOutput interface{} = Ternary(IsTrue((IsNullValue(newOutput))), nil, newOutput) // we store undefined as nulls in the json file so we need to convert it back
+        var sanitizedStoredOutput interface{} = Ternary(IsTrue((IsNullValue(storedOutput))), nil, storedOutput)
         var newOutputString interface{} = Ternary(IsTrue(sanitizedNewOutput), ToString(sanitizedNewOutput), "undefined")
         var storedOutputString interface{} = Ternary(IsTrue(sanitizedStoredOutput), ToString(sanitizedStoredOutput), "undefined")
         var messageError interface{} = Add(Add(Add("output value mismatch:", newOutputString), " != "), storedOutputString)
@@ -1189,7 +1189,7 @@ func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchang
             var isString interface{} = IsTrue(isComputedString) || IsTrue(isStoredString)
             var isUndefined interface{} = IsTrue(isComputedUndefined) || IsTrue(isStoredUndefined) // undefined is a perfetly valid value
             if IsTrue(IsTrue(IsTrue(isBoolean) || IsTrue(isString)) || IsTrue(isUndefined)) {
-                if IsTrue(IsEqual(this.Lang, "C#")) {
+                if IsTrue(IsTrue((IsEqual(this.Lang, "C#"))) || IsTrue((IsEqual(this.Lang, "GO")))) {
                     // tmp c# number comparsion
                     var isNumber interface{} = false
                     

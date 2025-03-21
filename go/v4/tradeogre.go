@@ -137,7 +137,6 @@ func  (this *tradeogre) Describe() interface{}  {
             },
             "private": map[string]interface{} {
                 "get": map[string]interface{} {
-                    "account/balance": 1,
                     "account/balances": 1,
                     "account/order/{uuid}": 1,
                 },
@@ -147,6 +146,7 @@ func  (this *tradeogre) Describe() interface{}  {
                     "order/cancel": 1,
                     "orders": 1,
                     "account/orders": 1,
+                    "account/balance": 1,
                 },
             },
         },
@@ -707,6 +707,7 @@ func  (this *tradeogre) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @name tradeogre#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.currency] currency to fetch the balance for
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interface{} {
@@ -717,11 +718,31 @@ func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6168 := (<-this.LoadMarkets())
-            PanicOnError(retRes6168)
+            retRes6178 := (<-this.LoadMarkets())
+            PanicOnError(retRes6178)
+            var response interface{} = nil
+            var currency interface{} = this.SafeString(params, "currency")
+            if IsTrue(!IsEqual(currency, nil)) {
+                
+        response = (<-this.callDynamically("privatePostAccountBalance", params))
+                PanicOnError(response)
+                var singleCurrencyresult interface{} = map[string]interface{} {
+                    "info": response,
+                }
+                var code interface{} = this.SafeCurrencyCode(currency)
+                var account interface{} = map[string]interface{} {
+                    "total": this.SafeNumber(response, "balance"),
+                    "free": this.SafeNumber(response, "available"),
+                }
+                AddElementToObject(singleCurrencyresult, code, account)
         
-            response:= (<-this.PrivateGetAccountBalances(params))
-            PanicOnError(response)
+                ch <- this.SafeBalance(singleCurrencyresult)
+                return nil
+            } else {
+                
+        response = (<-this.PrivateGetAccountBalances(params))
+                PanicOnError(response)
+            }
             var result interface{} = this.SafeDict(response, "balances", map[string]interface{} {})
         
             ch <- this.ParseBalance(result)
@@ -774,8 +795,8 @@ func  (this *tradeogre) CreateOrder(symbol interface{}, typeVar interface{}, sid
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6588 := (<-this.LoadMarkets())
-            PanicOnError(retRes6588)
+            retRes6758 := (<-this.LoadMarkets())
+            PanicOnError(retRes6758)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(typeVar, "market")) {
                 panic(BadRequest(Add(this.Id, " createOrder does not support market orders")))
@@ -824,8 +845,8 @@ func  (this *tradeogre) CancelOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6908 := (<-this.LoadMarkets())
-            PanicOnError(retRes6908)
+            retRes7078 := (<-this.LoadMarkets())
+            PanicOnError(retRes7078)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -857,8 +878,8 @@ func  (this *tradeogre) CancelAllOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7078 := (<-this.LoadMarkets())
-            PanicOnError(retRes7078)
+            retRes7248 := (<-this.LoadMarkets())
+            PanicOnError(retRes7248)
         
             response:= (<-this.CancelOrder("all", symbol, params))
             PanicOnError(response)
@@ -894,8 +915,8 @@ func  (this *tradeogre) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7268 := (<-this.LoadMarkets())
-            PanicOnError(retRes7268)
+            retRes7438 := (<-this.LoadMarkets())
+            PanicOnError(retRes7438)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -934,8 +955,8 @@ func  (this *tradeogre) FetchOrder(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7508 := (<-this.LoadMarkets())
-            PanicOnError(retRes7508)
+            retRes7678 := (<-this.LoadMarkets())
+            PanicOnError(retRes7678)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -980,11 +1001,11 @@ func  (this *tradeogre) ParseOrder(order interface{}, optionalArgs ...interface{
         "side": this.SafeString(order, "type"),
         "price": this.SafeString(order, "price"),
         "triggerPrice": nil,
-        "amount": this.SafeString(order, "quantity"),
+        "amount": nil,
         "cost": nil,
         "average": nil,
         "filled": this.SafeString(order, "fulfilled"),
-        "remaining": nil,
+        "remaining": this.SafeString(order, "quantity"),
         "status": nil,
         "fee": map[string]interface{} {
             "currency": nil,

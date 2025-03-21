@@ -211,6 +211,7 @@ func (this *Tradeogre) FetchTrades(symbol string, options ...FetchTradesOptions)
  * @name tradeogre#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.currency] currency to fetch the balance for
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func (this *Tradeogre) FetchBalance(params ...interface{}) (Balances, error) {
