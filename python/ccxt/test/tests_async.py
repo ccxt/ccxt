@@ -765,8 +765,8 @@ class testMainClass:
                 self.assert_new_and_stored_output(exchange, skip_keys, new_item, stored_item, strict_type_check)
         else:
             # built-in types like strings, numbers, booleans
-            sanitized_new_output = None if (not new_output) else new_output  # we store undefined as nulls in the json file so we need to convert it back
-            sanitized_stored_output = None if (not stored_output) else stored_output
+            sanitized_new_output = None if (is_null_value(new_output)) else new_output  # we store undefined as nulls in the json file so we need to convert it back
+            sanitized_stored_output = None if (is_null_value(stored_output)) else stored_output
             new_output_string = str(sanitized_new_output) if sanitized_new_output else 'undefined'
             stored_output_string = str(sanitized_stored_output) if sanitized_stored_output else 'undefined'
             message_error = 'output value mismatch:' + new_output_string + ' != ' + stored_output_string
@@ -787,7 +787,7 @@ class testMainClass:
                 is_string = is_computed_string or is_stored_string
                 is_undefined = is_computed_undefined or is_stored_undefined  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
-                    if self.lang == 'C#':
+                    if (self.lang == 'C#') or (self.lang == 'GO'):
                         # tmp c# number comparsion
                         is_number = False
                         try:

@@ -2931,7 +2931,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'tagTo': None,
             'tagFrom': None,
             'type': None,
-            'amount': self.safe_integer(delta, 'usdc'),
+            'amount': self.safe_number(delta, 'usdc'),
             'currency': None,
             'status': self.safe_string(transaction, 'status'),
             'updated': None,
