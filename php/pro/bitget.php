@@ -1221,7 +1221,7 @@ class bitget extends \ccxt\async\bitget {
             } else {
                 list($instType, $params) = $this->get_inst_type($market, $params);
             }
-            if ($type === 'spot') {
+            if ($type === 'spot' && ($symbol !== null)) {
                 $subscriptionHash = $subscriptionHash . ':' . $symbol;
             }
             if ($isTrigger) {
