@@ -662,7 +662,6 @@ class Exchange extends \ccxt\Exchange {
             ),
             'commonCurrencies' => array(
                 'XBT' => 'BTC',
-                'BCC' => 'BCH',
                 'BCHSV' => 'BSV',
             ),
             'precisionMode' => TICK_SIZE,
