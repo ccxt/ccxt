@@ -8798,7 +8798,7 @@ export default class binance extends Exchange {
         const internalInteger = this.safeInteger(transaction, 'transferType');
         let internal = undefined;
         if (internalInteger !== undefined) {
-            internal = internalInteger ? true : false;
+            internal = (internalInteger !== 0) ? true : false;
         }
         const network = this.safeString(transaction, 'network');
         return {

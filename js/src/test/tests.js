@@ -1009,8 +1009,8 @@ class testMainClass {
         }
         else {
             // built-in types like strings, numbers, booleans
-            const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
-            const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
+            const sanitizedNewOutput = (isNullValue(newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            const sanitizedStoredOutput = (isNullValue(storedOutput)) ? undefined : storedOutput;
             const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString() : "undefined";
             const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString() : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
@@ -1032,7 +1032,7 @@ class testMainClass {
                 const isString = isComputedString || isStoredString;
                 const isUndefined = isComputedUndefined || isStoredUndefined; // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined) {
-                    if (this.lang === 'C#') {
+                    if ((this.lang === 'C#') || (this.lang === 'GO')) {
                         // tmp c# number comparsion
                         let isNumber = false;
                         try {
