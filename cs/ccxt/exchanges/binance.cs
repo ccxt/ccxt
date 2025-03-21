@@ -9052,7 +9052,7 @@ public partial class binance : Exchange
         object intern = null;
         if (isTrue(!isEqual(internalInteger, null)))
         {
-            intern = ((bool) isTrue(internalInteger)) ? true : false;
+            intern = ((bool) isTrue((!isEqual(internalInteger, 0)))) ? true : false;
         }
         object network = this.safeString(transaction, "network");
         return new Dictionary<string, object>() {

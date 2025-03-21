@@ -3329,7 +3329,7 @@ public partial class hyperliquid : Exchange
             { "tagTo", null },
             { "tagFrom", null },
             { "type", null },
-            { "amount", this.safeInteger(delta, "usdc") },
+            { "amount", this.safeNumber(delta, "usdc") },
             { "currency", null },
             { "status", this.safeString(transaction, "status") },
             { "updated", null },
