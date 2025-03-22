@@ -2024,6 +2024,24 @@
                     "stopLossPrice": null
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch Ticker",
+                "method": "fetchTicker",
+                "url": "https://data.ellipx.com/Market/BTC_USDC:ticker?currencyPair=BTC_USDC",
+                "input": [
+                  "BTC/USDC"
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch Markets",
+                "method": "fetchMarkets",
+                "url": "https://app.ellipx.com/_rest/Market",
+                "input": []
+            }
         ]
     }
 }
