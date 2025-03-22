@@ -7318,7 +7318,11 @@ export default class bitget extends Exchange {
             result.push(this.parseFundingHistory(contract, market));
         }
         const sorted = this.sortBy(result, 'timestamp');
-        return this.filterBySinceLimit(sorted, since, limit);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
         await this.loadMarkets();
