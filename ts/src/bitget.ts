@@ -7221,7 +7221,7 @@ export default class bitget extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
