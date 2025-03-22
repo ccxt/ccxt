@@ -1,8 +1,8 @@
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
-export type int = number;
 export type Int = number | undefined;
+export type int = number;
 export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap' | 'delivery' | 'index';
 export type Num = number | undefined;
 export type OrderSide = 'buy' | 'sell' | string;
@@ -312,8 +312,8 @@ export interface Position {
     lastUpdateTimestamp?: number;
     leverage?: number;
     liquidationPrice?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
-    maintenenceMargin?: number;
     marginMode?: Str;
     marginRatio?: number;
     markPrice?: number;
