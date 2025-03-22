@@ -1523,6 +1523,32 @@ export default class coinbase extends Exchange {
         return result;
     }
 
+    setMarkets (markets, currencies = undefined) {
+        const aliasCbMarketIds = [];
+        const values = this.toArray (markets);
+        const newMarkets = [];
+        for (let i = 0; i < values.length; i++) {
+            const market = values[i];
+            const info = this.safeValue (market, 'info', {});
+            const realMarketIds = this.safeList (info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                aliasCbMarketIds.push ([ market['id'], market['symbol'], realMarketIds[0] ]);
+            } else {
+                newMarkets.push (market);
+            }
+        }
+        const result = super.setMarkets (newMarkets, currencies);
+        // at this moment, "markets_by_id" is already set, so add few references
+        for (let i = 0; i < aliasCbMarketIds.length; i++) {
+            const [ aliasedId, aliasedSymbol, sourceMarketId ] = aliasCbMarketIds[i];
+            // we don't want them to add in `this.markets`, just link them within `this.markets_by_id`
+            this.markets_by_id[aliasedId] = this.markets_by_id[sourceMarketId];
+            this.markets_by_id[aliasedSymbol] = this.markets_by_id[sourceMarketId];
+        }
+        return result;
+    }
+
     parseSpotMarket (market, feeTier): MarketInterface {
         //
         //         {
