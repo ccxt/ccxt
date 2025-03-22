@@ -1193,10 +1193,10 @@ class alpaca extends Exchange {
             $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $params = $this->omit($params, 'until');
-                $request['endTime'] = $until;
+                $request['endTime'] = $this->iso8601($until);
             }
             if ($since !== null) {
-                $request['after'] = $since;
+                $request['after'] = $this->iso8601($since);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -1455,6 +1455,7 @@ class alpaca extends Exchange {
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
+             * @param {string} [$params->page_token] page_token - used for paging
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -1465,8 +1466,13 @@ class alpaca extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['until'] = $this->iso8601($until);
+            }
             if ($since !== null) {
-                $request['after'] = $since;
+                $request['after'] = $this->iso8601($since);
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;

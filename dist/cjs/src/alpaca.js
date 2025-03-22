@@ -1151,10 +1151,10 @@ class alpaca extends alpaca$1 {
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, 'until');
-            request['endTime'] = until;
+            request['endTime'] = this.iso8601(until);
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1397,6 +1397,7 @@ class alpaca extends alpaca$1 {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1408,8 +1409,13 @@ class alpaca extends alpaca$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['until'] = this.iso8601(until);
+        }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;

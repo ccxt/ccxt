@@ -1037,9 +1037,9 @@ func  (this *kraken) ParseTicker(ticker interface{}, optionalArgs ...interface{}
         "high": this.SafeString(high, 1),
         "low": this.SafeString(low, 1),
         "bid": this.SafeString(bid, 0),
-        "bidVolume": nil,
+        "bidVolume": this.SafeString(bid, 2),
         "ask": this.SafeString(ask, 0),
-        "askVolume": nil,
+        "askVolume": this.SafeString(ask, 2),
         "vwap": vwap,
         "open": this.SafeString(ticker, "o"),
         "close": last,
@@ -4075,6 +4075,6 @@ func  (this *kraken) HandleErrors(code interface{}, reason interface{}, url inte
 
 func (this *kraken) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

@@ -50,6 +50,10 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
+    market = None
+    symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
+    if symbol_for_market is not None and (symbol_for_market in exchange.markets):
+        market = exchange.market(symbol_for_market)
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'open', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'high', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'low', '0')
@@ -71,8 +75,20 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     low = exchange.safe_string(entry, 'low')
     if not ('quoteVolume' in skipped_properties) and not ('baseVolume' in skipped_properties):
         if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None):
-            assert Precise.string_ge(quote_volume, Precise.string_mul(base_volume, low)), 'quoteVolume >= baseVolume * low' + log_text
-            assert Precise.string_le(quote_volume, Precise.string_mul(base_volume, high)), 'quoteVolume <= baseVolume * high' + log_text
+            base_low = Precise.string_mul(base_volume, low)
+            base_high = Precise.string_mul(base_volume, high)
+            # to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
+            m_precision = exchange.safe_dict(market, 'precision')
+            amount_precision = exchange.safe_string(m_precision, 'amount')
+            if amount_precision is not None:
+                base_low = Precise.string_mul(Precise.string_sub(base_volume, amount_precision), low)
+                base_high = Precise.string_mul(Precise.string_add(base_volume, amount_precision), high)
+            else:
+                # if nothing found, as an exclusion, just add 0.001%
+                base_low = Precise.string_mul(Precise.string_mul(base_volume, '1.0001'), low)
+                base_high = Precise.string_mul(Precise.string_div(base_volume, '1.0001'), high)
+            assert Precise.string_ge(quote_volume, base_low), 'quoteVolume should be => baseVolume * low' + log_text
+            assert Precise.string_le(quote_volume, base_high), 'quoteVolume should be <= baseVolume * high' + log_text
     vwap = exchange.safe_string(entry, 'vwap')
     if vwap is not None:
         # todo

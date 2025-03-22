@@ -15,12 +15,13 @@ if ($isBaseTests) {
     if ($isWs) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
         \ccxt\pro\base_tests_init_ws();
+        print('base WS tests passed!');
     } else {
         // test base things
         require_once (__DIR__ . '/base/tests_init.php');
         base_tests_init();
+        print('base REST tests passed!');
     }
-    print('base tests passed!');
     if (!$runAll) {
         exit(0);
     }

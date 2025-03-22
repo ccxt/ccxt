@@ -1882,7 +1882,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "network":"https://api.hollaex.network"
         #     }
         #
-        coins = self.safe_list(response, 'coins')
+        coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
     def normalize_number_if_needed(self, number):

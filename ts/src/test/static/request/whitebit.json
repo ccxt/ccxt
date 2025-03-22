@@ -453,6 +453,75 @@
                 ],
                 "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1714156110333\",\"ticker\":\"USDT\"}"
             }  
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "Fetch a conversion quote",
+                "method": "fetchConvertQuote",
+                "url": "https://whitebit.com/api/v4/convert/estimate",
+                "input": [
+                  "USDT",
+                  "BTC",
+                  4
+                ],
+                "output": "{\"request\":\"/api/v4/convert/estimate\",\"nonce\":\"1741090361848\",\"from\":\"USDT\",\"to\":\"BTC\",\"amount\":\"4\",\"direction\":\"from\"}"
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "Create a conversion trade",
+                "method": "createConvertTrade",
+                "url": "https://whitebit.com/api/v4/convert/confirm",
+                "input": [
+                  "1741105",
+                  "USDT",
+                  "BTC",
+                  4
+                ],
+                "output": "{\"request\":\"/api/v4/convert/confirm\",\"nonce\":\"1741090765791\",\"quoteId\":\"1741105\"}"
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://whitebit.com/api/v4/convert/history",
+                "input": [
+                  "USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/convert/history\",\"nonce\":\"1741091766098\",\"fromTicker\":\"USDT\"}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch a swap position",
+                "method": "fetchPosition",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/collateral-account/positions/open\",\"nonce\":\"1741942553974\",\"symbol\":\"BTC_PERP\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch multiple swap positions",
+                "method": "fetchPositions",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
+                "input": [],
+                "output": "{\"request\":\"/api/v4/collateral-account/positions/open\",\"nonce\":\"1741942599785\"}"
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "Fetch position history",
+                "method": "fetchPositionHistory",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/history",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/collateral-account/positions/history\",\"nonce\":\"1741942635403\",\"market\":\"BTC_PERP\"}"
+            }
         ]
     }
 }

@@ -1682,6 +1682,13 @@
         ],
         "fetchDeposits": [
             {
+                "description": "fetch deposits without currency",
+                "method": "fetchDeposits",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?endTime=1741255153908&startTime=1733479153908",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "fetch usdt deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?coin=USDT&endTime=1712048378795&startTime=1704272378795",

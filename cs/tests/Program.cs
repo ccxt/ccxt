@@ -111,12 +111,13 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                Helper.Green("[C#] base WS tests passed");
             }
             else 
             {
                 RestBaseTests();
+                Helper.Green("[C#] base REST tests passed");
             }
-            Helper.Green("[C#] base tests passed");
         }
 
         if (raceCondition)

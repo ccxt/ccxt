@@ -1190,7 +1190,7 @@ export default class bitget extends bitgetRest {
         } else {
             [ instType, params ] = this.getInstType (market, params);
         }
-        if (type === 'spot') {
+        if (type === 'spot' && (symbol !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
         if (isTrigger) {

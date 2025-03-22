@@ -63,10 +63,11 @@ var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
-var currencycom = require('./src/currencycom.js');
+var cryptomus = require('./src/cryptomus.js');
 var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
+var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
@@ -155,9 +156,9 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
-var currencycom$1 = require('./src/pro/currencycom.js');
 var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
+var derive$1 = require('./src/pro/derive.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
@@ -199,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.58';
+const version = '4.4.69';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -253,10 +254,11 @@ const exchanges = {
     'coinsph': coinsph,
     'coinspot': coinspot,
     'cryptocom': cryptocom,
-    'currencycom': currencycom,
+    'cryptomus': cryptomus,
     'defx': defx,
     'delta': delta,
     'deribit': deribit,
+    'derive': derive,
     'digifinex': digifinex,
     'ellipx': ellipx,
     'exmo': exmo,
@@ -347,9 +349,9 @@ const pro = {
     'coinex': coinex$1,
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,
-    'currencycom': currencycom$1,
     'defx': defx$1,
     'deribit': deribit$1,
+    'derive': derive$1,
     'exmo': exmo$1,
     'gate': gate$1,
     'gateio': gateio$1,
@@ -490,10 +492,11 @@ exports.coinone = coinone;
 exports.coinsph = coinsph;
 exports.coinspot = coinspot;
 exports.cryptocom = cryptocom;
-exports.currencycom = currencycom;
+exports.cryptomus = cryptomus;
 exports.defx = defx;
 exports.delta = delta;
 exports.deribit = deribit;
+exports.derive = derive;
 exports.digifinex = digifinex;
 exports.ellipx = ellipx;
 exports.exmo = exmo;

@@ -13,6 +13,8 @@ interface Exchange {
     publicGetOrdersMarket (params?: {}): Promise<implicitReturnType>;
     publicGetTickerMarket (params?: {}): Promise<implicitReturnType>;
     publicGetHistoryMarket (params?: {}): Promise<implicitReturnType>;
+    publicGetChartIntervalMarketTimestamp (params?: {}): Promise<implicitReturnType>;
+    publicGetChartIntervalMarket (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrderUuid (params?: {}): Promise<implicitReturnType>;

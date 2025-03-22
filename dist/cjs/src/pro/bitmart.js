@@ -118,7 +118,7 @@ class bitmart extends bitmart$1 {
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        let rawSubscriptions = [];
+        const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
@@ -127,9 +127,10 @@ class bitmart extends bitmart$1 {
             messageHashes.push(channel + ':' + market['symbol']);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
-        if ((type !== 'spot') && (channel === 'ticker')) {
-            rawSubscriptions = [channelType + '/' + channel];
-        }
+        // if ((type !== 'spot') && (channel === 'ticker')) {
+        //     rawSubscriptions = [ channelType + '/' + channel ];
+        // }
+        // Exchange update from 2025-02-11 supports subscription by trading pair for swap
         const request = {
             'args': rawSubscriptions,
         };
@@ -945,39 +946,44 @@ class bitmart extends bitmart$1 {
     }
     parseWsTrade(trade, market = undefined) {
         // spot
-        //    {
-        //        "price": "52700.50",
-        //        "s_t": 1630982050,
-        //        "side": "buy",
-        //        "size": "0.00112",
-        //        "symbol": "BTC_USDT"
-        //    }
-        // swap
-        //    {
-        //       "trade_id":6798697637,
-        //       "contract_id":1,
-        //       "symbol":"BTCUSDT",
-        //       "deal_price":"39735.8",
-        //       "deal_vol":"2",
-        //       "type":0,
-        //       "way":1,
-        //       "create_time":1701618503,
-        //       "create_time_mill":1701618503517,
-        //       "created_at":"2023-12-03T15:48:23.517518538Z"
-        //    }
+        //     {
+        //         "ms_t": 1740320841473,
+        //         "price": "2806.54",
+        //         "s_t": 1740320841,
+        //         "side": "sell",
+        //         "size": "0.77598",
+        //         "symbol": "ETH_USDT"
+        //     }
         //
-        const contractId = this.safeString(trade, 'contract_id');
-        const marketType = (contractId === undefined) ? 'spot' : 'swap';
-        const marketDelimiter = (marketType === 'spot') ? '_' : '';
-        const timestamp = this.safeInteger(trade, 'create_time_mill', this.safeTimestamp(trade, 's_t'));
+        // swap
+        //     {
+        //         "trade_id": "3000000245258661",
+        //         "symbol": "ETHUSDT",
+        //         "deal_price": "2811.1",
+        //         "deal_vol": "1858",
+        //         "way": 2,
+        //         "m": true,
+        //         "created_at": "2025-02-23T13:59:59.646490751Z"
+        //     }
+        //
         const marketId = this.safeString(trade, 'symbol');
+        market = this.safeMarket(marketId, market);
+        let timestamp = this.safeInteger(trade, 'ms_t');
+        let datetime = undefined;
+        if (timestamp === undefined) {
+            datetime = this.safeString(trade, 'created_at');
+            timestamp = this.parse8601(datetime);
+        }
+        else {
+            datetime = this.iso8601(timestamp);
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'trade_id'),
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'symbol': this.safeSymbol(marketId, market, marketDelimiter, marketType),
+            'datetime': datetime,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': this.safeString(trade, 'side'),
             'price': this.safeString2(trade, 'price', 'deal_price'),
@@ -1003,20 +1009,22 @@ class bitmart extends bitmart$1 {
         //        ],
         //        "table": "spot/ticker"
         //    }
-        //    {
-        //        "group":"futures/ticker",
-        //        "data":{
-        //              "symbol":"BTCUSDT",
-        //              "volume_24":"117387.58",
-        //              "fair_price":"146.24",
-        //              "last_price":"146.24",
-        //              "range":"147.17",
-        //              "ask_price": "147.11",
-        //              "ask_vol": "1",
-        //              "bid_price": "142.11",
-        //              "bid_vol": "1"
-        //            }
-        //    }
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "ETHUSDT",
+        //             "last_price": "2807.73",
+        //             "volume_24": "2227011952",
+        //             "range": "0.0273398194664491",
+        //             "mark_price": "2807.5",
+        //             "index_price": "2808.71047619",
+        //             "ask_price": "2808.04",
+        //             "ask_vol": "7371",
+        //             "bid_price": "2807.28",
+        //             "bid_vol": "3561"
+        //         },
+        //         "group": "futures/ticker:ETHUSDT@100ms"
+        //     }
         //
         this.handleBidAsk(client, message);
         const table = this.safeString(message, 'table');
@@ -1041,17 +1049,19 @@ class bitmart extends bitmart$1 {
     }
     parseWsSwapTicker(ticker, market = undefined) {
         //
-        //    {
-        //        "symbol":"BTCUSDT",
-        //        "volume_24":"117387.58",
-        //        "fair_price":"146.24",
-        //        "last_price":"146.24",
-        //        "range":"147.17",
-        //        "ask_price": "147.11",
-        //        "ask_vol": "1",
-        //        "bid_price": "142.11",
-        //        "bid_vol": "1"
-        //    }
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "last_price": "2807.73",
+        //         "volume_24": "2227011952",
+        //         "range": "0.0273398194664491",
+        //         "mark_price": "2807.5",
+        //         "index_price": "2808.71047619",
+        //         "ask_price": "2808.04",
+        //         "ask_vol": "7371",
+        //         "bid_price": "2807.28",
+        //         "bid_vol": "3561"
+        //     }
+        //
         const marketId = this.safeString(ticker, 'symbol');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, '', 'swap'),
@@ -1070,10 +1080,12 @@ class bitmart extends bitmart$1 {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeString(ticker, 'fair_price'),
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(ticker, 'volume_24'),
             'info': ticker,
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
         }, market);
     }
     /**

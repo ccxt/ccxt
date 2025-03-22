@@ -3056,7 +3056,7 @@ class oxfun extends Exchange {
                 'AccessKey' => $this->apiKey,
                 'Timestamp' => $datetime,
                 'Signature' => $signature,
-                'Nonce' => $nonce,
+                'Nonce' => (string) $nonce,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

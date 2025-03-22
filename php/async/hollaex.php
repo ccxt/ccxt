@@ -1996,7 +1996,7 @@ class hollaex extends Exchange {
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            $coins = $this->safe_list($response, 'coins');
+            $coins = $this->safe_dict($response, 'coins', array());
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
         }) ();
     }
