@@ -7386,12 +7386,13 @@ export default class bitget extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const isCrossMarginMode = leverage.marginMode === 'crossed';
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'longLeverage': this.safeInteger (leverage, 'isolatedLongLever'),
-            'shortLeverage': this.safeInteger (leverage, 'isolatedShortLever'),
+            'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
+            'longLeverage': this.safeInteger (leverage, isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever'),
+            'shortLeverage': this.safeInteger (leverage, isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever'),
         } as Leverage;
     }
 
