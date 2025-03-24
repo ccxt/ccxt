@@ -7379,12 +7379,15 @@ class bitget extends Exchange {
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
+        $isCrossMarginMode = $this->safe_string($leverage, 'marginMode') === 'crossed';
+        $longLevKey = $isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever';
+        $shortLevKey = $isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return array(
             'info' => $leverage,
             'symbol' => $market['symbol'],
-            'marginMode' => 'isolated',
-            'longLeverage' => $this->safe_integer($leverage, 'isolatedLongLever'),
-            'shortLeverage' => $this->safe_integer($leverage, 'isolatedShortLever'),
+            'marginMode' => $isCrossMarginMode ? 'cross' : 'isolated',
+            'longLeverage' => $this->safe_integer($leverage, $longLevKey),
+            'shortLeverage' => $this->safe_integer($leverage, $shortLevKey),
         );
     }
 
