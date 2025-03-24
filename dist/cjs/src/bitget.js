@@ -7480,12 +7480,15 @@ class bitget extends bitget$1 {
         return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
+        const isCrossMarginMode = this.safeString(leverage, 'marginMode') === 'crossed';
+        const longLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever';
+        const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'longLeverage': this.safeInteger(leverage, 'isolatedLongLever'),
-            'shortLeverage': this.safeInteger(leverage, 'isolatedShortLever'),
+            'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
+            'longLeverage': this.safeInteger(leverage, longLevKey),
+            'shortLeverage': this.safeInteger(leverage, shortLevKey),
         };
     }
     /**
