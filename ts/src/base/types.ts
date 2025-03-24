@@ -574,7 +574,7 @@ export interface Balances extends Dictionary<Balance> {
     timestamp?: any; // we need to fix this later
 }
 
-export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 }
 
 export interface Currencies extends Dictionary<CurrencyInterface> {
@@ -583,7 +583,7 @@ export interface Currencies extends Dictionary<CurrencyInterface> {
 export interface FundingRates extends Dictionary<FundingRate> {
 }
 
-export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRate> {
 }
 
 export interface LastPrices extends Dictionary<LastPrice> {
