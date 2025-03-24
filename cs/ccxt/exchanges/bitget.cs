@@ -8003,12 +8003,15 @@ public partial class bitget : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
+        object isCrossMarginMode = isEqual(this.safeString(leverage, "marginMode"), "crossed");
+        object longLevKey = ((bool) isTrue(isCrossMarginMode)) ? "crossedMarginLeverage" : "isolatedLongLever";
+        object shortLevKey = ((bool) isTrue(isCrossMarginMode)) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", "isolated" },
-            { "longLeverage", this.safeInteger(leverage, "isolatedLongLever") },
-            { "shortLeverage", this.safeInteger(leverage, "isolatedShortLever") },
+            { "marginMode", ((bool) isTrue(isCrossMarginMode)) ? "cross" : "isolated" },
+            { "longLeverage", this.safeInteger(leverage, longLevKey) },
+            { "shortLeverage", this.safeInteger(leverage, shortLevKey) },
         };
     }
 
