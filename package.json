@@ -205,7 +205,7 @@
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "eslint-plugin-jsdoc": "^46.9.0",
-    "esmify": "^2.1.1",
+    "esmify": "^0.1.2",
     "https-proxy-agent": "^5.0.1",
     "jsdoc-to-markdown": "^8.0.0",
     "ololog": "^1.1.175",
