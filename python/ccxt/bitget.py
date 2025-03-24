@@ -7034,12 +7034,15 @@ class bitget(Exchange, ImplicitAPI):
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        isCrossMarginMode = self.safe_string(leverage, 'marginMode') == 'crossed'
+        longLevKey = 'crossedMarginLeverage' if isCrossMarginMode else 'isolatedLongLever'
+        shortLevKey = 'crossedMarginLeverage' if isCrossMarginMode else 'isolatedShortLever'
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'longLeverage': self.safe_integer(leverage, 'isolatedLongLever'),
-            'shortLeverage': self.safe_integer(leverage, 'isolatedShortLever'),
+            'marginMode': 'cross' if isCrossMarginMode else 'isolated',
+            'longLeverage': self.safe_integer(leverage, longLevKey),
+            'shortLeverage': self.safe_integer(leverage, shortLevKey),
         }
 
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
