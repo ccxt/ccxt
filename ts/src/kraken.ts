@@ -234,13 +234,15 @@ export default class kraken extends Exchange {
                 'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
-                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
             },
             'options': {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'autoCorrectCurrencyAbbreviations': false,
+                'dynamicCommonCurrencies': true,
+                'fetchBalance': {
+                    'autocorrectAbbreviations': false,
+                },
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -877,7 +879,7 @@ export default class kraken extends Exchange {
     }
 
     safeCurrencyCode (currencyId: Str, currency?: Currency): string {
-        if (!this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations', false)) {
+        if (!this.handleOption ('fetchCurrencies', 'dynamicCommonCurrencies', false)) {
             return super.safeCurrencyCode (currencyId, currency);
         }
         const altName = this.safeString (currency, 'altname');
@@ -1594,7 +1596,7 @@ export default class kraken extends Exchange {
     }
 
     parseBalance (response): Balances {
-        if (this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations')) {
+        if (this.handleOption ('fetchBalance', 'autocorrectAbbreviations', false)) {
             return this.parseBalanceNew (response);
         }
         const balances = this.safeValue (response, 'result', {});
