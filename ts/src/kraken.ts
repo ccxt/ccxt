@@ -876,7 +876,7 @@ export default class kraken extends Exchange {
     }
 
     safeCurrencyCode (currencyId: Str, currency?: Currency): string {
-        if (!this.handleOption ('fetchCurrencies', 'dynamicCommonCurrencies', false)) {
+        if (!this.safeBool (this.options, 'dynamicCommonCurrencies', false)) {
             return super.safeCurrencyCode (currencyId, currency);
         }
         const altName = this.safeString (currency, 'altname');
