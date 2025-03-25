@@ -1757,11 +1757,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             isTrigger = (stopLossPrice or takeProfitPrice)
             reduceOnly = self.safe_bool(orderParams, 'reduceOnly', False)
             orderParams = self.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly'])
-            px = str(price)
+            px = self.number_to_string(price)
             if isMarket:
-                px = str(Precise.string_mul(price), Precise.string_add('1', slippage)) if (isBuy) else str(Precise.string_mul(price), Precise.string_sub('1', slippage))
+                px = Precise.string_mul(px, Precise.string_add('1', slippage)) if (isBuy) else Precise.string_mul(px, Precise.string_sub('1', slippage))
+                px = self.price_to_precision(symbol, px)
             else:
-                px = self.price_to_precision(symbol, str(price))
+                px = self.price_to_precision(symbol, px)
             sz = self.amount_to_precision(symbol, amount)
             orderType: dict = {}
             if isTrigger:
