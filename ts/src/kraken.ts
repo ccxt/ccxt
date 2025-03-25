@@ -846,29 +846,7 @@ export default class kraken extends Exchange {
             // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
             // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
             //
-            let code = this.safeCurrencyCode (id);
-            if (this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations', false)) {
-                const altName = this.safeString (currency, 'altname');
-                let unifiedCode = '';
-                // handle cases like XBT.M
-                if (id.indexOf ('.') > 0) {
-                    // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-                    const parts = id.split ('.');
-                    const firstPart = this.safeString (parts, 0);
-                    const secondPart = this.safeString (parts, 1);
-                    const firstPartUnified = this.safeCurrencyCode (firstPart);
-                    unifiedCode = firstPartUnified + '.' + secondPart;
-                } else {
-                    unifiedCode = this.safeCurrencyCode (id);
-                    // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
-                    if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
-                        unifiedCode = this.safeCurrencyCode (altName);
-                        // also, add map in commonCurrencies:
-                        this.commonCurrencies[id] = unifiedCode;
-                    }
-                }
-                code = unifiedCode;
-            }
+            const code = this.safeCurrencyCode (id);
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString (currency, 'status') === 'enabled';
@@ -896,6 +874,32 @@ export default class kraken extends Exchange {
             };
         }
         return result;
+    }
+
+    safeCurrencyCode (currencyId: Str, currency?: Currency): string {
+        if (!this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations', false)) {
+            return super.safeCurrencyCode (currencyId, currency);
+        }
+        const altName = this.safeString (currency, 'altname');
+        let unifiedCode = '';
+        // handle cases like XBT.M
+        if (currencyId.indexOf ('.') > 0) {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            const parts = currencyId.split ('.');
+            const firstPart = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
+            const firstPartUnified = this.safeCurrencyCode (firstPart);
+            unifiedCode = firstPartUnified + '.' + secondPart;
+        } else {
+            unifiedCode = this.safeCurrencyCode (currencyId);
+            // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
+            if (currencyId !== altName && (currencyId.startsWith ('X') || currencyId.startsWith ('Z'))) {
+                unifiedCode = this.safeCurrencyCode (altName);
+                // also, add map in commonCurrencies:
+                this.commonCurrencies[currencyId] = unifiedCode;
+            }
+        }
+        return unifiedCode;
     }
 
     /**
@@ -1623,8 +1627,6 @@ export default class kraken extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const response = await this.privatePostBalanceEx (params);
-        //
-        //  old:
         //
         //     {
         //         "error": [],
