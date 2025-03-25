@@ -1813,12 +1813,13 @@ export default class hyperliquid extends Exchange {
             const isTrigger = (stopLossPrice || takeProfitPrice);
             const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
             orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
-            let px = price.toString();
+            let px = this.numberToString(price);
             if (isMarket) {
-                px = (isBuy) ? Precise.stringMul(price.toString(), Precise.stringAdd('1', slippage)) : Precise.stringMul(price.toString(), Precise.stringSub('1', slippage));
+                px = (isBuy) ? Precise.stringMul(px, Precise.stringAdd('1', slippage)) : Precise.stringMul(px, Precise.stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px);
             }
             else {
-                px = this.priceToPrecision(symbol, price.toString());
+                px = this.priceToPrecision(symbol, px);
             }
             const sz = this.amountToPrecision(symbol, amount);
             const orderType = {};
