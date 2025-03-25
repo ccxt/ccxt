@@ -844,16 +844,9 @@ export default class kraken extends Exchange {
             // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
             // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
             //
-            let code = '';
-            // handle cases like XBT.M
-            if (id.indexOf ('.') > 0) {
-                // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-                const parts = id.split ('.');
-                const firstPart = this.safeString (parts, 0);
-                const secondPart = this.safeString (parts, 1);
-                const firstPartUnified = this.safeCurrencyCode (firstPart);
-                code = firstPartUnified + '.' + secondPart;
-            } else {
+            let code = this.safeCurrencyCode (id);
+            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+            if (id.indexOf ('.') < 0) {
                 const altName = this.safeString (currency, 'altname');
                 // handle cases like below:
                 //
@@ -896,6 +889,17 @@ export default class kraken extends Exchange {
             };
         }
         return result;
+    }
+
+    safeCurrencyCode (currencyId: Str, currency?: Currency): string {
+        if (!(currencyId.indexOf ('.') > 0)) {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            const parts = currencyId.split ('.');
+            const firstPart = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
+            return this.safeCurrencyCode (firstPart, currency) + '.' + secondPart;
+        }
+        return super.safeCurrencyCode (currencyId, currency);
     }
 
     /**
