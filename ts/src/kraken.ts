@@ -897,7 +897,7 @@ export default class kraken extends Exchange {
             const parts = currencyId.split ('.');
             const firstPart = this.safeString (parts, 0);
             const secondPart = this.safeString (parts, 1);
-            return this.safeCurrencyCode (firstPart, currency) + '.' + secondPart;
+            return super.safeCurrencyCode (firstPart, currency) + '.' + secondPart;
         }
         return super.safeCurrencyCode (currencyId, currency);
     }
