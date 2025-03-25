@@ -1600,39 +1600,14 @@ export default class kraken extends Exchange {
             'datetime': undefined,
         };
         const currencyIds = Object.keys (balances);
-        // see all details in fetchBalance comments
-        const earningSuffix = '.F';
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = this.safeDict (balances, currencyId, {});
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            account['info'] = balance;
-            account['info']['originalId'] = currencyId;
-            // now handle the key
-            let unifiedCode = undefined;
-            const endsWithF = currencyId.endsWith (earningSuffix);
-            if (endsWithF) {
-                // map e.g. XBT.F to XXBT
-                const sourceCurrencyId = currencyId.replace (earningSuffix, '');
-                unifiedCode = this.commonCurrencyCode (sourceCurrencyId);
-                // if key (eg. BTC) was already inserted, swap it
-                if (unifiedCode in result) {
-                    const newId = unifiedCode + '_EARNING';
-                    result[newId] = result[unifiedCode];
-                }
-                result[unifiedCode] = account;
-            } else {
-                unifiedCode = this.commonCurrencyCode (currencyId);
-                // if key (eg. BTC) was already inserted, swap it
-                if (unifiedCode in result) {
-                    const newId = unifiedCode + '_EARNING';
-                    result[newId] = account;
-                } else {
-                    result[unifiedCode] = account;
-                }
-            }
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
