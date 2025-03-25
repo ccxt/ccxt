@@ -234,11 +234,13 @@ export default class kraken extends Exchange {
                 'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
             },
             'options': {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'autoCorrectCurrencyAbbreviations': false,
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -844,31 +846,35 @@ export default class kraken extends Exchange {
             // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
             // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
             //
-            const altName = this.safeString (currency, 'altname');
-            let unifiedCode = '';
-            // handle cases like XBT.M
-            if (id.indexOf ('.') > 0) {
-                // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-                const parts = id.split ('.');
-                const firstPart = this.safeString (parts, 0);
-                const secondPart = this.safeString (parts, 1);
-                const firstPartUnified = this.safeCurrencyCode (firstPart);
-                unifiedCode = firstPartUnified + '.' + secondPart;
-            } else {
-                unifiedCode = this.safeCurrencyCode (id);
-                // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
-                if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
-                    unifiedCode = this.safeCurrencyCode (altName);
-                    // also, add map in commonCurrencies:
-                    this.commonCurrencies[id] = unifiedCode;
+            let code = this.safeCurrencyCode (id);
+            if (this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations', false)) {
+                const altName = this.safeString (currency, 'altname');
+                let unifiedCode = '';
+                // handle cases like XBT.M
+                if (id.indexOf ('.') > 0) {
+                    // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+                    const parts = id.split ('.');
+                    const firstPart = this.safeString (parts, 0);
+                    const secondPart = this.safeString (parts, 1);
+                    const firstPartUnified = this.safeCurrencyCode (firstPart);
+                    unifiedCode = firstPartUnified + '.' + secondPart;
+                } else {
+                    unifiedCode = this.safeCurrencyCode (id);
+                    // handle cases eg: XXBT(id):XBT(altname)  OR  ZUSD:USD
+                    if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
+                        unifiedCode = this.safeCurrencyCode (altName);
+                        // also, add map in commonCurrencies:
+                        this.commonCurrencies[id] = unifiedCode;
+                    }
                 }
+                code = unifiedCode;
             }
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString (currency, 'status') === 'enabled';
-            result[unifiedCode] = {
+            result[code] = {
                 'id': id,
-                'code': unifiedCode,
+                'code': code,
                 'info': currency,
                 'name': this.safeString (currency, 'altname'),
                 'active': active,
@@ -1538,7 +1544,55 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseBalanceNew (response): Balances {
+        const balances = this.safeValue (response, 'result', {});
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const currencyIds = Object.keys (balances);
+        // see all details in fetchBalance comments
+        const earningSuffix = '.F';
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeDict (balances, currencyId, {});
+            const account = this.account ();
+            account['used'] = this.safeString (balance, 'hold_trade');
+            account['total'] = this.safeString (balance, 'balance');
+            account['info'] = balance;
+            account['info']['originalId'] = currencyId;
+            // now handle the key
+            let unifiedCode = undefined;
+            const endsWithF = currencyId.endsWith (earningSuffix);
+            if (endsWithF) {
+                // map e.g. XBT.F to XXBT
+                const sourceCurrencyId = currencyId.replace (earningSuffix, '');
+                unifiedCode = this.commonCurrencyCode (sourceCurrencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = result[unifiedCode];
+                }
+                result[unifiedCode] = account;
+            } else {
+                unifiedCode = this.commonCurrencyCode (currencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = account;
+                } else {
+                    result[unifiedCode] = account;
+                }
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     parseBalance (response): Balances {
+        if (this.safeBool (this.options, 'autoCorrectCurrencyAbbreviations')) {
+            return this.parseBalanceNew (response);
+        }
         const balances = this.safeValue (response, 'result', {});
         const result: Dict = {
             'info': response,
@@ -1595,9 +1649,19 @@ export default class kraken extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalanceEx (params);
         //
+        //  old:
+        //
         //     {
         //         "error": [],
         //         "result": {
+        //             "ZUSD": {
+        //                 "balance": 25435.21,
+        //                 "hold_trade": 8249.76
+        //             },
+        //             "XXBT": {
+        //                 "balance": 1.2435,
+        //                 "hold_trade": 0.8423
+        //             },
         //             "SOL": {
         //                 "balance": "1.2340000000",
         //                 "hold_trade": "0.0000000000"
