@@ -892,7 +892,7 @@ export default class kraken extends Exchange {
     }
 
     safeCurrencyCode (currencyId: Str, currency?: Currency): string {
-        if (!(currencyId.indexOf ('.') > 0)) {
+        if (currencyId.indexOf ('.') > 0) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             const parts = currencyId.split ('.');
             const firstPart = this.safeString (parts, 0);
