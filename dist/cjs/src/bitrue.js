@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
@@ -1675,7 +1675,7 @@ class bitrue extends bitrue$1 {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.market(this.safeValue(ticker, 'symbol'));
+            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);

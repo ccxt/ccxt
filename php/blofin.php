@@ -1958,7 +1958,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array ()): Position {
+    public function fetch_position(string $symbol, $params = array ()): array {
         /**
          * fetch $data on a single open contract trade $position
          *

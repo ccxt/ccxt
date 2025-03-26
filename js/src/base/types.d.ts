@@ -542,9 +542,9 @@ export interface MarginModes extends Dictionary<MarginMode> {
 }
 export interface OptionChain extends Dictionary<Option> {
 }
-export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRate> {
 }
-export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 }
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }

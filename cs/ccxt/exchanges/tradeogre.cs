@@ -124,11 +124,11 @@ public partial class tradeogre : Exchange
                         { "ticker/{market}", 1 },
                         { "history/{market}", 1 },
                         { "chart/{interval}/{market}/{timestamp}", 1 },
+                        { "chart/{interval}/{market}", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account/balance", 1 },
                         { "account/balances", 1 },
                         { "account/order/{uuid}", 1 },
                     } },
@@ -138,6 +138,7 @@ public partial class tradeogre : Exchange
                         { "order/cancel", 1 },
                         { "orders", 1 },
                         { "account/orders", 1 },
+                        { "account/balance", 1 },
                     } },
                 } },
             } },
@@ -428,15 +429,15 @@ public partial class tradeogre : Exchange
             { "ask", this.safeString(ticker, "ask") },
             { "askVolume", null },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open") },
-            { "close", null },
+            { "open", this.safeString(ticker, "initialprice") },
+            { "close", this.safeString(ticker, "price") },
             { "last", null },
             { "previousClose", null },
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "volume") },
-            { "quoteVolume", null },
+            { "baseVolume", null },
+            { "quoteVolume", this.safeString(ticker, "volume") },
             { "info", ticker },
         }, market);
     }
@@ -450,6 +451,7 @@ public partial class tradeogre : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -462,14 +464,17 @@ public partial class tradeogre : Exchange
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(isEqual(since, null)))
+        object response = null;
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOHLCV requires a since argument")) ;
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(until, 1000));
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["timestamp"] = since;
+            response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
         }
-        object response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, parameters));
         //
         //     [
         //         [
@@ -497,7 +502,7 @@ public partial class tradeogre : Exchange
         //         6.72168016
         //     ]
         //
-        return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
+        return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
     /**
@@ -614,13 +619,32 @@ public partial class tradeogre : Exchange
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAccountBalances(parameters);
+        object response = null;
+        object currency = this.safeString(parameters, "currency");
+        if (isTrue(!isEqual(currency, null)))
+        {
+            response = await this.privatePostAccountBalance(parameters);
+            object singleCurrencyresult = new Dictionary<string, object>() {
+                { "info", response },
+            };
+            object code = this.safeCurrencyCode(currency);
+            object account = new Dictionary<string, object>() {
+                { "total", this.safeNumber(response, "balance") },
+                { "free", this.safeNumber(response, "available") },
+            };
+            ((IDictionary<string,object>)singleCurrencyresult)[(string)code] = account;
+            return this.safeBalance(singleCurrencyresult);
+        } else
+        {
+            response = await this.privateGetAccountBalances(parameters);
+        }
         object result = this.safeDict(response, "balances", new Dictionary<string, object>() {});
         return this.parseBalance(result);
     }
@@ -807,11 +831,11 @@ public partial class tradeogre : Exchange
             { "side", this.safeString(order, "type") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
-            { "amount", this.safeString(order, "quantity") },
+            { "amount", null },
             { "cost", null },
             { "average", null },
             { "filled", this.safeString(order, "fulfilled") },
-            { "remaining", null },
+            { "remaining", this.safeString(order, "quantity") },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", null },

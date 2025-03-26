@@ -108,6 +108,7 @@ class ImplicitAPI:
     private_post_contract_private_submit_tp_sl_order = privatePostContractPrivateSubmitTpSlOrder = Entry('contract/private/submit-tp-sl-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_modify_plan_order = privatePostContractPrivateModifyPlanOrder = Entry('contract/private/modify-plan-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_modify_preset_plan_order = privatePostContractPrivateModifyPresetPlanOrder = Entry('contract/private/modify-preset-plan-order', 'private', 'POST', {'cost': 2.5})
+    private_post_contract_private_modify_limit_order = privatePostContractPrivateModifyLimitOrder = Entry('contract/private/modify-limit-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_modify_tp_sl_order = privatePostContractPrivateModifyTpSlOrder = Entry('contract/private/modify-tp-sl-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_submit_trail_order = privatePostContractPrivateSubmitTrailOrder = Entry('contract/private/submit-trail-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_cancel_trail_order = privatePostContractPrivateCancelTrailOrder = Entry('contract/private/cancel-trail-order', 'private', 'POST', {'cost': 1.5})

@@ -861,7 +861,7 @@ class hyperliquid extends Exchange {
                 'info' => $response,
                 'USDC' => array(
                     'total' => $this->safe_number($data, 'accountValue'),
-                    'free' => $this->safe_number($response, 'withdrawable'),
+                    'used' => $this->safe_number($data, 'totalMarginUsed'),
                 ),
             );
             $timestamp = $this->safe_integer($response, 'time');
@@ -1872,11 +1872,12 @@ class hyperliquid extends Exchange {
             $isTrigger = ($stopLossPrice || $takeProfitPrice);
             $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
             $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
-            $px = (string) $price;
+            $px = $this->number_to_string($price);
             if ($isMarket) {
-                $px = ($isBuy) ? (string) Precise::string_mul($price, Precise::string_add('1', $slippage)) : (string) Precise::string_mul($price, Precise::string_sub('1', $slippage));
+                $px = ($isBuy) ? Precise::string_mul($px, Precise::string_add('1', $slippage)) : Precise::string_mul($px, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px);
             } else {
-                $px = $this->price_to_precision($symbol, (string) $price);
+                $px = $this->price_to_precision($symbol, $px);
             }
             $sz = $this->amount_to_precision($symbol, $amount);
             $orderType = array();
@@ -2404,6 +2405,11 @@ class hyperliquid extends Exchange {
         }
         $totalAmount = $this->safe_string_2($entry, 'origSz', 'totalSz');
         $remaining = $this->safe_string($entry, 'sz');
+        $tif = $this->safe_string_upper($entry, 'tif');
+        $postOnly = null;
+        if ($tif !== null) {
+            $postOnly = ($tif === 'ALO');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -2414,8 +2420,8 @@ class hyperliquid extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($order, 'statusTimestamp'),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
-            'timeInForce' => $this->safe_string_upper($entry, 'tif'),
-            'postOnly' => null,
+            'timeInForce' => $tif,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
@@ -2542,6 +2548,11 @@ class hyperliquid extends Exchange {
             $side = ($side === 'A') ? 'sell' : 'buy';
         }
         $fee = $this->safe_string($trade, 'fee');
+        $takerOrMaker = null;
+        $crossed = $this->safe_bool($trade, 'crossed');
+        if ($crossed !== null) {
+            $takerOrMaker = $crossed ? 'taker' : 'maker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2551,7 +2562,7 @@ class hyperliquid extends Exchange {
             'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -3151,7 +3162,7 @@ class hyperliquid extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => null,
-            'amount' => $this->safe_integer($delta, 'usdc'),
+            'amount' => $this->safe_number($delta, 'usdc'),
             'currency' => null,
             'status' => $this->safe_string($transaction, 'status'),
             'updated' => null,

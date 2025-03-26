@@ -1607,44 +1607,6 @@ public partial class bitget : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
     }
 
-    public virtual object convertSymbolForSandbox(object symbol)
-    {
-        if (isTrue(((string)symbol).StartsWith(((string)"S"))))
-        {
-            // handle using the exchange specified sandbox symbols
-            return symbol;
-        }
-        object convertedSymbol = null;
-        if (isTrue(isGreaterThan(getIndexOf(symbol, "/"), -1)))
-        {
-            if (isTrue(isEqual(getIndexOf(symbol, ":"), -1)))
-            {
-                throw new NotSupported ((string)add(this.id, " sandbox supports swap and future markets only")) ;
-            }
-            object splitBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            object previousBase = this.safeString(splitBase, 0);
-            object previousQuoteSettleExpiry = this.safeString(splitBase, 1);
-            object splitQuote = ((string)previousQuoteSettleExpiry).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-            object previousQuote = this.safeString(splitQuote, 0);
-            object previousSettleExpiry = this.safeString(splitQuote, 1);
-            object splitSettle = ((string)previousSettleExpiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object previousSettle = this.safeString(splitSettle, 0);
-            object expiry = this.safeString(splitSettle, 1);
-            convertedSymbol = add(add(add(add(add("S", previousBase), "/S"), previousQuote), ":S"), previousSettle);
-            if (isTrue(!isEqual(expiry, null)))
-            {
-                convertedSymbol = add(add(convertedSymbol, "-"), expiry);
-            }
-        } else
-        {
-            // handle using a market id instead of a unified symbol
-            object bs = slice(symbol, 0, 3);
-            object remaining = slice(symbol, 3, null);
-            convertedSymbol = add(add(add("S", bs), "S"), remaining);
-        }
-        return convertedSymbol;
-    }
-
     public virtual object handleProductTypeAndParams(object market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1753,15 +1715,7 @@ public partial class bitget : Exchange
             object type = getValue(types, i);
             if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
             {
-                object subTypes = null;
-                if (isTrue(sandboxMode))
-                {
-                    // the following are simulated trading markets [ 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' ];
-                    subTypes = new List<object>() {"SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
-                } else
-                {
-                    subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
-                }
+                object subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
                 for (object j = 0; isLessThan(j, getArrayLength(subTypes)); postFixIncrement(ref j))
                 {
                     ((IList<object>)promises).Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
@@ -2177,16 +2131,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object response = null;
         object marginMode = null;
@@ -2753,16 +2698,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -2937,16 +2873,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3043,16 +2970,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3093,15 +3011,7 @@ public partial class bitget : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeValue(symbols, 0);
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(symbol);
-            }
+            market = this.market(symbol);
         }
         object response = null;
         object request = new Dictionary<string, object>() {};
@@ -3339,16 +3249,7 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "idLessThan", "idLessThan");
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3701,17 +3602,8 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForRecentEndpoint);
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
         object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
         object msInDay = 86400000;
@@ -4629,16 +4521,7 @@ public partial class bitget : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marketType = null;
         object marginMode = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
@@ -4962,16 +4845,7 @@ public partial class bitget : Exchange
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "orderList", ordersRequests },
@@ -5067,16 +4941,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
@@ -5263,16 +5128,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marginMode = null;
         object response = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -5421,16 +5277,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -5531,16 +5378,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -5635,16 +5473,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
@@ -5775,7 +5604,6 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object market = null;
         object type = null;
         object request = new Dictionary<string, object>() {};
@@ -5785,14 +5613,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
         {
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(symbol);
-            }
+            market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
             object marketType = ((bool) isTrue((inOp(market, "type")))) ? getValue(market, "type") : defaultType;
@@ -6174,16 +5995,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object market = null;
-        if (isTrue(sandboxMode))
-        {
-            if (isTrue(!isEqual(symbol, null)))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                symbol = sandboxSymbol;
-            }
-        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -6525,15 +6337,7 @@ public partial class bitget : Exchange
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(symbol);
-            }
+            market = this.market(symbol);
         }
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", market, parameters);
@@ -6775,16 +6579,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -6976,16 +6771,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -7073,15 +6859,7 @@ public partial class bitget : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(first);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(first);
-            }
+            market = this.market(first);
         }
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -7418,16 +7196,7 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "pageNo", 100);
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -7488,16 +7257,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
@@ -7547,15 +7307,7 @@ public partial class bitget : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeValue(symbols, 0);
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(symbol);
-            }
+            market = this.market(symbol);
         }
         object request = new Dictionary<string, object>() {};
         object productType = null;
@@ -7707,16 +7459,7 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan");
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
@@ -7812,7 +7555,12 @@ public partial class bitget : Exchange
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
         }
         object sorted = this.sortBy(result, "timestamp");
-        return this.filterBySinceLimit(sorted, since, limit);
+        object symbol = null;
+        if (isTrue(!isEqual(market, null)))
+        {
+            symbol = getValue(market, "symbol");
+        }
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
@@ -7820,16 +7568,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object holdSide = this.safeString(parameters, "holdSide");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -7944,16 +7683,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -7998,12 +7728,15 @@ public partial class bitget : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
+        object isCrossMarginMode = isEqual(this.safeString(leverage, "marginMode"), "crossed");
+        object longLevKey = ((bool) isTrue(isCrossMarginMode)) ? "crossedMarginLeverage" : "isolatedLongLever";
+        object shortLevKey = ((bool) isTrue(isCrossMarginMode)) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", "isolated" },
-            { "longLeverage", this.safeInteger(leverage, "isolatedLongLever") },
-            { "shortLeverage", this.safeInteger(leverage, "isolatedShortLever") },
+            { "marginMode", ((bool) isTrue(isCrossMarginMode)) ? "cross" : "isolated" },
+            { "longLeverage", this.safeInteger(leverage, longLevKey) },
+            { "shortLeverage", this.safeInteger(leverage, shortLevKey) },
         };
     }
 
@@ -8026,16 +7759,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -8092,16 +7816,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
         }
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -8149,15 +7864,7 @@ public partial class bitget : Exchange
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-                market = this.market(sandboxSymbol);
-            } else
-            {
-                market = this.market(symbol);
-            }
+            market = this.market(symbol);
         }
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -8194,16 +7901,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         if (!isTrue(getValue(market, "contract")))
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
@@ -9329,16 +9027,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -9430,16 +9119,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -9876,16 +9556,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object market = null;
-        if (isTrue(sandboxMode))
-        {
-            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        } else
-        {
-            market = this.market(symbol);
-        }
+        object market = this.market(symbol);
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -10081,7 +9752,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(path, "v2/public/time")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -10089,7 +9760,11 @@ public partial class bitget : Exchange
             {
                 headers = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)headers)["PAPTRADING"] = "1";
+            object productType = this.safeString(parameters, "productType");
+            if (isTrue(isTrue(isTrue((!isEqual(productType, "SCOIN-FUTURES"))) && isTrue((!isEqual(productType, "SUSDT-FUTURES")))) && isTrue((!isEqual(productType, "SUSDC-FUTURES")))))
+            {
+                ((IDictionary<string,object>)headers)["PAPTRADING"] = "1";
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },

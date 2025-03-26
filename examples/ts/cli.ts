@@ -183,7 +183,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
         'input': args,
-        'httpResponse': JSON.parse (exchange.last_http_response),
+        'httpResponse': exchange.parseJson (exchange.last_http_response),
         'parsedResponse': result
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')

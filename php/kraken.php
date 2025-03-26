@@ -220,13 +220,13 @@ class kraken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                // about X & Z prefixes and .S & .M suffixes, see comment under fetchCurrencies
                 'LUNA' => 'LUNC',
                 'LUNA2' => 'LUNA',
                 'REPV2' => 'REP',
                 'REP' => 'REPV1',
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
-                'XBT.M' => 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG' => 'DOGE',
             ),
             'options' => array(
@@ -772,9 +772,48 @@ class kraken extends Exchange {
         //     {
         //         "error" => array(),
         //         "result" => array(
-        //             "BCH" => array(
+        //             "ATOM" => array(
         //                 "aclass" => "currency",
-        //                 "altname" => "BCH",
+        //                 "altname" => "ATOM",
+        //                 "collateral_value" => "0.7",
+        //                 "decimals" => 8,
+        //                 "display_decimals" => 6,
+        //                 "margin_rate" => 0.02,
+        //                 "status" => "enabled",
+        //             ),
+        //             "ATOM.S" => array(
+        //                 "aclass" => "currency",
+        //                 "altname" => "ATOM.S",
+        //                 "decimals" => 8,
+        //                 "display_decimals" => 6,
+        //                 "status" => "enabled",
+        //             ),
+        //             "XXBT" => array(
+        //                 "aclass" => "currency",
+        //                 "altname" => "XBT",
+        //                 "decimals" => 10,
+        //                 "display_decimals" => 5,
+        //                 "margin_rate" => 0.01,
+        //                 "status" => "enabled",
+        //             ),
+        //             "XETH" => array(
+        //                 "aclass" => "currency",
+        //                 "altname" => "ETH",
+        //                 "decimals" => 10,
+        //                 "display_decimals" => 5
+        //                 "margin_rate" => 0.02,
+        //                 "status" => "enabled",
+        //             ),
+        //             "XBT.M" => array(
+        //                 "aclass" => "currency",
+        //                 "altname" => "XBT.M",
+        //                 "decimals" => 10,
+        //                 "display_decimals" => 5
+        //                 "status" => "enabled",
+        //             ),
+        //             "ETH.M" => array(
+        //                 "aclass" => "currency",
+        //                 "altname" => "ETH.M",
         //                 "decimals" => 10,
         //                 "display_decimals" => 5
         //                 "status" => "enabled",
@@ -793,7 +832,29 @@ class kraken extends Exchange {
             // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
+            //
+            // Notes about abbreviations:
+            // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-$currency-$code-XBT-vs-BTC
+            // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+            //
             $code = $this->safe_currency_code($id);
+            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+            if (mb_strpos($id, '.') === false) {
+                $altName = $this->safe_string($currency, 'altname');
+                // handle cases like below:
+                //
+                //  $id   | altname
+                // ---------------
+                // XXBT  |  XBT
+                // ZUSD  |  USD
+                if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
+                    $code = $this->safe_currency_code($altName);
+                    // also, add map in commonCurrencies:
+                    $this->commonCurrencies[$id] = $code;
+                } else {
+                    $code = $this->safe_currency_code($id);
+                }
+            }
             $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             // assumes all $currencies are $active except those listed above
             $active = $this->safe_string($currency, 'status') === 'enabled';
@@ -821,6 +882,20 @@ class kraken extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function safe_currency_code(?string $currencyId, ?array $currency = null): ?string {
+        if ($currencyId === null) {
+            return $currencyId;
+        }
+        if (mb_strpos($currencyId, '.') > 0) {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            $parts = explode('.', $currencyId);
+            $firstPart = $this->safe_string($parts, 0);
+            $secondPart = $this->safe_string($parts, 1);
+            return parent::safe_currency_code($firstPart, $currency) . '.' . $secondPart;
+        }
+        return parent::safe_currency_code($currencyId, $currency);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array ()): array {

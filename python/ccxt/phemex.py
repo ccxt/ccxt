@@ -3580,14 +3580,14 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        code = self.safe_string_2(params, 'currency', 'code', 'USD')
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
         params = self.omit(params, ['currency', 'code'])
         settle = None
         market = None

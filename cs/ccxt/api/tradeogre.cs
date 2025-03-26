@@ -36,9 +36,9 @@ public partial class tradeogre : Exchange
         return await this.callAsync ("publicGetChartIntervalMarketTimestamp",parameters);
     }
 
-    public async Task<object> privateGetAccountBalance (object parameters = null)
+    public async Task<object> publicGetChartIntervalMarket (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBalance",parameters);
+        return await this.callAsync ("publicGetChartIntervalMarket",parameters);
     }
 
     public async Task<object> privateGetAccountBalances (object parameters = null)
@@ -74,6 +74,11 @@ public partial class tradeogre : Exchange
     public async Task<object> privatePostAccountOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountOrders",parameters);
+    }
+
+    public async Task<object> privatePostAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountBalance",parameters);
     }
 
 }

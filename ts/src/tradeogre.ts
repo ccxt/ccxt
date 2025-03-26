@@ -132,11 +132,11 @@ export default class tradeogre extends Exchange {
                         'ticker/{market}': 1,
                         'history/{market}': 1,
                         'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -146,6 +146,7 @@ export default class tradeogre extends Exchange {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -429,15 +430,15 @@ export default class tradeogre extends Exchange {
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': undefined,
+            'open': this.safeString (ticker, 'initialprice'),
+            'close': this.safeString (ticker, 'price'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
         }, market);
     }
@@ -451,6 +452,7 @@ export default class tradeogre extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -460,12 +462,15 @@ export default class tradeogre extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchOHLCV requires a since argument');
+        let response = undefined;
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['timestamp'] = this.parseToInt (until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
         } else {
-            request['timestamp'] = since;
+            response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         }
-        const response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
         //
         //     [
         //         [
@@ -495,9 +500,9 @@ export default class tradeogre extends Exchange {
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 5),
         ];
     }
@@ -606,11 +611,28 @@ export default class tradeogre extends Exchange {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        let response = undefined;
+        const currency = this.safeString (params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance (params);
+            const singleCurrencyresult: Dict = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode (currency);
+            const account = {
+                'total': this.safeNumber (response, 'balance'),
+                'free': this.safeNumber (response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance (singleCurrencyresult);
+        } else {
+            response = await this.privateGetAccountBalances (params);
+        }
         const result = this.safeDict (response, 'balances', {});
         return this.parseBalance (result);
     }
@@ -780,11 +802,11 @@ export default class tradeogre extends Exchange {
             'side': this.safeString (order, 'type'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': undefined,
-            'amount': this.safeString (order, 'quantity'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString (order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString (order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,

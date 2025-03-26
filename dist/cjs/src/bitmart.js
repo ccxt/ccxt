@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -259,6 +259,7 @@ class bitmart extends bitmart$1 {
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5,
                         'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
@@ -5119,6 +5120,7 @@ class bitmart extends bitmart$1 {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'
@@ -5154,6 +5156,7 @@ class bitmart extends bitmart$1 {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const isLimitOrder = (type === 'limit');
         const request = {
             'symbol': market['id'],
         };
@@ -5229,8 +5232,18 @@ class bitmart extends bitmart$1 {
             //     }
             //
         }
+        else if (isLimitOrder) {
+            request['order_id'] = this.parseToInt(id); // reparse id as int this endpoint is the only one requiring it
+            if (amount !== undefined) {
+                request['size'] = this.amountToPrecision(symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostContractPrivateModifyLimitOrder(this.extend(request, params));
+        }
         else {
-            throw new errors.NotSupported(this.id + ' editOrder() only supports trigger, stop loss and take profit orders');
+            throw new errors.NotSupported(this.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);

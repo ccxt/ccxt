@@ -1912,7 +1912,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -4706,7 +4705,7 @@ export default class Exchange {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
-                if (e instanceof NetworkError) {
+                if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + (i + 1).toString () + ' of ' + retries.toString () + '...');
@@ -4714,10 +4713,10 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
-                        // continue; //check this
+                    } else {
+                        throw e;
                     }
-                }
-                if (i >= retries) {
+                } else {
                     throw e;
                 }
             }

@@ -4,92 +4,8 @@
     "options": {},
     "methods": {
         "fetchOHLCV": [
-            {
-                "description": "Fetch OHLCV",
-                "method": "fetchOHLCV",
-                "input": [
-                    "BTC/USDT",
-                    "1m",
-                    1729180800,
-                    1
-                ],
-                "httpResponse": [
-                    [
-                        1729130040,
-                        67581.47235999,
-                        67581.47235999,
-                        67338.01,
-                        67338.01,
-                        6.72168016
-                    ]
-                ],
-                "parsedResponse": [
-                    [
-                        1729130040000,
-                        67581.47235999,
-                        67338.01,
-                        67338.01,
-                        67581.47235999,
-                        6.72168016
-                    ]
-                ]
-            }
         ],
         "fetchTickers": [
-            {
-                "description": "Tickers",
-                "method": "fetchTickers",
-                "input": [],
-                "httpResponse": [
-                    {
-                        "BTC-USDT": {
-                            "initialprice": "88922.25193499",
-                            "price" :"87009.58925465",
-                            "high":"88922.25193499",
-                            "low":"85000.00000000",
-                            "volume":"153873.51750094",
-                            "bid":"85466.85230678",
-                            "ask":"86949.55219244",
-                            "basename":"Bitcoin"
-                        }
-                    }
-                ],
-                "parsedResponse": {
-                    "BTC/USDT": {
-                        "symbol": "BTC/USDT",
-                        "timestamp": null,
-                        "datetime": null,
-                        "high": 88922.25193499,
-                        "low": 85000,
-                        "bid": 85466.85230678,
-                        "bidVolume": null,
-                        "ask": 86949.55219244,
-                        "askVolume": null,
-                        "vwap": null,
-                        "open": null,
-                        "close": null,
-                        "last": null,
-                        "previousClose": null,
-                        "change": null,
-                        "percentage": null,
-                        "average": null,
-                        "baseVolume": 153873.51750094,
-                        "quoteVolume": null,
-                        "info": {
-                            "initialprice": "88922.25193499",
-                            "price": "87009.58925465",
-                            "high": "88922.25193499",
-                            "low": "85000.00000000",
-                            "volume": "153873.51750094",
-                            "bid": "85466.85230678",
-                            "ask": "86949.55219244",
-                            "basename": "Bitcoin"
-                        },
-                        "indexPrice": null,
-                        "markPrice": null
-                    }
-                }
-            }
         ],
         "fetchOrder": [
             {
@@ -155,56 +71,6 @@
             }
         ],
         "fetchTicker": [
-            {
-                "description": "fetchTicker",
-                "method": "fetchTicker",
-                "input": [
-                    "BTC/USDT"
-                ],
-                "httpResponse": {
-                    "success": true,
-                    "initialprice": "68244.43002928",
-                    "price": "68392.46369987",
-                    "high": "68486.46918063",
-                    "low": "64690.69000000",
-                    "volume": "434035.66968030",
-                    "bid": "68128.17000000",
-                    "ask": "68392.46369986"
-                },
-                "parsedResponse": {
-                    "symbol": "BTC/USDT",
-                    "timestamp": null,
-                    "datetime": null,
-                    "high": 68486.46918063,
-                    "low": 64690.69,
-                    "bid": 68128.17,
-                    "bidVolume": null,
-                    "ask": 68392.46369986,
-                    "askVolume": null,
-                    "vwap": null,
-                    "open": null,
-                    "close": null,
-                    "last": null,
-                    "previousClose": null,
-                    "change": null,
-                    "percentage": null,
-                    "average": null,
-                    "baseVolume": 434035.6696803,
-                    "quoteVolume": null,
-                    "markPrice":  null,
-                    "indexPrice": null,
-                    "info": {
-                        "success": true,
-                        "initialprice": "68244.43002928",
-                        "price": "68392.46369987",
-                        "high": "68486.46918063",
-                        "low": "64690.69000000",
-                        "volume": "434035.66968030",
-                        "bid": "68128.17000000",
-                        "ask": "68392.46369986"
-                    }
-                }
-            }
         ],
         "fetchTrades": [
             {
