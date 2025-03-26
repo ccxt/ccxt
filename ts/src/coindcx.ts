@@ -163,7 +163,7 @@ export default class coindcx extends Exchange {
                         'exchange/ticker': 1, // done
                         'exchange/v1/markets': 1, // not unified
                         'exchange/v1/markets_details': 1, // done
-                        'exchange/v1/derivatives/futures/data/active_instruments': 1,
+                        'exchange/v1/derivatives/futures/data/active_instruments': 1, // done
                         'exchange/v1/derivatives/futures/data/instrument': 1,
                         'exchange/v1/derivatives/futures/data/trades': 1, // done
                     },
@@ -175,7 +175,7 @@ export default class coindcx extends Exchange {
                         'market_data/candles': 1, // done
                         'market_data/v3/orderbook/{pair}-futures/{limit}': 1, // done
                         'market_data/candlesticks': 1, // done
-                        'market_data/v3/current_prices/futures/rt': 1, // new
+                        'market_data/v3/current_prices/futures/rt': 1, // done
                     },
                 },
                 'private': {
@@ -459,14 +459,14 @@ export default class coindcx extends Exchange {
         //
         const swapMarketsUSDT = this.toArray (responseFromSwapUSDT);
         const parsedSwapMarketsUSDT = this.parseSwapMarkets (swapMarketsUSDT, 'USDT');
-        const request: Dict = {
-            'margin_currency_short_name[]': 'INR',
-        };
-        const responseFromSwapINR = await this.public1GetExchangeV1DerivativesFuturesDataActiveInstruments (this.extend (request, params));
-        const swapMarketsINR = this.toArray (responseFromSwapINR);
-        const parsedSwapMarketsINR = this.parseSwapMarkets (swapMarketsINR, 'INR');
-        let allMarkets = this.arrayConcat (parsedSpotMarkets, parsedSwapMarketsUSDT);
-        allMarkets = this.arrayConcat (allMarkets, parsedSwapMarketsINR);
+        // const request: Dict = {
+        //     'margin_currency_short_name[]': 'INR',
+        // };
+        // const responseFromSwapINR = await this.public1GetExchangeV1DerivativesFuturesDataActiveInstruments (this.extend (request, params));
+        // const swapMarketsINR = this.toArray (responseFromSwapINR);
+        // const parsedSwapMarketsINR = this.parseSwapMarkets (swapMarketsINR, 'INR');
+        const allMarkets = this.arrayConcat (parsedSpotMarkets, parsedSwapMarketsUSDT);
+        // allMarkets = this.arrayConcat (allMarkets, parsedSwapMarketsINR);
         return allMarkets;
     }
 
@@ -692,34 +692,73 @@ export default class coindcx extends Exchange {
         /**
          * @method
          * @name coindcx#fetchTickers
-         * @description *for spot markets only* fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.coindcx.com/#ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.public1GetExchangeTicker (params);
-        //
-        // [
-        //     {
-        //         "market": "BTCINR",
-        //         "change_24_hour": "1.486",
-        //         "high": "6199999.0",
-        //         "low": "6028180.13",
-        //         "volume": "16901590.410328545",
-        //         "last_price": "6181299.060000000000",
-        //         "bid": "6103600.520000000000",
-        //         "ask": "6180699.010000000000",
-        //         "timestamp": 1717616755
-        //     }
-        // ]
-        //
-        return this.parseTickers (response, symbols);
+        let marketType = 'spot';
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols, undefined, true, false);
+            market = this.getMarketFromSymbols (symbols);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let rawTickers = undefined;
+        if (marketType === 'spot') {
+            //
+            //     [
+            //         {
+            //             "market": "BTCINR",
+            //             "change_24_hour": "1.486",
+            //             "high": "6199999.0",
+            //             "low": "6028180.13",
+            //             "volume": "16901590.410328545",
+            //             "last_price": "6181299.060000000000",
+            //             "bid": "6103600.520000000000",
+            //             "ask": "6180699.010000000000",
+            //             "timestamp": 1717616755
+            //         }
+            //     ]
+            //
+            rawTickers = await this.public1GetExchangeTicker (params);
+        } else {
+            const response = await this.public2GetMarketDataV3CurrentPricesFuturesRt (params);
+            //
+            //     {
+            //         "ts": 1720429586580,
+            //         "vs": 54009972,
+            //         "prices": {
+            //             "B-NTRN_USDT": {
+            //                 "fr": 5e-05,
+            //                 "h": 0.4027,
+            //                 "l": 0.3525,
+            //                 "v": 18568384.9349,
+            //                 "ls": 0.4012,
+            //                 "pc": 4.834,
+            //                 "mkt": "NTRNUSDT",
+            //                 "btST": 1720429583629,
+            //                 "ctRT": 1720429584517,
+            //                 "skw": -207,
+            //                 "mp": 0.40114525,
+            //                 "efr": 5e-05,
+            //                 "bmST": 1720429586000,
+            //                 "cmRT": 1720429586117
+            //             }
+            //         }
+            //     }
+            //
+            rawTickers = this.safeDict (response, 'prices', {});
+        }
+        return this.parseTickers (rawTickers, symbols);
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
+        // spot
         //  {
         //      "market": "BTCINR",
         //      "change_24_hour": "1.486",
@@ -732,12 +771,33 @@ export default class coindcx extends Exchange {
         //      "timestamp": 1717616755
         //  }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        // swap
+        //     {
+        //         "fr": 5e-05,
+        //         "h": 0.4027,
+        //         "l": 0.3525,
+        //         "v": 18568384.9349,
+        //         "ls": 0.4012,
+        //         "pc": 4.834,
+        //         "mkt": "NTRNUSDT",
+        //         "btST": 1720429583629,
+        //         "ctRT": 1720429584517,
+        //         "skw": -207,
+        //         "mp": 0.40114525,
+        //         "efr": 5e-05,
+        //         "bmST": 1720429586000,
+        //         "cmRT": 1720429586117
+        //     }
+        //
+        let timestamp = this.safeTimestamp (ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (ticker, 'btST');
+        }
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeString (ticker, 'last_price');
-        const percentage = this.safeString (ticker, 'change_24_hour');
+        const last = this.safeString2 (ticker, 'last_price', 'ls');
+        const percentage = this.safeString2 (ticker, 'change_24_hour', 'pc');
         const changeProportion = Precise.stringDiv (percentage, '100');
         const inversedProportion = Precise.stringAdd ('1', changeProportion);
         const open = Precise.stringDiv (last, inversedProportion);
@@ -745,8 +805,8 @@ export default class coindcx extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
             'bid': undefined,
             'bidVolume': this.safeString (ticker, 'bid'),
             'ask': undefined,
@@ -760,7 +820,7 @@ export default class coindcx extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': undefined, // exchange provides value in INR
             'info': ticker,
         }, market);
     }
