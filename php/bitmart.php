@@ -39,6 +39,7 @@ class bitmart extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
