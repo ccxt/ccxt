@@ -615,7 +615,7 @@ export default class Exchange {
         this.afterConstruct ();
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (...args: any) {
         // @ts-expect-error
         return encodeURIComponent (...args)
     }
@@ -709,7 +709,7 @@ export default class Exchange {
         }
     }
 
-    log (... args) {
+    log (...args: any) {
         console.log (... args)
     }
 
@@ -2057,7 +2057,7 @@ export default class Exchange {
         return -1;
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe: IndexType, timeframes: Dict = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
@@ -4605,7 +4605,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    resolvePath (path, params) {
+    resolvePath (path: string, params: Dict) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
@@ -4668,7 +4668,7 @@ export default class Exchange {
         return results;
     }
 
-    async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    async fetch2 (path: string, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -4705,7 +4705,7 @@ export default class Exchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    async request (path: string, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         return await this.fetch2 (path, api, method, params, headers, body, config);
     }
 
@@ -5036,7 +5036,7 @@ export default class Exchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key, mapping = {}) {
+    getSupportedMapping (key: string, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
         } else {
@@ -5193,7 +5193,7 @@ export default class Exchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exact, string, message) {
+    throwExactlyMatchedException (exact, string: IndexType, message: string) {
         if (string === undefined) {
             return;
         }
@@ -5202,7 +5202,7 @@ export default class Exchange {
         }
     }
 
-    throwBroadlyMatchedException (broad, string, message) {
+    throwBroadlyMatchedException (broad, string: IndexType, message: string) {
         const broadKey = this.findBroadlyMatchedKey (broad, string);
         if (broadKey !== undefined) {
             throw new broad[broadKey] (message);
@@ -6174,7 +6174,7 @@ export default class Exchange {
         }
     }
 
-    forceString (value) {
+    forceString (value: IndexType) {
         if (typeof value !== 'string') {
             return this.numberToString (value);
         }
