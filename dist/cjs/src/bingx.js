@@ -42,6 +42,7 @@ class bingx extends bingx$1 {
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
+                'createReduceOnlyOrder': true,
                 'createStopLossOrder': true,
                 'createStopOrder': true,
                 'createTakeProfitOrder': true,
