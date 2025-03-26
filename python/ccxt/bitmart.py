@@ -61,6 +61,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
