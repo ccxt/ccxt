@@ -1125,6 +1125,18 @@ public partial class Exchange
         }
     }
 
+    public async Task<object> getZKContractSignatureObj(object seed, object params)
+    {
+        throw new Exception ('Apex currently does not support create order in C# language');
+        return "";
+    }
+
+    public async Task<object> getZKTransferSignatureObj(object seed, object params)
+    {
+        throw new Exception ('Apex currently does not support transfer asset in C# language');
+        return "";
+    }
+
 }
 
 public static class BoolExtensions

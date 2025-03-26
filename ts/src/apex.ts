@@ -1394,7 +1394,7 @@ export default class apex extends Exchange {
             }
         }
         const tokenId = this.safeString (currency, 'tokenId', '');
-        const amountNumber = BigInt (amount * (10 ** this.safeNumber (currency, 'decimals', 0)));
+        const amountNumber = this.parseToInt (amount * (10 ** this.safeNumber (currency, 'decimals', 0)));
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
@@ -1402,10 +1402,8 @@ export default class apex extends Exchange {
         }
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
-            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (clientOrderId), sha256, 'hex'))).toString ();
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
-            const zkNonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
             const orderToSign = {
                 'zkAccountId': zkSignAccountId,
@@ -1415,8 +1413,9 @@ export default class apex extends Exchange {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString (),
                 'fee': '0',
-                'nonce': zkNonce,
+                'nonce': clientOrderId,
                 'timestampSeconds': expireTime,
+                'isContract': true,
             };
             const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.safeString (this.options, 'seeds')), orderToSign);
             const request: Dict = {

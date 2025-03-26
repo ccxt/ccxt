@@ -1557,6 +1557,12 @@ export default class Exchange {
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
+        let nonce = this.safeString (params, 'nonce', '0')
+        if (this.safeBool(params, 'isContract') === true){
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
+            nonce = Precise.stringMod (formattedNonce, formattedUint32);
+        }
         let tx_builder = new zklink.TransferBuilder (this.safeNumber (params, 'zkAccountId', 0),
             this.safeString (params, 'receiverAddress'),
             this.safeNumber (params, 'subAccountId', 0),
@@ -1564,7 +1570,7 @@ export default class Exchange {
             this.safeNumber (params, 'tokenId', 0),
             this.safeString (params, 'fee','0'),
             this.safeString (params, 'amount','0'),
-            this.safeNumber (params, 'nonce', 0),
+            this.parseToInt(nonce),
             this.safeNumber (params, 'timestampSeconds', 0));
         let contractor = zklink.newTransfer (tx_builder);
         //const signer = ZkLinkSigner.ethSig(seed);

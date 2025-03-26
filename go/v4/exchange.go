@@ -1094,6 +1094,37 @@ func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
 	return nil // to do
 }
 
+func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Apex currently does not support create order in Go language"
+	}()
+	return ch
+}
+func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Apex currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.Options, options)
