@@ -5170,8 +5170,7 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         if (id !== undefined) {
-            const idParsed = isLimitOrder ? this.parseToInt (id) : id;
-            request['order_id'] = idParsed;
+            request['order_id'] = id;
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
@@ -5233,6 +5232,7 @@ export default class bitmart extends Exchange {
             //     }
             //
         } else if (isLimitOrder) {
+            request['order_id'] = this.parseToInt (id); // reparse id as int this endpoint is the only one requiring it
             if (amount !== undefined) {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
