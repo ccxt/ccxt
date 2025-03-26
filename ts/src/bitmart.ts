@@ -5170,7 +5170,8 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         if (id !== undefined) {
-            request['order_id'] = id;
+            const idParsed = isLimitOrder ? this.parseToInt (id) : id;
+            request['order_id'] = idParsed;
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
