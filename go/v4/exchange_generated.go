@@ -4615,8 +4615,8 @@ func  (this *Exchange) SafeMarket(optionalArgs ...interface{}) interface{}  {
             if IsTrue(IsEqual(partsLength, 2)) {
                 AddElementToObject(result, "baseId", this.SafeString(parts, 0))
                 AddElementToObject(result, "quoteId", this.SafeString(parts, 1))
-                AddElementToObject(result, "base", this.SafeCurrencyCode(GetValue(result, "baseId")))
-                AddElementToObject(result, "quote", this.SafeCurrencyCode(GetValue(result, "quoteId")))
+                AddElementToObject(result, "base", this.DerivedExchange.SafeCurrencyCode(GetValue(result, "baseId")))
+                AddElementToObject(result, "quote", this.DerivedExchange.SafeCurrencyCode(GetValue(result, "quoteId")))
                 AddElementToObject(result, "symbol", Add(Add(GetValue(result, "base"), "/"), GetValue(result, "quote")))
                 return result
             } else {
