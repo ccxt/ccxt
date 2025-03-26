@@ -228,13 +228,13 @@ export default class kraken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                // about X & Z prefixes and .S & .M suffixes, see comment under fetchCurrencies
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
-                'XBT.M': 'BTC.M',
                 'XDG': 'DOGE',
             },
             'options': {
@@ -774,9 +774,48 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "BCH": {
+        //             "ATOM": {
         //                 "aclass": "currency",
-        //                 "altname": "BCH",
+        //                 "altname": "ATOM",
+        //                 "collateral_value": "0.7",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "ATOM.S": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM.S",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "status": "enabled",
+        //             },
+        //             "XXBT": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5,
+        //                 "margin_rate": 0.01,
+        //                 "status": "enabled",
+        //             },
+        //             "XETH": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "XBT.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
+        //             "ETH.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH.M",
         //                 "decimals": 10,
         //                 "display_decimals": 5
         //                 "status": "enabled",
@@ -795,7 +834,30 @@ export default class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.safeCurrencyCode(id);
+            //
+            // Notes about abbreviations:
+            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+            //
+            let code = this.safeCurrencyCode(id);
+            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+            if (id.indexOf('.') < 0) {
+                const altName = this.safeString(currency, 'altname');
+                // handle cases like below:
+                //
+                //  id   | altname
+                // ---------------
+                // XXBT  |  XBT
+                // ZUSD  |  USD
+                if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
+                    code = this.safeCurrencyCode(altName);
+                    // also, add map in commonCurrencies:
+                    this.commonCurrencies[id] = code;
+                }
+                else {
+                    code = this.safeCurrencyCode(id);
+                }
+            }
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString(currency, 'status') === 'enabled';
@@ -823,6 +885,19 @@ export default class kraken extends Exchange {
             };
         }
         return result;
+    }
+    safeCurrencyCode(currencyId, currency = undefined) {
+        if (currencyId === undefined) {
+            return currencyId;
+        }
+        if (currencyId.indexOf('.') > 0) {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            const parts = currencyId.split('.');
+            const firstPart = this.safeString(parts, 0);
+            const secondPart = this.safeString(parts, 1);
+            return super.safeCurrencyCode(firstPart, currency) + '.' + secondPart;
+        }
+        return super.safeCurrencyCode(currencyId, currency);
     }
     /**
      * @method
