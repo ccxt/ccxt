@@ -43,6 +43,7 @@ export default class kraken extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
     /**
      * @method
      * @name kraken#fetchTradingFee
