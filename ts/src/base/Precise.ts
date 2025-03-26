@@ -36,7 +36,7 @@ class Precise {
         return new Precise (integerResult, this.decimals + other.decimals);
     }
 
-    div (other: Precise, precision = 18) {
+    div (other: Precise, precision = 26) {
         const distance = precision - this.decimals + other.decimals;
         let numerator: bigint;
         if (distance === 0) {
@@ -182,7 +182,7 @@ class Precise {
         return (new Precise (string1)).mul (new Precise (string2)).toString ();
     }
 
-    static stringDiv (string1: Str, string2: Str, precision = 18) {
+    static stringDiv (string1: Str, string2: Str, precision = 26) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
