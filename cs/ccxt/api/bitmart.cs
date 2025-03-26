@@ -541,6 +541,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privatePostContractPrivateModifyPresetPlanOrder",parameters);
     }
 
+    public async Task<object> privatePostContractPrivateModifyLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateModifyLimitOrder",parameters);
+    }
+
     public async Task<object> privatePostContractPrivateModifyTpSlOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostContractPrivateModifyTpSlOrder",parameters);
