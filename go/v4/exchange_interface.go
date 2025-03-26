@@ -233,4 +233,5 @@ type IDerivedExchange interface {
 	SetSandboxMode(enabled interface{})
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
+	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
 }
