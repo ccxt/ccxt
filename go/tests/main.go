@@ -6,20 +6,30 @@ import (
 	"github.com/ccxt/tests/base"
 )
 
+func runTests() <-chan interface{} {
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
+		if RUN_BASE_TETS {
+			<-base.BaseTestsInit()
+			fmt.Println("Base REST tests passed!")
+			return
+		}
+		tests := base.NewTestMainClass()
+
+		argvExchange := base.GetCliPositionalArg(0)
+		argvSymbol := base.GetCliPositionalArg(1)
+		argvMethod := base.GetCliPositionalArg(2)
+
+		res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
+		base.Print("Got res: " + base.ToString(res))
+		base.PanicOnError(res)
+		ch <- nil
+	}()
+	return ch
+}
+
 func main() {
-	RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
-	if RUN_BASE_TETS {
-		base.BaseTestsInit()
-		fmt.Println("Base REST tests passed!")
-		return
-	}
-	tests := base.NewTestMainClass()
-
-	argvExchange := base.GetCliPositionalArg(0)
-	argvSymbol := base.GetCliPositionalArg(1)
-	argvMethod := base.GetCliPositionalArg(2)
-
-	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
-	base.Print("Got res: " + base.ToString(res))
-	base.PanicOnError(res)
+	runTests()
 }
