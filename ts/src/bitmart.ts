@@ -5180,15 +5180,7 @@ export default class bitmart extends Exchange {
                 request['executive_price'] = this.priceToPrecision (symbol, price);
             }
         }
-        if (isLimitOrder) {
-            if (amount !== undefined) {
-                request['size'] = this.amountToPrecision (symbol, amount);
-            }
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            response = await this.privatePostContractPrivateModifyLimitOrder (this.extend (request, params));
-        } else if (isTriggerOrder) {
+        if (isTriggerOrder) {
             request['type'] = type;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             response = await this.privatePostContractPrivateModifyPlanOrder (this.extend (request, params));
@@ -5239,6 +5231,14 @@ export default class bitmart extends Exchange {
             //         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
             //     }
             //
+        } else if (isLimitOrder) {
+            if (amount !== undefined) {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            response = await this.privatePostContractPrivateModifyLimitOrder (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
