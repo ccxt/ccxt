@@ -1041,7 +1041,6 @@
         }
     },
     "huobijp": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "messed"
