@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../../base/ws/Cache.js';
 
-function equals (a, b) {
+function equals (a: any[], b: any[]) {
     if (a.length !== b.length) {
         return false;
     }

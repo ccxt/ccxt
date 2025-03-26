@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange, Strings } from "../../../ccxt";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -10,7 +10,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
     return true;
 }
 
-async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
+async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
     assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
