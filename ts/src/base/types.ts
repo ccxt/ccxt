@@ -628,32 +628,32 @@ export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
 interface BaseConstructorArgs {
     apiKey?: string;
-    secret?: string;
+    commonCurrencies?: Dict;
+    currencies?: Dict;
+    enableRateLimit?: boolean;
+    headers?: Dict;
+    hostname?: string
+    httpsProxy?: string;
+    markets?: Dict;
+    options?: Dict;
     password?: string;
     privateKey?: string;
-    walletAddress?: string;
-    uid?: string;
-    verbose?: boolean;
-    sandbox?: boolean; // redundant with testnet but kept for backward compatibility
-    testnet?: boolean;
-    options?: Dict;
-    enableRateLimit?: boolean;
-    httpsProxy?: string;
-    socksProxy?: string;
-    wssProxy?: string;
     proxy?: string;
     rateLimit?: number;
-    commonCurrencies?: Dict;
+    sandbox?: boolean; // redundant with testnet but kept for backward compatibility
+    secret?: string;
+    socksProxy?: string;
+    testnet?: boolean;
+    timeout?: number;
+    uid?: string;
+    urls?: Dict;
     userAgent?: string;
     userAgents?: Dict;
-    timeout?: number;
-    markets?: Dict;
-    currencies?: Dict;
-    hostname?: string
-    urls?: Dict;
-    headers?: Dict;
+    verbose?: boolean;
+    walletAddress?: string;
+    wssProxy?: string;
 }
 
 export type ConstructorArgs = Partial<BaseConstructorArgs> & {
     [key: string]: any;
-};
+}
