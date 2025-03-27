@@ -585,6 +585,8 @@ class ConstructorArgs(TypedDict, total=False):
     walletAddress: str
     uid: str
     verbose: bool
+    testnet: bool
+    sandbox: bool # redudant but kept for backwards compatibility
     options: Dict[str, Any]
     enableRateLimit: bool
     httpsProxy: str

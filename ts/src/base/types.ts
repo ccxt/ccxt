@@ -629,6 +629,8 @@ interface BaseConstructorArgs {
     walletAddress?: string;
     uid?: string;
     verbose?: boolean;
+    sandbox?: boolean; // redundant with testnet but kept for backward compatibility
+    testnet?: boolean;
     options?: Dict;
     enableRateLimit?: boolean;
     httpsProxy?: string;

@@ -613,6 +613,10 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
+
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
 
     encodeURIComponent (...args) {
