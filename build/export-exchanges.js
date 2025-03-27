@@ -5,6 +5,7 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs'
+import path from 'path'
 import log  from 'ololog'
 import ansi from 'ansicolor'
 import { pathToFileURL } from 'url'
@@ -38,7 +39,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function getIncludedExchangeIds (path) {
+function getIncludedExchangeIds (pathToDirectory) {
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
@@ -47,7 +48,7 @@ function getIncludedExchangeIds (path) {
         .filter (exchange => exchange); // filter empty lines
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-    const ids = fs.readdirSync (path)
+    const ids = fs.readdirSync (pathToDirectory)
         .filter (file => file.match (/[a-zA-Z0-9_-]+.ts$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -177,11 +178,11 @@ function extendedExchangesById (exchanges){
 // ----------------------------------------------------------------------------
 
 async function createExchanges (ids) {
-    const path = './ts/src/'
+    const pathToSrcDirectory = './ts/src/'
 
     // readd all files simultaneously
     const promiseReadFile = promisify (fs.readFile);
-    const fileArray = await Promise.all (ids.map (id => promiseReadFile (path + id + '.ts', 'utf8')));
+    const fileArray = await Promise.all (ids.map (id => promiseReadFile (pathToSrcDirectory + id + '.ts', 'utf8')));
 
 
     let exchanges = fileArray.map ((file, index) => createExchange(ids[index], file)).filter(exchange => exchange !== undefined)
@@ -404,8 +405,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , totalString = beginning + numExchanges + ending
             , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
             , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
+        for (const exchangePath of allExchangesPaths) {
+            logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
     }
 
@@ -418,8 +419,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , totalString = beginning + numProExchanges + ending
             , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
             , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
+        for (const exchangePath of proExchangesPaths) {
+            logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }
     }
 
@@ -428,17 +429,17 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
+        for (const exchangePath of certifiedExchangesPaths) {
+            logExportExchanges (exchangePath, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
     }
 
     if (exchangesByCountriesPaths) {
         const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
-        for (const path of exchangesByCountriesPaths) {
-            fs.truncateSync (path)
-            fs.writeFileSync (path, result)
+        for (const exchangePath of exchangesByCountriesPaths) {
+            fs.truncateSync (exchangePath)
+            fs.writeFileSync (exchangePath, result)
         }
     }
 }
@@ -511,8 +512,8 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 function getErrorHierarchy() {
-    const path = './ts/src/base/errorHierarchy.ts';
-    const content = fs.readFileSync (path, 'utf8');
+    const pathToErrorHierarchy = './ts/src/base/errorHierarchy.ts';
+    const content = fs.readFileSync (pathToErrorHierarchy, 'utf8');
     let errorObject = content.matchAll (/const\s*[\w\d]+\s*=\s({(.|\n)+});/gm).next().value[1];
     errorObject = errorObject.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
     errorObject = errorObject.replace(/'/g, '"');
@@ -732,10 +733,14 @@ async function exportEverything () {
 
 // ============================================================================
 // main entry point
+
+// remove extensions
 let metaUrl = import.meta.url
-metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+metaUrl = path.join(path.dirname(metaUrl), path.parse(metaUrl).name) 
 const url = pathToFileURL(process.argv[1]);
-const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+const href = path.join(path.dirname(url.href), path.parse(url.href).name)
+
+// compare paths to check if it's launched directly or included as a module
 if (metaUrl === href) {
 
     // if called directly like `node module`

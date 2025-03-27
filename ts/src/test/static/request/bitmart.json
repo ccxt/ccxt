@@ -800,6 +800,20 @@
         ],
         "editOrder": [
             {
+                "description": "edit swap limit order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-limit-order",
+                "input": [
+                    "3000013590000612",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    56
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"order_id\":3000013590000612,\"price\":\"56\"}"
+            },
+            {
                 "description": "edit a stopLossPrice order",
                 "method": "editOrder",
                 "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-tp-sl-order",

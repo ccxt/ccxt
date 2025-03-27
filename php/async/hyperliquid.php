@@ -1872,11 +1872,12 @@ class hyperliquid extends Exchange {
             $isTrigger = ($stopLossPrice || $takeProfitPrice);
             $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
             $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
-            $px = (string) $price;
+            $px = $this->number_to_string($price);
             if ($isMarket) {
-                $px = ($isBuy) ? (string) Precise::string_mul($price, Precise::string_add('1', $slippage)) : (string) Precise::string_mul($price, Precise::string_sub('1', $slippage));
+                $px = ($isBuy) ? Precise::string_mul($px, Precise::string_add('1', $slippage)) : Precise::string_mul($px, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px);
             } else {
-                $px = $this->price_to_precision($symbol, (string) $price);
+                $px = $this->price_to_precision($symbol, $px);
             }
             $sz = $this->amount_to_precision($symbol, $amount);
             $orderType = array();

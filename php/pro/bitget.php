@@ -48,6 +48,10 @@ class bitget extends \ccxt\async\bitget {
                         'public' => 'wss://ws.bitget.com/v2/ws/public',
                         'private' => 'wss://ws.bitget.com/v2/ws/private',
                     ),
+                    'demo' => array(
+                        'public' => 'wss://wspap.bitget.com/v2/ws/public',
+                        'private' => 'wss://wspap.bitget.com/v2/ws/private',
+                    ),
                 ),
             ),
             'options' => array(
@@ -1836,6 +1840,13 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public($messageHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $args, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),
@@ -1848,6 +1859,13 @@ class bitget extends \ccxt\async\bitget {
     public function un_watch_public($messageHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $args, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'unsubscribe',
                 'args' => array( $args ),
@@ -1860,6 +1878,14 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public_multiple($messageHashes, $argsArray, $params = array ()) {
         return Async\async(function () use ($messageHashes, $argsArray, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $argsArrayFirst = $this->safe_dict($argsArray, 0, array());
+                $instType = $this->safe_string($argsArrayFirst, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
                 'args' => $argsArray,
@@ -1872,7 +1898,7 @@ class bitget extends \ccxt\async\bitget {
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->safe_string($params, 'url');
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $future = $client->future ($messageHash);
@@ -1902,8 +1928,15 @@ class bitget extends \ccxt\async\bitget {
 
     public function watch_private($messageHash, $subscriptionHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $subscriptionHash, $args, $params) {
-            Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['private'];
+                }
+            }
+            Async\await($this->authenticate(array( 'url' => $url )));
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),

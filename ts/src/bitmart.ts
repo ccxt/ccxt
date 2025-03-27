@@ -43,6 +43,7 @@ export default class bitmart extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -260,6 +261,7 @@ export default class bitmart extends Exchange {
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5, // weight is not provided by the exchange, is set as ordinary order
                         'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
@@ -5123,6 +5125,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'
@@ -5158,6 +5161,7 @@ export default class bitmart extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const isLimitOrder = (type === 'limit');
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -5228,8 +5232,17 @@ export default class bitmart extends Exchange {
             //         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
             //     }
             //
+        } else if (isLimitOrder) {
+            request['order_id'] = this.parseToInt (id); // reparse id as int this endpoint is the only one requiring it
+            if (amount !== undefined) {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            response = await this.privatePostContractPrivateModifyLimitOrder (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' editOrder() only supports trigger, stop loss and take profit orders');
+            throw new NotSupported (this.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
