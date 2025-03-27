@@ -1028,7 +1028,7 @@ class okx(Exchange, ImplicitAPI):
                     'AVAXX': 'Avalanche X-Chain',
                     'BASE': 'Base',
                     'SUI': 'SUI',
-                    'ZKSYNC': 'zkSync Era',
+                    'ZKSYNCERA': 'zkSync Era',
                     'LINEA': 'Linea',
                     'AR': 'Arweave',
                     'ASTR': 'Astar',
